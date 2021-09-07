@@ -1,6 +1,11 @@
 use said::derivation::SelfAddressing;
-use serde::{Deserialize, Serialize, Serializer};
-use std::collections::{BTreeMap, HashMap};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+mod capture_base;
+mod overlay;
+use crate::state::capture_base::CaptureBase;
+use crate::state::overlay::Overlay;
 
 #[derive(Serialize)]
 pub struct Bundle {
@@ -8,21 +13,14 @@ pub struct Bundle {
     overlays: Vec<Box<dyn Overlay>>,
 }
 
-erased_serde::serialize_trait_object!(Overlay);
-
 impl Bundle {
     fn new(encoding: Encoding, bundle_tr: HashMap<Language, BundleTranslation>) -> Bundle {
         let mut bundle = Bundle {
-            capture_base: CaptureBase {
-                schema_type: String::from("spec/capture_base/1.0"),
-                classification: String::from("classification"),
-                attributes: HashMap::new(),
-                pii: Vec::new(),
-            },
-            overlays: vec![CharacterEncodingOverlay::new(&encoding)],
+            capture_base: CaptureBase::new(),
+            overlays: vec![overlay::CharacterEncoding::new(&encoding)],
         };
         for (lang, translation) in bundle_tr.iter() {
-            bundle.overlays.push(MetaOverlay::new(lang, translation));
+            bundle.overlays.push(overlay::Meta::new(lang, translation));
         }
         bundle
     }
@@ -46,7 +44,7 @@ impl Bundle {
                 .iter_mut()
                 .find(|x| x.overlay_type().contains("/format/"));
             if format_ov.is_none() {
-                self.overlays.push(FormatOverlay::new());
+                self.overlays.push(overlay::Format::new());
                 format_ov = self.overlays.last_mut();
             }
 
@@ -61,7 +59,7 @@ impl Bundle {
                 .iter_mut()
                 .find(|x| x.overlay_type().contains("/unit/"));
             if unit_ov.is_none() {
-                self.overlays.push(UnitOverlay::new());
+                self.overlays.push(overlay::Unit::new());
                 unit_ov = self.overlays.last_mut();
             }
 
@@ -76,7 +74,7 @@ impl Bundle {
                 .iter_mut()
                 .find(|x| x.overlay_type().contains("/entry_code/"));
             if entry_code_ov.is_none() {
-                self.overlays.push(EntryCodeOverlay::new());
+                self.overlays.push(overlay::EntryCode::new());
                 entry_code_ov = self.overlays.last_mut();
             }
 
@@ -93,7 +91,7 @@ impl Bundle {
                 false
             });
             if label_ov.is_none() {
-                self.overlays.push(LabelOverlay::new(lang));
+                self.overlays.push(overlay::Label::new(lang));
                 label_ov = self.overlays.last_mut();
             }
             if let Some(ov) = label_ov {
@@ -108,7 +106,7 @@ impl Bundle {
                     false
                 });
                 if information_ov.is_none() {
-                    self.overlays.push(InformationOverlay::new(lang));
+                    self.overlays.push(overlay::Information::new(lang));
                     information_ov = self.overlays.last_mut();
                 }
                 if let Some(ov) = information_ov {
@@ -124,7 +122,7 @@ impl Bundle {
                     false
                 });
                 if entry_ov.is_none() {
-                    self.overlays.push(EntryOverlay::new(lang));
+                    self.overlays.push(overlay::Entry::new(lang));
                     entry_ov = self.overlays.last_mut();
                 }
                 if let Some(ov) = entry_ov {
@@ -143,7 +141,7 @@ impl Bundle {
     }
 }
 
-struct Attribute {
+pub struct Attribute {
     name: String,
     attr_type: AttributeType,
     is_pii: bool,
@@ -178,41 +176,15 @@ impl Attribute {
     }
 }
 
+pub struct BundleTranslation {
+    name: String,
+    descritpion: String,
+}
+
 struct AttributeTranslation {
     label: String,
     entries: Option<HashMap<String, String>>,
     information: Option<String>,
-}
-
-fn ordered_attributes<S>(
-    value: &HashMap<String, AttributeType>,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    let ordered: BTreeMap<_, _> = value.iter().collect();
-    ordered.serialize(serializer)
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct CaptureBase {
-    #[serde(rename = "type")]
-    schema_type: String,
-    classification: String,
-    #[serde(serialize_with = "ordered_attributes")]
-    attributes: HashMap<String, AttributeType>,
-    pii: Vec<String>,
-}
-
-impl CaptureBase {
-    fn add(&mut self, attribute: &Attribute) {
-        self.attributes
-            .insert(attribute.name.clone(), attribute.attr_type);
-        if attribute.is_pii {
-            self.pii.push(attribute.name.clone());
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
@@ -222,326 +194,6 @@ pub enum AttributeType {
     Date,
     #[serde(rename = "Array[Text]")]
     ArrayText,
-}
-
-trait Overlay: erased_serde::Serialize {
-    fn capture_base(&mut self) -> &mut String;
-    fn overlay_type(&self) -> &String;
-    fn language(&self) -> Option<&Language> {
-        None
-    }
-
-    fn add(&mut self, attribute: &Attribute);
-
-    fn sign(&mut self, capture_base_sai: &str) {
-        self.capture_base().clear();
-        self.capture_base().push_str(capture_base_sai);
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct MetaOverlay {
-    capture_base: String,
-    #[serde(rename = "type")]
-    overlay_type: String,
-    language: Language,
-    name: String,
-    descritpion: String,
-}
-
-impl Overlay for MetaOverlay {
-    fn capture_base(&mut self) -> &mut String {
-        &mut self.capture_base
-    }
-    fn overlay_type(&self) -> &String {
-        &self.overlay_type
-    }
-    fn language(&self) -> Option<&Language> {
-        Some(&self.language)
-    }
-
-    fn add(&mut self, _attribute: &Attribute) {}
-}
-impl MetaOverlay {
-    fn new(lang: &Language, bundle_tr: &BundleTranslation) -> Box<MetaOverlay> {
-        Box::new(MetaOverlay {
-            capture_base: String::new(),
-            overlay_type: "spec/overalys/meta/1.0".to_string(),
-            language: *lang,
-            name: bundle_tr.name.clone(),
-            descritpion: bundle_tr.descritpion.clone(),
-        })
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct CharacterEncodingOverlay {
-    capture_base: String,
-    #[serde(rename = "type")]
-    overlay_type: String,
-    default_character_encoding: Encoding,
-    attr_character_encoding: HashMap<String, Encoding>,
-}
-
-impl Overlay for CharacterEncodingOverlay {
-    fn capture_base(&mut self) -> &mut String {
-        &mut self.capture_base
-    }
-    fn overlay_type(&self) -> &String {
-        &self.overlay_type
-    }
-
-    fn add(&mut self, attribute: &Attribute) {
-        self.attr_character_encoding
-            .insert(attribute.name.clone(), attribute.encoding.unwrap());
-    }
-}
-impl CharacterEncodingOverlay {
-    fn new(encoding: &Encoding) -> Box<CharacterEncodingOverlay> {
-        Box::new(CharacterEncodingOverlay {
-            capture_base: String::new(),
-            overlay_type: "spec/overalys/character_encoding/1.0".to_string(),
-            default_character_encoding: *encoding,
-            attr_character_encoding: HashMap::new(),
-        })
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct FormatOverlay {
-    capture_base: String,
-    #[serde(rename = "type")]
-    overlay_type: String,
-    attr_formats: HashMap<String, String>,
-}
-
-impl Overlay for FormatOverlay {
-    fn capture_base(&mut self) -> &mut String {
-        &mut self.capture_base
-    }
-    fn overlay_type(&self) -> &String {
-        &self.overlay_type
-    }
-
-    fn add(&mut self, attribute: &Attribute) {
-        if attribute.format.is_some() {
-            self.attr_formats.insert(
-                attribute.name.clone(),
-                attribute.format.as_ref().unwrap().clone(),
-            );
-        }
-    }
-}
-impl FormatOverlay {
-    fn new() -> Box<FormatOverlay> {
-        Box::new(FormatOverlay {
-            capture_base: String::new(),
-            overlay_type: "spec/overalys/format/1.0".to_string(),
-            attr_formats: HashMap::new(),
-        })
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct UnitOverlay {
-    capture_base: String,
-    #[serde(rename = "type")]
-    overlay_type: String,
-    attr_units: HashMap<String, String>,
-}
-
-impl Overlay for UnitOverlay {
-    fn capture_base(&mut self) -> &mut String {
-        &mut self.capture_base
-    }
-    fn overlay_type(&self) -> &String {
-        &self.overlay_type
-    }
-
-    fn add(&mut self, attribute: &Attribute) {
-        if attribute.unit.is_some() {
-            self.attr_units.insert(
-                attribute.name.clone(),
-                attribute.unit.as_ref().unwrap().clone(),
-            );
-        }
-    }
-}
-impl UnitOverlay {
-    fn new() -> Box<UnitOverlay> {
-        Box::new(UnitOverlay {
-            capture_base: String::new(),
-            overlay_type: "spec/overalys/unit/1.0".to_string(),
-            attr_units: HashMap::new(),
-        })
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct EntryCodeOverlay {
-    capture_base: String,
-    #[serde(rename = "type")]
-    overlay_type: String,
-    attr_entry_codes: HashMap<String, Vec<String>>,
-}
-
-impl Overlay for EntryCodeOverlay {
-    fn capture_base(&mut self) -> &mut String {
-        &mut self.capture_base
-    }
-    fn overlay_type(&self) -> &String {
-        &self.overlay_type
-    }
-
-    fn add(&mut self, attribute: &Attribute) {
-        if attribute.entry_codes.is_some() {
-            self.attr_entry_codes.insert(
-                attribute.name.clone(),
-                attribute.entry_codes.as_ref().unwrap().clone(),
-            );
-        }
-    }
-}
-impl EntryCodeOverlay {
-    fn new() -> Box<EntryCodeOverlay> {
-        Box::new(EntryCodeOverlay {
-            capture_base: String::new(),
-            overlay_type: "spec/overalys/entry_code/1.0".to_string(),
-            attr_entry_codes: HashMap::new(),
-        })
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct LabelOverlay {
-    capture_base: String,
-    #[serde(rename = "type")]
-    overlay_type: String,
-    language: Language,
-    attr_labels: HashMap<String, String>,
-    attr_categories: Vec<String>,
-    cat_labels: HashMap<String, String>,
-    cat_attributes: HashMap<String, Vec<String>>,
-}
-
-impl Overlay for LabelOverlay {
-    fn capture_base(&mut self) -> &mut String {
-        &mut self.capture_base
-    }
-    fn overlay_type(&self) -> &String {
-        &self.overlay_type
-    }
-    fn language(&self) -> Option<&Language> {
-        Some(&self.language)
-    }
-
-    fn add(&mut self, attribute: &Attribute) {
-        if let Some(tr) = attribute.translations.get(&self.language) {
-            self.attr_labels
-                .insert(attribute.name.clone(), tr.label.clone());
-            self.cat_attributes
-                .get_mut("_cat-1_")
-                .unwrap()
-                .push(attribute.name.clone());
-        }
-    }
-}
-impl LabelOverlay {
-    fn new(lang: &Language) -> Box<LabelOverlay> {
-        let mut cat_labels = HashMap::new();
-        cat_labels.insert(String::from("_cat-1_"), String::from("Category 1"));
-        let mut cat_attributes = HashMap::new();
-        cat_attributes.insert(String::from("_cat-1_"), vec![]);
-        Box::new(LabelOverlay {
-            capture_base: String::new(),
-            overlay_type: "spec/overalys/label/1.0".to_string(),
-            language: *lang,
-            attr_labels: HashMap::new(),
-            attr_categories: vec![String::from("_cat-1_")],
-            cat_labels,
-            cat_attributes,
-        })
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct InformationOverlay {
-    capture_base: String,
-    #[serde(rename = "type")]
-    overlay_type: String,
-    language: Language,
-    attr_information: HashMap<String, String>,
-}
-
-impl Overlay for InformationOverlay {
-    fn capture_base(&mut self) -> &mut String {
-        &mut self.capture_base
-    }
-    fn overlay_type(&self) -> &String {
-        &self.overlay_type
-    }
-    fn language(&self) -> Option<&Language> {
-        Some(&self.language)
-    }
-
-    fn add(&mut self, attribute: &Attribute) {
-        if let Some(tr) = attribute.translations.get(&self.language) {
-            if let Some(info) = &tr.information {
-                self.attr_information
-                    .insert(attribute.name.clone(), info.clone());
-            }
-        }
-    }
-}
-impl InformationOverlay {
-    fn new(lang: &Language) -> Box<InformationOverlay> {
-        Box::new(InformationOverlay {
-            capture_base: String::new(),
-            overlay_type: "spec/overalys/information/1.0".to_string(),
-            language: *lang,
-            attr_information: HashMap::new(),
-        })
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct EntryOverlay {
-    capture_base: String,
-    #[serde(rename = "type")]
-    overlay_type: String,
-    language: Language,
-    attr_entries: HashMap<String, HashMap<String, String>>,
-}
-
-impl Overlay for EntryOverlay {
-    fn capture_base(&mut self) -> &mut String {
-        &mut self.capture_base
-    }
-    fn overlay_type(&self) -> &String {
-        &self.overlay_type
-    }
-    fn language(&self) -> Option<&Language> {
-        Some(&self.language)
-    }
-
-    fn add(&mut self, attribute: &Attribute) {
-        if let Some(tr) = attribute.translations.get(&self.language) {
-            if let Some(entries) = &tr.entries {
-                self.attr_entries
-                    .insert(attribute.name.clone(), entries.clone());
-            }
-        }
-    }
-}
-impl EntryOverlay {
-    fn new(lang: &Language) -> Box<EntryOverlay> {
-        Box::new(EntryOverlay {
-            capture_base: String::new(),
-            overlay_type: "spec/overalys/entry/1.0".to_string(),
-            language: *lang,
-            attr_entries: HashMap::new(),
-        })
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone, Copy)]
@@ -558,11 +210,6 @@ pub enum Encoding {
     Utf8,
     #[serde(rename = "iso-8859-1")]
     Iso8859_1,
-}
-
-struct BundleTranslation {
-    name: String,
-    descritpion: String,
 }
 
 #[cfg(test)]
