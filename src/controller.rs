@@ -6,8 +6,10 @@ pub type GenericError = Box<dyn std::error::Error + Sync + Send>;
 pub type GenericResult<T> = Result<T, GenericError>;
 
 pub fn load(source: &mut dyn Read) -> GenericResult<()> {
+    /*
     let v: Bundle = serde_json::from_reader(source)?;
     println!("{:?}", v);
+    */
 
     Ok(())
 }
