@@ -1,3 +1,3 @@
 pub mod controller;
 mod io;
-mod state;
+pub mod state;

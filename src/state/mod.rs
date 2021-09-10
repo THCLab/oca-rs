@@ -9,15 +9,15 @@ use crate::state::overlay::Overlay;
 
 #[derive(Serialize)]
 pub struct Bundle {
-    capture_base: CaptureBase,
-    overlays: Vec<Box<dyn Overlay>>,
+    pub capture_base: CaptureBase,
+    pub overlays: Vec<Box<dyn Overlay>>,
 }
 
 impl Bundle {
-    fn new(encoding: Encoding, bundle_tr: HashMap<Language, BundleTranslation>) -> Bundle {
+    pub fn new(default_encoding: Encoding, bundle_tr: HashMap<Language, BundleTranslation>) -> Bundle {
         let mut bundle = Bundle {
             capture_base: CaptureBase::new(),
-            overlays: vec![overlay::CharacterEncoding::new(&encoding)],
+            overlays: vec![overlay::CharacterEncoding::new(&default_encoding)],
         };
         for (lang, translation) in bundle_tr.iter() {
             bundle.overlays.push(overlay::Meta::new(lang, translation));
@@ -25,7 +25,7 @@ impl Bundle {
         bundle
     }
 
-    fn add_attribute(&mut self, attr: Attribute) {
+    pub fn add_attribute(&mut self, attr: Attribute) {
         self.capture_base.add(&attr);
 
         if attr.encoding.is_some() {
@@ -132,7 +132,7 @@ impl Bundle {
         }
     }
 
-    fn sign(&mut self) {
+    pub fn sign(&mut self) {
         let cs_json = serde_json::to_string(&self.capture_base).unwrap();
         let sai = format!("{}", SelfAddressing::Blake3_256.derive(cs_json.as_bytes()));
         for o in self.overlays.iter_mut() {
@@ -153,7 +153,7 @@ pub struct Attribute {
 }
 
 impl Attribute {
-    fn new(
+    pub fn new(
         name: String,
         attr_type: AttributeType,
         is_pii: bool,
@@ -176,15 +176,36 @@ impl Attribute {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct BundleTranslation {
     name: String,
     descritpion: String,
 }
 
-struct AttributeTranslation {
+impl BundleTranslation {
+    pub fn new(name: String, descritpion: String) -> BundleTranslation {
+        BundleTranslation { name, descritpion }
+    }
+}
+
+pub struct AttributeTranslation {
     label: String,
     entries: Option<HashMap<String, String>>,
     information: Option<String>,
+}
+
+impl AttributeTranslation {
+    pub fn new(
+        label: String,
+        entries: Option<HashMap<String, String>>,
+        information: Option<String>,
+    ) -> AttributeTranslation {
+        AttributeTranslation {
+            label,
+            entries,
+            information,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
@@ -221,17 +242,17 @@ mod tests {
         let mut bundle_tr: HashMap<Language, BundleTranslation> = HashMap::new();
         bundle_tr.insert(
             Language::EnUs,
-            BundleTranslation {
-                name: String::from("Driving Licence"),
-                descritpion: String::from("DL oca schema"),
-            },
+            BundleTranslation::new(
+                String::from("Driving Licence"),
+                String::from("DL oca schema"),
+            ),
         );
         bundle_tr.insert(
             Language::PlPl,
-            BundleTranslation {
-                name: String::from("Prawo Jazdy"),
-                descritpion: String::from("PJ oca"),
-            },
+            BundleTranslation::new(
+                String::from("Prawo Jazdy"),
+                String::from("PJ oca"),
+            ),
         );
         let mut bundle = Bundle::new(Encoding::Utf8, bundle_tr);
 
@@ -241,22 +262,22 @@ mod tests {
         attr1_en_entries.insert("op2".to_string(), "Option 2".to_string());
         attr1_tr.insert(
             Language::EnUs,
-            AttributeTranslation {
-                label: String::from("Name:"),
-                entries: Some(attr1_en_entries),
-                information: Some("info en".to_string()),
-            },
+            AttributeTranslation::new(
+                String::from("Name:"),
+                Some(attr1_en_entries),
+                Some("info en".to_string()),
+            ),
         );
         let mut attr1_pl_entries = HashMap::new();
         attr1_pl_entries.insert("op1".to_string(), "Opcja 1".to_string());
         attr1_pl_entries.insert("op2".to_string(), "Opcja 2".to_string());
         attr1_tr.insert(
             Language::PlPl,
-            AttributeTranslation {
-                label: String::from("Imię:"),
-                entries: Some(attr1_pl_entries),
-                information: Some("info pl".to_string()),
-            },
+            AttributeTranslation::new(
+                String::from("Imię:"),
+                Some(attr1_pl_entries),
+                Some("info pl".to_string()),
+            ),
         );
         let attr1 = Attribute::new(
             String::from("n1"),
@@ -273,19 +294,11 @@ mod tests {
         let mut attr2_tr = HashMap::new();
         attr2_tr.insert(
             Language::EnUs,
-            AttributeTranslation {
-                label: String::from("Date:"),
-                entries: None,
-                information: None,
-            },
+            AttributeTranslation::new(String::from("Date:"), None, None),
         );
         attr2_tr.insert(
             Language::PlPl,
-            AttributeTranslation {
-                label: String::from("Data:"),
-                entries: None,
-                information: None,
-            },
+            AttributeTranslation::new(String::from("Data:"), None, None),
         );
         let attr2 = Attribute::new(
             String::from("n2"),
@@ -303,5 +316,6 @@ mod tests {
         println!("{:#?}", serde_json::to_string(&bundle).unwrap());
 
         assert_eq!(bundle.capture_base.attributes.len(), 2);
+        assert_eq!(bundle.capture_base.pii.len(), 1);
     }
 }
