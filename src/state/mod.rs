@@ -1,6 +1,9 @@
+use core::str::FromStr;
+
 use said::derivation::SelfAddressing;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use wasm_bindgen::prelude::*;
 
 mod capture_base;
 mod overlay;
@@ -14,7 +17,10 @@ pub struct Bundle {
 }
 
 impl Bundle {
-    pub fn new(default_encoding: Encoding, bundle_tr: HashMap<Language, BundleTranslation>) -> Bundle {
+    pub fn new(
+        default_encoding: Encoding,
+        bundle_tr: HashMap<Language, BundleTranslation>,
+    ) -> Bundle {
         let mut bundle = Bundle {
             capture_base: CaptureBase::new(),
             overlays: vec![overlay::CharacterEncoding::new(&default_encoding)],
@@ -141,6 +147,7 @@ impl Bundle {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Attribute {
     name: String,
     attr_type: AttributeType,
@@ -188,6 +195,7 @@ impl BundleTranslation {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AttributeTranslation {
     label: String,
     entries: Option<HashMap<String, String>>,
@@ -208,6 +216,7 @@ impl AttributeTranslation {
     }
 }
 
+#[wasm_bindgen]
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum AttributeType {
     Text,
@@ -217,14 +226,34 @@ pub enum AttributeType {
     ArrayText,
 }
 
+#[wasm_bindgen]
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum Language {
+    #[serde(rename = "en_EN")]
+    En,
     #[serde(rename = "en_US")]
     EnUs,
     #[serde(rename = "pl_PL")]
-    PlPl,
+    Pl,
 }
 
+impl FromStr for Language {
+    type Err = ();
+
+    fn from_str(input: &str) -> Result<Language, Self::Err> {
+        match input {
+            "0" => Ok(Language::En),
+            "En" => Ok(Language::En),
+            "1" => Ok(Language::EnUs),
+            "EnUs" => Ok(Language::EnUs),
+            "2" => Ok(Language::Pl),
+            "Pl" => Ok(Language::Pl),
+            _ => Err(()),
+        }
+    }
+}
+
+#[wasm_bindgen]
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum Encoding {
     #[serde(rename = "utf-8")]
@@ -248,11 +277,8 @@ mod tests {
             ),
         );
         bundle_tr.insert(
-            Language::PlPl,
-            BundleTranslation::new(
-                String::from("Prawo Jazdy"),
-                String::from("PJ oca"),
-            ),
+            Language::Pl,
+            BundleTranslation::new(String::from("Prawo Jazdy"), String::from("PJ oca")),
         );
         let mut bundle = Bundle::new(Encoding::Utf8, bundle_tr);
 
@@ -272,7 +298,7 @@ mod tests {
         attr1_pl_entries.insert("op1".to_string(), "Opcja 1".to_string());
         attr1_pl_entries.insert("op2".to_string(), "Opcja 2".to_string());
         attr1_tr.insert(
-            Language::PlPl,
+            Language::Pl,
             AttributeTranslation::new(
                 String::from("Imię:"),
                 Some(attr1_pl_entries),
@@ -297,7 +323,7 @@ mod tests {
             AttributeTranslation::new(String::from("Date:"), None, None),
         );
         attr2_tr.insert(
-            Language::PlPl,
+            Language::Pl,
             AttributeTranslation::new(String::from("Data:"), None, None),
         );
         let attr2 = Attribute::new(
