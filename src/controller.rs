@@ -1,5 +1,5 @@
 use super::io::*;
-use crate::state::Bundle;
+use crate::state::OCA;
 use std::io::Read;
 
 pub type GenericError = Box<dyn std::error::Error + Sync + Send>;
@@ -7,7 +7,7 @@ pub type GenericResult<T> = Result<T, GenericError>;
 
 pub fn load(source: &mut dyn Read) -> GenericResult<()> {
     /*
-    let v: Bundle = serde_json::from_reader(source)?;
+    let v: OCA = serde_json::from_reader(source)?;
     println!("{:?}", v);
     */
 

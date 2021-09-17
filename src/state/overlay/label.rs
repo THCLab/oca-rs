@@ -28,8 +28,10 @@ impl Overlay for LabelOverlay {
 
     fn add(&mut self, attribute: &Attribute) {
         if let Some(tr) = attribute.translations.get(&self.language) {
-            self.attr_labels
-                .insert(attribute.name.clone(), tr.label.clone());
+            if let Some(label) = &tr.label {
+                self.attr_labels
+                    .insert(attribute.name.clone(), label.clone());
+            }
             self.cat_attributes
                 .get_mut("_cat-1_")
                 .unwrap()

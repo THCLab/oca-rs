@@ -1,5 +1,5 @@
 use crate::state::Overlay;
-use crate::state::{Attribute, BundleTranslation, Language};
+use crate::state::{Attribute, Language, OCATranslation};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -9,7 +9,7 @@ pub struct MetaOverlay {
     overlay_type: String,
     language: Language,
     name: String,
-    descritpion: String,
+    description: String,
 }
 
 impl Overlay for MetaOverlay {
@@ -26,13 +26,17 @@ impl Overlay for MetaOverlay {
     fn add(&mut self, _attribute: &Attribute) {}
 }
 impl MetaOverlay {
-    pub fn new(lang: &Language, bundle_tr: &BundleTranslation) -> Box<MetaOverlay> {
+    pub fn new(lang: &Language, oca_tr: &OCATranslation) -> Box<MetaOverlay> {
         Box::new(MetaOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overalys/meta/1.0".to_string(),
             language: *lang,
-            name: bundle_tr.name.clone(),
-            descritpion: bundle_tr.descritpion.clone(),
+            name: oca_tr.name.as_ref().unwrap_or(&"".to_string()).clone(),
+            description: oca_tr
+                .description
+                .as_ref()
+                .unwrap_or(&"".to_string())
+                .clone(),
         })
     }
 }
