@@ -1,6 +1,5 @@
 [![Crate](https://img.shields.io/crates/v/oca-rust)](https://crates.io/crates/oca-rust)
-[![Rust](https://github.com/THCLab/oca-rust/actions/workflows/rust.yml/badge.svg?event=push)](https://github.com/THCLab/oca-rust/actions/workflows/rust.yml)
-
+[![Rust](https://github.com/THCLab/oca-rust/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/THCLab/oca-rust/actions/workflows/rust.yml)
 
 
 # Rust implementation of Overlays Capture architecture
