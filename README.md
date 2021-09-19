@@ -1,4 +1,4 @@
-[![Rust](https://github.com/THCLab/oca-rust/actions/workflows/rust.yml/badge.svg?event=release)](https://github.com/THCLab/oca-rust/actions/workflows/rust.yml)
+[![Rust](https://github.com/THCLab/oca-rust/actions/workflows/rust.yml/badge.svg?event=push)](https://github.com/THCLab/oca-rust/actions/workflows/rust.yml)
 
 
 
