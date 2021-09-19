@@ -17,12 +17,19 @@ See more on: https://oca.colossi.network/
 
     cargo test
 
-## How to use
+## Usage
+
+Add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+oca-rust = "0.1.0"
+```
+## Documentation:
+
+-   [OCA Spec](https://the-human-colossus-foundation.github.io/oca-spec/)
+-   [API reference (docs.rs)](https://docs.rs/oca-rust)
+
+    
 
 
-Add package to your `Cargo.toml`:
-
-    oca-rust = "0.1.0"
-
-
-See [documentation](https://docs.rs/oca-rust/0.1.0) for more information how to use it:
