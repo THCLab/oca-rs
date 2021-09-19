@@ -1,3 +1,7 @@
+[![Rust](https://github.com/THCLab/oca-rust/actions/workflows/rust.yml/badge.svg?event=release)](https://github.com/THCLab/oca-rust/actions/workflows/rust.yml)
+
+
+
 # Rust implementation of Overlays Capture architecture
 
 
