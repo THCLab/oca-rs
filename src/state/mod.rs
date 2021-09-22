@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use core::str::FromStr;
 
 use said::derivation::SelfAddressing;
@@ -16,6 +17,19 @@ pub struct OCA {
     pub overlays: Vec<Box<dyn Overlay>>,
     #[serde(skip)]
     translations: HashMap<Language, OCATranslation>,
+    #[serde(skip)]
+    errors: Vec<Error>,
+}
+
+#[derive(Debug)]
+pub struct Error {
+    pub msg: String
+}
+
+impl Error {
+    fn new(msg: String) -> Error {
+        Error { msg }
+    }
 }
 
 impl OCA {
@@ -24,42 +38,43 @@ impl OCA {
             capture_base: CaptureBase::new(),
             overlays: vec![overlay::CharacterEncoding::new(&default_encoding)],
             translations: HashMap::new(),
+            errors: vec![],
         }
     }
 
+    pub fn enforce_translations(mut self, languages: Vec<Language>) -> OCA {
+        for lang in languages.iter() {
+            self.translations.insert(*lang, OCATranslation::new());
+        }
+        self
+    }
+
     pub fn add_name(mut self, names: HashMap<Language, String>) -> OCA {
+        self.validate_translations(&names);
+
         for (lang, name) in names.iter() {
-            match self.translations.get_mut(lang) {
-                Some(t) => {
-                    t.add_name(name.clone());
-                }
-                None => {
-                    let mut tr = OCATranslation::new();
-                    tr.add_name(name.clone());
-                    self.translations.insert(*lang, tr);
-                }
+            if let Some(t) = self.translations.get_mut(lang) {
+                t.add_name(name.clone());
             }
         }
         self
     }
 
     pub fn add_description(mut self, descriptions: HashMap<Language, String>) -> OCA {
+        self.validate_translations(&descriptions);
+
         for (lang, description) in descriptions.iter() {
-            match self.translations.get_mut(lang) {
-                Some(t) => {
-                    t.add_description(description.clone());
-                }
-                None => {
-                    let mut tr = OCATranslation::new();
-                    tr.add_description(description.clone());
-                    self.translations.insert(*lang, tr);
-                }
+            if let Some(t) = self.translations.get_mut(lang) {
+                t.add_description(description.clone());
             }
         }
         self
     }
 
     pub fn add_attribute(mut self, attr: Attribute) -> OCA {
+        self.validate_translations(&attr.translations);
+        self.validate_attribute(&attr);
+
         self.capture_base.add(&attr);
 
         if attr.encoding.is_some() {
@@ -167,7 +182,11 @@ impl OCA {
         self
     }
 
-    pub fn finalize(mut self) -> OCA {
+    pub fn finalize(mut self) -> Result<OCA, Vec<Error>> {
+        if !self.errors.is_empty() {
+            return Err(self.errors);
+        }
+
         for (lang, translation) in self.translations.iter() {
             self.overlays.push(overlay::Meta::new(lang, translation));
         }
@@ -177,7 +196,106 @@ impl OCA {
         for o in self.overlays.iter_mut() {
             o.sign(&sai);
         }
-        self
+        Ok(self)
+    }
+}
+
+impl OCA {
+    fn validate_translations<T>(&mut self, translations: &HashMap<Language, T>) {
+        if self.translations.is_empty() {
+            self.errors.push(Error::new("enforced translations are not defined".to_string()));
+            return
+        }
+
+        let translation_langs: HashSet<Language> = translations.keys().cloned().collect();
+        let enforced_langs: HashSet<Language> = self.translations.keys().cloned().collect();
+        if !translation_langs.eq(&enforced_langs) {
+            let missing_enforcement: HashSet<&Language> = translation_langs.difference(&enforced_langs).collect();
+            for m in missing_enforcement {
+                self.errors.push(
+                    Error::new(format!("translations for {:?} language are not enforced", m).to_string())
+                );
+            }
+
+            let missing_translations: HashSet<&Language> = enforced_langs.difference(&translation_langs).collect();
+            for m in missing_translations {
+                self.errors.push(
+                    Error::new(format!("translations for {:?} language are missing", m).to_string())
+                );
+            }
+        }
+    }
+
+    fn validate_attribute(&mut self, attribute: &Attribute) {
+        if self.translations.is_empty() && !attribute.translations.is_empty() {
+            self.errors.push(Error::new("enforced translations are not defined".to_string()));
+            return
+        }
+
+        let enforced_langs: HashSet<Language> = self.translations.keys().cloned().collect();
+        let label_langs: HashSet<Language> = attribute.translations.iter().filter(|(_, t)| t.label.is_some()).map(|(l, _)| *l).collect();
+        if !label_langs.is_empty() {
+            let missing_enforcement: HashSet<&Language> = label_langs.difference(&enforced_langs).collect();
+            for m in missing_enforcement {
+                self.errors.push(
+                    Error::new(format!("in '{}' attribute: label translations for {:?} language are not enforced", attribute.name, m).to_string())
+                );
+            }
+
+            let missing_translations: HashSet<&Language> = enforced_langs.difference(&label_langs).collect();
+            for m in missing_translations {
+                self.errors.push(
+                    Error::new(format!("in '{}' attribute: label translations for {:?} language are missing", attribute.name, m).to_string())
+                );
+            }
+        }
+        let entries_langs: HashSet<Language> = attribute.translations.iter().filter(|(_, t)| t.entries.is_some()).map(|(l, _)| *l).collect();
+        if !entries_langs.is_empty() {
+            if let Some(entry_codes) = &attribute.entry_codes {
+                let entry_ids: HashSet<String> = entry_codes.iter().cloned().collect();
+                for (l, t) in  attribute.translations.iter() {
+                    if let Some(e) = &t.entries {
+                        let lang_entry_ids: HashSet<String> = e.keys().cloned().collect();
+                        let missing_entry_tr: HashSet<&String> = entry_ids.symmetric_difference(&lang_entry_ids).collect();
+                        for m in missing_entry_tr {
+                            self.errors.push(
+                                Error::new(format!("in '{}' attribute: '{}' entry translations for {:?} language are missing", attribute.name, m, l).to_string())
+                            );
+                        }
+                    }
+                }
+            }
+
+            let missing_enforcement: HashSet<&Language> = entries_langs.difference(&enforced_langs).collect();
+            for m in missing_enforcement {
+                self.errors.push(
+                    Error::new(format!("in '{}' attribute: entries translations for {:?} language are not enforced", attribute.name, m).to_string())
+                );
+            }
+
+            let missing_translations: HashSet<&Language> = enforced_langs.difference(&entries_langs).collect();
+            for m in missing_translations {
+                self.errors.push(
+                    Error::new(format!("in '{}' attribute: entries translations for {:?} language are missing", attribute.name, m).to_string())
+                );
+            }
+        }
+        let info_langs: HashSet<Language> = attribute.translations.iter().filter(|(_, t)| t.information.is_some()).map(|(l, _)| *l).collect();
+        if !info_langs.is_empty() {
+            let missing_enforcement: HashSet<&Language> = info_langs.difference(&enforced_langs).collect();
+            for m in missing_enforcement {
+                self.errors.push(
+                    Error::new(format!("in '{}' attribute: information translations for {:?} language are not enforced", attribute.name, m).to_string())
+                );
+            }
+
+            let missing_translations: HashSet<&Language> = enforced_langs.difference(&info_langs).collect();
+            for m in missing_translations {
+                self.errors.push(
+                    Error::new(format!("in '{}' attribute: information translations for {:?} language are missing", attribute.name, m).to_string())
+                );
+            }
+        }
     }
 }
 
@@ -382,7 +500,7 @@ pub enum AttributeType {
 }
 
 #[wasm_bindgen]
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Clone, Copy)]
 pub enum Language {
     #[serde(rename = "en_EN")]
     En,
@@ -426,8 +544,34 @@ mod tests {
     use maplit::hashmap;
 
     #[test]
+    fn test_2() {
+        let mut oca = OCA::new(Encoding::Utf8)
+            .enforce_translations(vec![Language::En, Language::Pl])
+            .add_name(hashmap! {
+                Language::En => "Driving Licence".to_string(),
+                Language::Pl => "Prawo Jazdy".to_string(),
+            })
+            .add_description(hashmap! {
+                Language::En => "Driving Licence".to_string(),
+                Language::Pl => "Prawo Jazdy".to_string(),
+            });
+
+        oca = oca.finalize().unwrap_or_else(|errors| {
+            for err in errors.iter() {
+                eprintln!("Error: {:?}", err);
+            }
+            std::process::exit(1)
+        });
+
+        println!("{:#?}", serde_json::to_string(&oca).unwrap());
+
+        assert_eq!(oca.capture_base.attributes.len(), 0);
+    }
+
+    #[test]
     fn test_1() {
         let mut oca = OCA::new(Encoding::Utf8)
+            .enforce_translations(vec![Language::En, Language::Pl])
             .add_name(hashmap! {
                 Language::En => "Driving Licence".to_string(),
                 Language::Pl => "Prawo Jazdy".to_string(),
@@ -473,7 +617,13 @@ mod tests {
             .add_encoding(Encoding::Iso8859_1)
             .add_format("DD/MM/YYYY".to_string());
 
-        oca = oca.add_attribute(attr1).add_attribute(attr2).finalize();
+        oca = oca.add_attribute(attr1).add_attribute(attr2).finalize()
+            .unwrap_or_else(|errors| {
+                for err in errors.iter() {
+                    eprintln!("Error: {:?}", err.msg);
+                }
+                std::process::exit(1)
+            });
 
         println!("{:#?}", serde_json::to_string(&oca).unwrap());
 
