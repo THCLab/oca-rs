@@ -1,5 +1,5 @@
-use std::collections::HashSet;
 use core::str::FromStr;
+use std::collections::HashSet;
 
 use said::derivation::SelfAddressing;
 use serde::{Deserialize, Serialize};
@@ -23,7 +23,7 @@ pub struct OCA {
 
 #[derive(Debug)]
 pub struct Error {
-    pub msg: String
+    pub msg: String,
 }
 
 impl Error {
@@ -203,60 +203,87 @@ impl OCA {
 impl OCA {
     fn validate_translations<T>(&mut self, translations: &HashMap<Language, T>) {
         if self.translations.is_empty() {
-            self.errors.push(Error::new("enforced translations are not defined".to_string()));
-            return
+            self.errors.push(Error::new(
+                "enforced translations are not defined".to_string(),
+            ));
+            return;
         }
 
         let translation_langs: HashSet<Language> = translations.keys().cloned().collect();
         let enforced_langs: HashSet<Language> = self.translations.keys().cloned().collect();
         if !translation_langs.eq(&enforced_langs) {
-            let missing_enforcement: HashSet<&Language> = translation_langs.difference(&enforced_langs).collect();
+            let missing_enforcement: HashSet<&Language> =
+                translation_langs.difference(&enforced_langs).collect();
             for m in missing_enforcement {
-                self.errors.push(
-                    Error::new(format!("translations for {:?} language are not enforced", m).to_string())
-                );
+                self.errors.push(Error::new(
+                    format!("translations for {:?} language are not enforced", m).to_string(),
+                ));
             }
 
-            let missing_translations: HashSet<&Language> = enforced_langs.difference(&translation_langs).collect();
+            let missing_translations: HashSet<&Language> =
+                enforced_langs.difference(&translation_langs).collect();
             for m in missing_translations {
-                self.errors.push(
-                    Error::new(format!("translations for {:?} language are missing", m).to_string())
-                );
+                self.errors.push(Error::new(
+                    format!("translations for {:?} language are missing", m).to_string(),
+                ));
             }
         }
     }
 
     fn validate_attribute(&mut self, attribute: &Attribute) {
         if self.translations.is_empty() && !attribute.translations.is_empty() {
-            self.errors.push(Error::new("enforced translations are not defined".to_string()));
-            return
+            self.errors.push(Error::new(
+                "enforced translations are not defined".to_string(),
+            ));
+            return;
         }
 
         let enforced_langs: HashSet<Language> = self.translations.keys().cloned().collect();
-        let label_langs: HashSet<Language> = attribute.translations.iter().filter(|(_, t)| t.label.is_some()).map(|(l, _)| *l).collect();
+        let label_langs: HashSet<Language> = attribute
+            .translations
+            .iter()
+            .filter(|(_, t)| t.label.is_some())
+            .map(|(l, _)| *l)
+            .collect();
         if !label_langs.is_empty() {
-            let missing_enforcement: HashSet<&Language> = label_langs.difference(&enforced_langs).collect();
+            let missing_enforcement: HashSet<&Language> =
+                label_langs.difference(&enforced_langs).collect();
             for m in missing_enforcement {
-                self.errors.push(
-                    Error::new(format!("in '{}' attribute: label translations for {:?} language are not enforced", attribute.name, m).to_string())
-                );
+                self.errors.push(Error::new(
+                    format!(
+                        "in '{}' attribute: label translations for {:?} language are not enforced",
+                        attribute.name, m
+                    )
+                    .to_string(),
+                ));
             }
 
-            let missing_translations: HashSet<&Language> = enforced_langs.difference(&label_langs).collect();
+            let missing_translations: HashSet<&Language> =
+                enforced_langs.difference(&label_langs).collect();
             for m in missing_translations {
-                self.errors.push(
-                    Error::new(format!("in '{}' attribute: label translations for {:?} language are missing", attribute.name, m).to_string())
-                );
+                self.errors.push(Error::new(
+                    format!(
+                        "in '{}' attribute: label translations for {:?} language are missing",
+                        attribute.name, m
+                    )
+                    .to_string(),
+                ));
             }
         }
-        let entries_langs: HashSet<Language> = attribute.translations.iter().filter(|(_, t)| t.entries.is_some()).map(|(l, _)| *l).collect();
+        let entries_langs: HashSet<Language> = attribute
+            .translations
+            .iter()
+            .filter(|(_, t)| t.entries.is_some())
+            .map(|(l, _)| *l)
+            .collect();
         if !entries_langs.is_empty() {
             if let Some(entry_codes) = &attribute.entry_codes {
                 let entry_ids: HashSet<String> = entry_codes.iter().cloned().collect();
-                for (l, t) in  attribute.translations.iter() {
+                for (l, t) in attribute.translations.iter() {
                     if let Some(e) = &t.entries {
                         let lang_entry_ids: HashSet<String> = e.keys().cloned().collect();
-                        let missing_entry_tr: HashSet<&String> = entry_ids.symmetric_difference(&lang_entry_ids).collect();
+                        let missing_entry_tr: HashSet<&String> =
+                            entry_ids.symmetric_difference(&lang_entry_ids).collect();
                         for m in missing_entry_tr {
                             self.errors.push(
                                 Error::new(format!("in '{}' attribute: '{}' entry translations for {:?} language are missing", attribute.name, m, l).to_string())
@@ -266,34 +293,51 @@ impl OCA {
                 }
             }
 
-            let missing_enforcement: HashSet<&Language> = entries_langs.difference(&enforced_langs).collect();
+            let missing_enforcement: HashSet<&Language> =
+                entries_langs.difference(&enforced_langs).collect();
             for m in missing_enforcement {
                 self.errors.push(
                     Error::new(format!("in '{}' attribute: entries translations for {:?} language are not enforced", attribute.name, m).to_string())
                 );
             }
 
-            let missing_translations: HashSet<&Language> = enforced_langs.difference(&entries_langs).collect();
+            let missing_translations: HashSet<&Language> =
+                enforced_langs.difference(&entries_langs).collect();
             for m in missing_translations {
-                self.errors.push(
-                    Error::new(format!("in '{}' attribute: entries translations for {:?} language are missing", attribute.name, m).to_string())
-                );
+                self.errors.push(Error::new(
+                    format!(
+                        "in '{}' attribute: entries translations for {:?} language are missing",
+                        attribute.name, m
+                    )
+                    .to_string(),
+                ));
             }
         }
-        let info_langs: HashSet<Language> = attribute.translations.iter().filter(|(_, t)| t.information.is_some()).map(|(l, _)| *l).collect();
+        let info_langs: HashSet<Language> = attribute
+            .translations
+            .iter()
+            .filter(|(_, t)| t.information.is_some())
+            .map(|(l, _)| *l)
+            .collect();
         if !info_langs.is_empty() {
-            let missing_enforcement: HashSet<&Language> = info_langs.difference(&enforced_langs).collect();
+            let missing_enforcement: HashSet<&Language> =
+                info_langs.difference(&enforced_langs).collect();
             for m in missing_enforcement {
                 self.errors.push(
                     Error::new(format!("in '{}' attribute: information translations for {:?} language are not enforced", attribute.name, m).to_string())
                 );
             }
 
-            let missing_translations: HashSet<&Language> = enforced_langs.difference(&info_langs).collect();
+            let missing_translations: HashSet<&Language> =
+                enforced_langs.difference(&info_langs).collect();
             for m in missing_translations {
-                self.errors.push(
-                    Error::new(format!("in '{}' attribute: information translations for {:?} language are missing", attribute.name, m).to_string())
-                );
+                self.errors.push(Error::new(
+                    format!(
+                        "in '{}' attribute: information translations for {:?} language are missing",
+                        attribute.name, m
+                    )
+                    .to_string(),
+                ));
             }
         }
     }
@@ -617,7 +661,10 @@ mod tests {
             .add_encoding(Encoding::Iso8859_1)
             .add_format("DD/MM/YYYY".to_string());
 
-        oca = oca.add_attribute(attr1).add_attribute(attr2).finalize()
+        oca = oca
+            .add_attribute(attr1)
+            .add_attribute(attr2)
+            .finalize()
             .unwrap_or_else(|errors| {
                 for err in errors.iter() {
                     eprintln!("Error: {:?}", err.msg);

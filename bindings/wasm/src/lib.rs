@@ -100,7 +100,7 @@ impl OCA {
             Ok(r) => {
                 self.raw = r;
                 Ok(JsValue::from_serde(&self.raw).unwrap_or(JsValue::NULL))
-            },
+            }
             Err(err) => {
                 let errors: Vec<String> = err.iter().map(|e| e.msg.clone()).collect();
                 Err(JsValue::from_serde(&errors).unwrap_or(JsValue::NULL))
