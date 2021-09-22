@@ -16,7 +16,7 @@ pub struct Entry {
 #[wasm_bindgen]
 impl Entry {
     #[wasm_bindgen(constructor)]
-    pub fn new(id: String, translations: &JsValue) -> JsValue {
+    pub fn constructor(id: String, translations: &JsValue) -> JsValue {
         let translations_str: HashMap<String, String> =
             serde_wasm_bindgen::from_value(JsValue::from(translations)).unwrap();
 
