@@ -12,6 +12,12 @@ pub struct CaptureBase {
     pub pii: Vec<String>,
 }
 
+impl Default for CaptureBase {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CaptureBase {
     pub fn new() -> CaptureBase {
         CaptureBase {
