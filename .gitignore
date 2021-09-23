@@ -1,3 +1,4 @@
 /target
 /bindings/**/target
+/bindings/**/node_modules
 Session.vim
