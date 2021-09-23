@@ -13,5 +13,8 @@
   },
   "scripts": {
     "test": "jest -c jest.ts-config.js"
+  },
+  "dependencies": {
+    "oca-rust-wasm": "file:../pkg"
   }
 }
