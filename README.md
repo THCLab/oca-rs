@@ -1,6 +1,8 @@
 [![Crate](https://img.shields.io/crates/v/oca-rust)](https://crates.io/crates/oca-rust)
 [![Rust](https://github.com/THCLab/oca-rust/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/THCLab/oca-rust/actions/workflows/rust.yml)
 
+[![NPM](https://img.shields.io/npm/v/oca.js)](https://www.npmjs.com/package/oca.js)
+[![WASM](https://github.com/THCLab/oca-rust/actions/workflows/wasm.yml/badge.svg?branch=main)](https://github.com/THCLab/oca-rust/actions/workflows/wasm.yml)
 
 # Rust implementation of Overlays Capture architecture
 
