@@ -23,6 +23,9 @@ jobs:
       - uses: jetli/wasm-pack-action@v0.3.0
         with:
           version: 'latest'
+      - name: Build wasm for node
+        working-directory: ./bindings/wasm
+        run: wasm-pack build -t nodejs -d pkg-node
       - name: Build wasm
         working-directory: ./bindings/wasm
         run: wasm-pack build
@@ -37,6 +40,9 @@ jobs:
       - working-directory: ./bindings/wasm/js
         run: yarn test
 
+      - name: Rename wasm package from "oca-js" to "oca.js"
+        working-directory: ./bindings/wasm/pkg
+        run: sed -ie 's/oca-js/oca.js/g' package.json
       - working-directory: ./bindings/wasm/pkg
         run: yarn install
       - working-directory: ./bindings/wasm/pkg

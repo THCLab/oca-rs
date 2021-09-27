@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { Attribute, AttributeType, Encoding, Entry, Language, OCA } from 'oca-rust-wasm'
+import { Attribute, AttributeType, Encoding, Entry, Language, OCA } from 'oca.js'
 
 describe('Plain OCA is built', () => {
   const oca = (new OCA(Encoding.Utf8)).finalize()

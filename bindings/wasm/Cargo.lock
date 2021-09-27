@@ -188,6 +188,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "oca-js"
+version = "0.1.0"
+dependencies = [
+ "js-sys",
+ "oca-rust",
+ "serde",
+ "serde-wasm-bindgen",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "oca-rust"
 version = "0.1.1"
 dependencies = [
@@ -195,17 +206,6 @@ dependencies = [
  "said",
  "serde",
  "serde_json",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "oca-rust-wasm"
-version = "0.1.0"
-dependencies = [
- "js-sys",
- "oca-rust",
- "serde",
- "serde-wasm-bindgen",
  "wasm-bindgen",
 ]
 

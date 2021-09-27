@@ -23,7 +23,7 @@ jobs:
           version: 'latest'
       - name: Build wasm
         working-directory: ./bindings/wasm
-        run: wasm-pack build -t nodejs
+        run: wasm-pack build -t nodejs -d pkg-node
       - working-directory: ./bindings/wasm/js
         run: yarn install
       - working-directory: ./bindings/wasm/js
