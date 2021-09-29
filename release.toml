@@ -3,4 +3,4 @@ no-dev-version = true
 pre-release-replacements = [
   {file="bindings/wasm/Cargo.toml", search="\nversion = \"[a-z0-9\\.-]+\"", replace="\nversion = \"{{version}}\"", exactly=1},
 ]
-pre-release-hook = ["bash", "bindings/wasm/release-hook.sh"]
+pre-release-hook = ["bash", "release-wasm-hook.sh"]
