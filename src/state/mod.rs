@@ -2,7 +2,7 @@ use core::str::FromStr;
 use std::collections::HashSet;
 
 use said::derivation::SelfAddressing;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
@@ -11,10 +11,76 @@ mod overlay;
 use crate::state::capture_base::CaptureBase;
 use crate::state::overlay::Overlay;
 
-#[derive(Serialize)]
+type DynOverlay = Box<dyn Overlay>;
+
+impl<'de> Deserialize<'de> for DynOverlay {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let de_overlay = serde_value::Value::deserialize(deserializer)?;
+        if let serde_value::Value::Map(ref overlay) = de_overlay {
+            if let Some(serde_value::Value::String(overlay_type)) =
+                overlay.get(&serde_value::Value::String("type".to_string()))
+            {
+                if overlay_type.contains("/character_encoding/") {
+                    return Ok(Box::new(
+                        de_overlay
+                            .deserialize_into::<overlay::CharacterEncoding>()
+                            .unwrap(),
+                    ));
+                } else if overlay_type.contains("/entry/") {
+                    return Ok(Box::new(
+                        de_overlay.deserialize_into::<overlay::Entry>().unwrap(),
+                    ));
+                } else if overlay_type.contains("/entry_code/") {
+                    return Ok(Box::new(
+                        de_overlay.deserialize_into::<overlay::EntryCode>().unwrap(),
+                    ));
+                } else if overlay_type.contains("/format/") {
+                    return Ok(Box::new(
+                        de_overlay.deserialize_into::<overlay::Format>().unwrap(),
+                    ));
+                } else if overlay_type.contains("/information/") {
+                    return Ok(Box::new(
+                        de_overlay
+                            .deserialize_into::<overlay::Information>()
+                            .unwrap(),
+                    ));
+                } else if overlay_type.contains("/label/") {
+                    return Ok(Box::new(
+                        de_overlay.deserialize_into::<overlay::Label>().unwrap(),
+                    ));
+                } else if overlay_type.contains("/unit/") {
+                    return Ok(Box::new(
+                        de_overlay.deserialize_into::<overlay::Unit>().unwrap(),
+                    ));
+                } else if overlay_type.contains("/meta/") {
+                    return Ok(Box::new(
+                        de_overlay.deserialize_into::<overlay::Meta>().unwrap(),
+                    ));
+                } else {
+                    return Err(serde::de::Error::custom(format!(
+                        "unknown overlay type: {}",
+                        overlay_type
+                    )));
+                }
+            } else {
+                return Err(serde::de::Error::missing_field("type"));
+            }
+        }
+
+        Err(serde::de::Error::custom(format!(
+            "overlay must be an object, got: {:?}",
+            de_overlay
+        )))
+    }
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct OCA {
     pub capture_base: CaptureBase,
-    pub overlays: Vec<Box<dyn Overlay>>,
+    pub overlays: Vec<DynOverlay>,
     #[serde(skip)]
     translations: HashMap<Language, OCATranslation>,
     #[serde(skip)]
