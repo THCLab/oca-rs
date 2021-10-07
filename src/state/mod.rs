@@ -77,7 +77,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct OCA {
     pub capture_base: CaptureBase,
     pub overlays: Vec<DynOverlay>,
@@ -85,14 +85,134 @@ pub struct OCA {
     meta_translations: HashMap<Language, OCATranslation>,
 }
 
-#[derive(Debug)]
-pub struct Error {
-    pub msg: String,
-}
+impl<'de> Deserialize<'de> for OCA {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let de_oca = serde_value::Value::deserialize(deserializer)?;
+        if let serde_value::Value::Map(ref oca) = de_oca {
+            let capture_base;
+            let overlays;
+            let mut meta_translations: HashMap<Language, OCATranslation> = HashMap::new();
 
-impl Error {
-    fn new(msg: String) -> Error {
-        Error { msg }
+            match oca.get(&serde_value::Value::String("capture_base".to_string())) {
+                Some(de_capture_base) => {
+                    capture_base = de_capture_base
+                        .clone()
+                        .deserialize_into::<CaptureBase>()
+                        .unwrap();
+                }
+                None => return Err(serde::de::Error::missing_field("capture_base")),
+            }
+            match oca.get(&serde_value::Value::String("overlays".to_string())) {
+                Some(de_overlays) => {
+                    if let serde_value::Value::Seq(de_overlays_value) = de_overlays {
+                        let meta_overlay_positions: Vec<bool> = de_overlays_value
+                            .iter()
+                            .map(|x| {
+                                if let serde_value::Value::Map(de_overlay_value) = x {
+                                    if let Some(serde_value::Value::String(overlay_type)) =
+                                        de_overlay_value
+                                            .get(&serde_value::Value::String("type".to_string()))
+                                    {
+                                        overlay_type.contains("/meta/")
+                                    } else {
+                                        false
+                                    }
+                                } else {
+                                    false
+                                }
+                            })
+                            .collect();
+                        let mut meta_overlays_iter = meta_overlay_positions.iter();
+                        let mut meta_overlays: Vec<_> = de_overlays_value.clone();
+                        meta_overlays.retain(|_| *meta_overlays_iter.next().unwrap());
+                        let mut rest_overlays_iter = meta_overlay_positions.iter();
+                        let mut rest_overlays: Vec<_> = de_overlays_value.clone();
+                        rest_overlays.retain(|_| !*rest_overlays_iter.next().unwrap());
+
+                        for meta_overlay in meta_overlays {
+                            if let serde_value::Value::Map(meta_overlay_value) = meta_overlay {
+                                let language;
+                                let name;
+                                let description;
+                                match meta_overlay_value
+                                    .get(&serde_value::Value::String("language".to_string()))
+                                {
+                                    Some(de_language) => {
+                                        language = de_language
+                                            .clone()
+                                            .deserialize_into::<Language>()
+                                            .unwrap();
+                                    }
+                                    None => {
+                                        return Err(serde::de::Error::missing_field(
+                                            "language in meta overlay",
+                                        ))
+                                    }
+                                }
+                                match meta_overlay_value
+                                    .get(&serde_value::Value::String("name".to_string()))
+                                {
+                                    Some(de_name) => {
+                                        name =
+                                            de_name.clone().deserialize_into::<String>().unwrap();
+                                    }
+                                    None => {
+                                        return Err(serde::de::Error::missing_field(
+                                            "name in meta overlay",
+                                        ))
+                                    }
+                                }
+                                match meta_overlay_value
+                                    .get(&serde_value::Value::String("description".to_string()))
+                                {
+                                    Some(de_description) => {
+                                        description = de_description
+                                            .clone()
+                                            .deserialize_into::<String>()
+                                            .unwrap();
+                                    }
+                                    None => {
+                                        return Err(serde::de::Error::missing_field(
+                                            "language in meta overlay",
+                                        ))
+                                    }
+                                }
+                                let mut t = OCATranslation::new();
+                                if !name.trim().is_empty() {
+                                    t.add_name(name);
+                                }
+                                if !description.trim().is_empty() {
+                                    t.add_description(description);
+                                }
+                                meta_translations.insert(language, t);
+                            }
+                        }
+
+                        let de_rest_overlays = serde_value::Value::Seq(rest_overlays);
+                        overlays = de_rest_overlays
+                            .deserialize_into::<Vec<DynOverlay>>()
+                            .unwrap();
+                    } else {
+                        return Err(serde::de::Error::custom("overlays must be an array"));
+                    }
+                }
+                None => return Err(serde::de::Error::missing_field("overlay")),
+            }
+
+            Ok(OCA {
+                capture_base,
+                overlays,
+                meta_translations,
+            })
+        } else {
+            Err(serde::de::Error::custom(format!(
+                "OCA must be an object, got: {:?}",
+                de_oca
+            )))
+        }
     }
 }
 
