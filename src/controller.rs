@@ -110,16 +110,13 @@ mod tests {
 
         let mut oca = load_oca(&mut data.as_bytes()).unwrap();
         oca = oca
-            .enforce_translations(vec![Language::En, Language::Pl])
             .add_attribute(
                 Attribute::new("new_attr".to_string(), AttributeType::Text).add_label(hashmap! {
                     Language::En => "New: ".to_string(),
                     Language::Pl => "Nowy: ".to_string(),
                 }),
             )
-            .finalize()
-            .unwrap();
-        println!("{:#?}", serde_json::to_string(&oca).unwrap());
+            .finalize();
 
         assert_eq!(oca.capture_base.attributes.len(), 3);
     }

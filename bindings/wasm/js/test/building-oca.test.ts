@@ -18,18 +18,8 @@ describe('Plain OCA is built', () => {
   })
 })
 
-describe('Translations are not enforced', () => {
-  const oca = (new OCA(Encoding.Utf8))
-    .addName({ [Language.En]: "OCA name" })
-
-  it('throw error', () => {
-    expect(() => oca.finalize()).to.throw().an('array').lengthOf(1)
-  })
-})
-
 describe('OCA with attributes is built', () => {
   const oca = (new OCA(Encoding.Utf8))
-    .enforceTranslations([Language.En, Language.Pl])
     .addName({
       [Language.En]: "Driving Licence",
       [Language.Pl]: "Prawo Jazdy"

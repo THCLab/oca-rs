@@ -25,6 +25,9 @@ impl Overlay for LabelOverlay {
     fn language(&self) -> Option<&Language> {
         Some(&self.language)
     }
+    fn attributes(&self) -> Vec<&String> {
+        self.attr_labels.keys().collect::<Vec<&String>>()
+    }
 
     fn add(&mut self, attribute: &Attribute) {
         if let Some(tr) = attribute.translations.get(&self.language) {

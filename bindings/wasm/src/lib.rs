@@ -43,23 +43,6 @@ impl OCA {
         }
     }
 
-    #[wasm_bindgen(js_name = "enforceTranslations")]
-    pub fn enforce_translations(mut self, languages: Vec<JsValue>) -> OCA {
-        let mut languages_raw: Vec<Language> = vec![];
-        for lang in languages {
-            let lang_str;
-            if lang.is_string() {
-                lang_str = lang.as_string().unwrap();
-            } else {
-                lang_str = lang.as_f64().unwrap().to_string();
-            }
-            languages_raw.push(Language::from_str(lang_str.as_str()).unwrap());
-        }
-
-        self.raw = self.raw.enforce_translations(languages_raw);
-        self
-    }
-
     #[wasm_bindgen(js_name = "addName")]
     pub fn add_name(mut self, names: &JsValue) -> OCA {
         let names_str: HashMap<String, String> =
@@ -95,17 +78,8 @@ impl OCA {
         self
     }
 
-    pub fn finalize(mut self) -> Result<JsValue, JsValue> {
-        match self.raw.finalize() {
-            Ok(r) => {
-                self.raw = r;
-                Ok(JsValue::from_serde(&self.raw).unwrap_or(JsValue::NULL))
-            }
-            Err(err) => {
-                let errors: Vec<String> = err.iter().map(|e| e.msg.clone()).collect();
-                Err(JsValue::from_serde(&errors).unwrap_or(JsValue::NULL))
-            }
-        }
+    pub fn finalize(self) -> JsValue {
+        JsValue::from_serde(&self.raw.finalize()).unwrap_or(JsValue::NULL)
     }
 }
 

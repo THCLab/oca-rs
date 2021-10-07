@@ -19,6 +19,11 @@ impl Overlay for CharacterEncodingOverlay {
     fn overlay_type(&self) -> &String {
         &self.overlay_type
     }
+    fn attributes(&self) -> Vec<&String> {
+        self.attr_character_encoding
+            .keys()
+            .collect::<Vec<&String>>()
+    }
 
     fn add(&mut self, attribute: &Attribute) {
         self.attr_character_encoding

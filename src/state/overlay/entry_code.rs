@@ -18,6 +18,9 @@ impl Overlay for EntryCodeOverlay {
     fn overlay_type(&self) -> &String {
         &self.overlay_type
     }
+    fn attributes(&self) -> Vec<&String> {
+        self.attr_entry_codes.keys().collect::<Vec<&String>>()
+    }
 
     fn add(&mut self, attribute: &Attribute) {
         if attribute.entry_codes.is_some() {

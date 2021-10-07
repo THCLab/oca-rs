@@ -22,6 +22,9 @@ impl Overlay for MetaOverlay {
     fn language(&self) -> Option<&Language> {
         Some(&self.language)
     }
+    fn attributes(&self) -> Vec<&String> {
+        vec![]
+    }
 
     fn add(&mut self, _attribute: &Attribute) {}
 }

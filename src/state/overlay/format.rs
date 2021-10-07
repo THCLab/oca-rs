@@ -18,6 +18,9 @@ impl Overlay for FormatOverlay {
     fn overlay_type(&self) -> &String {
         &self.overlay_type
     }
+    fn attributes(&self) -> Vec<&String> {
+        self.attr_formats.keys().collect::<Vec<&String>>()
+    }
 
     fn add(&mut self, attribute: &Attribute) {
         if attribute.format.is_some() {
