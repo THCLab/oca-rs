@@ -1,8 +1,8 @@
 use core::str::FromStr;
 use oca_rust::state::{
-    Attribute as AttributeRaw, AttributeType, Encoding, Entry as EntryRaw, Language, OCA as OCARaw,
+    Attribute as AttributeRaw, AttributeType, Encoding, Entry as EntryRaw, Language, OCA as OCARaw, validator
 };
-use serde::Deserialize;
+use serde::{ Serialize, Deserialize };
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
@@ -80,6 +80,64 @@ impl OCA {
 
     pub fn finalize(self) -> JsValue {
         JsValue::from_serde(&self.raw.finalize()).unwrap_or(JsValue::NULL)
+    }
+}
+
+#[wasm_bindgen]
+pub struct Validator {
+    raw: validator::Validator,
+}
+
+#[wasm_bindgen]
+impl Validator {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Validator {
+        Validator {
+            raw: validator::Validator::new(),
+        }
+    }
+
+    #[wasm_bindgen(js_name = "enforceTranslations")]
+    pub fn enforce_translations(mut self, languages: Vec<JsValue>) -> Validator {
+        let mut languages_raw: Vec<Language> = vec![];
+        for lang in languages {
+            let lang_str;
+            if lang.is_string() {
+                lang_str = lang.as_string().unwrap();
+            } else {
+                lang_str = lang.as_f64().unwrap().to_string();
+            }
+            languages_raw.push(Language::from_str(lang_str.as_str()).unwrap());
+        }
+
+        self.raw = self.raw.enforce_translations(languages_raw);
+        self
+    }
+
+    pub fn validate(self, oca: &JsValue) -> JsValue {
+        #[derive(Serialize)]
+        struct ReturnResult {
+            success: bool,
+            errors: Vec<String>,
+        }
+        let return_result: ReturnResult;
+        let oca_raw: OCARaw = oca.into_serde().unwrap();
+        let result = self.raw.validate(&oca_raw);
+        match result {
+            Ok(()) => return_result = ReturnResult { success: true, errors: vec![] },
+            Err(err) => {
+                let errors: Vec<String> = err.iter().map(|e|
+                    if let validator::Error::Custom(msg) = e {
+                        msg.clone()
+                    } else {
+                        "undefined error".to_string()
+                    }
+                ).collect();
+                return_result = ReturnResult { success: false, errors }
+            }
+        }
+
+        JsValue::from_serde(&return_result).unwrap_or(JsValue::NULL)
     }
 }
 
