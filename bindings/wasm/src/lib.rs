@@ -58,16 +58,16 @@ impl OCA {
     }
 
     #[wasm_bindgen(js_name = "addDescription")]
-    pub fn add_description(mut self, descritpions: &JsValue) -> OCA {
-        let descritpions_str: HashMap<String, String> =
-            serde_wasm_bindgen::from_value(JsValue::from(descritpions)).unwrap();
+    pub fn add_description(mut self, descriptions: &JsValue) -> OCA {
+        let descriptions_str: HashMap<String, String> =
+            serde_wasm_bindgen::from_value(JsValue::from(descriptions)).unwrap();
 
-        let mut descritpions_raw: HashMap<Language, String> = HashMap::new();
-        for (lang_str, descritpion) in descritpions_str.iter() {
-            descritpions_raw.insert(Language::from_str(lang_str).unwrap(), descritpion.clone());
+        let mut descriptions_raw: HashMap<Language, String> = HashMap::new();
+        for (lang_str, description) in descriptions_str.iter() {
+            descriptions_raw.insert(Language::from_str(lang_str).unwrap(), description.clone());
         }
 
-        self.raw = self.raw.add_description(descritpions_raw);
+        self.raw = self.raw.add_description(descriptions_raw);
         self
     }
 
