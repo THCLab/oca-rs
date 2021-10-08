@@ -176,7 +176,7 @@ impl<'de> Deserialize<'de> for OCA {
                                     }
                                     None => {
                                         return Err(serde::de::Error::missing_field(
-                                            "language in meta overlay",
+                                            "description in meta overlay",
                                         ))
                                     }
                                 }
