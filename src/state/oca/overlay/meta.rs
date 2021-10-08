@@ -1,5 +1,8 @@
-use crate::state::Overlay;
-use crate::state::{Attribute, Language, OCATranslation};
+use crate::state::{
+    attribute::Attribute,
+    language::Language,
+    oca::{OCATranslation, Overlay},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

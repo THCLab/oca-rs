@@ -1,4 +1,4 @@
-use crate::state::{Attribute, AttributeType};
+use crate::state::attribute::{Attribute, AttributeType};
 use serde::{Deserialize, Serialize, Serializer};
 use std::collections::{BTreeMap, HashMap};
 

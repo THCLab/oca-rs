@@ -15,7 +15,7 @@ pub use self::information::InformationOverlay as Information;
 pub use self::label::LabelOverlay as Label;
 pub use self::meta::MetaOverlay as Meta;
 pub use self::unit::UnitOverlay as Unit;
-use crate::state::{Attribute, Language};
+use crate::state::{attribute::Attribute, language::Language};
 
 erased_serde::serialize_trait_object!(Overlay);
 

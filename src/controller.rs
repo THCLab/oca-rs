@@ -1,4 +1,4 @@
-use crate::state::OCA;
+use crate::state::oca::OCA;
 use std::io::Read;
 
 pub type GenericError = Box<dyn std::error::Error + Sync + Send>;
@@ -13,7 +13,10 @@ pub fn load_oca(source: &mut dyn Read) -> GenericResult<OCA> {
 #[cfg(test)]
 mod tests {
     use super::load_oca;
-    use crate::state::{Attribute, AttributeType, Language};
+    use crate::state::{
+        attribute::{Attribute, AttributeType},
+        language::Language,
+    };
     use maplit::hashmap;
 
     #[test]

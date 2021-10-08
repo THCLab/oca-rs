@@ -1,5 +1,7 @@
-use crate::state::DynOverlay;
-use crate::state::{Language, OCATranslation, OCA};
+use crate::state::{
+    language::Language,
+    oca::{DynOverlay, OCATranslation, OCA},
+};
 use std::collections::{HashMap, HashSet};
 
 #[derive(Debug)]
@@ -205,11 +207,15 @@ impl Validator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::*;
+    use crate::state::{
+        attribute::{Attribute, AttributeType},
+        encoding::Encoding,
+        language::Language,
+    };
     use maplit::hashmap;
 
     #[test]
-    fn validator_test() {
+    fn validate_valid_oca() {
         let validator = Validator::new().enforce_translations(vec![Language::En, Language::Pl]);
 
         let oca = OCA::new(Encoding::Utf8)

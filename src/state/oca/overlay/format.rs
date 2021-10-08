@@ -1,5 +1,4 @@
-use crate::state::Attribute;
-use crate::state::Overlay;
+use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

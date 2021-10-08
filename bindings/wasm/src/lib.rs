@@ -1,8 +1,12 @@
 use core::str::FromStr;
 use oca_rust::state::{
-    Attribute as AttributeRaw, AttributeType, Encoding, Entry as EntryRaw, Language, OCA as OCARaw, validator
+    attribute::{Attribute as AttributeRaw, AttributeType, Entry as EntryRaw},
+    encoding::Encoding,
+    language::Language,
+    oca::OCA as OCARaw,
+    validator,
 };
-use serde::{ Serialize, Deserialize };
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
@@ -88,6 +92,12 @@ pub struct Validator {
     raw: validator::Validator,
 }
 
+impl Default for Validator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[wasm_bindgen]
 impl Validator {
     #[wasm_bindgen(constructor)]
@@ -124,16 +134,27 @@ impl Validator {
         let oca_raw: OCARaw = oca.into_serde().unwrap();
         let result = self.raw.validate(&oca_raw);
         match result {
-            Ok(()) => return_result = ReturnResult { success: true, errors: vec![] },
+            Ok(()) => {
+                return_result = ReturnResult {
+                    success: true,
+                    errors: vec![],
+                }
+            }
             Err(err) => {
-                let errors: Vec<String> = err.iter().map(|e|
-                    if let validator::Error::Custom(msg) = e {
-                        msg.clone()
-                    } else {
-                        "undefined error".to_string()
-                    }
-                ).collect();
-                return_result = ReturnResult { success: false, errors }
+                let errors: Vec<String> = err
+                    .iter()
+                    .map(|e| {
+                        if let validator::Error::Custom(msg) = e {
+                            msg.clone()
+                        } else {
+                            "undefined error".to_string()
+                        }
+                    })
+                    .collect();
+                return_result = ReturnResult {
+                    success: false,
+                    errors,
+                }
             }
         }
 
