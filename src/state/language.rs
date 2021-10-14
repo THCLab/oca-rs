@@ -11,6 +11,8 @@ pub enum Language {
     EnUs,
     #[serde(rename = "pl_PL")]
     Pl,
+    #[serde(rename = "zh_ZH")]
+    Zh,
 }
 
 impl FromStr for Language {
@@ -27,6 +29,9 @@ impl FromStr for Language {
             "2" => Ok(Language::Pl),
             "Pl" => Ok(Language::Pl),
             "pl_PL" => Ok(Language::Pl),
+            "3" => Ok(Language::Zh),
+            "Zh" => Ok(Language::Zh),
+            "zh_ZH" => Ok(Language::Zh),
             _ => Err(()),
         }
     }

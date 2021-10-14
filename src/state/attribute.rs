@@ -166,9 +166,12 @@ impl AttributeTranslation {
 #[wasm_bindgen]
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum AttributeType {
+    Boolean,
     Text,
     Number,
     Date,
+    #[serde(rename = "SAI")]
+    Sai,
     #[serde(rename = "Array[Text]")]
     ArrayText,
 }
