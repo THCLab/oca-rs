@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use wasm_bindgen::prelude::*;
 
 use crate::state::{encoding::Encoding, language::Language};
@@ -122,7 +122,7 @@ impl Entry {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AttributeTranslation {
     pub label: Option<String>,
-    pub entries: Option<HashMap<String, String>>,
+    pub entries: Option<BTreeMap<String, String>>,
     pub information: Option<String>,
 }
 
@@ -148,7 +148,7 @@ impl AttributeTranslation {
 
     pub fn add_entry(&mut self, id: String, tr: String) -> &mut AttributeTranslation {
         if self.entries.is_none() {
-            self.entries = Some(HashMap::new());
+            self.entries = Some(BTreeMap::new());
         }
         if let Some(mut entries) = self.entries.clone() {
             entries.insert(id, tr);

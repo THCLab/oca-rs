@@ -1,13 +1,13 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UnitOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    attr_units: HashMap<String, String>,
+    attr_units: BTreeMap<String, String>,
 }
 
 impl Overlay for UnitOverlay {
@@ -35,7 +35,7 @@ impl UnitOverlay {
         Box::new(UnitOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overalys/unit/1.0".to_string(),
-            attr_units: HashMap::new(),
+            attr_units: BTreeMap::new(),
         })
     }
 }

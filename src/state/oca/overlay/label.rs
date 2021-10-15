@@ -1,6 +1,6 @@
 use crate::state::{attribute::Attribute, language::Language, oca::Overlay};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LabelOverlay {
@@ -8,10 +8,10 @@ pub struct LabelOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
-    attr_labels: HashMap<String, String>,
+    attr_labels: BTreeMap<String, String>,
     attr_categories: Vec<String>,
-    cat_labels: HashMap<String, String>,
-    cat_attributes: HashMap<String, Vec<String>>,
+    cat_labels: BTreeMap<String, String>,
+    cat_attributes: BTreeMap<String, Vec<String>>,
 }
 
 impl Overlay for LabelOverlay {
@@ -43,15 +43,15 @@ impl Overlay for LabelOverlay {
 }
 impl LabelOverlay {
     pub fn new(lang: &Language) -> Box<LabelOverlay> {
-        let mut cat_labels = HashMap::new();
+        let mut cat_labels = BTreeMap::new();
         cat_labels.insert(String::from("_cat-1_"), String::from("Category 1"));
-        let mut cat_attributes = HashMap::new();
+        let mut cat_attributes = BTreeMap::new();
         cat_attributes.insert(String::from("_cat-1_"), vec![]);
         Box::new(LabelOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overalys/label/1.0".to_string(),
             language: *lang,
-            attr_labels: HashMap::new(),
+            attr_labels: BTreeMap::new(),
             attr_categories: vec![String::from("_cat-1_")],
             cat_labels,
             cat_attributes,

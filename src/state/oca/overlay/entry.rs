@@ -1,6 +1,6 @@
 use crate::state::{attribute::Attribute, language::Language, oca::Overlay};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EntryOverlay {
@@ -8,7 +8,7 @@ pub struct EntryOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
-    attr_entries: HashMap<String, HashMap<String, String>>,
+    attr_entries: BTreeMap<String, BTreeMap<String, String>>,
 }
 
 impl Overlay for EntryOverlay {
@@ -40,7 +40,7 @@ impl EntryOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overalys/entry/1.0".to_string(),
             language: *lang,
-            attr_entries: HashMap::new(),
+            attr_entries: BTreeMap::new(),
         })
     }
 }

@@ -1,6 +1,6 @@
 use crate::state::{attribute::Attribute, encoding::Encoding, oca::Overlay};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CharacterEncodingOverlay {
@@ -8,7 +8,7 @@ pub struct CharacterEncodingOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     default_character_encoding: Encoding,
-    attr_character_encoding: HashMap<String, Encoding>,
+    attr_character_encoding: BTreeMap<String, Encoding>,
 }
 
 impl Overlay for CharacterEncodingOverlay {
@@ -35,7 +35,7 @@ impl CharacterEncodingOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overalys/character_encoding/1.0".to_string(),
             default_character_encoding: *encoding,
-            attr_character_encoding: HashMap::new(),
+            attr_character_encoding: BTreeMap::new(),
         })
     }
 }

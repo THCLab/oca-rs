@@ -1,13 +1,13 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EntryCodeOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    attr_entry_codes: HashMap<String, Vec<String>>,
+    attr_entry_codes: BTreeMap<String, Vec<String>>,
 }
 
 impl Overlay for EntryCodeOverlay {
@@ -35,7 +35,7 @@ impl EntryCodeOverlay {
         Box::new(EntryCodeOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overalys/entry_code/1.0".to_string(),
-            attr_entry_codes: HashMap::new(),
+            attr_entry_codes: BTreeMap::new(),
         })
     }
 }

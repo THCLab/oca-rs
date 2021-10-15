@@ -1,13 +1,13 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FormatOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    attr_formats: HashMap<String, String>,
+    attr_formats: BTreeMap<String, String>,
 }
 
 impl Overlay for FormatOverlay {
@@ -35,7 +35,7 @@ impl FormatOverlay {
         Box::new(FormatOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overalys/format/1.0".to_string(),
-            attr_formats: HashMap::new(),
+            attr_formats: BTreeMap::new(),
         })
     }
 }

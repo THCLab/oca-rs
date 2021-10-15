@@ -6,7 +6,7 @@ use crate::state::{
 };
 use calamine::{open_workbook, DataType, Reader, Xlsx};
 use core::str::FromStr;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 pub struct ParsedResult {
     pub oca_list: Vec<OCA>,
@@ -103,7 +103,7 @@ pub fn parse(path: String) -> ParsedResult {
         let mut label_trans: HashMap<usize, HashMap<Language, String>> = HashMap::new();
 
         let entries_index = 4;
-        let mut entries_trans: HashMap<usize, HashMap<String, HashMap<Language, String>>> =
+        let mut entries_trans: HashMap<usize, BTreeMap<String, HashMap<Language, String>>> =
             HashMap::new();
 
         let information_index = 5;
@@ -167,8 +167,8 @@ pub fn parse(path: String) -> ParsedResult {
                             }
                         }
                         None => {
-                            let mut attr_entries_tr: HashMap<String, HashMap<Language, String>> =
-                                HashMap::new();
+                            let mut attr_entries_tr: BTreeMap<String, HashMap<Language, String>> =
+                                BTreeMap::new();
                             for (entry_key, entry_value) in entries {
                                 match attr_entries_tr.get_mut(&entry_key.to_string()) {
                                     Some(attr_entry_tr) => {
@@ -245,6 +245,9 @@ mod tests {
 
         assert_eq!(parsed.oca_list.len(), 3);
         assert_eq!(parsed.languages.len(), 2);
-        // println!("{:#?}", serde_json::to_string(&oca_list).unwrap());
+        // println!(
+        //     "{}",
+        //     serde_json::to_string_pretty(&serde_json::to_value(&parsed.oca_list).unwrap()).unwrap()
+        // );
     }
 }

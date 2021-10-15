@@ -488,7 +488,10 @@ mod tests {
 
         oca = oca.add_attribute(attr1).add_attribute(attr2).finalize();
 
-        // println!("{:#?}", serde_json::to_string(&oca).unwrap());
+        // println!(
+        //     "{}",
+        //     serde_json::to_string_pretty(&serde_json::to_value(&oca).unwrap()).unwrap()
+        // );
 
         assert_eq!(oca.capture_base.attributes.len(), 2);
         assert_eq!(oca.capture_base.pii.len(), 1);
