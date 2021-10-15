@@ -8,15 +8,21 @@ use calamine::{open_workbook, DataType, Reader, Xlsx};
 use core::str::FromStr;
 use std::collections::HashMap;
 
-pub fn parse(path: String) -> Vec<OCA> {
+pub struct ParsedResult {
+    pub oca_list: Vec<OCA>,
+    pub languages: Vec<Language>,
+}
+
+pub fn parse(path: String) -> ParsedResult {
     let mut workbook: Xlsx<_> = open_workbook(path).expect("Cannot open file");
     let mut sheet_names = workbook.sheet_names().to_vec();
+    let mut languages = vec![];
     sheet_names.retain(|n| n != "READ ME");
     let translation_sheet_names = sheet_names.split_off(1);
 
     let main_sheet_name = sheet_names.first().unwrap();
     let main_sheet = workbook.worksheet_range(main_sheet_name).unwrap().unwrap();
-    let mut translation_sheets: Vec<(String, _)> = vec![];
+    let mut translation_sheets: Vec<(Language, _)> = vec![];
 
     for translation_sheet_name in translation_sheet_names {
         let mut lang = translation_sheet_name.clone();
@@ -28,8 +34,10 @@ pub fn parse(path: String) -> Vec<OCA> {
             lang.push_str("_");
             lang.push_str(&lang_upper);
         }
+        let lang_enum = Language::from_str(&lang).unwrap();
+        languages.push(lang_enum.clone());
         translation_sheets.push((
-            lang,
+            lang_enum,
             workbook
                 .worksheet_range(&translation_sheet_name.clone())
                 .unwrap()
@@ -101,10 +109,9 @@ pub fn parse(path: String) -> Vec<OCA> {
         let information_index = 5;
         let mut information_trans: HashMap<usize, HashMap<Language, String>> = HashMap::new();
 
-        for (lang, sheet) in translation_sheets.iter() {
-            let lang_enum = Language::from_str(lang).unwrap();
-            name_trans.insert(lang_enum, sheet.get((oca_range.0, 0)).unwrap().to_string());
-            description_trans.insert(lang_enum, sheet.get((oca_range.0, 1)).unwrap().to_string());
+        for (lang_enum, sheet) in translation_sheets.iter() {
+            name_trans.insert(*lang_enum, sheet.get((oca_range.0, 0)).unwrap().to_string());
+            description_trans.insert(*lang_enum, sheet.get((oca_range.0, 1)).unwrap().to_string());
 
             for attr_index in (oca_range.0)..(oca_range.1 + 2) {
                 if let Some(DataType::String(label_value)) =
@@ -118,11 +125,11 @@ pub fn parse(path: String) -> Vec<OCA> {
                         .to_string();
                     match label_trans.get_mut(&attr_index) {
                         Some(attr_label_tr) => {
-                            attr_label_tr.insert(lang_enum, splitted_label_value);
+                            attr_label_tr.insert(*lang_enum, splitted_label_value);
                         }
                         None => {
                             let mut attr_label_tr: HashMap<Language, String> = HashMap::new();
-                            attr_label_tr.insert(lang_enum, splitted_label_value);
+                            attr_label_tr.insert(*lang_enum, splitted_label_value);
                             label_trans.insert(attr_index, attr_label_tr);
                         }
                     }
@@ -147,12 +154,12 @@ pub fn parse(path: String) -> Vec<OCA> {
                             for (entry_key, entry_value) in entries {
                                 match attr_entries_tr.get_mut(&entry_key.to_string()) {
                                     Some(attr_entry_tr) => {
-                                        attr_entry_tr.insert(lang_enum, entry_value.to_string());
+                                        attr_entry_tr.insert(*lang_enum, entry_value.to_string());
                                     }
                                     None => {
                                         let mut attr_entry_tr: HashMap<Language, String> =
                                             HashMap::new();
-                                        attr_entry_tr.insert(lang_enum, entry_value.to_string());
+                                        attr_entry_tr.insert(*lang_enum, entry_value.to_string());
                                         attr_entries_tr
                                             .insert(entry_key.to_string(), attr_entry_tr);
                                     }
@@ -165,12 +172,12 @@ pub fn parse(path: String) -> Vec<OCA> {
                             for (entry_key, entry_value) in entries {
                                 match attr_entries_tr.get_mut(&entry_key.to_string()) {
                                     Some(attr_entry_tr) => {
-                                        attr_entry_tr.insert(lang_enum, entry_value.to_string());
+                                        attr_entry_tr.insert(*lang_enum, entry_value.to_string());
                                     }
                                     None => {
                                         let mut attr_entry_tr: HashMap<Language, String> =
                                             HashMap::new();
-                                        attr_entry_tr.insert(lang_enum, entry_value.to_string());
+                                        attr_entry_tr.insert(*lang_enum, entry_value.to_string());
                                         attr_entries_tr
                                             .insert(entry_key.to_string(), attr_entry_tr);
                                     }
@@ -186,11 +193,11 @@ pub fn parse(path: String) -> Vec<OCA> {
                 {
                     match information_trans.get_mut(&attr_index) {
                         Some(attr_info_tr) => {
-                            attr_info_tr.insert(lang_enum, information_value.clone());
+                            attr_info_tr.insert(*lang_enum, information_value.clone());
                         }
                         None => {
                             let mut attr_info_tr: HashMap<Language, String> = HashMap::new();
-                            attr_info_tr.insert(lang_enum, information_value.clone());
+                            attr_info_tr.insert(*lang_enum, information_value.clone());
                             information_trans.insert(attr_index, attr_info_tr);
                         }
                     }
@@ -219,7 +226,10 @@ pub fn parse(path: String) -> Vec<OCA> {
         oca_list.push(oca);
     }
 
-    oca_list
+    ParsedResult {
+        oca_list,
+        languages,
+    }
 }
 
 #[cfg(test)]
@@ -228,11 +238,13 @@ mod tests {
 
     #[test]
     fn test() {
-        let oca_list = parse(format!(
+        let parsed = parse(format!(
             "{}/examples/oca_template.xlsx",
             env!("CARGO_MANIFEST_DIR")
         ));
 
-        assert_eq!(oca_list.len(), 3);
+        assert_eq!(parsed.oca_list.len(), 3);
+        assert_eq!(parsed.languages.len(), 2);
+        // println!("{:#?}", serde_json::to_string(&oca_list).unwrap());
     }
 }
