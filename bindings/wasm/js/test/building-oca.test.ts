@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { Attribute, AttributeType, Encoding, Entry, Language, OCA } from 'oca.js'
+import { Attribute, AttributeType, Encoding, Entry, OCA } from 'oca.js'
 
 describe('Plain OCA is built', () => {
   const oca = (new OCA(Encoding.Utf8)).finalize()
@@ -21,33 +21,33 @@ describe('Plain OCA is built', () => {
 describe('OCA with attributes is built', () => {
   const oca = (new OCA(Encoding.Utf8))
     .addName({
-      [Language.En]: "Driving Licence",
-      [Language.Pl]: "Prawo Jazdy"
+      en_EN: "Driving Licence",
+      pl_PL: "Prawo Jazdy"
     })
     .addDescription({
-      [Language.En]: "DL desc",
-      [Language.Pl]: "PJ desc"
+      en_EN: "DL desc",
+      pl_PL: "PJ desc"
     })
     .addAttribute(
       (new Attribute("attr_name", AttributeType.Number))
       .setPii()
       .addUnit("days")
       .addLabel({
-        [Language.En]: "Name: ",
-        [Language.Pl]: "Imię: "
+        en_EN: "Name: ",
+        pl_PL: "Imię: "
       })
       .addInformation({
-        [Language.En]: "en info",
-        [Language.Pl]: "pl info"
+        en_EN: "en info",
+        pl_PL: "pl info"
       })
       .addEntries([
         new Entry("o1", {
-          [Language.En]: "option 1",
-          [Language.Pl]: "opcja 1"
+          en_EN: "option 1",
+          pl_PL: "opcja 1"
         }),
         new Entry("o2", {
-          [Language.En]: "option 2",
-          [Language.Pl]: "opcja 2"
+          en_EN: "option 2",
+          pl_PL: "opcja 2"
         })
       ])
       .build()
@@ -57,8 +57,8 @@ describe('OCA with attributes is built', () => {
       .addEncoding(Encoding.Iso8859_1)
       .addFormat("DD.MM.YYYY")
       .addLabel({
-        [Language.En]: "Date: ",
-        [Language.Pl]: "Data: "
+        en_EN: "Date: ",
+        pl_PL: "Data: "
       })
       .build()
     )

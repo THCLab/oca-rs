@@ -59,7 +59,7 @@ impl Attribute {
                 None => {
                     let mut tr = AttributeTranslation::new();
                     tr.add_label(label.clone());
-                    self.translations.insert(*lang, tr);
+                    self.translations.insert(lang.clone(), tr);
                 }
             }
         }
@@ -80,7 +80,7 @@ impl Attribute {
                     None => {
                         let mut tr = AttributeTranslation::new();
                         tr.add_entry(entry.id.clone(), en.clone());
-                        self.translations.insert(*lang, tr);
+                        self.translations.insert(lang.clone(), tr);
                     }
                 }
             }
@@ -99,7 +99,7 @@ impl Attribute {
                 None => {
                     let mut tr = AttributeTranslation::new();
                     tr.add_information(info.clone());
-                    self.translations.insert(*lang, tr);
+                    self.translations.insert(lang.clone(), tr);
                 }
             }
         }

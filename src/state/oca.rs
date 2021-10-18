@@ -234,7 +234,7 @@ impl OCA {
                 None => {
                     let mut t = OCATranslation::new();
                     t.add_name(name.clone());
-                    self.meta_translations.insert(*lang, t);
+                    self.meta_translations.insert(lang.clone(), t);
                 }
             }
         }
@@ -250,7 +250,7 @@ impl OCA {
                 None => {
                     let mut t = OCATranslation::new();
                     t.add_description(description.clone());
-                    self.meta_translations.insert(*lang, t);
+                    self.meta_translations.insert(lang.clone(), t);
                 }
             }
         }
@@ -323,7 +323,7 @@ impl OCA {
                 false
             });
             if label_ov.is_none() {
-                self.overlays.push(overlay::Label::new(lang));
+                self.overlays.push(overlay::Label::new(lang.to_string()));
                 label_ov = self.overlays.last_mut();
             }
             if let Some(ov) = label_ov {
@@ -338,7 +338,8 @@ impl OCA {
                     false
                 });
                 if information_ov.is_none() {
-                    self.overlays.push(overlay::Information::new(lang));
+                    self.overlays
+                        .push(overlay::Information::new(lang.to_string()));
                     information_ov = self.overlays.last_mut();
                 }
                 if let Some(ov) = information_ov {
@@ -354,7 +355,7 @@ impl OCA {
                     false
                 });
                 if entry_ov.is_none() {
-                    self.overlays.push(overlay::Entry::new(lang));
+                    self.overlays.push(overlay::Entry::new(lang.to_string()));
                     entry_ov = self.overlays.last_mut();
                 }
                 if let Some(ov) = entry_ov {
@@ -367,7 +368,8 @@ impl OCA {
 
     pub fn finalize(mut self) -> OCA {
         for (lang, translation) in self.meta_translations.iter() {
-            self.overlays.push(overlay::Meta::new(lang, translation));
+            self.overlays
+                .push(overlay::Meta::new(lang.to_string(), translation));
         }
 
         let cs_json = serde_json::to_string(&self.capture_base).unwrap();
@@ -416,7 +418,6 @@ mod tests {
     use crate::state::{
         attribute::{AttributeType, Entry},
         encoding::Encoding,
-        language::Language,
     };
     use maplit::hashmap;
 
@@ -424,12 +425,12 @@ mod tests {
     fn build_oca_without_attributes() {
         let oca = OCA::new(Encoding::Utf8)
             .add_name(hashmap! {
-                Language::En => "Driving Licence".to_string(),
-                Language::Pl => "Prawo Jazdy".to_string(),
+                "En".to_string() => "Driving Licence".to_string(),
+                "Pl".to_string() => "Prawo Jazdy".to_string(),
             })
             .add_description(hashmap! {
-                Language::En => "Driving Licence".to_string(),
-                Language::Pl => "Prawo Jazdy".to_string(),
+                "En".to_string() => "Driving Licence".to_string(),
+                "Pl".to_string() => "Prawo Jazdy".to_string(),
             })
             .finalize();
 
@@ -442,46 +443,46 @@ mod tests {
     fn build_oca_with_attributes() {
         let mut oca = OCA::new(Encoding::Utf8)
             .add_name(hashmap! {
-                Language::En => "Driving Licence".to_string(),
-                Language::Pl => "Prawo Jazdy".to_string(),
+                "En".to_string() => "Driving Licence".to_string(),
+                "Pl".to_string() => "Prawo Jazdy".to_string(),
             })
             .add_description(hashmap! {
-                Language::En => "DL desc".to_string(),
-                Language::Pl => "PJ desc".to_string(),
+                "En".to_string() => "DL desc".to_string(),
+                "Pl".to_string() => "PJ desc".to_string(),
             });
 
         let attr1 = Attribute::new(String::from("n1"), AttributeType::Text)
             .set_pii()
             .add_label(hashmap! {
-                Language::En => "Name: ".to_string(),
-                Language::Pl => "Imię: ".to_string(),
+                "En".to_string() => "Name: ".to_string(),
+                "Pl".to_string() => "Imię: ".to_string(),
             })
             .add_entries(vec![
                 Entry::new(
                     "op1".to_string(),
                     hashmap! {
-                        Language::En => "Option 1".to_string(),
-                        Language::Pl => "Opcja 1".to_string(),
+                        "En".to_string() => "Option 1".to_string(),
+                        "Pl".to_string() => "Opcja 1".to_string(),
                     },
                 ),
                 Entry::new(
                     "op2".to_string(),
                     hashmap! {
-                        Language::En => "Option 2".to_string(),
-                        Language::Pl => "Opcja 2".to_string(),
+                        "En".to_string() => "Option 2".to_string(),
+                        "Pl".to_string() => "Opcja 2".to_string(),
                     },
                 ),
             ])
             .add_information(hashmap! {
-                Language::En => "info en".to_string(),
-                Language::Pl => "info pl".to_string(),
+                "En".to_string() => "info en".to_string(),
+                "Pl".to_string() => "info pl".to_string(),
             })
             .add_unit("days".to_string());
 
         let attr2 = Attribute::new(String::from("n2"), AttributeType::Date)
             .add_label(hashmap! {
-                Language::En => "Date: ".to_string(),
-                Language::Pl => "Data: ".to_string(),
+                "En".to_string() => "Date: ".to_string(),
+                "Pl".to_string() => "Data: ".to_string(),
             })
             .add_encoding(Encoding::Iso8859_1)
             .add_format("DD/MM/YYYY".to_string());

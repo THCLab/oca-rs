@@ -42,7 +42,7 @@ impl Overlay for LabelOverlay {
     }
 }
 impl LabelOverlay {
-    pub fn new(lang: &Language) -> Box<LabelOverlay> {
+    pub fn new(lang: Language) -> Box<LabelOverlay> {
         let mut cat_labels = BTreeMap::new();
         cat_labels.insert(String::from("_cat-1_"), String::from("Category 1"));
         let mut cat_attributes = BTreeMap::new();
@@ -50,7 +50,7 @@ impl LabelOverlay {
         Box::new(LabelOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overalys/label/1.0".to_string(),
-            language: *lang,
+            language: lang,
             attr_labels: BTreeMap::new(),
             attr_categories: vec![String::from("_cat-1_")],
             cat_labels,

@@ -5,7 +5,6 @@ use crate::state::{
     oca::OCA,
 };
 use calamine::{open_workbook, DataType, Reader, Xlsx};
-use core::str::FromStr;
 use std::collections::{BTreeMap, HashMap};
 
 pub struct ParsedResult {
@@ -25,19 +24,9 @@ pub fn parse(path: String) -> ParsedResult {
     let mut translation_sheets: Vec<(Language, _)> = vec![];
 
     for translation_sheet_name in translation_sheet_names {
-        let mut lang = translation_sheet_name.clone();
-        if lang.chars().count() == 2 {
-            let lang_lower = lang.to_lowercase();
-            let lang_upper = lang.to_uppercase();
-            lang.clear();
-            lang.push_str(&lang_lower);
-            lang.push_str("_");
-            lang.push_str(&lang_upper);
-        }
-        let lang_enum = Language::from_str(&lang).unwrap();
-        languages.push(lang_enum.clone());
+        languages.push(translation_sheet_name.clone());
         translation_sheets.push((
-            lang_enum,
+            translation_sheet_name.clone(),
             workbook
                 .worksheet_range(&translation_sheet_name.clone())
                 .unwrap()
@@ -109,9 +98,15 @@ pub fn parse(path: String) -> ParsedResult {
         let information_index = 5;
         let mut information_trans: HashMap<usize, HashMap<Language, String>> = HashMap::new();
 
-        for (lang_enum, sheet) in translation_sheets.iter() {
-            name_trans.insert(*lang_enum, sheet.get((oca_range.0, 0)).unwrap().to_string());
-            description_trans.insert(*lang_enum, sheet.get((oca_range.0, 1)).unwrap().to_string());
+        for (lang, sheet) in translation_sheets.iter() {
+            name_trans.insert(
+                lang.to_string(),
+                sheet.get((oca_range.0, 0)).unwrap().to_string(),
+            );
+            description_trans.insert(
+                lang.to_string(),
+                sheet.get((oca_range.0, 1)).unwrap().to_string(),
+            );
 
             for attr_index in (oca_range.0)..(oca_range.1 + 2) {
                 if let Some(DataType::String(label_value)) =
@@ -125,11 +120,11 @@ pub fn parse(path: String) -> ParsedResult {
                         .to_string();
                     match label_trans.get_mut(&attr_index) {
                         Some(attr_label_tr) => {
-                            attr_label_tr.insert(*lang_enum, splitted_label_value);
+                            attr_label_tr.insert(lang.to_string(), splitted_label_value);
                         }
                         None => {
                             let mut attr_label_tr: HashMap<Language, String> = HashMap::new();
-                            attr_label_tr.insert(*lang_enum, splitted_label_value);
+                            attr_label_tr.insert(lang.to_string(), splitted_label_value);
                             label_trans.insert(attr_index, attr_label_tr);
                         }
                     }
@@ -154,12 +149,14 @@ pub fn parse(path: String) -> ParsedResult {
                             for (entry_key, entry_value) in entries {
                                 match attr_entries_tr.get_mut(&entry_key.to_string()) {
                                     Some(attr_entry_tr) => {
-                                        attr_entry_tr.insert(*lang_enum, entry_value.to_string());
+                                        attr_entry_tr
+                                            .insert(lang.to_string(), entry_value.to_string());
                                     }
                                     None => {
                                         let mut attr_entry_tr: HashMap<Language, String> =
                                             HashMap::new();
-                                        attr_entry_tr.insert(*lang_enum, entry_value.to_string());
+                                        attr_entry_tr
+                                            .insert(lang.to_string(), entry_value.to_string());
                                         attr_entries_tr
                                             .insert(entry_key.to_string(), attr_entry_tr);
                                     }
@@ -172,12 +169,14 @@ pub fn parse(path: String) -> ParsedResult {
                             for (entry_key, entry_value) in entries {
                                 match attr_entries_tr.get_mut(&entry_key.to_string()) {
                                     Some(attr_entry_tr) => {
-                                        attr_entry_tr.insert(*lang_enum, entry_value.to_string());
+                                        attr_entry_tr
+                                            .insert(lang.to_string(), entry_value.to_string());
                                     }
                                     None => {
                                         let mut attr_entry_tr: HashMap<Language, String> =
                                             HashMap::new();
-                                        attr_entry_tr.insert(*lang_enum, entry_value.to_string());
+                                        attr_entry_tr
+                                            .insert(lang.to_string(), entry_value.to_string());
                                         attr_entries_tr
                                             .insert(entry_key.to_string(), attr_entry_tr);
                                     }
@@ -193,11 +192,11 @@ pub fn parse(path: String) -> ParsedResult {
                 {
                     match information_trans.get_mut(&attr_index) {
                         Some(attr_info_tr) => {
-                            attr_info_tr.insert(*lang_enum, information_value.clone());
+                            attr_info_tr.insert(lang.to_string(), information_value.clone());
                         }
                         None => {
                             let mut attr_info_tr: HashMap<Language, String> = HashMap::new();
-                            attr_info_tr.insert(*lang_enum, information_value.clone());
+                            attr_info_tr.insert(lang.to_string(), information_value.clone());
                             information_trans.insert(attr_index, attr_info_tr);
                         }
                     }

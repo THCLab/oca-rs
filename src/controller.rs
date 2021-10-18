@@ -13,10 +13,7 @@ pub fn load_oca(source: &mut dyn Read) -> GenericResult<OCA> {
 #[cfg(test)]
 mod tests {
     use super::load_oca;
-    use crate::state::{
-        attribute::{Attribute, AttributeType},
-        language::Language,
-    };
+    use crate::state::attribute::{Attribute, AttributeType};
     use maplit::hashmap;
 
     #[test]
@@ -115,8 +112,8 @@ mod tests {
         oca = oca
             .add_attribute(
                 Attribute::new("new_attr".to_string(), AttributeType::Text).add_label(hashmap! {
-                    Language::En => "New: ".to_string(),
-                    Language::Pl => "Nowy: ".to_string(),
+                    "En".to_string() => "New: ".to_string(),
+                    "Pl".to_string() => "Nowy: ".to_string(),
                 }),
             )
             .finalize();

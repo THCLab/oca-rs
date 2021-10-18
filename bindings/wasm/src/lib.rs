@@ -1,4 +1,3 @@
-use core::str::FromStr;
 use oca_rust::state::{
     attribute::{Attribute as AttributeRaw, AttributeType, Entry as EntryRaw},
     encoding::Encoding,
@@ -25,8 +24,8 @@ impl Entry {
             serde_wasm_bindgen::from_value(JsValue::from(translations)).unwrap();
 
         let mut translations_raw: HashMap<Language, String> = HashMap::new();
-        for (lang_str, translation) in translations_str.iter() {
-            translations_raw.insert(Language::from_str(lang_str).unwrap(), translation.clone());
+        for (lang, translation) in translations_str.iter() {
+            translations_raw.insert(lang.to_string(), translation.clone());
         }
 
         serde_wasm_bindgen::to_value(&EntryRaw::new(id, translations_raw)).unwrap_or(JsValue::NULL)
@@ -53,8 +52,8 @@ impl OCA {
             serde_wasm_bindgen::from_value(JsValue::from(names)).unwrap();
 
         let mut names_raw: HashMap<Language, String> = HashMap::new();
-        for (lang_str, name) in names_str.iter() {
-            names_raw.insert(Language::from_str(lang_str).unwrap(), name.clone());
+        for (lang, name) in names_str.iter() {
+            names_raw.insert(lang.to_string(), name.clone());
         }
 
         self.raw = self.raw.add_name(names_raw);
@@ -67,8 +66,8 @@ impl OCA {
             serde_wasm_bindgen::from_value(JsValue::from(descriptions)).unwrap();
 
         let mut descriptions_raw: HashMap<Language, String> = HashMap::new();
-        for (lang_str, description) in descriptions_str.iter() {
-            descriptions_raw.insert(Language::from_str(lang_str).unwrap(), description.clone());
+        for (lang, description) in descriptions_str.iter() {
+            descriptions_raw.insert(lang.to_string(), description.clone());
         }
 
         self.raw = self.raw.add_description(descriptions_raw);
@@ -108,17 +107,8 @@ impl Validator {
     }
 
     #[wasm_bindgen(js_name = "enforceTranslations")]
-    pub fn enforce_translations(mut self, languages: Vec<JsValue>) -> Validator {
-        let mut languages_raw: Vec<Language> = vec![];
-        for lang in languages {
-            let lang_str;
-            if lang.is_string() {
-                lang_str = lang.as_string().unwrap();
-            } else {
-                lang_str = lang.as_f64().unwrap().to_string();
-            }
-            languages_raw.push(Language::from_str(lang_str.as_str()).unwrap());
-        }
+    pub fn enforce_translations(mut self, languages: JsValue) -> Validator {
+        let languages_raw: Vec<String> = serde_wasm_bindgen::from_value(languages).unwrap();
 
         self.raw = self.raw.enforce_translations(languages_raw);
         self
@@ -206,8 +196,8 @@ impl Attribute {
             serde_wasm_bindgen::from_value(JsValue::from(labels)).unwrap();
 
         let mut labels_raw: HashMap<Language, String> = HashMap::new();
-        for (lang_str, label) in labels_str.iter() {
-            labels_raw.insert(Language::from_str(lang_str).unwrap(), label.clone());
+        for (lang, label) in labels_str.iter() {
+            labels_raw.insert(lang.to_string(), label.clone());
         }
 
         self.raw = self.raw.add_label(labels_raw);
@@ -221,8 +211,8 @@ impl Attribute {
             let e: Entry = serde_wasm_bindgen::from_value(JsValue::from(entry)).unwrap();
 
             let mut entry_tr_raw: HashMap<Language, String> = HashMap::new();
-            for (lang_str, entry_v) in e.translations.iter() {
-                entry_tr_raw.insert(Language::from_str(lang_str).unwrap(), entry_v.clone());
+            for (lang, entry_v) in e.translations.iter() {
+                entry_tr_raw.insert(lang.to_string(), entry_v.clone());
             }
             entries_raw.push(EntryRaw::new(e.id, entry_tr_raw))
         }
@@ -237,8 +227,8 @@ impl Attribute {
             serde_wasm_bindgen::from_value(JsValue::from(information)).unwrap();
 
         let mut information_raw: HashMap<Language, String> = HashMap::new();
-        for (lang_str, info) in information_str.iter() {
-            information_raw.insert(Language::from_str(lang_str).unwrap(), info.clone());
+        for (lang, info) in information_str.iter() {
+            information_raw.insert(lang.to_string(), info.clone());
         }
 
         self.raw = self.raw.add_information(information_raw);

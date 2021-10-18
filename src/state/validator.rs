@@ -127,13 +127,13 @@ impl Validator {
         let missing_enforcement: HashSet<&_> =
             translation_langs.difference(enforced_langs).collect();
         for m in missing_enforcement {
-            errors.push(Error::UnexpectedTranslations(**m));
+            errors.push(Error::UnexpectedTranslations(m.to_string()));
         }
 
         let missing_translations: HashSet<&_> =
             enforced_langs.difference(&translation_langs).collect();
         for m in missing_translations {
-            errors.push(Error::MissingTranslations(**m));
+            errors.push(Error::MissingTranslations(m.to_string()));
         }
 
         let (name_defined, name_undefined): (Vec<_>, Vec<_>) =
@@ -141,7 +141,10 @@ impl Validator {
         if !name_defined.is_empty() {
             let name_undefined_langs: HashSet<_> = name_undefined.iter().map(|x| x.0).collect();
             for m in name_undefined_langs {
-                errors.push(Error::MissingMetaTranslation(*m, "name".to_string()));
+                errors.push(Error::MissingMetaTranslation(
+                    m.to_string(),
+                    "name".to_string(),
+                ));
             }
         }
 
@@ -151,7 +154,10 @@ impl Validator {
         if !desc_defined.is_empty() {
             let desc_undefined_langs: HashSet<_> = desc_undefined.iter().map(|x| x.0).collect();
             for m in desc_undefined_langs {
-                errors.push(Error::MissingMetaTranslation(*m, "description".to_string()));
+                errors.push(Error::MissingMetaTranslation(
+                    m.to_string(),
+                    "description".to_string(),
+                ));
             }
         }
 
@@ -173,12 +179,12 @@ impl Validator {
 
         let missing_enforcement: HashSet<&_> = overlay_langs.difference(enforced_langs).collect();
         for m in missing_enforcement {
-            errors.push(Error::UnexpectedTranslations(**m));
+            errors.push(Error::UnexpectedTranslations(m.to_string()));
         }
 
         let missing_translations: HashSet<&_> = enforced_langs.difference(&overlay_langs).collect();
         for m in missing_translations {
-            errors.push(Error::MissingTranslations(**m));
+            errors.push(Error::MissingTranslations(m.to_string()));
         }
 
         let all_attributes: HashSet<&String> =
@@ -190,7 +196,7 @@ impl Validator {
                 all_attributes.difference(&attributes).collect();
             for m in missing_attr_translation {
                 errors.push(Error::MissingAttributeTranslation(
-                    *overlay.language().unwrap(),
+                    overlay.language().unwrap().clone(),
                     m.to_string(),
                 ));
             }
@@ -210,34 +216,34 @@ mod tests {
     use crate::state::{
         attribute::{Attribute, AttributeType},
         encoding::Encoding,
-        language::Language,
     };
     use maplit::hashmap;
 
     #[test]
     fn validate_valid_oca() {
-        let validator = Validator::new().enforce_translations(vec![Language::En, Language::Pl]);
+        let validator =
+            Validator::new().enforce_translations(vec!["En".to_string(), "Pl".to_string()]);
 
         let oca = OCA::new(Encoding::Utf8)
             .add_name(hashmap! {
-                Language::En => "Driving Licence".to_string(),
-                Language::Pl => "Prawo Jazdy".to_string(),
+                "En".to_string() => "Driving Licence".to_string(),
+                "Pl".to_string() => "Prawo Jazdy".to_string(),
             })
             .add_description(hashmap! {
-                Language::En => "DL".to_string(),
-                Language::Pl => "PJ".to_string(),
+                "En".to_string() => "DL".to_string(),
+                "Pl".to_string() => "PJ".to_string(),
             })
             .add_attribute(
                 Attribute::new("name".to_string(), AttributeType::Text).add_label(hashmap! {
-                    Language::En => "Name: ".to_string(),
-                    Language::Pl => "Imię: ".to_string(),
+                    "En".to_string() => "Name: ".to_string(),
+                    "Pl".to_string() => "Imię: ".to_string(),
                 }),
             )
             .add_attribute(
                 Attribute::new("age".to_string(), AttributeType::Number)
                     .add_label(hashmap! {
-                        Language::En => "Age: ".to_string(),
-                        Language::Pl => "Wiek: ".to_string(),
+                        "En".to_string() => "Age: ".to_string(),
+                        "Pl".to_string() => "Wiek: ".to_string(),
                     })
                     .add_format("asd".to_string()),
             )
