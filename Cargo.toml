@@ -9,11 +9,12 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-xls_parser = ["calamine", "zip"]
+command_line = ["clap", "zip"]
+xls_parser = ["calamine"]
 
 [[bin]]
 name = "parser"
-required-features = ["xls_parser"]
+required-features = ["command_line", "xls_parser"]
 
 [dependencies]
 serde_json = "1.0"
@@ -23,7 +24,7 @@ erased-serde = "0.3.16"
 wasm-bindgen = { version = "0.2.77" }
 serde-value = "0.7.0"
 calamine = { version = "0.18.0", optional = true }
-clap = "3.0.0-beta.4"
+clap = { version = "3.0.0-beta.4", optional = true }
 zip = { version = "0.5.13", optional = true }
 
 [dev-dependencies]
