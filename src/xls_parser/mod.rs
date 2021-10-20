@@ -101,11 +101,11 @@ pub fn parse(path: String) -> ParsedResult {
         for (lang, sheet) in translation_sheets.iter() {
             name_trans.insert(
                 lang.to_string(),
-                sheet.get((oca_range.0, 0)).unwrap().to_string(),
+                sheet.get((oca_range.0 + 2, 0)).unwrap().to_string(),
             );
             description_trans.insert(
                 lang.to_string(),
-                sheet.get((oca_range.0, 1)).unwrap().to_string(),
+                sheet.get((oca_range.0 + 2, 1)).unwrap().to_string(),
             );
 
             for attr_index in (oca_range.0)..(oca_range.1 + 2) {
@@ -248,5 +248,29 @@ mod tests {
         //     "{}",
         //     serde_json::to_string_pretty(&serde_json::to_value(&parsed.oca_list).unwrap()).unwrap()
         // );
+    }
+
+    #[test]
+    fn parse_schema_names() {
+        let parsed = parse(format!(
+            "{}/examples/oca_template.xlsx",
+            env!("CARGO_MANIFEST_DIR")
+        ));
+
+        let expected_names = vec![
+            "HCF Project Onboarding Form".to_string(),
+            "SDG Capture Segment".to_string(),
+            "GICS® Capture Segment".to_string(),
+        ];
+        for (i, oca) in parsed.oca_list.iter().enumerate() {
+            let meta_en_overlay = &serde_json::to_value(&oca.overlays.iter().find(|o| {
+                o.overlay_type().to_string().contains("/meta/")
+                    && o.language().unwrap().to_string() == "en".to_string()
+            }))
+            .unwrap();
+            if let serde_json::Value::String(en_name) = &meta_en_overlay.get("name").unwrap() {
+                assert_eq!(Some(en_name), expected_names.get(i));
+            }
+        }
     }
 }
