@@ -89,7 +89,7 @@ fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
         let cb_json = serde_json::to_string(&oca.capture_base).unwrap();
         let cb_sai = SelfAddressing::Blake3_256.derive(cb_json.as_bytes());
         zip.start_file(
-            format!("{}/{}.json", filename.clone(), cb_sai),
+            format!("{}.json", cb_sai),
             zip::write::FileOptions::default(),
         )?;
         zip.write(cb_json.as_bytes())?;
@@ -98,7 +98,7 @@ fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
             let overlay_json = serde_json::to_string(&overlay).unwrap();
             let overlay_sai = SelfAddressing::Blake3_256.derive(overlay_json.as_bytes());
             zip.start_file(
-                format!("{}/{}/{}.json", filename.clone(), cb_sai, overlay_sai,),
+                format!("{}/{}.json", cb_sai, overlay_sai,),
                 zip::write::FileOptions::default(),
             )?;
             zip.write(overlay_json.as_bytes())?;
