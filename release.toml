@@ -2,5 +2,6 @@ disable-publish = true
 no-dev-version = true
 pre-release-replacements = [
   {file="bindings/wasm/Cargo.toml", search="\nversion = \"[a-z0-9\\.-]+\"", replace="\nversion = \"{{version}}\"", exactly=1},
+  {file="README.md", search="oca-rust = .*", replace="{{crate_name}} = \"{{version}}\""},
 ]
 pre-release-hook = ["bash", "release-wasm-hook.sh"]
