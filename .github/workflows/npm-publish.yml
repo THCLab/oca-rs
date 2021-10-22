@@ -28,7 +28,7 @@ jobs:
         run: wasm-pack build -t nodejs -d pkg-node
       - name: Build wasm
         working-directory: ./bindings/wasm
-        run: wasm-pack build
+        run: wasm-pack build --release
 
       - uses: actions/setup-node@v2
         with:
