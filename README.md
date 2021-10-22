@@ -14,13 +14,19 @@
 [parser release]: https://github.com/THCLab/oca-rust/releases/latest/download/parser
 [parser.exe release]: https://github.com/THCLab/oca-rust/releases/latest/download/parser.exe
 
-## Rust implementation of Overlays Capture architecture
+# Rust implementation of Overlays Capture architecture
 
 OCA is a standardized global solution for data capture and exchange which
 protects PII data and provides a positive alternative to current architectures.
 See more on: <https://oca.colossi.network/>
 
-### Usage
+# Documentation
+
+- [OCA Spec](https://the-human-colossus-foundation.github.io/oca-spec/)
+- [API reference (docs.rs)](https://docs.rs/oca-rust)
+
+
+# Usage
 
 #### Command line parser
 
@@ -67,8 +73,3 @@ bumps version and runs `git push` with `v{version}` tag added.
 That triggers actions on github
 ([Crates.io][Crates.io actions] and [npmjs.com][npmjs.com actions])
 which build and publish packages on [crates.io][crates.io] and [npmjs.com][npmjs.com].
-
-## Documentation
-
-- [OCA Spec](https://the-human-colossus-foundation.github.io/oca-spec/)
-- [API reference (docs.rs)](https://docs.rs/oca-rust)
