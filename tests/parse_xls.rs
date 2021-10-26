@@ -6,11 +6,13 @@ use oca_rust::xls_parser::parse;
 #[cfg(feature = "xls_parser")]
 #[test]
 fn parse_xls() {
-    let parsed = parse(format!(
-        "{}/examples/oca_template.xlsx",
+    let result = parse(format!(
+        "{}/tests/assets/oca_template.xlsx",
         env!("CARGO_MANIFEST_DIR")
     ));
 
+    assert!(result.is_ok());
+    let parsed = result.unwrap();
     assert_eq!(parsed.oca_list.len(), 3);
     assert_eq!(parsed.languages.len(), 2);
 

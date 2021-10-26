@@ -4,7 +4,7 @@ use crate::state::{
     language::Language,
     oca::OCA,
 };
-use calamine::{open_workbook, DataType, Reader, Xlsx};
+use calamine::{open_workbook_auto, DataType, Reader};
 use std::collections::{BTreeMap, HashMap};
 
 pub struct ParsedResult {
@@ -12,15 +12,30 @@ pub struct ParsedResult {
     pub languages: Vec<Language>,
 }
 
-pub fn parse(path: String) -> ParsedResult {
-    let mut workbook: Xlsx<_> = open_workbook(path).expect("Cannot open file");
+const ATTR_NAME_INDEX: u32 = 1;
+const ATTR_TYPE_INDEX: u32 = 2;
+const PII_FLAG_INDEX: u32 = 3;
+const ENCODING_INDEX: u32 = 4;
+const FORMAT_INDEX: u32 = 5;
+
+const LABEL_INDEX: u32 = 3;
+const ENTRIES_INDEX: u32 = 4;
+const INFORMATION_INDEX: u32 = 5;
+const SAMPLE_TEMPLATE_MSG: &str = "Sample file template can be found here: https://github.com/THCLab/oca-rust/blob/main/tests/assets/oca_template.xlsx";
+
+pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
+    let mut workbook = open_workbook_auto(path).or(Err(
+        "Provided file cannot be parsed. Check if file exists and format is XLS(X)",
+    ))?;
     let mut sheet_names = workbook.sheet_names().to_vec();
     let mut languages = vec![];
     sheet_names.retain(|n| n != "READ ME");
-    let translation_sheet_names = sheet_names.split_off(1);
 
-    let main_sheet_name = sheet_names.first().unwrap();
+    let main_sheet_name = sheet_names
+        .first()
+        .ok_or(format!("Missing sheets. {}", SAMPLE_TEMPLATE_MSG))?;
     let main_sheet = workbook.worksheet_range(main_sheet_name).unwrap().unwrap();
+    let translation_sheet_names = sheet_names.split_off(1);
     let mut translation_sheets: Vec<(Language, _)> = vec![];
 
     for translation_sheet_name in translation_sheet_names {
@@ -34,11 +49,17 @@ pub fn parse(path: String) -> ParsedResult {
         ));
     }
 
-    let mut oca_ranges: Vec<(usize, usize)> = vec![];
+    let mut oca_ranges: Vec<(u32, u32)> = vec![];
 
-    let first_translation_sheet = &translation_sheets.first().unwrap().1;
-    let mut start: usize = 3;
-    let mut prev_name = first_translation_sheet.get((start, 0)).unwrap();
+    let first_translation_sheet = &translation_sheets
+        .first()
+        .ok_or(format!(
+            "Missing translation sheets. {}",
+            SAMPLE_TEMPLATE_MSG
+        ))?
+        .1;
+    let mut start: u32 = 3;
+    let mut prev_name = first_translation_sheet.get_value((start, 0)).unwrap();
     for (i, oca_name) in first_translation_sheet
         .rows()
         .map(|r| r.first().unwrap())
@@ -48,38 +69,61 @@ pub fn parse(path: String) -> ParsedResult {
             continue;
         }
         if oca_name != prev_name {
-            oca_ranges.push((start - 2, i - 2));
-            start = i;
+            oca_ranges.push((start, i as u32));
+            start = i as u32;
         }
         prev_name = &oca_name;
     }
 
-    oca_ranges.push((start - 2, first_translation_sheet.height() - 2));
+    oca_ranges.push((start, first_translation_sheet.height() as u32));
 
     let mut oca_list: Vec<OCA> = vec![];
     for oca_range in oca_ranges {
         let mut oca = OCA::new(Encoding::Utf8);
 
-        let mut attributes: Vec<(usize, Attribute)> = vec![];
+        let mut attributes: Vec<(u32, Attribute)> = vec![];
         for attr_index in oca_range.0..oca_range.1 {
             let mut attribute = Attribute::new(
-                main_sheet.get((attr_index, 1)).unwrap().to_string(),
+                main_sheet
+                    .get_value((attr_index, ATTR_NAME_INDEX))
+                    .unwrap()
+                    .to_string(),
                 serde_json::from_str::<AttributeType>(&format!(
                     r#""{}""#,
-                    &main_sheet.get((attr_index, 2)).unwrap()
+                    &main_sheet.get_value((attr_index, ATTR_TYPE_INDEX)).unwrap()
                 ))
-                .unwrap(),
+                .or_else(|e| {
+                    Err(format!(
+                        "Parsing attribute type in row {} failed. {}",
+                        attr_index + 1,
+                        e.to_string()
+                    ))
+                })?,
             );
-            if let Some(DataType::String(_value)) = main_sheet.get((attr_index, 3)) {
+            if let Some(DataType::String(_value)) =
+                main_sheet.get_value((attr_index, PII_FLAG_INDEX))
+            {
                 attribute = attribute.set_pii();
             }
-            if let Some(DataType::String(encoding_value)) = main_sheet.get((attr_index, 4)) {
+            if let Some(DataType::String(encoding_value)) =
+                main_sheet.get_value((attr_index, ENCODING_INDEX))
+            {
                 let encoding =
-                    serde_json::from_str::<Encoding>(&format!(r#""{}""#, encoding_value)).unwrap();
+                    serde_json::from_str::<Encoding>(&format!(r#""{}""#, encoding_value)).or_else(
+                        |e| {
+                            Err(format!(
+                                "Parsing character encoding in row {} failed. {}",
+                                attr_index + 1,
+                                e.to_string()
+                            ))
+                        },
+                    )?;
                 attribute = attribute.add_encoding(encoding);
             }
 
-            if let Some(DataType::String(format_value)) = main_sheet.get((attr_index, 5)) {
+            if let Some(DataType::String(format_value)) =
+                main_sheet.get_value((attr_index, FORMAT_INDEX))
+            {
                 attribute = attribute.add_format(format_value.clone());
             }
             attributes.push((attr_index, attribute));
@@ -88,29 +132,24 @@ pub fn parse(path: String) -> ParsedResult {
         let mut name_trans: HashMap<Language, String> = HashMap::new();
         let mut description_trans: HashMap<Language, String> = HashMap::new();
 
-        let label_index = 3;
-        let mut label_trans: HashMap<usize, HashMap<Language, String>> = HashMap::new();
-
-        let entries_index = 4;
-        let mut entries_trans: HashMap<usize, BTreeMap<String, HashMap<Language, String>>> =
+        let mut label_trans: HashMap<u32, HashMap<Language, String>> = HashMap::new();
+        let mut entries_trans: HashMap<u32, BTreeMap<String, HashMap<Language, String>>> =
             HashMap::new();
-
-        let information_index = 5;
-        let mut information_trans: HashMap<usize, HashMap<Language, String>> = HashMap::new();
+        let mut information_trans: HashMap<u32, HashMap<Language, String>> = HashMap::new();
 
         for (lang, sheet) in translation_sheets.iter() {
             name_trans.insert(
                 lang.to_string(),
-                sheet.get((oca_range.0 + 2, 0)).unwrap().to_string(),
+                sheet.get_value((oca_range.0, 0)).unwrap().to_string(),
             );
             description_trans.insert(
                 lang.to_string(),
-                sheet.get((oca_range.0 + 2, 1)).unwrap().to_string(),
+                sheet.get_value((oca_range.0, 1)).unwrap().to_string(),
             );
 
-            for attr_index in (oca_range.0)..(oca_range.1 + 2) {
+            for attr_index in (oca_range.0)..(oca_range.1) {
                 if let Some(DataType::String(label_value)) =
-                    sheet.get((attr_index + 2, label_index))
+                    sheet.get_value((attr_index, LABEL_INDEX))
                 {
                     let splitted_label_value = label_value
                         .split("|")
@@ -131,7 +170,7 @@ pub fn parse(path: String) -> ParsedResult {
                 }
 
                 if let Some(DataType::String(entries_value)) =
-                    sheet.get((attr_index + 2, entries_index))
+                    sheet.get_value((attr_index, ENTRIES_INDEX))
                 {
                     let entries = entries_value.split("|").collect::<Vec<&str>>().iter().fold(
                         HashMap::new(),
@@ -188,7 +227,7 @@ pub fn parse(path: String) -> ParsedResult {
                 }
 
                 if let Some(DataType::String(information_value)) =
-                    sheet.get((attr_index + 2, information_index))
+                    sheet.get_value((attr_index, INFORMATION_INDEX))
                 {
                     match information_trans.get_mut(&attr_index) {
                         Some(attr_info_tr) => {
@@ -225,10 +264,10 @@ pub fn parse(path: String) -> ParsedResult {
         oca_list.push(oca);
     }
 
-    ParsedResult {
+    Ok(ParsedResult {
         oca_list,
         languages,
-    }
+    })
 }
 
 #[cfg(test)]
@@ -236,41 +275,66 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test() {
-        let parsed = parse(format!(
+    fn parse_xlsx_file() {
+        let result = parse(format!(
             "{}/tests/assets/oca_template.xlsx",
             env!("CARGO_MANIFEST_DIR")
         ));
+        assert!(result.is_ok());
 
-        assert_eq!(parsed.oca_list.len(), 3);
-        assert_eq!(parsed.languages.len(), 2);
-        // println!(
-        //     "{}",
-        //     serde_json::to_string_pretty(&serde_json::to_value(&parsed.oca_list).unwrap()).unwrap()
-        // );
+        if let Ok(parsed) = result {
+            assert_eq!(parsed.oca_list.len(), 3);
+            assert_eq!(parsed.languages.len(), 2);
+        }
+    }
+
+    #[test]
+    fn parse_xls_file() {
+        let result = parse(format!(
+            "{}/tests/assets/oca_template.xls",
+            env!("CARGO_MANIFEST_DIR")
+        ));
+        assert!(result.is_ok());
+
+        if let Ok(parsed) = result {
+            assert_eq!(parsed.oca_list.len(), 3);
+            assert_eq!(parsed.languages.len(), 2);
+        }
     }
 
     #[test]
     fn parse_schema_names() {
-        let parsed = parse(format!(
+        let result = parse(format!(
             "{}/tests/assets/oca_template.xlsx",
             env!("CARGO_MANIFEST_DIR")
         ));
+        assert!(result.is_ok());
 
-        let expected_names = vec![
-            "HCF Project Onboarding Form".to_string(),
-            "SDG Capture Segment".to_string(),
-            "GICS® Capture Segment".to_string(),
-        ];
-        for (i, oca) in parsed.oca_list.iter().enumerate() {
-            let meta_en_overlay = &serde_json::to_value(&oca.overlays.iter().find(|o| {
-                o.overlay_type().to_string().contains("/meta/")
-                    && o.language().unwrap().to_string() == "en".to_string()
-            }))
-            .unwrap();
-            if let serde_json::Value::String(en_name) = &meta_en_overlay.get("name").unwrap() {
-                assert_eq!(Some(en_name), expected_names.get(i));
+        if let Ok(parsed) = result {
+            let expected_names = vec![
+                "HCF Project Onboarding Form".to_string(),
+                "SDG Capture Segment".to_string(),
+                "GICS® Capture Segment".to_string(),
+            ];
+            for (i, oca) in parsed.oca_list.iter().enumerate() {
+                let meta_en_overlay = &serde_json::to_value(&oca.overlays.iter().find(|o| {
+                    o.overlay_type().to_string().contains("/meta/")
+                        && o.language().unwrap().to_string() == "en".to_string()
+                }))
+                .unwrap();
+                if let serde_json::Value::String(en_name) = &meta_en_overlay.get("name").unwrap() {
+                    assert_eq!(Some(en_name), expected_names.get(i));
+                }
             }
         }
+    }
+
+    #[test]
+    fn return_error_when_file_type_is_invalid() {
+        let result = parse(format!(
+            "{}/tests/assets/invalid_format.txt",
+            env!("CARGO_MANIFEST_DIR")
+        ));
+        assert!(result.is_err());
     }
 }

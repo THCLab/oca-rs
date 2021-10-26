@@ -8,18 +8,18 @@ use std::collections::BTreeMap;
 use std::io::prelude::*;
 
 fn main() {
-    let matches = App::new("XLS Parser")
+    let matches = App::new("XLS(X) Parser")
         .version(VERSION)
         .subcommand(
             App::new("parse")
-                .about("Parse XLSX file to OCA")
+                .about("Parse XLS(X) file to OCA")
                 .arg(
                     Arg::new("path")
                         .short('p')
                         .long("path")
                         .required(true)
                         .takes_value(true)
-                        .about("Path to XLSX file"),
+                        .about("Path to XLS(X) file. Sample XLS(X) file can be found here: https://github.com/THCLab/oca-rust/blob/main/tests/assets/oca_template.xlsx"),
                 )
                 .arg(
                     Arg::new("no-validation")
@@ -38,8 +38,14 @@ fn main() {
 
     if let Some(ref matches) = matches.subcommand_matches("parse") {
         let path = matches.value_of("path").unwrap().to_string();
-        let parsed = xls_parser::parse(path.clone());
+        let result = xls_parser::parse(path.clone());
 
+        if let Err(e) = result {
+            println!("Error: {}", e);
+            return
+        }
+
+        let parsed = result.unwrap();
         let validation = !matches.is_present("no-validation");
         let to_be_zipped = matches.is_present("zip");
         let mut errors: BTreeMap<usize, Vec<validator::Error>> = BTreeMap::new();
