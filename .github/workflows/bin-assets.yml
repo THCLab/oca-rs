@@ -33,5 +33,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           gzip: folders
           files: >
-            parser:target/x86_64-unknown-linux-gnu/release/parser
+            parser.bin:target/x86_64-unknown-linux-gnu/release/parser
             parser.exe:target/x86_64-pc-windows-gnu/release/parser.exe

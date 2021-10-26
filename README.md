@@ -11,7 +11,7 @@
 [Crates.io actions]: https://github.com/THCLab/oca-rust/actions/workflows/create.yml
 [npmjs.com actions]: https://github.com/THCLab/oca-rust/actions/workflows/npm-publish.yml
 
-[parser release]: https://github.com/THCLab/oca-rust/releases/latest/download/parser
+[parser.bin release]: https://github.com/THCLab/oca-rust/releases/latest/download/parser.bin
 [parser.exe release]: https://github.com/THCLab/oca-rust/releases/latest/download/parser.exe
 
 # Rust implementation of Overlays Capture architecture
@@ -30,7 +30,7 @@ See more on: <https://oca.colossi.network/>
 
 #### Command line parser
 
-Download [bin for linux][parser release] or [exe for windows][parser.exe release]
+Download [bin for linux][parser.bin release] or [exe for windows][parser.exe release]
 
 #### In cargo package
 
