@@ -238,7 +238,7 @@ mod tests {
     #[test]
     fn test() {
         let parsed = parse(format!(
-            "{}/examples/oca_template.xlsx",
+            "{}/tests/assets/oca_template.xlsx",
             env!("CARGO_MANIFEST_DIR")
         ));
 
@@ -253,7 +253,7 @@ mod tests {
     #[test]
     fn parse_schema_names() {
         let parsed = parse(format!(
-            "{}/examples/oca_template.xlsx",
+            "{}/tests/assets/oca_template.xlsx",
             env!("CARGO_MANIFEST_DIR")
         ));
 
