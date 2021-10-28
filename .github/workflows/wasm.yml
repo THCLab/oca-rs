@@ -18,6 +18,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+          target: wasm32-unknown-unknown
       - name: Install wasm-bindgen-cli
         run: cargo install wasm-bindgen-cli
       - name: Build wasm
