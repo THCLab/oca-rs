@@ -20,15 +20,12 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: check
-      - uses: jetli/wasm-pack-action@v0.3.0
-        with:
-          version: 'latest'
-      - name: Build wasm for node
-        working-directory: ./bindings/wasm
-        run: wasm-pack build -t nodejs -d pkg-node
+
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli
       - name: Build wasm
         working-directory: ./bindings/wasm
-        run: wasm-pack build --release
+        run: bash build-pkg.sh
 
       - uses: actions/setup-node@v2
         with:
@@ -40,11 +37,6 @@ jobs:
       - working-directory: ./bindings/wasm/js
         run: yarn test
 
-      - name: Rename wasm package from "oca-js" to "oca.js"
-        working-directory: ./bindings/wasm/pkg
-        run: sed -ie 's/oca-js/oca.js/g' package.json
-      - working-directory: ./bindings/wasm/pkg
-        run: yarn install
       - working-directory: ./bindings/wasm/pkg
         run: yarn publish
         env:

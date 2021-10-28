@@ -18,12 +18,11 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: jetli/wasm-pack-action@v0.3.0
-        with:
-          version: 'latest'
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli
       - name: Build wasm
         working-directory: ./bindings/wasm
-        run: wasm-pack build -t nodejs -d pkg-node
+        run: bash build-pkg.sh
       - working-directory: ./bindings/wasm/js
         run: yarn install
       - working-directory: ./bindings/wasm/js
