@@ -6,8 +6,8 @@ then
 fi
 
 cargo build --target wasm32-unknown-unknown --release
-wasm-bindgen target/wasm32-unknown-unknown/release/oca_js.wasm --target nodejs --out-dir ./$OUTPUT_DIR/nodejs
-wasm-bindgen target/wasm32-unknown-unknown/release/oca_js.wasm --target web --out-dir ./$OUTPUT_DIR/web
+wasm-bindgen ./target/wasm32-unknown-unknown/release/oca_js.wasm --target nodejs --out-dir ./$OUTPUT_DIR/nodejs
+wasm-bindgen ./target/wasm32-unknown-unknown/release/oca_js.wasm --target web --out-dir ./$OUTPUT_DIR/web
 
 PACKAGE_VERSION=$(cat ./Cargo.toml \
   | grep version \
