@@ -39,6 +39,8 @@ jobs:
         run: yarn test
 
       - working-directory: ./bindings/wasm/pkg
+        run: yarn install
+      - working-directory: ./bindings/wasm/pkg
         run: yarn publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

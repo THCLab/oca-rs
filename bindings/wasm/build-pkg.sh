@@ -20,3 +20,4 @@ PACKAGE_VERSION=$(cat ./Cargo.toml \
 cp ./pkg_templates/package.json ./$OUTPUT_DIR
 sed -i "s/_VERSION_/$PACKAGE_VERSION/g" ./$OUTPUT_DIR/package.json
 cp ./pkg_templates/README.md ./$OUTPUT_DIR
+cp ./pkg_templates/.gitignore ./$OUTPUT_DIR
