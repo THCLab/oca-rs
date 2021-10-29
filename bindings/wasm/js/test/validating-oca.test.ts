@@ -86,7 +86,9 @@ describe('Missing overlay translations', () => {
       (new Attribute("attr1", AttributeType.Text))
         .addLabel({ en_EN: "Attribute 1" })
         .addInformation({ en_EN: "Attribute 1 info" })
-        .addEntries([new Entry("o1", { en_EN: "Option 1" })])
+        .addEntries([
+          new Entry("o1", { en_EN: "Option 1" }).build()
+        ])
         .build()
     )
     .finalize()

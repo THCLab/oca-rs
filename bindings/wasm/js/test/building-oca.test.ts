@@ -1,4 +1,8 @@
 import { expect } from 'chai'
+import type {
+  CharacterEncodingOverlay, EntryOverlay, EntryCodeOverlay, FormatOverlay,
+  InformationOverlay, LabelOverlay, MetaOverlay, UnitOverlay
+} from 'oca.js'
 import { Attribute, AttributeType, Encoding, Entry, OCA } from 'oca.js'
 
 describe('Plain OCA is built', () => {
@@ -44,11 +48,11 @@ describe('OCA with attributes is built', () => {
         new Entry("o1", {
           en_EN: "option 1",
           pl_PL: "opcja 1"
-        }),
+        }).build(),
         new Entry("o2", {
           en_EN: "option 2",
           pl_PL: "opcja 2"
-        })
+        }).build()
       ])
       .build()
     )
@@ -79,16 +83,17 @@ describe('OCA with attributes is built', () => {
     const allOverlays = oca.overlays
 
     describe("Meta", () => {
-      // @ts-ignore
-      const overlays = allOverlays.filter(o => o.type.includes("/meta/"))
+      const overlays = allOverlays.filter(o => o.type.includes("/meta/")) as MetaOverlay[]
 
       it('properly defined', () => {
-        const expected = {
-          "pl_PL": {
+        const expected: {
+          [lang: string]: { name: string, description: string }
+        } = {
+          pl_PL: {
             name: "Prawo Jazdy",
             description: "PJ desc"
           },
-          "en_EN": {
+          en_EN: {
             name: "Driving Licence",
             description: "DL desc"
           }
@@ -96,9 +101,7 @@ describe('OCA with attributes is built', () => {
 
         expect(overlays).to.be.lengthOf(Object.keys(expected).length)
 
-        // @ts-ignore
         overlays.forEach(overlay => {
-          // @ts-ignore
           const exp = expected[overlay.language]
           expect(exp).to.exist
           expect(overlay.name).to.be.eql(exp.name)
@@ -108,8 +111,7 @@ describe('OCA with attributes is built', () => {
     })
 
     describe("Character Encoding", () => {
-      // @ts-ignore
-      const overlays = allOverlays.filter(o => o.type.includes("/character_encoding/"))
+      const overlays = allOverlays.filter(o => o.type.includes("/character_encoding/")) as CharacterEncodingOverlay[]
 
       it('properly defined', () => {
         expect(overlays).to.lengthOf(1)
@@ -122,8 +124,7 @@ describe('OCA with attributes is built', () => {
     })
 
     describe("Unit", () => {
-      // @ts-ignore
-      const overlays = allOverlays.filter(o => o.type.includes("/unit/"))
+      const overlays = allOverlays.filter(o => o.type.includes("/unit/")) as UnitOverlay[]
 
       it('properly defined', () => {
         expect(overlays).to.lengthOf(1)
@@ -135,8 +136,7 @@ describe('OCA with attributes is built', () => {
     })
 
     describe("Format", () => {
-      // @ts-ignore
-      const overlays = allOverlays.filter(o => o.type.includes("/format/"))
+      const overlays = allOverlays.filter(o => o.type.includes("/format/")) as FormatOverlay[]
 
       it('properly defined', () => {
         expect(overlays).to.lengthOf(1)
@@ -148,8 +148,7 @@ describe('OCA with attributes is built', () => {
     })
 
     describe("Entry Code", () => {
-      // @ts-ignore
-      const overlays = allOverlays.filter(o => o.type.includes("/entry_code/"))
+      const overlays = allOverlays.filter(o => o.type.includes("/entry_code/")) as EntryCodeOverlay[]
 
       it('properly defined', () => {
         expect(overlays).to.lengthOf(1)
@@ -161,25 +160,24 @@ describe('OCA with attributes is built', () => {
     })
 
     describe("Label", () => {
-      // @ts-ignore
-      const overlays = allOverlays.filter(o => o.type.includes("/label/"))
+      const overlays = allOverlays.filter(o => o.type.includes("/label/")) as LabelOverlay[]
 
       it('properly defined', () => {
-        const expected = {
-          "pl_PL": {
+        const expected: {
+          [lang: string]: { [attr_name: string]: string }
+        } = {
+          pl_PL: {
             "attr_name": "Imię: ",
             "attr2": "Data: "
           },
-          "en_EN": {
+          en_EN: {
             "attr_name": "Name: ",
             "attr2": "Date: "
           }
         }
         expect(overlays).to.lengthOf(2)
 
-        // @ts-ignore
         overlays.forEach(overlay => {
-          // @ts-ignore
           const exp = expected[overlay.language]
           expect(exp).to.exist
           expect(overlay.attr_labels).to.have.keys("attr_name", "attr2")
@@ -190,23 +188,22 @@ describe('OCA with attributes is built', () => {
     })
 
     describe("Information", () => {
-      // @ts-ignore
-      const overlays = allOverlays.filter(o => o.type.includes("/information/"))
+      const overlays = allOverlays.filter(o => o.type.includes("/information/")) as InformationOverlay[]
 
       it('properly defined', () => {
-        const expected = {
-          "pl_PL": {
+        const expected: {
+          [lang: string]: { [attr_name: string]: string }
+        } = {
+          pl_PL: {
             "attr_name": "pl info",
           },
-          "en_EN": {
+          en_EN: {
             "attr_name": "en info",
           }
         }
         expect(overlays).to.lengthOf(2)
 
-        // @ts-ignore
         overlays.forEach(overlay => {
-          // @ts-ignore
           const exp = expected[overlay.language]
           expect(exp).to.exist
           expect(overlay.attr_information).to.have.keys("attr_name")
@@ -216,23 +213,22 @@ describe('OCA with attributes is built', () => {
     })
 
     describe("Entry", () => {
-      // @ts-ignore
-      const overlays = allOverlays.filter(o => o.type.includes("/entry/"))
+      const overlays = allOverlays.filter(o => o.type.includes("/entry/")) as EntryOverlay[]
 
       it('properly defined', () => {
-        const expected = {
-          "pl_PL": {
+        const expected: {
+          [lang: string]: { [attr_name: string]: { [entry_code: string]: string } }
+        } = {
+          pl_PL: {
             "attr_name": { "o1": "opcja 1", "o2": "opcja 2" },
           },
-          "en_EN": {
+          en_EN: {
             "attr_name": { "o1": "option 1", "o2": "option 2" },
           }
         }
         expect(overlays).to.lengthOf(2)
 
-        // @ts-ignore
         overlays.forEach(overlay => {
-          // @ts-ignore
           const exp = expected[overlay.language]
           expect(exp).to.exist
           expect(overlay.attr_entries).to.have.keys("attr_name")

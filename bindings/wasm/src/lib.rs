@@ -10,27 +10,44 @@ use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-#[derive(Deserialize)]
+extern "C" {
+    #[wasm_bindgen(typescript_type = "IOCA")]
+    pub type IOCA;
+    #[wasm_bindgen(typescript_type = "IAttribute")]
+    pub type IAttribute;
+    #[wasm_bindgen(typescript_type = "ITranslations")]
+    pub type ITranslations;
+    #[wasm_bindgen(typescript_type = "IEntry")]
+    pub type IEntry;
+}
+
+#[wasm_bindgen]
+#[derive(Serialize, Deserialize)]
 pub struct Entry {
-    id: String,
+    code: String,
     translations: HashMap<String, String>,
 }
 
 #[wasm_bindgen]
 impl Entry {
     #[wasm_bindgen(constructor)]
-    pub fn constructor(id: String, translations: &JsValue) -> JsValue {
+    pub fn constructor(code: String, translations: ITranslations) -> Entry {
         let translations_str: HashMap<String, String> =
             serde_wasm_bindgen::from_value(JsValue::from(translations)).unwrap();
 
-        let mut translations_raw: HashMap<Language, String> = HashMap::new();
-        for (lang, translation) in translations_str.iter() {
-            translations_raw.insert(lang.to_string(), translation.clone());
+        Entry {
+            code,
+            translations: translations_str
         }
+    }
 
-        serde_wasm_bindgen::to_value(&EntryRaw::new(id, translations_raw)).unwrap_or(JsValue::NULL)
+    pub fn build(self) -> IEntry {
+        IEntry::from(
+            JsValue::from_serde(&self).unwrap_or(JsValue::NULL)
+        )
     }
 }
+
 
 #[wasm_bindgen]
 pub struct OCA {
@@ -47,7 +64,7 @@ impl OCA {
     }
 
     #[wasm_bindgen(js_name = "addName")]
-    pub fn add_name(mut self, names: &JsValue) -> OCA {
+    pub fn add_name(mut self, names: ITranslations) -> OCA {
         let names_str: HashMap<String, String> =
             serde_wasm_bindgen::from_value(JsValue::from(names)).unwrap();
 
@@ -61,7 +78,7 @@ impl OCA {
     }
 
     #[wasm_bindgen(js_name = "addDescription")]
-    pub fn add_description(mut self, descriptions: &JsValue) -> OCA {
+    pub fn add_description(mut self, descriptions: ITranslations) -> OCA {
         let descriptions_str: HashMap<String, String> =
             serde_wasm_bindgen::from_value(JsValue::from(descriptions)).unwrap();
 
@@ -75,14 +92,16 @@ impl OCA {
     }
 
     #[wasm_bindgen(js_name = "addAttribute")]
-    pub fn add_attribute(mut self, attr: &JsValue) -> OCA {
+    pub fn add_attribute(mut self, attr: IAttribute) -> OCA {
         let attr_raw: AttributeRaw = attr.into_serde().unwrap();
         self.raw = self.raw.add_attribute(attr_raw);
         self
     }
 
-    pub fn finalize(self) -> JsValue {
-        JsValue::from_serde(&self.raw.finalize()).unwrap_or(JsValue::NULL)
+    pub fn finalize(self) -> IOCA {
+        IOCA::from(
+            JsValue::from_serde(&self.raw.finalize()).unwrap_or(JsValue::NULL)
+        )
     }
 }
 
@@ -114,7 +133,7 @@ impl Validator {
         self
     }
 
-    pub fn validate(self, oca: &JsValue) -> JsValue {
+    pub fn validate(self, oca: IOCA) -> JsValue {
         #[derive(Serialize)]
         struct ReturnResult {
             success: bool,
@@ -191,7 +210,7 @@ impl Attribute {
     }
 
     #[wasm_bindgen(js_name = "addLabel")]
-    pub fn add_label(mut self, labels: &JsValue) -> Attribute {
+    pub fn add_label(mut self, labels: ITranslations) -> Attribute {
         let labels_str: HashMap<String, String> =
             serde_wasm_bindgen::from_value(JsValue::from(labels)).unwrap();
 
@@ -205,7 +224,7 @@ impl Attribute {
     }
 
     #[wasm_bindgen(js_name = "addEntries")]
-    pub fn add_entries(mut self, entries: Vec<JsValue>) -> Attribute {
+    pub fn add_entries(mut self, entries: Vec<IEntry>) -> Attribute {
         let mut entries_raw: Vec<EntryRaw> = vec![];
         for entry in entries.iter() {
             let e: Entry = serde_wasm_bindgen::from_value(JsValue::from(entry)).unwrap();
@@ -214,7 +233,7 @@ impl Attribute {
             for (lang, entry_v) in e.translations.iter() {
                 entry_tr_raw.insert(lang.to_string(), entry_v.clone());
             }
-            entries_raw.push(EntryRaw::new(e.id, entry_tr_raw))
+            entries_raw.push(EntryRaw::new(e.code, entry_tr_raw))
         }
 
         self.raw = self.raw.add_entries(entries_raw);
@@ -222,7 +241,7 @@ impl Attribute {
     }
 
     #[wasm_bindgen(js_name = "addInformation")]
-    pub fn add_information(mut self, information: &JsValue) -> Attribute {
+    pub fn add_information(mut self, information: ITranslations) -> Attribute {
         let information_str: HashMap<String, String> =
             serde_wasm_bindgen::from_value(JsValue::from(information)).unwrap();
 
@@ -235,7 +254,122 @@ impl Attribute {
         self
     }
 
-    pub fn build(self) -> JsValue {
-        JsValue::from_serde(&self.raw).unwrap_or(JsValue::NULL)
+    pub fn build(self) -> IAttribute {
+        IAttribute::from(
+            JsValue::from_serde(&self.raw).unwrap_or(JsValue::NULL)
+        )
     }
 }
+
+#[wasm_bindgen(typescript_custom_section)]
+const OCA_TYPE: &'static str = r#"
+interface ICaptureBase {
+  schema_type: string,
+  classification: string,
+  attributes: { [attr_name: string]: string },
+  pii: string[]
+}
+
+type CharacterEncodingOverlay = {
+  capture_base: string,
+  type: string,
+  default_character_encoding: string,
+  attr_character_encoding: { [attr_name: string]: string }
+}
+
+type EntryOverlay = {
+  capture_base: string,
+  type: string,
+  language: string,
+  attr_entries: { [attr_name: string]: { [entry_code: string]: string } }
+}
+
+type EntryCodeOverlay = {
+  capture_base: string,
+  type: string,
+  attr_entry_codes: { [attr_name: string]: string[] }
+}
+
+type FormatOverlay = {
+  capture_base: string,
+  type: string,
+  attr_formats: { [attr_name: string]: string }
+}
+
+type InformationOverlay = {
+  capture_base: string,
+  type: string,
+  language: string,
+  attr_information: { [attr_name: string]: string }
+}
+
+type LabelOverlay = {
+  capture_base: string,
+  type: string,
+  language: string,
+  attr_labels: { [attr_name: string]: string }
+  attr_categories: string[],
+  cat_labels: { [cat_id: string]: string },
+  cat_attributes: { [cat_id: string]: string[] }
+}
+
+type MetaOverlay = {
+  capture_base: string,
+  type: string,
+  language: string,
+  name: string,
+  description: string
+}
+
+type UnitOverlay = {
+  capture_base: string,
+  type: string,
+  attr_units: { [attr_name: string]: string }
+}
+
+type Overlay = CharacterEncodingOverlay
+  | EntryOverlay
+  | EntryCodeOverlay
+  | FormatOverlay
+  | InformationOverlay
+  | LabelOverlay
+  | MetaOverlay
+  | UnitOverlay
+
+interface IOCA {
+  capture_base: ICaptureBase;
+  overlays: Overlay[];
+}
+"#;
+
+#[wasm_bindgen(typescript_custom_section)]
+const ATTRIBUTE_TYPE: &'static str = r#"
+interface IAttributeTranslation {
+  label?: string,
+  entries?: { [entry_code: string]: string }
+  information?: string
+}
+
+interface IAttribute {
+  name: string
+  attr_type: string
+  is_pii: boolean
+  translations: { [language: string]: IAttributeTranslation }
+  encoding?: string
+  format?: string
+  unit?: string
+  entry_codes?: string[]
+}
+"#;
+
+#[wasm_bindgen(typescript_custom_section)]
+const TYPES: &'static str = r#"
+interface ITranslations {
+  [language: string]: string
+}
+
+interface IEntry {
+  code: string,
+  translations: ITranslations
+}
+"#;
