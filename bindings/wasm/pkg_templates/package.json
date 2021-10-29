@@ -1,6 +1,10 @@
 {
   "name": "oca.js",
   "version": "_VERSION_",
+  "files": [
+    "nodejs/*",
+    "web/*"
+  ],
   "main": "nodejs/oca_js.js",
   "types": "web/oca_js.d.ts",
   "browser": {
