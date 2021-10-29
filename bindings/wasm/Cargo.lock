@@ -204,7 +204,7 @@ dependencies = [
 
 [[package]]
 name = "oca-js"
-version = "0.1.14"
+version = "0.1.15"
 dependencies = [
  "js-sys",
  "oca-rust",
@@ -215,7 +215,7 @@ dependencies = [
 
 [[package]]
 name = "oca-rust"
-version = "0.1.14"
+version = "0.1.15"
 dependencies = [
  "erased-serde",
  "said",
