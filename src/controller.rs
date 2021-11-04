@@ -13,7 +13,7 @@ pub fn load_oca(source: &mut dyn Read) -> GenericResult<OCABuilder> {
 #[cfg(test)]
 mod tests {
     use super::load_oca;
-    use crate::state::attribute::{Attribute, AttributeType};
+    use crate::state::attribute::{AttributeBuilder, AttributeType};
     use maplit::hashmap;
 
     #[test]
@@ -111,10 +111,12 @@ mod tests {
         let oca_builder = load_oca(&mut data.as_bytes()).unwrap();
         let oca = oca_builder
             .add_attribute(
-                Attribute::new("new_attr".to_string(), AttributeType::Text).add_label(hashmap! {
-                    "En".to_string() => "New: ".to_string(),
-                    "Pl".to_string() => "Nowy: ".to_string(),
-                }),
+                AttributeBuilder::new("new_attr".to_string(), AttributeType::Text)
+                    .add_label(hashmap! {
+                        "En".to_string() => "New: ".to_string(),
+                        "Pl".to_string() => "Nowy: ".to_string(),
+                    })
+                    .build(),
             )
             .finalize();
 

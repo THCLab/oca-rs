@@ -435,7 +435,7 @@ impl OCATranslation {
 mod tests {
     use super::*;
     use crate::state::{
-        attribute::{AttributeType, Entry},
+        attribute::{AttributeBuilder, AttributeType, Entry},
         encoding::Encoding,
     };
     use maplit::hashmap;
@@ -470,7 +470,7 @@ mod tests {
                 "Pl".to_string() => "PJ desc".to_string(),
             });
 
-        let attr1 = Attribute::new(String::from("n1"), AttributeType::Text)
+        let attr1 = AttributeBuilder::new(String::from("n1"), AttributeType::Text)
             .set_pii()
             .add_label(hashmap! {
                 "En".to_string() => "Name: ".to_string(),
@@ -496,15 +496,17 @@ mod tests {
                 "En".to_string() => "info en".to_string(),
                 "Pl".to_string() => "info pl".to_string(),
             })
-            .add_unit("days".to_string());
+            .add_unit("days".to_string())
+            .build();
 
-        let attr2 = Attribute::new(String::from("n2"), AttributeType::Date)
+        let attr2 = AttributeBuilder::new(String::from("n2"), AttributeType::Date)
             .add_label(hashmap! {
                 "En".to_string() => "Date: ".to_string(),
                 "Pl".to_string() => "Data: ".to_string(),
             })
             .add_encoding(Encoding::Iso8859_1)
-            .add_format("DD/MM/YYYY".to_string());
+            .add_format("DD/MM/YYYY".to_string())
+            .build();
 
         let oca = oca_builder
             .add_attribute(attr1)

@@ -3,7 +3,7 @@ import type {
   CharacterEncodingOverlay, EntryOverlay, EntryCodeOverlay, FormatOverlay,
   InformationOverlay, LabelOverlay, MetaOverlay, UnitOverlay
 } from 'oca.js'
-import { Attribute, AttributeType, Encoding, Entry, OCA, OCABuilder } from 'oca.js'
+import { AttributeBuilder, AttributeType, Encoding, Entry, OCA, OCABuilder } from 'oca.js'
 
 describe('Plain OCA is built', () => {
   const oca: OCA = new OCABuilder(Encoding.Utf8).finalize()
@@ -33,7 +33,7 @@ describe('OCA with attributes is built', () => {
       pl_PL: "PJ desc"
     })
     .addAttribute(
-      new Attribute("attr_name", AttributeType.Number)
+      new AttributeBuilder("attr_name", AttributeType.Number)
       .setPii()
       .addUnit("days")
       .addLabel({
@@ -57,7 +57,7 @@ describe('OCA with attributes is built', () => {
       .build()
     )
     .addAttribute(
-      new Attribute("attr2", AttributeType.Date)
+      new AttributeBuilder("attr2", AttributeType.Date)
       .addEncoding(Encoding.Iso8859_1)
       .addFormat("DD.MM.YYYY")
       .addLabel({

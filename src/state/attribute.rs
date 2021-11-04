@@ -16,94 +16,104 @@ pub struct Attribute {
     pub entry_codes: Option<Vec<String>>,
 }
 
-impl Attribute {
-    pub fn new(name: String, attr_type: AttributeType) -> Attribute {
-        Attribute {
-            name,
-            attr_type,
-            is_pii: false,
-            translations: HashMap::new(),
-            encoding: None,
-            format: None,
-            unit: None,
-            entry_codes: None,
+pub struct AttributeBuilder {
+    pub attribute: Attribute,
+}
+
+impl AttributeBuilder {
+    pub fn new(name: String, attr_type: AttributeType) -> AttributeBuilder {
+        AttributeBuilder {
+            attribute: Attribute {
+                name,
+                attr_type,
+                is_pii: false,
+                translations: HashMap::new(),
+                encoding: None,
+                format: None,
+                unit: None,
+                entry_codes: None,
+            },
         }
     }
 
-    pub fn set_pii(mut self) -> Attribute {
-        self.is_pii = true;
+    pub fn set_pii(mut self) -> AttributeBuilder {
+        self.attribute.is_pii = true;
         self
     }
 
-    pub fn add_encoding(mut self, encoding: Encoding) -> Attribute {
-        self.encoding = Some(encoding);
+    pub fn add_encoding(mut self, encoding: Encoding) -> AttributeBuilder {
+        self.attribute.encoding = Some(encoding);
         self
     }
 
-    pub fn add_format(mut self, format: String) -> Attribute {
-        self.format = Some(format);
+    pub fn add_format(mut self, format: String) -> AttributeBuilder {
+        self.attribute.format = Some(format);
         self
     }
 
-    pub fn add_unit(mut self, unit: String) -> Attribute {
-        self.unit = Some(unit);
+    pub fn add_unit(mut self, unit: String) -> AttributeBuilder {
+        self.attribute.unit = Some(unit);
         self
     }
 
-    pub fn add_label(mut self, labels: HashMap<Language, String>) -> Attribute {
+    pub fn add_label(mut self, labels: HashMap<Language, String>) -> AttributeBuilder {
         for (lang, label) in labels.iter() {
-            match self.translations.get_mut(lang) {
+            match self.attribute.translations.get_mut(lang) {
                 Some(t) => {
                     t.add_label(label.clone());
                 }
                 None => {
                     let mut tr = AttributeTranslation::new();
                     tr.add_label(label.clone());
-                    self.translations.insert(lang.clone(), tr);
+                    self.attribute.translations.insert(lang.clone(), tr);
                 }
             }
         }
         self
     }
 
-    pub fn add_entries(mut self, entries: Vec<Entry>) -> Attribute {
+    pub fn add_entries(mut self, entries: Vec<Entry>) -> AttributeBuilder {
         let mut entry_codes = vec![];
 
         for entry in entries.iter() {
             entry_codes.push(entry.id.clone());
 
             for (lang, en) in entry.translations.iter() {
-                match self.translations.get_mut(lang) {
+                match self.attribute.translations.get_mut(lang) {
                     Some(t) => {
                         t.add_entry(entry.id.clone(), en.clone());
                     }
                     None => {
                         let mut tr = AttributeTranslation::new();
                         tr.add_entry(entry.id.clone(), en.clone());
-                        self.translations.insert(lang.clone(), tr);
+                        self.attribute.translations.insert(lang.clone(), tr);
                     }
                 }
             }
         }
-        self.entry_codes = Some(entry_codes);
+        self.attribute.entry_codes = Some(entry_codes);
 
         self
     }
 
-    pub fn add_information(mut self, information: HashMap<Language, String>) -> Attribute {
+    pub fn add_information(mut self, information: HashMap<Language, String>) -> AttributeBuilder {
         for (lang, info) in information.iter() {
-            match self.translations.get_mut(lang) {
+            match self.attribute.translations.get_mut(lang) {
                 Some(t) => {
                     t.add_information(info.clone());
                 }
                 None => {
                     let mut tr = AttributeTranslation::new();
                     tr.add_information(info.clone());
-                    self.translations.insert(lang.clone(), tr);
+                    self.attribute.translations.insert(lang.clone(), tr);
                 }
             }
         }
         self
+    }
+
+    pub fn build(self) -> Attribute {
+        self.attribute
     }
 }
 

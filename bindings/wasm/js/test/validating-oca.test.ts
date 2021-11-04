@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { Attribute, AttributeType, Encoding, Entry, OCA, OCABuilder, Validator } from 'oca.js'
+import { AttributeBuilder, AttributeType, Encoding, Entry, OCABuilder, Validator } from 'oca.js'
 
 describe('Plain OCA is validated', () => {
   const oca = new OCABuilder(Encoding.Utf8).finalize()
@@ -83,7 +83,7 @@ describe('Missing meta translations', () => {
 describe('Missing overlay translations', () => {
   const oca = new OCABuilder(Encoding.Utf8)
     .addAttribute(
-      new Attribute("attr1", AttributeType.Text)
+      new AttributeBuilder("attr1", AttributeType.Text)
         .addLabel({ en_EN: "Attribute 1" })
         .addInformation({ en_EN: "Attribute 1 info" })
         .addEntries([

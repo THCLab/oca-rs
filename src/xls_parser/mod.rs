@@ -1,5 +1,5 @@
 use crate::state::{
-    attribute::{Attribute, AttributeType, Entry},
+    attribute::{AttributeBuilder, AttributeType, Entry},
     encoding::Encoding,
     language::Language,
     oca::{OCABuilder, OCA},
@@ -81,9 +81,9 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
     for oca_range in oca_ranges {
         let mut oca_builder = OCABuilder::new(Encoding::Utf8);
 
-        let mut attributes: Vec<(u32, Attribute)> = vec![];
+        let mut attribute_builders: Vec<(u32, AttributeBuilder)> = vec![];
         for attr_index in oca_range.0..oca_range.1 {
-            let mut attribute = Attribute::new(
+            let mut attribute_builder = AttributeBuilder::new(
                 main_sheet
                     .get_value((attr_index, ATTR_NAME_INDEX))
                     .unwrap()
@@ -103,7 +103,7 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
             if let Some(DataType::String(_value)) =
                 main_sheet.get_value((attr_index, PII_FLAG_INDEX))
             {
-                attribute = attribute.set_pii();
+                attribute_builder = attribute_builder.set_pii();
             }
             if let Some(DataType::String(encoding_value)) =
                 main_sheet.get_value((attr_index, ENCODING_INDEX))
@@ -118,15 +118,15 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
                             ))
                         },
                     )?;
-                attribute = attribute.add_encoding(encoding);
+                attribute_builder = attribute_builder.add_encoding(encoding);
             }
 
             if let Some(DataType::String(format_value)) =
                 main_sheet.get_value((attr_index, FORMAT_INDEX))
             {
-                attribute = attribute.add_format(format_value.clone());
+                attribute_builder = attribute_builder.add_format(format_value.clone());
             }
-            attributes.push((attr_index, attribute));
+            attribute_builders.push((attr_index, attribute_builder));
         }
 
         let mut name_trans: HashMap<Language, String> = HashMap::new();
@@ -242,21 +242,21 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
                 }
             }
         }
-        for (i, mut attribute) in attributes {
+        for (i, mut attribute_builder) in attribute_builders {
             if let Some(label_tr) = label_trans.get(&i).cloned() {
-                attribute = attribute.add_label(label_tr);
+                attribute_builder = attribute_builder.add_label(label_tr);
             }
             if let Some(entries_tr) = entries_trans.get(&i).cloned() {
                 let entries = entries_tr
                     .iter()
                     .map(|(e_key, e_value)| Entry::new(e_key.to_string(), e_value.clone()))
                     .collect::<Vec<_>>();
-                attribute = attribute.add_entries(entries);
+                attribute_builder = attribute_builder.add_entries(entries);
             }
             if let Some(info_tr) = information_trans.get(&i).cloned() {
-                attribute = attribute.add_information(info_tr);
+                attribute_builder = attribute_builder.add_information(info_tr);
             }
-            oca_builder = oca_builder.add_attribute(attribute);
+            oca_builder = oca_builder.add_attribute(attribute_builder.build());
         }
         oca_builder = oca_builder.add_name(name_trans);
         oca_builder = oca_builder.add_description(description_trans);

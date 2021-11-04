@@ -219,7 +219,7 @@ impl Validator {
 mod tests {
     use super::*;
     use crate::state::{
-        attribute::{Attribute, AttributeType},
+        attribute::{AttributeBuilder, AttributeType},
         encoding::Encoding,
         oca::OCABuilder,
     };
@@ -240,18 +240,21 @@ mod tests {
                 "Pl".to_string() => "PJ".to_string(),
             })
             .add_attribute(
-                Attribute::new("name".to_string(), AttributeType::Text).add_label(hashmap! {
-                    "En".to_string() => "Name: ".to_string(),
-                    "Pl".to_string() => "Imię: ".to_string(),
-                }),
+                AttributeBuilder::new("name".to_string(), AttributeType::Text)
+                    .add_label(hashmap! {
+                        "En".to_string() => "Name: ".to_string(),
+                        "Pl".to_string() => "Imię: ".to_string(),
+                    })
+                    .build(),
             )
             .add_attribute(
-                Attribute::new("age".to_string(), AttributeType::Number)
+                AttributeBuilder::new("age".to_string(), AttributeType::Number)
                     .add_label(hashmap! {
                         "En".to_string() => "Age: ".to_string(),
                         "Pl".to_string() => "Wiek: ".to_string(),
                     })
-                    .add_format("asd".to_string()),
+                    .add_format("asd".to_string())
+                    .build(),
             )
             .finalize();
 

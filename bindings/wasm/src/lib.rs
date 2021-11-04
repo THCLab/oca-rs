@@ -1,5 +1,5 @@
 use oca_rust::state::{
-    attribute::{Attribute as AttributeRaw, AttributeType, Entry as EntryRaw},
+    attribute::{Attribute as AttributeRaw, AttributeBuilder as AttributeBuilderRaw, AttributeType, Entry as EntryRaw},
     encoding::Encoding,
     language::Language,
     oca::{OCA as OCARaw, OCABuilder as OCABuilderRaw},
@@ -13,8 +13,8 @@ use wasm_bindgen::prelude::*;
 extern "C" {
     #[wasm_bindgen(typescript_type = "OCA")]
     pub type OCA;
-    #[wasm_bindgen(typescript_type = "IAttribute")]
-    pub type IAttribute;
+    #[wasm_bindgen(typescript_type = "Attribute")]
+    pub type Attribute;
     #[wasm_bindgen(typescript_type = "ITranslations")]
     pub type ITranslations;
     #[wasm_bindgen(typescript_type = "IEntry")]
@@ -91,7 +91,7 @@ impl OCABuilder {
     }
 
     #[wasm_bindgen(js_name = "addAttribute")]
-    pub fn add_attribute(mut self, attr: IAttribute) -> OCABuilder {
+    pub fn add_attribute(mut self, attr: Attribute) -> OCABuilder {
         let attr_raw: AttributeRaw = attr.into_serde().unwrap();
         self.raw = self.raw.add_attribute(attr_raw);
         self
@@ -171,45 +171,45 @@ impl Validator {
 }
 
 #[wasm_bindgen]
-pub struct Attribute {
-    raw: AttributeRaw,
+pub struct AttributeBuilder {
+    raw: AttributeBuilderRaw,
 }
 
 #[wasm_bindgen]
-impl Attribute {
+impl AttributeBuilder {
     #[wasm_bindgen(constructor)]
-    pub fn new(name: String, attr_type: AttributeType) -> Attribute {
-        Attribute {
-            raw: AttributeRaw::new(name, attr_type),
+    pub fn new(name: String, attr_type: AttributeType) -> AttributeBuilder {
+        AttributeBuilder {
+            raw: AttributeBuilderRaw::new(name, attr_type),
         }
     }
 
     #[wasm_bindgen(js_name = "setPii")]
-    pub fn set_pii(mut self) -> Attribute {
+    pub fn set_pii(mut self) -> AttributeBuilder {
         self.raw = self.raw.set_pii();
         self
     }
 
     #[wasm_bindgen(js_name = "addEncoding")]
-    pub fn add_encoding(mut self, encoding: Encoding) -> Attribute {
+    pub fn add_encoding(mut self, encoding: Encoding) -> AttributeBuilder {
         self.raw = self.raw.add_encoding(encoding);
         self
     }
 
     #[wasm_bindgen(js_name = "addFormat")]
-    pub fn add_format(mut self, format: String) -> Attribute {
+    pub fn add_format(mut self, format: String) -> AttributeBuilder {
         self.raw = self.raw.add_format(format);
         self
     }
 
     #[wasm_bindgen(js_name = "addUnit")]
-    pub fn add_unit(mut self, unit: String) -> Attribute {
+    pub fn add_unit(mut self, unit: String) -> AttributeBuilder {
         self.raw = self.raw.add_unit(unit);
         self
     }
 
     #[wasm_bindgen(js_name = "addLabel")]
-    pub fn add_label(mut self, labels: ITranslations) -> Attribute {
+    pub fn add_label(mut self, labels: ITranslations) -> AttributeBuilder {
         let labels_str: HashMap<String, String> =
             serde_wasm_bindgen::from_value(JsValue::from(labels)).unwrap();
 
@@ -223,7 +223,7 @@ impl Attribute {
     }
 
     #[wasm_bindgen(js_name = "addEntries")]
-    pub fn add_entries(mut self, entries: Vec<IEntry>) -> Attribute {
+    pub fn add_entries(mut self, entries: Vec<IEntry>) -> AttributeBuilder {
         let mut entries_raw: Vec<EntryRaw> = vec![];
         for entry in entries.iter() {
             let e: Entry = serde_wasm_bindgen::from_value(JsValue::from(entry)).unwrap();
@@ -240,7 +240,7 @@ impl Attribute {
     }
 
     #[wasm_bindgen(js_name = "addInformation")]
-    pub fn add_information(mut self, information: ITranslations) -> Attribute {
+    pub fn add_information(mut self, information: ITranslations) -> AttributeBuilder {
         let information_str: HashMap<String, String> =
             serde_wasm_bindgen::from_value(JsValue::from(information)).unwrap();
 
@@ -253,9 +253,9 @@ impl Attribute {
         self
     }
 
-    pub fn build(self) -> IAttribute {
-        IAttribute::from(
-            JsValue::from_serde(&self.raw).unwrap_or(JsValue::NULL)
+    pub fn build(self) -> Attribute {
+        Attribute::from(
+            JsValue::from_serde(&self.raw.build()).unwrap_or(JsValue::NULL)
         )
     }
 }
@@ -344,17 +344,17 @@ type UnitOverlay = {
 
 #[wasm_bindgen(typescript_custom_section)]
 const ATTRIBUTE_TYPE: &'static str = r#"
-interface IAttributeTranslation {
+type AttributeTranslation = {
   label?: string,
   entries?: { [entry_code: string]: string }
   information?: string
 }
 
-interface IAttribute {
+type Attribute = {
   name: string
   attr_type: string
   is_pii: boolean
-  translations: { [language: string]: IAttributeTranslation }
+  translations: { [language: string]: AttributeTranslation }
   encoding?: string
   format?: string
   unit?: string
