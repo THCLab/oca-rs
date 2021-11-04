@@ -62,6 +62,12 @@ impl OCABuilder {
         }
     }
 
+    #[wasm_bindgen(js_name = "addClassification")]
+    pub fn add_classification(mut self, classification: String) -> OCABuilder {
+        self.raw = self.raw.add_classification(classification);
+        self
+    }
+
     #[wasm_bindgen(js_name = "addName")]
     pub fn add_name(mut self, names: ITranslations) -> OCABuilder {
         let names_str: HashMap<String, String> =

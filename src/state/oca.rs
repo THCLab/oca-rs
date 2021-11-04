@@ -234,6 +234,11 @@ impl OCABuilder {
         }
     }
 
+    pub fn add_classification(mut self, classification: String) -> OCABuilder {
+        self.oca.capture_base.classification = classification;
+        self
+    }
+
     pub fn add_name(mut self, names: HashMap<Language, String>) -> OCABuilder {
         for (lang, name) in names.iter() {
             match self.meta_translations.get_mut(lang) {
@@ -443,6 +448,7 @@ mod tests {
     #[test]
     fn build_oca_without_attributes() {
         let oca = OCABuilder::new(Encoding::Utf8)
+            .add_classification("GICS:35102020".to_string())
             .add_name(hashmap! {
                 "En".to_string() => "Driving Licence".to_string(),
                 "Pl".to_string() => "Prawo Jazdy".to_string(),
@@ -456,6 +462,7 @@ mod tests {
         // println!("{:#?}", serde_json::to_string(&oca).unwrap());
 
         assert_eq!(oca.capture_base.attributes.len(), 0);
+        assert_eq!(oca.capture_base.classification, "GICS:35102020");
     }
 
     #[test]

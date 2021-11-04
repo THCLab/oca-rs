@@ -6,7 +6,9 @@ import type {
 import { AttributeBuilder, AttributeType, Encoding, Entry, OCA, OCABuilder } from 'oca.js'
 
 describe('Plain OCA is built', () => {
-  const oca: OCA = new OCABuilder(Encoding.Utf8).finalize()
+  const oca: OCA = new OCABuilder(Encoding.Utf8)
+    .addClassification("GICS:35102020")
+    .finalize()
 
   it('return OCA as JS object', () => {
     expect(oca).to.haveOwnProperty("capture_base")
@@ -17,6 +19,7 @@ describe('Plain OCA is built', () => {
     expect(oca).to.haveOwnProperty("overlays")
 
     expect(oca.capture_base.attributes).to.be.an('object').that.is.empty
+    expect(oca.capture_base.classification).to.eq("GICS:35102020")
     expect(oca.capture_base.pii).to.be.an('array').that.is.empty
     expect(oca.overlays).to.be.an('array').lengthOf(1)
   })

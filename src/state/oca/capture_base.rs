@@ -21,7 +21,7 @@ impl CaptureBase {
     pub fn new() -> CaptureBase {
         CaptureBase {
             schema_type: String::from("spec/capture_base/1.0"),
-            classification: String::from("classification"),
+            classification: String::from(""),
             attributes: BTreeMap::new(),
             pii: Vec::new(),
         }
