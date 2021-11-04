@@ -2,7 +2,7 @@ use oca_rust::state::{
     attribute::{Attribute as AttributeRaw, AttributeType, Entry as EntryRaw},
     encoding::Encoding,
     language::Language,
-    oca::OCA as OCARaw,
+    oca::{OCA as OCARaw, OCABuilder as OCABuilderRaw},
     validator,
 };
 use serde::{Deserialize, Serialize};
@@ -11,8 +11,8 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 extern "C" {
-    #[wasm_bindgen(typescript_type = "IOCA")]
-    pub type IOCA;
+    #[wasm_bindgen(typescript_type = "OCA")]
+    pub type OCA;
     #[wasm_bindgen(typescript_type = "IAttribute")]
     pub type IAttribute;
     #[wasm_bindgen(typescript_type = "ITranslations")]
@@ -48,23 +48,22 @@ impl Entry {
     }
 }
 
-
 #[wasm_bindgen]
-pub struct OCA {
-    raw: OCARaw,
+pub struct OCABuilder {
+    raw: OCABuilderRaw,
 }
 
 #[wasm_bindgen]
-impl OCA {
+impl OCABuilder {
     #[wasm_bindgen(constructor)]
-    pub fn new(encoding: Encoding) -> OCA {
-        OCA {
-            raw: OCARaw::new(encoding),
+    pub fn new(encoding: Encoding) -> OCABuilder {
+        OCABuilder {
+            raw: OCABuilderRaw::new(encoding),
         }
     }
 
     #[wasm_bindgen(js_name = "addName")]
-    pub fn add_name(mut self, names: ITranslations) -> OCA {
+    pub fn add_name(mut self, names: ITranslations) -> OCABuilder {
         let names_str: HashMap<String, String> =
             serde_wasm_bindgen::from_value(JsValue::from(names)).unwrap();
 
@@ -78,7 +77,7 @@ impl OCA {
     }
 
     #[wasm_bindgen(js_name = "addDescription")]
-    pub fn add_description(mut self, descriptions: ITranslations) -> OCA {
+    pub fn add_description(mut self, descriptions: ITranslations) -> OCABuilder {
         let descriptions_str: HashMap<String, String> =
             serde_wasm_bindgen::from_value(JsValue::from(descriptions)).unwrap();
 
@@ -92,14 +91,14 @@ impl OCA {
     }
 
     #[wasm_bindgen(js_name = "addAttribute")]
-    pub fn add_attribute(mut self, attr: IAttribute) -> OCA {
+    pub fn add_attribute(mut self, attr: IAttribute) -> OCABuilder {
         let attr_raw: AttributeRaw = attr.into_serde().unwrap();
         self.raw = self.raw.add_attribute(attr_raw);
         self
     }
 
-    pub fn finalize(self) -> IOCA {
-        IOCA::from(
+    pub fn finalize(self) -> OCA {
+        OCA::from(
             JsValue::from_serde(&self.raw.finalize()).unwrap_or(JsValue::NULL)
         )
     }
@@ -133,7 +132,7 @@ impl Validator {
         self
     }
 
-    pub fn validate(self, oca: IOCA) -> JsValue {
+    pub fn validate(self, oca: OCA) -> JsValue {
         #[derive(Serialize)]
         struct ReturnResult {
             success: bool,
@@ -263,12 +262,27 @@ impl Attribute {
 
 #[wasm_bindgen(typescript_custom_section)]
 const OCA_TYPE: &'static str = r#"
-interface ICaptureBase {
-  schema_type: string,
+type OCA = {
+  capture_base: CaptureBase;
+  overlays: Overlay[];
+}
+
+type CaptureBase = {
+  type: string,
   classification: string,
   attributes: { [attr_name: string]: string },
   pii: string[]
 }
+
+type Overlay =
+  | CharacterEncodingOverlay
+  | EntryOverlay
+  | EntryCodeOverlay
+  | FormatOverlay
+  | InformationOverlay
+  | LabelOverlay
+  | MetaOverlay
+  | UnitOverlay
 
 type CharacterEncodingOverlay = {
   capture_base: string,
@@ -325,20 +339,6 @@ type UnitOverlay = {
   capture_base: string,
   type: string,
   attr_units: { [attr_name: string]: string }
-}
-
-type Overlay = CharacterEncodingOverlay
-  | EntryOverlay
-  | EntryCodeOverlay
-  | FormatOverlay
-  | InformationOverlay
-  | LabelOverlay
-  | MetaOverlay
-  | UnitOverlay
-
-interface IOCA {
-  capture_base: ICaptureBase;
-  overlays: Overlay[];
 }
 "#;
 

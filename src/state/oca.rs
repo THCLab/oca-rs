@@ -77,15 +77,20 @@ impl<'de> Deserialize<'de> for DynOverlay {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct OCA {
     pub capture_base: CaptureBase,
     pub overlays: Vec<DynOverlay>,
+}
+
+#[derive(Serialize)]
+pub struct OCABuilder {
+    pub oca: OCA,
     #[serde(skip)]
     pub meta_translations: HashMap<Language, OCATranslation>,
 }
 
-impl<'de> Deserialize<'de> for OCA {
+impl<'de> Deserialize<'de> for OCABuilder {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -202,9 +207,11 @@ impl<'de> Deserialize<'de> for OCA {
                 None => return Err(serde::de::Error::missing_field("overlay")),
             }
 
-            Ok(OCA {
-                capture_base,
-                overlays,
+            Ok(OCABuilder {
+                oca: OCA {
+                    capture_base,
+                    overlays,
+                },
                 meta_translations,
             })
         } else {
@@ -216,16 +223,18 @@ impl<'de> Deserialize<'de> for OCA {
     }
 }
 
-impl OCA {
-    pub fn new(default_encoding: Encoding) -> OCA {
-        OCA {
-            capture_base: CaptureBase::new(),
-            overlays: vec![overlay::CharacterEncoding::new(&default_encoding)],
+impl OCABuilder {
+    pub fn new(default_encoding: Encoding) -> OCABuilder {
+        OCABuilder {
+            oca: OCA {
+                capture_base: CaptureBase::new(),
+                overlays: vec![overlay::CharacterEncoding::new(&default_encoding)],
+            },
             meta_translations: HashMap::new(),
         }
     }
 
-    pub fn add_name(mut self, names: HashMap<Language, String>) -> OCA {
+    pub fn add_name(mut self, names: HashMap<Language, String>) -> OCABuilder {
         for (lang, name) in names.iter() {
             match self.meta_translations.get_mut(lang) {
                 Some(t) => {
@@ -241,7 +250,7 @@ impl OCA {
         self
     }
 
-    pub fn add_description(mut self, descriptions: HashMap<Language, String>) -> OCA {
+    pub fn add_description(mut self, descriptions: HashMap<Language, String>) -> OCABuilder {
         for (lang, description) in descriptions.iter() {
             match self.meta_translations.get_mut(lang) {
                 Some(t) => {
@@ -257,11 +266,12 @@ impl OCA {
         self
     }
 
-    pub fn add_attribute(mut self, attr: Attribute) -> OCA {
-        self.capture_base.add(&attr);
+    pub fn add_attribute(mut self, attr: Attribute) -> OCABuilder {
+        self.oca.capture_base.add(&attr);
 
         if attr.encoding.is_some() {
             let encoding_ov = self
+                .oca
                 .overlays
                 .iter_mut()
                 .find(|x| x.overlay_type().contains("/character_encoding/"));
@@ -272,12 +282,13 @@ impl OCA {
 
         if attr.format.is_some() {
             let mut format_ov = self
+                .oca
                 .overlays
                 .iter_mut()
                 .find(|x| x.overlay_type().contains("/format/"));
             if format_ov.is_none() {
-                self.overlays.push(overlay::Format::new());
-                format_ov = self.overlays.last_mut();
+                self.oca.overlays.push(overlay::Format::new());
+                format_ov = self.oca.overlays.last_mut();
             }
 
             if let Some(ov) = format_ov {
@@ -287,12 +298,13 @@ impl OCA {
 
         if attr.unit.is_some() {
             let mut unit_ov = self
+                .oca
                 .overlays
                 .iter_mut()
                 .find(|x| x.overlay_type().contains("/unit/"));
             if unit_ov.is_none() {
-                self.overlays.push(overlay::Unit::new());
-                unit_ov = self.overlays.last_mut();
+                self.oca.overlays.push(overlay::Unit::new());
+                unit_ov = self.oca.overlays.last_mut();
             }
 
             if let Some(ov) = unit_ov {
@@ -302,12 +314,13 @@ impl OCA {
 
         if attr.entry_codes.is_some() {
             let mut entry_code_ov = self
+                .oca
                 .overlays
                 .iter_mut()
                 .find(|x| x.overlay_type().contains("/entry_code/"));
             if entry_code_ov.is_none() {
-                self.overlays.push(overlay::EntryCode::new());
-                entry_code_ov = self.overlays.last_mut();
+                self.oca.overlays.push(overlay::EntryCode::new());
+                entry_code_ov = self.oca.overlays.last_mut();
             }
 
             if let Some(ov) = entry_code_ov {
@@ -316,31 +329,34 @@ impl OCA {
         }
 
         for (lang, attr_tr) in attr.translations.iter() {
-            let mut label_ov = self.overlays.iter_mut().find(|x| {
+            let mut label_ov = self.oca.overlays.iter_mut().find(|x| {
                 if let Some(o_lang) = x.language() {
                     return o_lang == lang && x.overlay_type().contains("/label/");
                 }
                 false
             });
             if label_ov.is_none() {
-                self.overlays.push(overlay::Label::new(lang.to_string()));
-                label_ov = self.overlays.last_mut();
+                self.oca
+                    .overlays
+                    .push(overlay::Label::new(lang.to_string()));
+                label_ov = self.oca.overlays.last_mut();
             }
             if let Some(ov) = label_ov {
                 ov.add(&attr);
             }
 
             if attr_tr.information.is_some() {
-                let mut information_ov = self.overlays.iter_mut().find(|x| {
+                let mut information_ov = self.oca.overlays.iter_mut().find(|x| {
                     if let Some(o_lang) = x.language() {
                         return o_lang == lang && x.overlay_type().contains("/character_encoding/");
                     }
                     false
                 });
                 if information_ov.is_none() {
-                    self.overlays
+                    self.oca
+                        .overlays
                         .push(overlay::Information::new(lang.to_string()));
-                    information_ov = self.overlays.last_mut();
+                    information_ov = self.oca.overlays.last_mut();
                 }
                 if let Some(ov) = information_ov {
                     ov.add(&attr);
@@ -348,15 +364,17 @@ impl OCA {
             }
 
             if attr_tr.entries.is_some() {
-                let mut entry_ov = self.overlays.iter_mut().find(|x| {
+                let mut entry_ov = self.oca.overlays.iter_mut().find(|x| {
                     if let Some(o_lang) = x.language() {
                         return o_lang == lang && x.overlay_type().contains("/entry/");
                     }
                     false
                 });
                 if entry_ov.is_none() {
-                    self.overlays.push(overlay::Entry::new(lang.to_string()));
-                    entry_ov = self.overlays.last_mut();
+                    self.oca
+                        .overlays
+                        .push(overlay::Entry::new(lang.to_string()));
+                    entry_ov = self.oca.overlays.last_mut();
                 }
                 if let Some(ov) = entry_ov {
                     ov.add(&attr);
@@ -368,16 +386,17 @@ impl OCA {
 
     pub fn finalize(mut self) -> OCA {
         for (lang, translation) in self.meta_translations.iter() {
-            self.overlays
+            self.oca
+                .overlays
                 .push(overlay::Meta::new(lang.to_string(), translation));
         }
 
-        let cs_json = serde_json::to_string(&self.capture_base).unwrap();
+        let cs_json = serde_json::to_string(&self.oca.capture_base).unwrap();
         let sai = format!("{}", SelfAddressing::Blake3_256.derive(cs_json.as_bytes()));
-        for o in self.overlays.iter_mut() {
+        for o in self.oca.overlays.iter_mut() {
             o.sign(&sai);
         }
-        self
+        self.oca
     }
 }
 
@@ -423,7 +442,7 @@ mod tests {
 
     #[test]
     fn build_oca_without_attributes() {
-        let oca = OCA::new(Encoding::Utf8)
+        let oca = OCABuilder::new(Encoding::Utf8)
             .add_name(hashmap! {
                 "En".to_string() => "Driving Licence".to_string(),
                 "Pl".to_string() => "Prawo Jazdy".to_string(),
@@ -441,7 +460,7 @@ mod tests {
 
     #[test]
     fn build_oca_with_attributes() {
-        let mut oca = OCA::new(Encoding::Utf8)
+        let oca_builder = OCABuilder::new(Encoding::Utf8)
             .add_name(hashmap! {
                 "En".to_string() => "Driving Licence".to_string(),
                 "Pl".to_string() => "Prawo Jazdy".to_string(),
@@ -487,7 +506,10 @@ mod tests {
             .add_encoding(Encoding::Iso8859_1)
             .add_format("DD/MM/YYYY".to_string());
 
-        oca = oca.add_attribute(attr1).add_attribute(attr2).finalize();
+        let oca = oca_builder
+            .add_attribute(attr1)
+            .add_attribute(attr2)
+            .finalize();
 
         // println!(
         //     "{}",

@@ -42,7 +42,7 @@ fn main() {
 
         if let Err(e) = result {
             println!("Error: {}", e);
-            return
+            return;
         }
 
         let parsed = result.unwrap();

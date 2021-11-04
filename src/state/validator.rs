@@ -1,6 +1,6 @@
 use crate::state::{
     language::Language,
-    oca::{DynOverlay, OCATranslation, OCA},
+    oca::{DynOverlay, OCABuilder, OCATranslation, OCA},
 };
 use std::collections::{HashMap, HashSet};
 
@@ -43,8 +43,13 @@ impl Validator {
         let enforced_langs: HashSet<_> = self.enforced_translations.iter().collect();
         let mut errors: Vec<Error> = vec![];
 
-        if !oca.meta_translations.is_empty() {
-            if let Err(meta_errors) = self.validate_meta(&enforced_langs, &oca.meta_translations) {
+        let oca_str = serde_json::to_string(&serde_json::value::to_value(oca).unwrap()).unwrap();
+        let oca_builder: OCABuilder = serde_json::from_str(oca_str.as_str()).unwrap();
+
+        if !oca_builder.meta_translations.is_empty() {
+            if let Err(meta_errors) =
+                self.validate_meta(&enforced_langs, &oca_builder.meta_translations)
+            {
                 errors = errors
                     .into_iter()
                     .chain(meta_errors.into_iter().map(|e| {
@@ -216,6 +221,7 @@ mod tests {
     use crate::state::{
         attribute::{Attribute, AttributeType},
         encoding::Encoding,
+        oca::OCABuilder,
     };
     use maplit::hashmap;
 
@@ -224,7 +230,7 @@ mod tests {
         let validator =
             Validator::new().enforce_translations(vec!["En".to_string(), "Pl".to_string()]);
 
-        let oca = OCA::new(Encoding::Utf8)
+        let oca = OCABuilder::new(Encoding::Utf8)
             .add_name(hashmap! {
                 "En".to_string() => "Driving Licence".to_string(),
                 "Pl".to_string() => "Prawo Jazdy".to_string(),
@@ -252,5 +258,24 @@ mod tests {
         let result = validator.validate(&oca);
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn validate_oca_with_missing_name_translation() {
+        let validator =
+            Validator::new().enforce_translations(vec!["En".to_string(), "Pl".to_string()]);
+
+        let oca = OCABuilder::new(Encoding::Utf8)
+            .add_name(hashmap! {
+                "En".to_string() => "Driving Licence".to_string(),
+            })
+            .finalize();
+
+        let result = validator.validate(&oca);
+
+        assert!(result.is_err());
+        if let Err(errors) = result {
+            assert_eq!(errors.len(), 1);
+        }
     }
 }

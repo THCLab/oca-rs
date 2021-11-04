@@ -2,7 +2,7 @@ use maplit::hashmap;
 use oca_rust::state::{
     attribute::{Attribute, AttributeType, Entry},
     encoding::Encoding,
-    oca::OCA,
+    oca::OCABuilder,
     validator::Validator,
 };
 
@@ -10,7 +10,7 @@ use oca_rust::controller::load_oca;
 
 #[test]
 fn create_oca() {
-    let mut oca = OCA::new(Encoding::Utf8)
+    let oca_builder = OCABuilder::new(Encoding::Utf8)
         .add_name(hashmap! {
             "en_EN".to_string() => "Driving Licence".to_string(),
             "pl_PL".to_string() => "Prawo Jazdy".to_string(),
@@ -55,7 +55,7 @@ fn create_oca() {
             ),
         ]);
 
-    oca = oca
+    let oca = oca_builder
         .add_attribute(first_name_attr)
         .add_attribute(last_name_attr)
         .add_attribute(gender_attr)
@@ -69,7 +69,7 @@ fn create_oca() {
     assert!(validation_result.is_ok());
 
     let oca_json = serde_json::to_string_pretty(&serde_json::to_value(&oca).unwrap()).unwrap();
-    let mut loaded_oca = load_oca(&mut oca_json.as_bytes()).unwrap();
+    let loaded_oca_builder = load_oca(&mut oca_json.as_bytes()).unwrap();
 
     let birth_date_attr = Attribute::new(String::from("birth_date"), AttributeType::Date)
         .set_pii()
@@ -79,7 +79,7 @@ fn create_oca() {
         })
         .add_format("DD/MM/YYYY".to_string());
 
-    loaded_oca = loaded_oca.add_attribute(birth_date_attr).finalize();
+    let loaded_oca = loaded_oca_builder.add_attribute(birth_date_attr).finalize();
 
     assert_eq!(loaded_oca.capture_base.attributes.len(), 4);
     assert_eq!(loaded_oca.capture_base.pii.len(), 2);

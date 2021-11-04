@@ -3,10 +3,10 @@ import type {
   CharacterEncodingOverlay, EntryOverlay, EntryCodeOverlay, FormatOverlay,
   InformationOverlay, LabelOverlay, MetaOverlay, UnitOverlay
 } from 'oca.js'
-import { Attribute, AttributeType, Encoding, Entry, OCA } from 'oca.js'
+import { Attribute, AttributeType, Encoding, Entry, OCA, OCABuilder } from 'oca.js'
 
 describe('Plain OCA is built', () => {
-  const oca = (new OCA(Encoding.Utf8)).finalize()
+  const oca: OCA = new OCABuilder(Encoding.Utf8).finalize()
 
   it('return OCA as JS object', () => {
     expect(oca).to.haveOwnProperty("capture_base")
@@ -23,7 +23,7 @@ describe('Plain OCA is built', () => {
 })
 
 describe('OCA with attributes is built', () => {
-  const oca = (new OCA(Encoding.Utf8))
+  const oca = new OCABuilder(Encoding.Utf8)
     .addName({
       en_EN: "Driving Licence",
       pl_PL: "Prawo Jazdy"
@@ -33,7 +33,7 @@ describe('OCA with attributes is built', () => {
       pl_PL: "PJ desc"
     })
     .addAttribute(
-      (new Attribute("attr_name", AttributeType.Number))
+      new Attribute("attr_name", AttributeType.Number)
       .setPii()
       .addUnit("days")
       .addLabel({
@@ -57,7 +57,7 @@ describe('OCA with attributes is built', () => {
       .build()
     )
     .addAttribute(
-      (new Attribute("attr2", AttributeType.Date))
+      new Attribute("attr2", AttributeType.Date)
       .addEncoding(Encoding.Iso8859_1)
       .addFormat("DD.MM.YYYY")
       .addLabel({

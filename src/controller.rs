@@ -1,11 +1,11 @@
-use crate::state::oca::OCA;
+use crate::state::oca::OCABuilder;
 use std::io::Read;
 
 pub type GenericError = Box<dyn std::error::Error + Sync + Send>;
 pub type GenericResult<T> = Result<T, GenericError>;
 
-pub fn load_oca(source: &mut dyn Read) -> GenericResult<OCA> {
-    let oca: OCA = serde_json::from_reader(source)?;
+pub fn load_oca(source: &mut dyn Read) -> GenericResult<OCABuilder> {
+    let oca: OCABuilder = serde_json::from_reader(source)?;
 
     Ok(oca)
 }
@@ -108,8 +108,8 @@ mod tests {
 }
         "#;
 
-        let mut oca = load_oca(&mut data.as_bytes()).unwrap();
-        oca = oca
+        let oca_builder = load_oca(&mut data.as_bytes()).unwrap();
+        let oca = oca_builder
             .add_attribute(
                 Attribute::new("new_attr".to_string(), AttributeType::Text).add_label(hashmap! {
                     "En".to_string() => "New: ".to_string(),

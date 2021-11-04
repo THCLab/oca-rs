@@ -1,8 +1,8 @@
 import { expect } from 'chai'
-import { Attribute, AttributeType, Encoding, Entry, OCA, Validator } from 'oca.js'
+import { Attribute, AttributeType, Encoding, Entry, OCA, OCABuilder, Validator } from 'oca.js'
 
 describe('Plain OCA is validated', () => {
-  const oca = (new OCA(Encoding.Utf8)).finalize()
+  const oca = new OCABuilder(Encoding.Utf8).finalize()
   const validator = new Validator()
   const result = validator.validate(oca)
 
@@ -16,7 +16,7 @@ describe('Plain OCA is validated', () => {
 })
 
 describe('Translations are not enforced', () => {
-  const oca = (new OCA(Encoding.Utf8))
+  const oca = new OCABuilder(Encoding.Utf8)
     .addName({ en_EN: "OCA name" })
     .finalize()
   const validator = new Validator()
@@ -29,10 +29,10 @@ describe('Translations are not enforced', () => {
 })
 
 describe('Missing meta translations', () => {
-  const oca = (new OCA(Encoding.Utf8))
+  const oca = new OCABuilder(Encoding.Utf8)
     .addName({ en_EN: "OCA name" })
     .finalize()
-  const validator = (new Validator())
+  const validator = new Validator()
     .enforceTranslations(["en_EN", "pl_PL"])
   const result = validator.validate(oca)
 
@@ -42,14 +42,14 @@ describe('Missing meta translations', () => {
   })
 
   describe('for name', () => {
-    const oca = (new OCA(Encoding.Utf8))
+    const oca = new OCABuilder(Encoding.Utf8)
       .addName({ en_EN: "OCA name" })
       .addDescription({
         en_EN: "OCA description",
         pl_PL: "opis OCA"
       })
       .finalize()
-    const validator = (new Validator())
+    const validator = new Validator()
       .enforceTranslations(["en_EN", "pl_PL"])
     const result = validator.validate(oca)
 
@@ -60,7 +60,7 @@ describe('Missing meta translations', () => {
   })
 
   describe('for description', () => {
-    const oca = (new OCA(Encoding.Utf8))
+    const oca = new OCABuilder(Encoding.Utf8)
       .addName({
         en_EN: "OCA name",
         pl_PL: "nazwa OCA"
@@ -69,7 +69,7 @@ describe('Missing meta translations', () => {
         en_EN: "OCA description",
       })
       .finalize()
-    const validator = (new Validator())
+    const validator = new Validator()
       .enforceTranslations(["en_EN", "pl_PL"])
     const result = validator.validate(oca)
 
@@ -81,9 +81,9 @@ describe('Missing meta translations', () => {
 })
 
 describe('Missing overlay translations', () => {
-  const oca = (new OCA(Encoding.Utf8))
+  const oca = new OCABuilder(Encoding.Utf8)
     .addAttribute(
-      (new Attribute("attr1", AttributeType.Text))
+      new Attribute("attr1", AttributeType.Text)
         .addLabel({ en_EN: "Attribute 1" })
         .addInformation({ en_EN: "Attribute 1 info" })
         .addEntries([
@@ -92,7 +92,7 @@ describe('Missing overlay translations', () => {
         .build()
     )
     .finalize()
-  const validator = (new Validator())
+  const validator = new Validator()
     .enforceTranslations(["en_EN", "pl_PL"])
   const result = validator.validate(oca)
 

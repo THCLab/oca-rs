@@ -2,7 +2,7 @@ use crate::state::{
     attribute::{Attribute, AttributeType, Entry},
     encoding::Encoding,
     language::Language,
-    oca::OCA,
+    oca::{OCABuilder, OCA},
 };
 use calamine::{open_workbook_auto, DataType, Reader};
 use std::collections::{BTreeMap, HashMap};
@@ -79,7 +79,7 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
 
     let mut oca_list: Vec<OCA> = vec![];
     for oca_range in oca_ranges {
-        let mut oca = OCA::new(Encoding::Utf8);
+        let mut oca_builder = OCABuilder::new(Encoding::Utf8);
 
         let mut attributes: Vec<(u32, Attribute)> = vec![];
         for attr_index in oca_range.0..oca_range.1 {
@@ -256,11 +256,11 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
             if let Some(info_tr) = information_trans.get(&i).cloned() {
                 attribute = attribute.add_information(info_tr);
             }
-            oca = oca.add_attribute(attribute);
+            oca_builder = oca_builder.add_attribute(attribute);
         }
-        oca = oca.add_name(name_trans);
-        oca = oca.add_description(description_trans);
-        oca = oca.finalize();
+        oca_builder = oca_builder.add_name(name_trans);
+        oca_builder = oca_builder.add_description(description_trans);
+        let oca = oca_builder.finalize();
         oca_list.push(oca);
     }
 
