@@ -41,7 +41,7 @@ impl Entry {
         }
     }
 
-    pub fn build(self) -> IEntry {
+    pub fn plain(self) -> IEntry {
         IEntry::from(
             JsValue::from_serde(&self).unwrap_or(JsValue::NULL)
         )

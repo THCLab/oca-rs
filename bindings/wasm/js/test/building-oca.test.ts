@@ -48,11 +48,11 @@ describe('OCA with attributes is built', () => {
         new Entry("o1", {
           en_EN: "option 1",
           pl_PL: "opcja 1"
-        }).build(),
+        }).plain(),
         new Entry("o2", {
           en_EN: "option 2",
           pl_PL: "opcja 2"
-        }).build()
+        }).plain()
       ])
       .build()
     )
