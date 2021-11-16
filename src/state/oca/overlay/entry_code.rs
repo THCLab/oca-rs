@@ -34,7 +34,7 @@ impl EntryCodeOverlay {
     pub fn new() -> Box<EntryCodeOverlay> {
         Box::new(EntryCodeOverlay {
             capture_base: String::new(),
-            overlay_type: "spec/overalys/entry_code/1.0".to_string(),
+            overlay_type: "spec/overlays/entry_code/1.0".to_string(),
             attr_entry_codes: BTreeMap::new(),
         })
     }

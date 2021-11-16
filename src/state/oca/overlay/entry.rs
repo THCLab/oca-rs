@@ -38,7 +38,7 @@ impl EntryOverlay {
     pub fn new(lang: Language) -> Box<EntryOverlay> {
         Box::new(EntryOverlay {
             capture_base: String::new(),
-            overlay_type: "spec/overalys/entry/1.0".to_string(),
+            overlay_type: "spec/overlays/entry/1.0".to_string(),
             language: lang,
             attr_entries: BTreeMap::new(),
         })

@@ -38,7 +38,7 @@ impl InformationOverlay {
     pub fn new(lang: Language) -> Box<InformationOverlay> {
         Box::new(InformationOverlay {
             capture_base: String::new(),
-            overlay_type: "spec/overalys/information/1.0".to_string(),
+            overlay_type: "spec/overlays/information/1.0".to_string(),
             language: lang,
             attr_information: BTreeMap::new(),
         })

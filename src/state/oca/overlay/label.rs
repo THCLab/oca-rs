@@ -49,7 +49,7 @@ impl LabelOverlay {
         cat_attributes.insert(String::from("_cat-1_"), vec![]);
         Box::new(LabelOverlay {
             capture_base: String::new(),
-            overlay_type: "spec/overalys/label/1.0".to_string(),
+            overlay_type: "spec/overlays/label/1.0".to_string(),
             language: lang,
             attr_labels: BTreeMap::new(),
             attr_categories: vec![String::from("_cat-1_")],

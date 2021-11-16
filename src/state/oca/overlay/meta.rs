@@ -35,7 +35,7 @@ impl MetaOverlay {
     pub fn new(lang: Language, oca_tr: &OCATranslation) -> Box<MetaOverlay> {
         Box::new(MetaOverlay {
             capture_base: String::new(),
-            overlay_type: "spec/overalys/meta/1.0".to_string(),
+            overlay_type: "spec/overlays/meta/1.0".to_string(),
             language: lang,
             name: oca_tr.name.as_ref().unwrap_or(&"".to_string()).clone(),
             description: oca_tr

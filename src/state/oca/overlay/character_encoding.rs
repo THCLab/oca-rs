@@ -33,7 +33,7 @@ impl CharacterEncodingOverlay {
     pub fn new(encoding: &Encoding) -> Box<CharacterEncodingOverlay> {
         Box::new(CharacterEncodingOverlay {
             capture_base: String::new(),
-            overlay_type: "spec/overalys/character_encoding/1.0".to_string(),
+            overlay_type: "spec/overlays/character_encoding/1.0".to_string(),
             default_character_encoding: *encoding,
             attr_character_encoding: BTreeMap::new(),
         })

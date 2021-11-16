@@ -34,7 +34,7 @@ impl UnitOverlay {
     pub fn new() -> Box<UnitOverlay> {
         Box::new(UnitOverlay {
             capture_base: String::new(),
-            overlay_type: "spec/overalys/unit/1.0".to_string(),
+            overlay_type: "spec/overlays/unit/1.0".to_string(),
             attr_units: BTreeMap::new(),
         })
     }

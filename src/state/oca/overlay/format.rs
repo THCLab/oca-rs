@@ -34,7 +34,7 @@ impl FormatOverlay {
     pub fn new() -> Box<FormatOverlay> {
         Box::new(FormatOverlay {
             capture_base: String::new(),
-            overlay_type: "spec/overalys/format/1.0".to_string(),
+            overlay_type: "spec/overlays/format/1.0".to_string(),
             attr_formats: BTreeMap::new(),
         })
     }
