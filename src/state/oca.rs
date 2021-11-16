@@ -353,7 +353,7 @@ impl OCABuilder {
             if attr_tr.information.is_some() {
                 let mut information_ov = self.oca.overlays.iter_mut().find(|x| {
                     if let Some(o_lang) = x.language() {
-                        return o_lang == lang && x.overlay_type().contains("/character_encoding/");
+                        return o_lang == lang && x.overlay_type().contains("/information/");
                     }
                     false
                 });
