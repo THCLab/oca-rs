@@ -151,19 +151,13 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
                 if let Some(DataType::String(label_value)) =
                     sheet.get_value((attr_index, LABEL_INDEX))
                 {
-                    let splitted_label_value = label_value
-                        .split("|")
-                        .collect::<Vec<&str>>()
-                        .pop()
-                        .unwrap()
-                        .to_string();
                     match label_trans.get_mut(&attr_index) {
                         Some(attr_label_tr) => {
-                            attr_label_tr.insert(lang.to_string(), splitted_label_value);
+                            attr_label_tr.insert(lang.to_string(), label_value.clone());
                         }
                         None => {
                             let mut attr_label_tr: HashMap<Language, String> = HashMap::new();
-                            attr_label_tr.insert(lang.to_string(), splitted_label_value);
+                            attr_label_tr.insert(lang.to_string(), label_value.clone());
                             label_trans.insert(attr_index, attr_label_tr);
                         }
                     }
