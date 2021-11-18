@@ -4,7 +4,6 @@ use clap::{App, Arg};
 use oca_rust::state::{oca::OCA, validator};
 use oca_rust::xls_parser;
 use said::derivation::SelfAddressing;
-use std::collections::BTreeMap;
 use std::io::prelude::*;
 
 fn main() {
@@ -48,15 +47,13 @@ fn main() {
         let parsed = result.unwrap();
         let validation = !matches.is_present("no-validation");
         let to_be_zipped = matches.is_present("zip");
-        let mut errors: BTreeMap<usize, Vec<validator::Error>> = BTreeMap::new();
+        let mut errors: Vec<validator::Error> = vec![];
         if validation {
-            for (i, oca) in parsed.oca_list.iter().enumerate() {
-                let validator =
-                    validator::Validator::new().enforce_translations(parsed.languages.clone());
-                let validation_result = validator.validate(&oca);
-                if let Err(e) = validation_result {
-                    errors.insert(i, e);
-                }
+            let validator =
+                validator::Validator::new().enforce_translations(parsed.languages.clone());
+            let validation_result = validator.validate(&parsed.oca);
+            if let Err(e) = validation_result {
+                errors = e
             }
         }
 
@@ -72,12 +69,12 @@ fn main() {
                     .pop()
                     .unwrap()
                     .to_string();
-                match zip_oca(parsed.oca_list, filename.clone()) {
+                match zip_oca(parsed.oca, filename.clone()) {
                     Ok(_) => println!("OCA written to {}.zip", filename.clone()),
                     Err(e) => println!("Error: {:?}", e),
                 }
             } else {
-                let v = serde_json::to_value(&parsed.oca_list).unwrap();
+                let v = serde_json::to_value(&parsed.oca).unwrap();
                 println!("{}", v);
             }
         } else {
@@ -86,29 +83,27 @@ fn main() {
     }
 }
 
-fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
+fn zip_oca(oca: OCA, filename: String) -> zip::result::ZipResult<()> {
     let zip_name = format!("{}.zip", filename.clone());
     let zip_path = std::path::Path::new(zip_name.as_str());
     let file = std::fs::File::create(&zip_path).unwrap();
     let mut zip = zip::ZipWriter::new(file);
-    for oca in oca_list.iter() {
-        let cb_json = serde_json::to_string(&oca.capture_base).unwrap();
-        let cb_sai = SelfAddressing::Blake3_256.derive(cb_json.as_bytes());
+    let cb_json = serde_json::to_string(&oca.capture_base).unwrap();
+    let cb_sai = SelfAddressing::Blake3_256.derive(cb_json.as_bytes());
+    zip.start_file(
+        format!("{}.json", cb_sai),
+        zip::write::FileOptions::default(),
+    )?;
+    zip.write(cb_json.as_bytes())?;
+
+    for overlay in oca.overlays.iter() {
+        let overlay_json = serde_json::to_string(&overlay).unwrap();
+        let overlay_sai = SelfAddressing::Blake3_256.derive(overlay_json.as_bytes());
         zip.start_file(
-            format!("{}.json", cb_sai),
+            format!("{}/{}.json", cb_sai, overlay_sai,),
             zip::write::FileOptions::default(),
         )?;
-        zip.write(cb_json.as_bytes())?;
-
-        for overlay in oca.overlays.iter() {
-            let overlay_json = serde_json::to_string(&overlay).unwrap();
-            let overlay_sai = SelfAddressing::Blake3_256.derive(overlay_json.as_bytes());
-            zip.start_file(
-                format!("{}/{}.json", cb_sai, overlay_sai,),
-                zip::write::FileOptions::default(),
-            )?;
-            zip.write(overlay_json.as_bytes())?;
-        }
+        zip.write(overlay_json.as_bytes())?;
     }
 
     zip.finish()?;

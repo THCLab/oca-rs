@@ -13,11 +13,10 @@ fn parse_xls() {
 
     assert!(result.is_ok());
     let parsed = result.unwrap();
-    assert_eq!(parsed.oca_list.len(), 3);
     assert_eq!(parsed.languages.len(), 2);
 
-    let oca = parsed.oca_list.get(0).unwrap();
-    assert_eq!(oca.capture_base.attributes.len(), 10);
+    let oca = parsed.oca;
+    assert_eq!(oca.capture_base.attributes.len(), 18);
     assert_eq!(oca.capture_base.pii.len(), 3);
 
     let validator = Validator::new().enforce_translations(vec!["en".to_string(), "zh".to_string()]);
