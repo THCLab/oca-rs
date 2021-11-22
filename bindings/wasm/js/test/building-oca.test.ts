@@ -47,6 +47,7 @@ describe('OCA with attributes is built', () => {
         en_EN: "en info",
         pl_PL: "pl info"
       })
+      .addEntryCodes(["o1", "o2"])
       .addEntries([
         new Entry("o1", {
           en_EN: "option 1",

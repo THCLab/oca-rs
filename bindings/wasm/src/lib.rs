@@ -1,8 +1,12 @@
 use oca_rust::state::{
-    attribute::{Attribute as AttributeRaw, AttributeBuilder as AttributeBuilderRaw, AttributeType, Entry as EntryRaw},
+    attribute::{
+        Attribute as AttributeRaw, AttributeBuilder as AttributeBuilderRaw, AttributeType,
+        Entry as EntryRaw,
+    },
     encoding::Encoding,
+    entry_codes::EntryCodes as EntryCodesRaw,
     language::Language,
-    oca::{OCA as OCARaw, OCABuilder as OCABuilderRaw},
+    oca::{OCABuilder as OCABuilderRaw, OCA as OCARaw},
     validator,
 };
 use serde::{Deserialize, Serialize};
@@ -19,6 +23,8 @@ extern "C" {
     pub type ITranslations;
     #[wasm_bindgen(typescript_type = "IEntry")]
     pub type IEntry;
+    #[wasm_bindgen(typescript_type = "string | string[]")]
+    pub type EntryCodes;
 }
 
 #[wasm_bindgen]
@@ -37,14 +43,12 @@ impl Entry {
 
         Entry {
             code,
-            translations: translations_str
+            translations: translations_str,
         }
     }
 
     pub fn plain(self) -> IEntry {
-        IEntry::from(
-            JsValue::from_serde(&self).unwrap_or(JsValue::NULL)
-        )
+        IEntry::from(JsValue::from_serde(&self).unwrap_or(JsValue::NULL))
     }
 }
 
@@ -104,9 +108,7 @@ impl OCABuilder {
     }
 
     pub fn finalize(self) -> OCA {
-        OCA::from(
-            JsValue::from_serde(&self.raw.finalize()).unwrap_or(JsValue::NULL)
-        )
+        OCA::from(JsValue::from_serde(&self.raw.finalize()).unwrap_or(JsValue::NULL))
     }
 }
 
@@ -228,6 +230,20 @@ impl AttributeBuilder {
         self
     }
 
+    #[wasm_bindgen(js_name = "addEntryCodes")]
+    pub fn add_entry_codes(mut self, entry_codes: EntryCodes) -> AttributeBuilder {
+        let entry_codes_value = JsValue::from(entry_codes);
+        let entry_codes_raw: EntryCodesRaw = match entry_codes_value.is_string() {
+            true => EntryCodesRaw::Sai(serde_wasm_bindgen::from_value(entry_codes_value).unwrap()),
+            false => {
+                EntryCodesRaw::Array(serde_wasm_bindgen::from_value(entry_codes_value).unwrap())
+            }
+        };
+
+        self.raw = self.raw.add_entry_codes(entry_codes_raw);
+        self
+    }
+
     #[wasm_bindgen(js_name = "addEntries")]
     pub fn add_entries(mut self, entries: Vec<IEntry>) -> AttributeBuilder {
         let mut entries_raw: Vec<EntryRaw> = vec![];
@@ -260,9 +276,7 @@ impl AttributeBuilder {
     }
 
     pub fn build(self) -> Attribute {
-        Attribute::from(
-            JsValue::from_serde(&self.raw.build()).unwrap_or(JsValue::NULL)
-        )
+        Attribute::from(JsValue::from_serde(&self.raw.build()).unwrap_or(JsValue::NULL))
     }
 }
 

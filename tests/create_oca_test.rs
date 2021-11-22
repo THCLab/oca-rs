@@ -2,6 +2,7 @@ use maplit::hashmap;
 use oca_rust::state::{
     attribute::{AttributeBuilder, AttributeType, Entry},
     encoding::Encoding,
+    entry_codes::EntryCodes,
     oca::OCABuilder,
     validator::Validator,
 };
@@ -40,6 +41,7 @@ fn create_oca() {
             "en_EN".to_string() => "Gender: ".to_string(),
             "pl_PL".to_string() => "Płeć: ".to_string(),
         })
+        .add_entry_codes(EntryCodes::Array(vec!["male".to_string(), "female".to_string()]))
         .add_entries(vec![
             Entry::new(
                 "male".to_string(),

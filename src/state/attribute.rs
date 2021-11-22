@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 use wasm_bindgen::prelude::*;
 
-use crate::state::{encoding::Encoding, language::Language};
+use crate::state::{encoding::Encoding, language::Language, entry_codes::EntryCodes};
 
 #[derive(Serialize, Deserialize)]
 pub struct Attribute {
@@ -13,7 +13,7 @@ pub struct Attribute {
     pub encoding: Option<Encoding>,
     pub format: Option<String>,
     pub unit: Option<String>,
-    pub entry_codes: Option<Vec<String>>,
+    pub entry_codes: Option<EntryCodes>,
 }
 
 pub struct AttributeBuilder {
@@ -72,12 +72,13 @@ impl AttributeBuilder {
         self
     }
 
+    pub fn add_entry_codes(mut self, entry_codes: EntryCodes) -> AttributeBuilder {
+        self.attribute.entry_codes = Some(entry_codes);
+        self
+    }
+
     pub fn add_entries(mut self, entries: Vec<Entry>) -> AttributeBuilder {
-        let mut entry_codes = vec![];
-
         for entry in entries.iter() {
-            entry_codes.push(entry.id.clone());
-
             for (lang, en) in entry.translations.iter() {
                 match self.attribute.translations.get_mut(lang) {
                     Some(t) => {
@@ -91,8 +92,6 @@ impl AttributeBuilder {
                 }
             }
         }
-        self.attribute.entry_codes = Some(entry_codes);
-
         self
     }
 

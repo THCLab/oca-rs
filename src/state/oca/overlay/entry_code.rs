@@ -1,4 +1,4 @@
-use crate::state::{attribute::Attribute, oca::Overlay};
+use crate::state::{attribute::Attribute, oca::Overlay, entry_codes::EntryCodes};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -7,7 +7,7 @@ pub struct EntryCodeOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    attr_entry_codes: BTreeMap<String, Vec<String>>,
+    attr_entry_codes: BTreeMap<String, EntryCodes>,
 }
 
 impl Overlay for EntryCodeOverlay {

@@ -441,6 +441,7 @@ mod tests {
     use super::*;
     use crate::state::{
         attribute::{AttributeBuilder, AttributeType, Entry},
+        entry_codes::EntryCodes,
         encoding::Encoding,
     };
     use maplit::hashmap;
@@ -483,6 +484,7 @@ mod tests {
                 "En".to_string() => "Name: ".to_string(),
                 "Pl".to_string() => "Imię: ".to_string(),
             })
+            .add_entry_codes(EntryCodes::Array(vec!["op1".to_string(), "op2".to_string()]))
             .add_entries(vec![
                 Entry::new(
                     "op1".to_string(),

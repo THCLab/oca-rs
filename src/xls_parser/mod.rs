@@ -2,6 +2,7 @@ use crate::state::{
     attribute::{AttributeBuilder, AttributeType, Entry},
     encoding::Encoding,
     language::Language,
+    entry_codes::EntryCodes,
     oca::{OCABuilder, OCA},
 };
 use calamine::{open_workbook_auto, DataType, Reader};
@@ -17,6 +18,7 @@ const ATTR_TYPE_INDEX: u32 = 2;
 const PII_FLAG_INDEX: u32 = 3;
 const ENCODING_INDEX: u32 = 4;
 const FORMAT_INDEX: u32 = 5;
+const ENTRY_CODES_INDEX: u32 = 6;
 
 const LABEL_INDEX: u32 = 3;
 const ENTRIES_INDEX: u32 = 4;
@@ -112,6 +114,19 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
             main_sheet.get_value((attr_index, FORMAT_INDEX))
         {
             attribute_builder = attribute_builder.add_format(format_value.clone());
+        }
+        if let Some(DataType::String(entry_codes_value)) =
+            main_sheet.get_value((attr_index, ENTRY_CODES_INDEX))
+        {
+            let entry_codes: EntryCodes;
+            if entry_codes_value.starts_with("SAI:") {
+                let sai = entry_codes_value.strip_prefix("SAI:").unwrap();
+                entry_codes = EntryCodes::Sai(sai.to_string());
+            } else {
+                let codes: Vec<String> = entry_codes_value.split("|").collect::<Vec<&str>>().iter().map(|c| c.to_string()).collect();
+                entry_codes = EntryCodes::Array(codes);
+            }
+            attribute_builder = attribute_builder.add_entry_codes(entry_codes);
         }
         attribute_builders.push((attr_index, attribute_builder));
     }
