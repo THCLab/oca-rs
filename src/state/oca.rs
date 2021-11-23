@@ -440,9 +440,9 @@ impl OCATranslation {
 mod tests {
     use super::*;
     use crate::state::{
-        attribute::{AttributeBuilder, AttributeType, Entry},
-        entry_codes::EntryCodes,
+        attribute::{AttributeBuilder, AttributeType, Entries, Entry},
         encoding::Encoding,
+        entry_codes::EntryCodes,
     };
     use maplit::hashmap;
 
@@ -484,8 +484,11 @@ mod tests {
                 "En".to_string() => "Name: ".to_string(),
                 "Pl".to_string() => "Imię: ".to_string(),
             })
-            .add_entry_codes(EntryCodes::Array(vec!["op1".to_string(), "op2".to_string()]))
-            .add_entries(vec![
+            .add_entry_codes(EntryCodes::Array(vec![
+                "op1".to_string(),
+                "op2".to_string(),
+            ]))
+            .add_entries(Entries::Object(vec![
                 Entry::new(
                     "op1".to_string(),
                     hashmap! {
@@ -500,7 +503,7 @@ mod tests {
                         "Pl".to_string() => "Opcja 2".to_string(),
                     },
                 ),
-            ])
+            ]))
             .add_information(hashmap! {
                 "En".to_string() => "info en".to_string(),
                 "Pl".to_string() => "info pl".to_string(),

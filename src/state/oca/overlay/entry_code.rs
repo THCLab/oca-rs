@@ -1,4 +1,4 @@
-use crate::state::{attribute::Attribute, oca::Overlay, entry_codes::EntryCodes};
+use crate::state::{attribute::Attribute, entry_codes::EntryCodes, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 

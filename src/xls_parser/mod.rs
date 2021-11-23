@@ -1,8 +1,9 @@
 use crate::state::{
-    attribute::{AttributeBuilder, AttributeType, Entry},
+    attribute::{AttributeBuilder, AttributeType, Entries, Entry},
     encoding::Encoding,
-    language::Language,
+    entries::EntriesElement,
     entry_codes::EntryCodes,
+    language::Language,
     oca::{OCABuilder, OCA},
 };
 use calamine::{open_workbook_auto, DataType, Reader};
@@ -123,7 +124,12 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
                 let sai = entry_codes_value.strip_prefix("SAI:").unwrap();
                 entry_codes = EntryCodes::Sai(sai.to_string());
             } else {
-                let codes: Vec<String> = entry_codes_value.split("|").collect::<Vec<&str>>().iter().map(|c| c.to_string()).collect();
+                let codes: Vec<String> = entry_codes_value
+                    .split("|")
+                    .collect::<Vec<&str>>()
+                    .iter()
+                    .map(|c| c.to_string())
+                    .collect();
                 entry_codes = EntryCodes::Array(codes);
             }
             attribute_builder = attribute_builder.add_entry_codes(entry_codes);
@@ -135,8 +141,7 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
     let mut description_trans: HashMap<Language, String> = HashMap::new();
 
     let mut label_trans: HashMap<u32, HashMap<Language, String>> = HashMap::new();
-    let mut entries_trans: HashMap<u32, BTreeMap<String, HashMap<Language, String>>> =
-        HashMap::new();
+    let mut entries_trans: HashMap<u32, HashMap<Language, EntriesElement>> = HashMap::new();
     let mut information_trans: HashMap<u32, HashMap<Language, String>> = HashMap::new();
 
     for (lang, sheet) in translation_sheets.iter() {
@@ -167,49 +172,33 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
             if let Some(DataType::String(entries_value)) =
                 sheet.get_value((attr_index, ENTRIES_INDEX))
             {
-                let entries = entries_value.split("|").collect::<Vec<&str>>().iter().fold(
-                    HashMap::new(),
-                    |mut acc, x| {
-                        let splitted = x.split(":").collect::<Vec<&str>>();
-                        acc.insert(
-                            splitted.get(0).unwrap().clone(),
-                            splitted.get(1).unwrap().clone(),
-                        );
-                        acc
-                    },
-                );
+                let entries_el: EntriesElement;
+                if entries_value.starts_with("SAI:") {
+                    let sai = entries_value.strip_prefix("SAI:").unwrap();
+                    entries_el = EntriesElement::Sai(sai.to_string());
+                } else {
+                    let entries_obj = entries_value.split("|").collect::<Vec<&str>>().iter().fold(
+                        BTreeMap::new(),
+                        |mut acc, x| {
+                            let splitted = x.split(":").collect::<Vec<&str>>();
+                            acc.insert(
+                                splitted.get(0).unwrap().to_string(),
+                                splitted.get(1).unwrap().to_string(),
+                            );
+                            acc
+                        },
+                    );
+                    entries_el = EntriesElement::Object(entries_obj);
+                }
                 match entries_trans.get_mut(&attr_index) {
                     Some(attr_entries_tr) => {
-                        for (entry_key, entry_value) in entries {
-                            match attr_entries_tr.get_mut(&entry_key.to_string()) {
-                                Some(attr_entry_tr) => {
-                                    attr_entry_tr.insert(lang.to_string(), entry_value.to_string());
-                                }
-                                None => {
-                                    let mut attr_entry_tr: HashMap<Language, String> =
-                                        HashMap::new();
-                                    attr_entry_tr.insert(lang.to_string(), entry_value.to_string());
-                                    attr_entries_tr.insert(entry_key.to_string(), attr_entry_tr);
-                                }
-                            }
+                        if attr_entries_tr.get(lang).is_none() {
+                            attr_entries_tr.insert(lang.to_string(), entries_el);
                         }
                     }
                     None => {
-                        let mut attr_entries_tr: BTreeMap<String, HashMap<Language, String>> =
-                            BTreeMap::new();
-                        for (entry_key, entry_value) in entries {
-                            match attr_entries_tr.get_mut(&entry_key.to_string()) {
-                                Some(attr_entry_tr) => {
-                                    attr_entry_tr.insert(lang.to_string(), entry_value.to_string());
-                                }
-                                None => {
-                                    let mut attr_entry_tr: HashMap<Language, String> =
-                                        HashMap::new();
-                                    attr_entry_tr.insert(lang.to_string(), entry_value.to_string());
-                                    attr_entries_tr.insert(entry_key.to_string(), attr_entry_tr);
-                                }
-                            }
-                        }
+                        let mut attr_entries_tr: HashMap<Language, EntriesElement> = HashMap::new();
+                        attr_entries_tr.insert(lang.to_string(), entries_el);
                         entries_trans.insert(attr_index, attr_entries_tr);
                     }
                 }
@@ -235,12 +224,48 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
         if let Some(label_tr) = label_trans.get(&i).cloned() {
             attribute_builder = attribute_builder.add_label(label_tr);
         }
-        if let Some(entries_tr) = entries_trans.get(&i).cloned() {
-            let entries = entries_tr
-                .iter()
-                .map(|(e_key, e_value)| Entry::new(e_key.to_string(), e_value.clone()))
-                .collect::<Vec<_>>();
-            attribute_builder = attribute_builder.add_entries(entries);
+        if let Some(lang_entries_tr) = entries_trans.get(&i).cloned() {
+            let mut entries: Option<Entries> = None;
+            for (lang, entries_tr) in lang_entries_tr.iter() {
+                match entries_tr {
+                    EntriesElement::Sai(sai) => match entries {
+                        Some(Entries::Sai(ref mut lang_sai)) => {
+                            lang_sai.insert(lang.to_string(), sai.to_string());
+                        }
+                        Some(Entries::Object(_)) => {}
+                        None => {
+                            let mut lang_sai: HashMap<Language, String> = HashMap::new();
+                            lang_sai.insert(lang.to_string(), sai.to_string());
+                            entries = Some(Entries::Sai(lang_sai));
+                        }
+                    },
+                    EntriesElement::Object(entries_obj) => match entries {
+                        Some(Entries::Sai(_)) => {}
+                        Some(Entries::Object(ref mut entry_vec)) => {
+                            for (e_key, e_val) in entries_obj.iter() {
+                                let lang_entry = &mut entry_vec
+                                    .iter_mut()
+                                    .find(|el| &el.id == e_key)
+                                    .unwrap()
+                                    .translations;
+                                lang_entry.insert(lang.to_string(), e_val.clone());
+                            }
+                        }
+                        None => {
+                            let mut entry_vec: Vec<Entry> = vec![];
+                            for (e_key, e_val) in entries_obj.iter() {
+                                let mut lang_entry: HashMap<Language, String> = HashMap::new();
+                                lang_entry.insert(lang.to_string(), e_val.clone());
+                                entry_vec.push(Entry::new(e_key.to_string(), lang_entry))
+                            }
+                            entries = Some(Entries::Object(entry_vec));
+                        }
+                    },
+                }
+            }
+            if let Some(ent) = entries {
+                attribute_builder = attribute_builder.add_entries(ent);
+            }
         }
         if let Some(info_tr) = information_trans.get(&i).cloned() {
             attribute_builder = attribute_builder.add_information(info_tr);

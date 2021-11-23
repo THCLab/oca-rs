@@ -1,4 +1,6 @@
-use crate::state::{attribute::Attribute, language::Language, oca::Overlay};
+use crate::state::{
+    attribute::Attribute, entries::EntriesElement, language::Language, oca::Overlay,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -8,7 +10,7 @@ pub struct EntryOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
-    attr_entries: BTreeMap<String, BTreeMap<String, String>>,
+    attr_entries: BTreeMap<String, EntriesElement>,
 }
 
 impl Overlay for EntryOverlay {

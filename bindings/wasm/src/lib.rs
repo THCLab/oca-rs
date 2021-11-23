@@ -1,7 +1,7 @@
 use oca_rust::state::{
     attribute::{
         Attribute as AttributeRaw, AttributeBuilder as AttributeBuilderRaw, AttributeType,
-        Entry as EntryRaw,
+        Entries as EntriesRaw, Entry as EntryRaw,
     },
     encoding::Encoding,
     entry_codes::EntryCodes as EntryCodesRaw,
@@ -23,6 +23,8 @@ extern "C" {
     pub type ITranslations;
     #[wasm_bindgen(typescript_type = "IEntry")]
     pub type IEntry;
+    #[wasm_bindgen(typescript_type = "{ [language: string]: string } | IEntry[]")]
+    pub type Entries;
     #[wasm_bindgen(typescript_type = "string | string[]")]
     pub type EntryCodes;
 }
@@ -245,17 +247,28 @@ impl AttributeBuilder {
     }
 
     #[wasm_bindgen(js_name = "addEntries")]
-    pub fn add_entries(mut self, entries: Vec<IEntry>) -> AttributeBuilder {
-        let mut entries_raw: Vec<EntryRaw> = vec![];
-        for entry in entries.iter() {
-            let e: Entry = serde_wasm_bindgen::from_value(JsValue::from(entry)).unwrap();
-
-            let mut entry_tr_raw: HashMap<Language, String> = HashMap::new();
-            for (lang, entry_v) in e.translations.iter() {
-                entry_tr_raw.insert(lang.to_string(), entry_v.clone());
+    pub fn add_entries(mut self, entries: Entries) -> AttributeBuilder {
+        let entries_value = JsValue::from(entries);
+        let entries_raw = match js_sys::Array::is_array(&entries_value) {
+            true => {
+                let mut entries_raw_vec: Vec<EntryRaw> = vec![];
+                let entries_vec: Vec<Entry> =
+                    serde_wasm_bindgen::from_value(entries_value).unwrap();
+                for entry in entries_vec.iter() {
+                    let mut entry_tr_raw: HashMap<Language, String> = HashMap::new();
+                    for (lang, entry_v) in entry.translations.iter() {
+                        entry_tr_raw.insert(lang.to_string(), entry_v.clone());
+                    }
+                    entries_raw_vec.push(EntryRaw::new(entry.code.to_string(), entry_tr_raw))
+                }
+                EntriesRaw::Object(entries_raw_vec)
             }
-            entries_raw.push(EntryRaw::new(e.code, entry_tr_raw))
-        }
+            false => {
+                let entries_sai: HashMap<Language, String> =
+                    serde_wasm_bindgen::from_value(entries_value).unwrap();
+                EntriesRaw::Sai(entries_sai)
+            }
+        };
 
         self.raw = self.raw.add_entries(entries_raw);
         self

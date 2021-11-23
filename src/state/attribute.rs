@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 use wasm_bindgen::prelude::*;
 
-use crate::state::{encoding::Encoding, language::Language, entry_codes::EntryCodes};
+use crate::state::{
+    encoding::Encoding, entries::EntriesElement, entry_codes::EntryCodes, language::Language,
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct Attribute {
@@ -77,17 +79,35 @@ impl AttributeBuilder {
         self
     }
 
-    pub fn add_entries(mut self, entries: Vec<Entry>) -> AttributeBuilder {
-        for entry in entries.iter() {
-            for (lang, en) in entry.translations.iter() {
-                match self.attribute.translations.get_mut(lang) {
-                    Some(t) => {
-                        t.add_entry(entry.id.clone(), en.clone());
+    pub fn add_entries(mut self, entries: Entries) -> AttributeBuilder {
+        match entries {
+            Entries::Sai(lang_sai) => {
+                for (lang, sai) in lang_sai.iter() {
+                    match self.attribute.translations.get_mut(lang) {
+                        Some(t) => {
+                            t.add_entries_sai(sai.to_string());
+                        }
+                        None => {
+                            let mut tr = AttributeTranslation::new();
+                            tr.add_entries_sai(sai.to_string());
+                            self.attribute.translations.insert(lang.clone(), tr);
+                        }
                     }
-                    None => {
-                        let mut tr = AttributeTranslation::new();
-                        tr.add_entry(entry.id.clone(), en.clone());
-                        self.attribute.translations.insert(lang.clone(), tr);
+                }
+            }
+            Entries::Object(entries_vec) => {
+                for entry in entries_vec.iter() {
+                    for (lang, en) in entry.translations.iter() {
+                        match self.attribute.translations.get_mut(lang) {
+                            Some(t) => {
+                                t.add_entry(entry.id.clone(), en.clone());
+                            }
+                            None => {
+                                let mut tr = AttributeTranslation::new();
+                                tr.add_entry(entry.id.clone(), en.clone());
+                                self.attribute.translations.insert(lang.clone(), tr);
+                            }
+                        }
                     }
                 }
             }
@@ -118,8 +138,8 @@ impl AttributeBuilder {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Entry {
-    id: String,
-    translations: HashMap<Language, String>,
+    pub id: String,
+    pub translations: HashMap<Language, String>,
 }
 
 impl Entry {
@@ -129,9 +149,15 @@ impl Entry {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum Entries {
+    Sai(HashMap<Language, String>),
+    Object(Vec<Entry>),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AttributeTranslation {
     pub label: Option<String>,
-    pub entries: Option<BTreeMap<String, String>>,
+    pub entries: Option<EntriesElement>,
     pub information: Option<String>,
 }
 
@@ -155,13 +181,18 @@ impl AttributeTranslation {
         self
     }
 
+    pub fn add_entries_sai(&mut self, sai: String) -> &mut AttributeTranslation {
+        self.entries = Some(EntriesElement::Sai(sai));
+        self
+    }
+
     pub fn add_entry(&mut self, id: String, tr: String) -> &mut AttributeTranslation {
         if self.entries.is_none() {
-            self.entries = Some(BTreeMap::new());
+            self.entries = Some(EntriesElement::Object(BTreeMap::new()));
         }
-        if let Some(mut entries) = self.entries.clone() {
+        if let Some(EntriesElement::Object(mut entries)) = self.entries.clone() {
             entries.insert(id, tr);
-            self.entries = Some(entries);
+            self.entries = Some(EntriesElement::Object(entries));
         }
         self
     }
