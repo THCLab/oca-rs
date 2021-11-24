@@ -88,8 +88,9 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
             ))
             .or_else(|e| {
                 Err(format!(
-                    "Parsing attribute type in row {} failed. {}",
+                    "Parsing attribute type in row {} ({}) failed. {}",
                     attr_index + 1,
+                    attribute_name,
                     e.to_string()
                 ))
             })?,
@@ -248,7 +249,10 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
                                 let lang_entry = &mut entry_vec
                                     .iter_mut()
                                     .find(|el| &el.id == e_key)
-                                    .unwrap()
+                                    .ok_or(format!(
+                                        "Unknown entry code in {} translation: {}",
+                                        lang, e_key
+                                    ))?
                                     .translations;
                                 lang_entry.insert(lang.to_string(), e_val.clone());
                             }
