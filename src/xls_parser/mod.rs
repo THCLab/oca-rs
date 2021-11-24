@@ -119,20 +119,22 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
         if let Some(DataType::String(entry_codes_value)) =
             main_sheet.get_value((attr_index, ENTRY_CODES_INDEX))
         {
-            let entry_codes: EntryCodes;
-            if entry_codes_value.starts_with("SAI:") {
-                let sai = entry_codes_value.strip_prefix("SAI:").unwrap();
-                entry_codes = EntryCodes::Sai(sai.to_string());
-            } else {
-                let codes: Vec<String> = entry_codes_value
-                    .split("|")
-                    .collect::<Vec<&str>>()
-                    .iter()
-                    .map(|c| c.to_string())
-                    .collect();
-                entry_codes = EntryCodes::Array(codes);
+            if entry_codes_value != &"[SAI]".to_string() {
+                let entry_codes: EntryCodes;
+                if entry_codes_value.starts_with("SAI:") {
+                    let sai = entry_codes_value.strip_prefix("SAI:").unwrap();
+                    entry_codes = EntryCodes::Sai(sai.to_string());
+                } else {
+                    let codes: Vec<String> = entry_codes_value
+                        .split("|")
+                        .collect::<Vec<&str>>()
+                        .iter()
+                        .map(|c| c.to_string())
+                        .collect();
+                    entry_codes = EntryCodes::Array(codes);
+                }
+                attribute_builder = attribute_builder.add_entry_codes(entry_codes);
             }
-            attribute_builder = attribute_builder.add_entry_codes(entry_codes);
         }
         attribute_builders.push((attr_index, attribute_builder));
     }
