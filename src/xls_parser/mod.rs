@@ -14,6 +14,7 @@ pub struct ParsedResult {
     pub languages: Vec<Language>,
 }
 
+const CLASSIFICATION_INDEX: u32 = 0;
 const ATTR_NAME_INDEX: u32 = 1;
 const ATTR_TYPE_INDEX: u32 = 2;
 const PII_FLAG_INDEX: u32 = 3;
@@ -63,6 +64,13 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
     let oca_range = (start, first_translation_sheet.height() as u32);
 
     let mut oca_builder = OCABuilder::new(Encoding::Utf8);
+
+    let mut classification = String::new();
+    let classification_value = main_sheet.get_value((oca_range.0, CLASSIFICATION_INDEX));
+    if let Some(class) = classification_value {
+        classification = class.to_string();
+    }
+    oca_builder = oca_builder.add_classification(classification);
 
     let mut attribute_names = vec![];
     let mut attribute_builders: Vec<(u32, AttributeBuilder)> = vec![];
