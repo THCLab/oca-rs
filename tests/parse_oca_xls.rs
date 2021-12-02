@@ -1,11 +1,11 @@
 #[cfg(feature = "xls_parser")]
 use oca_rust::state::validator::Validator;
 #[cfg(feature = "xls_parser")]
-use oca_rust::xls_parser::parse;
+use oca_rust::xls_parser::oca::parse;
 
 #[cfg(feature = "xls_parser")]
 #[test]
-fn parse_xls() {
+fn parse_oca_xls() {
     let result = parse(format!(
         "{}/tests/assets/oca_template.xlsx",
         env!("CARGO_MANIFEST_DIR")
