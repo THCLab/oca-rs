@@ -16,6 +16,7 @@ pub struct Attribute {
     pub format: Option<String>,
     pub unit: Option<String>,
     pub entry_codes: Option<EntryCodes>,
+    pub sai: Option<String>,
 }
 
 pub struct AttributeBuilder {
@@ -34,6 +35,7 @@ impl AttributeBuilder {
                 format: None,
                 unit: None,
                 entry_codes: None,
+                sai: None,
             },
         }
     }
@@ -45,6 +47,11 @@ impl AttributeBuilder {
 
     pub fn add_encoding(mut self, encoding: Encoding) -> AttributeBuilder {
         self.attribute.encoding = Some(encoding);
+        self
+    }
+
+    pub fn add_sai(mut self, sai: String) -> AttributeBuilder {
+        self.attribute.sai = Some(sai);
         self
     }
 

@@ -1,7 +1,7 @@
-use calamine::{open_workbook_auto, DataType, Reader};
 use crate::state::language::Language;
-use std::collections::{BTreeMap, HashMap};
+use calamine::{open_workbook_auto, DataType, Reader};
 use serde::Serialize;
+use std::collections::{BTreeMap, HashMap};
 
 #[derive(Serialize)]
 pub struct ParsedResult {
@@ -45,7 +45,8 @@ pub fn parse(path: String) -> Result<ParsedResult, String> {
     let mut label_trans: HashMap<u32, HashMap<Language, String>> = HashMap::new();
     for (lang, sheet) in translation_sheets.iter() {
         for entry_index in (entries_range.0)..(entries_range.1) {
-            if let Some(DataType::String(label_value)) = sheet.get_value((entry_index, ENTRY_LABEL_INDEX))
+            if let Some(DataType::String(label_value)) =
+                sheet.get_value((entry_index, ENTRY_LABEL_INDEX))
             {
                 match label_trans.get_mut(&entry_index) {
                     Some(entry_label_tr) => {
@@ -87,10 +88,8 @@ pub fn parse(path: String) -> Result<ParsedResult, String> {
         }
     }
 
-    Ok(
-        ParsedResult {
-            codes,
-            translations,
-        }
-    )
+    Ok(ParsedResult {
+        codes,
+        translations,
+    })
 }

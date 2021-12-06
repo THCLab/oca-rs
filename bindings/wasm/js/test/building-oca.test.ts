@@ -70,15 +70,25 @@ describe('OCA with attributes is built', () => {
       })
       .build()
     )
+    .addAttribute(
+      new AttributeBuilder("attr3", AttributeType.Sai)
+      .addSai("sai")
+      .addLabel({
+        en_EN: "Reference: ",
+        pl_PL: "Referecja: "
+      })
+      .build()
+    )
     .finalize()
 
   describe("Capture Base", () => {
     const captureBase = oca.capture_base
 
     it('attributes properly added', () => {
-      expect(captureBase.attributes).to.have.keys("attr_name", "attr2")
+      expect(captureBase.attributes).to.have.keys("attr_name", "attr2", "attr3")
       expect(captureBase.attributes).to.have.property("attr_name", "Number")
       expect(captureBase.attributes).to.have.property("attr2", "Date")
+      expect(captureBase.attributes).to.have.property("attr3", "SAI:sai")
       expect(captureBase.pii).to.eql(["attr_name"])
     })
   })
@@ -172,11 +182,13 @@ describe('OCA with attributes is built', () => {
         } = {
           pl_PL: {
             "attr_name": "Imię: ",
-            "attr2": "Data: "
+            "attr2": "Data: ",
+            "attr3": "Referecja: "
           },
           en_EN: {
             "attr_name": "Name: ",
-            "attr2": "Date: "
+            "attr2": "Date: ",
+            "attr3": "Reference: "
           }
         }
         expect(overlays).to.lengthOf(2)
@@ -184,9 +196,10 @@ describe('OCA with attributes is built', () => {
         overlays.forEach(overlay => {
           const exp = expected[overlay.language]
           expect(exp).to.exist
-          expect(overlay.attr_labels).to.have.keys("attr_name", "attr2")
+          expect(overlay.attr_labels).to.have.keys("attr_name", "attr2", "attr3")
           expect(overlay.attr_labels).to.have.property("attr_name", exp["attr_name"])
           expect(overlay.attr_labels).to.have.property("attr2", exp["attr2"])
+          expect(overlay.attr_labels).to.have.property("attr3", exp["attr3"])
         })
       })
     })

@@ -200,6 +200,12 @@ impl AttributeBuilder {
         self
     }
 
+    #[wasm_bindgen(js_name = "addSai")]
+    pub fn add_sai(mut self, sai: String) -> AttributeBuilder {
+        self.raw = self.raw.add_sai(sai);
+        self
+    }
+
     #[wasm_bindgen(js_name = "addEncoding")]
     pub fn add_encoding(mut self, encoding: Encoding) -> AttributeBuilder {
         self.raw = self.raw.add_encoding(encoding);
@@ -386,6 +392,7 @@ type AttributeTranslation = {
 type Attribute = {
   name: string
   attr_type: string
+  sai?: string
   is_pii: boolean
   translations: { [language: string]: AttributeTranslation }
   encoding?: string

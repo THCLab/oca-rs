@@ -23,7 +23,7 @@ mod tests {
   "capture_base": {
     "type": "spec/capture_base/1.0",
     "classification": "classification",
-    "attributes": { "n1": "Text", "n2": "Date" },
+    "attributes": { "n1": "Text", "n2": "Date", "n3": "SAI:asd" },
     "pii": [ "n1" ]
   },
   "overlays": [
@@ -47,10 +47,10 @@ mod tests {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/label/1.0",
       "language": "pl_PL",
-      "attr_labels": { "n1": "Imię: ", "n2": "Data: " },
+      "attr_labels": { "n1": "Imię: ", "n2": "Data: ", "n3": "Referecja: " },
       "attr_categories": [ "_cat-1_" ],
       "cat_labels": { "_cat-1_": "Category 1" },
-      "cat_attributes": { "_cat-1_": [ "n1", "n2" ] }
+      "cat_attributes": { "_cat-1_": [ "n1", "n2", "n3" ] }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
@@ -68,10 +68,10 @@ mod tests {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/label/1.0",
       "language": "en_EN",
-      "attr_labels": { "n2": "Date: ", "n1": "Name: " },
+      "attr_labels": { "n2": "Date: ", "n1": "Name: ", "n3": "Reference: " },
       "attr_categories": [ "_cat-1_" ],
       "cat_labels": { "_cat-1_": "Category 1" },
-      "cat_attributes": { "_cat-1_": [ "n1", "n2" ] }
+      "cat_attributes": { "_cat-1_": [ "n1", "n2", "n3" ] }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
@@ -120,6 +120,6 @@ mod tests {
             )
             .finalize();
 
-        assert_eq!(oca.capture_base.attributes.len(), 3);
+        assert_eq!(oca.capture_base.attributes.len(), 4);
     }
 }

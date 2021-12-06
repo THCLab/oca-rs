@@ -88,21 +88,28 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
         }
 
         attribute_names.push(attribute_name.clone());
+        let attribute_type_value = &format!(
+            r#"{}"#,
+            &main_sheet.get_value((attr_index, ATTR_TYPE_INDEX)).unwrap()
+        );
+        let attribute_type_tmp = attribute_type_value.split(":").collect::<Vec<&str>>();
+        let attribute_type = attribute_type_tmp.get(0).unwrap();
+        let attribute_sai = attribute_type_tmp.get(1);
         let mut attribute_builder = AttributeBuilder::new(
             attribute_name.clone(),
-            serde_json::from_str::<AttributeType>(&format!(
-                r#""{}""#,
-                &main_sheet.get_value((attr_index, ATTR_TYPE_INDEX)).unwrap()
-            ))
-            .or_else(|e| {
-                Err(format!(
-                    "Parsing attribute type in row {} ({}) failed. {}",
-                    attr_index + 1,
-                    attribute_name,
-                    e.to_string()
-                ))
-            })?,
+            serde_json::from_str::<AttributeType>(format!("\"{}\"", attribute_type).as_str())
+                .or_else(|e| {
+                    Err(format!(
+                        "Parsing attribute type in row {} ({}) failed. {}",
+                        attr_index + 1,
+                        attribute_name,
+                        e.to_string()
+                    ))
+                })?,
         );
+        if let Some(sai) = attribute_sai {
+            attribute_builder = attribute_builder.add_sai(sai.to_string());
+        }
         if let Some(DataType::String(_value)) = main_sheet.get_value((attr_index, PII_FLAG_INDEX)) {
             attribute_builder = attribute_builder.set_pii();
         }
