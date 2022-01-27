@@ -74,6 +74,18 @@ impl OCABuilder {
         self
     }
 
+    #[wasm_bindgen(js_name = "addFormLayout")]
+    pub fn add_form_layout(mut self, layout: String) -> OCABuilder {
+        self.raw = self.raw.add_form_layout(layout);
+        self
+    }
+
+    #[wasm_bindgen(js_name = "addCredentialLayout")]
+    pub fn add_credential_layout(mut self, layout: String) -> OCABuilder {
+        self.raw = self.raw.add_credential_layout(layout);
+        self
+    }
+
     #[wasm_bindgen(js_name = "addName")]
     pub fn add_name(mut self, names: ITranslations) -> OCABuilder {
         let names_str: HashMap<String, String> =
@@ -322,12 +334,20 @@ type Overlay =
   | LabelOverlay
   | MetaOverlay
   | UnitOverlay
+  | FormLayoutOverlay
+  | CredentialLayoutOverlay
 
 type CharacterEncodingOverlay = {
   capture_base: string,
   type: string,
   default_character_encoding: string,
   attr_character_encoding: { [attr_name: string]: string }
+}
+
+type CredentialLayoutOverlay = {
+  capture_base: string,
+  type: string,
+  layout: string
 }
 
 type EntryOverlay = {
@@ -341,6 +361,12 @@ type EntryCodeOverlay = {
   capture_base: string,
   type: string,
   attr_entry_codes: { [attr_name: string]: string[] }
+}
+
+type FormLayoutOverlay = {
+  capture_base: string,
+  type: string,
+  layout: string
 }
 
 type FormatOverlay = {

@@ -59,6 +59,18 @@ impl<'de> Deserialize<'de> for DynOverlay {
                     return Ok(Box::new(
                         de_overlay.deserialize_into::<overlay::Meta>().unwrap(),
                     ));
+                } else if overlay_type.contains("/form_layout/") {
+                    return Ok(Box::new(
+                        de_overlay
+                            .deserialize_into::<overlay::FormLayout>()
+                            .unwrap(),
+                    ));
+                } else if overlay_type.contains("/credential_layout/") {
+                    return Ok(Box::new(
+                        de_overlay
+                            .deserialize_into::<overlay::CredentialLayout>()
+                            .unwrap(),
+                    ));
                 } else {
                     return Err(serde::de::Error::custom(format!(
                         "unknown overlay type: {}",
@@ -88,6 +100,10 @@ pub struct OCABuilder {
     pub oca: OCA,
     #[serde(skip)]
     pub meta_translations: HashMap<Language, OCATranslation>,
+    #[serde(skip)]
+    pub form_layout: Option<String>,
+    #[serde(skip)]
+    pub credential_layout: Option<String>,
 }
 
 impl<'de> Deserialize<'de> for OCABuilder {
@@ -213,6 +229,8 @@ impl<'de> Deserialize<'de> for OCABuilder {
                     overlays,
                 },
                 meta_translations,
+                form_layout: None,
+                credential_layout: None,
             })
         } else {
             Err(serde::de::Error::custom(format!(
@@ -231,11 +249,23 @@ impl OCABuilder {
                 overlays: vec![overlay::CharacterEncoding::new(&default_encoding)],
             },
             meta_translations: HashMap::new(),
+            form_layout: None,
+            credential_layout: None,
         }
     }
 
     pub fn add_classification(mut self, classification: String) -> OCABuilder {
         self.oca.capture_base.classification = classification;
+        self
+    }
+
+    pub fn add_form_layout(mut self, layout: String) -> OCABuilder {
+        self.form_layout = Some(layout);
+        self
+    }
+
+    pub fn add_credential_layout(mut self, layout: String) -> OCABuilder {
+        self.credential_layout = Some(layout);
         self
     }
 
@@ -395,6 +425,14 @@ impl OCABuilder {
                 .overlays
                 .push(overlay::Meta::new(lang.to_string(), translation));
         }
+        if let Some(layout) = self.form_layout {
+            self.oca.overlays.push(overlay::FormLayout::new(layout));
+        }
+        if let Some(layout) = self.credential_layout {
+            self.oca
+                .overlays
+                .push(overlay::CredentialLayout::new(layout));
+        }
 
         let cs_json = serde_json::to_string(&self.oca.capture_base).unwrap();
         let sai = format!("{}", SelfAddressing::Blake3_256.derive(cs_json.as_bytes()));
@@ -469,6 +507,8 @@ mod tests {
     #[test]
     fn build_oca_with_attributes() {
         let oca_builder = OCABuilder::new(Encoding::Utf8)
+            .add_form_layout("form layout".to_string())
+            .add_credential_layout("credential layout".to_string())
             .add_name(hashmap! {
                 "En".to_string() => "Driving Licence".to_string(),
                 "Pl".to_string() => "Prawo Jazdy".to_string(),

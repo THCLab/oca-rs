@@ -24,6 +24,20 @@ fn main() {
                             .about("Path to XLS(X) file. Sample XLS(X) file can be found here: https://github.com/THCLab/oca-rust/blob/main/tests/assets/oca_template.xlsx"),
                     )
                     .arg(
+                        Arg::new("form-layout")
+                            .long("form-layout")
+                            .required(false)
+                            .takes_value(true)
+                            .about("Path to YAML file with Form Layout."),
+                    )
+                    .arg(
+                        Arg::new("credential-layout")
+                            .long("credential-layout")
+                            .required(false)
+                            .takes_value(true)
+                            .about("Path to YAML file with Credential Layout."),
+                    )
+                    .arg(
                         Arg::new("no-validation")
                             .long("no-validation")
                             .takes_value(false)
@@ -60,7 +74,10 @@ fn main() {
     if let Some(ref matches) = matches.subcommand_matches("parse") {
         if let Some(ref matches) = matches.subcommand_matches("oca") {
             let path = matches.value_of("path").unwrap().to_string();
-            let result = xls_parser::oca::parse(path.clone());
+            let form_layout_path: Option<&str> = matches.value_of("form-layout");
+            let credential_layout_path: Option<&str> = matches.value_of("credential-layout");
+            let result =
+                xls_parser::oca::parse(path.clone(), form_layout_path, credential_layout_path);
 
             if let Err(e) = result {
                 println!("Error: {}", e);

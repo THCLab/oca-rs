@@ -8,6 +8,8 @@ use crate::state::{
 };
 use calamine::{open_workbook_auto, DataType, Reader};
 use std::collections::{BTreeMap, HashMap};
+use std::fs::File;
+use std::io::prelude::*;
 
 pub struct ParsedResult {
     pub oca: OCA,
@@ -27,7 +29,31 @@ const ENTRIES_INDEX: u32 = 4;
 const INFORMATION_INDEX: u32 = 5;
 const SAMPLE_TEMPLATE_MSG: &str = "Sample file template can be found here: https://github.com/THCLab/oca-rust/blob/main/tests/assets/oca_template.xlsx";
 
-pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
+pub fn parse(
+    path: String,
+    form_layout_path: Option<&str>,
+    credential_layout_path: Option<&str>,
+) -> Result<ParsedResult, Box<dyn std::error::Error>> {
+    let mut form_layout = None;
+    let mut credential_layout = None;
+    if let Some(path) = form_layout_path {
+        let mut file = File::open(path).expect("Unable to open file");
+        let mut contents = String::new();
+
+        file.read_to_string(&mut contents)
+            .expect("Unable to read file");
+
+        form_layout = Some(contents);
+    }
+    if let Some(path) = credential_layout_path {
+        let mut file = File::open(path).expect("Unable to open file");
+        let mut contents = String::new();
+
+        file.read_to_string(&mut contents)
+            .expect("Unable to read file");
+
+        credential_layout = Some(contents);
+    }
     let mut workbook = open_workbook_auto(path).or(Err(
         "Provided file cannot be parsed. Check if file exists and format is XLS(X)",
     ))?;
@@ -64,6 +90,13 @@ pub fn parse(path: String) -> Result<ParsedResult, Box<dyn std::error::Error>> {
     let oca_range = (start, first_translation_sheet.height() as u32);
 
     let mut oca_builder = OCABuilder::new(Encoding::Utf8);
+
+    if let Some(layout) = form_layout {
+        oca_builder = oca_builder.add_form_layout(layout);
+    }
+    if let Some(layout) = credential_layout {
+        oca_builder = oca_builder.add_credential_layout(layout);
+    }
 
     let mut classification = String::new();
     let classification_value = main_sheet.get_value((oca_range.0, CLASSIFICATION_INDEX));
@@ -306,10 +339,14 @@ mod tests {
 
     #[test]
     fn parse_xlsx_file() {
-        let result = parse(format!(
-            "{}/tests/assets/oca_template.xlsx",
-            env!("CARGO_MANIFEST_DIR")
-        ));
+        let result = parse(
+            format!(
+                "{}/tests/assets/oca_template.xlsx",
+                env!("CARGO_MANIFEST_DIR")
+            ),
+            None,
+            None,
+        );
         assert!(result.is_ok());
         if let Ok(parsed) = result {
             assert_eq!(parsed.oca.capture_base.attributes.len(), 18);
@@ -319,10 +356,14 @@ mod tests {
 
     #[test]
     fn parse_xls_file() {
-        let result = parse(format!(
-            "{}/tests/assets/oca_template.xls",
-            env!("CARGO_MANIFEST_DIR")
-        ));
+        let result = parse(
+            format!(
+                "{}/tests/assets/oca_template.xls",
+                env!("CARGO_MANIFEST_DIR")
+            ),
+            None,
+            None,
+        );
         assert!(result.is_ok());
 
         if let Ok(parsed) = result {
@@ -333,10 +374,14 @@ mod tests {
 
     #[test]
     fn return_error_when_file_type_is_invalid() {
-        let result = parse(format!(
-            "{}/tests/assets/invalid_format.txt",
-            env!("CARGO_MANIFEST_DIR")
-        ));
+        let result = parse(
+            format!(
+                "{}/tests/assets/invalid_format.txt",
+                env!("CARGO_MANIFEST_DIR")
+            ),
+            None,
+            None,
+        );
         assert!(result.is_err());
     }
 }

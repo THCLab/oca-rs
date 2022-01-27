@@ -1,6 +1,8 @@
 pub mod character_encoding;
+pub mod credential_layout;
 pub mod entry;
 pub mod entry_code;
+pub mod form_layout;
 pub mod format;
 pub mod information;
 pub mod label;
@@ -8,8 +10,10 @@ pub mod meta;
 pub mod unit;
 
 pub use self::character_encoding::CharacterEncodingOverlay as CharacterEncoding;
+pub use self::credential_layout::CredentialLayoutOverlay as CredentialLayout;
 pub use self::entry::EntryOverlay as Entry;
 pub use self::entry_code::EntryCodeOverlay as EntryCode;
+pub use self::form_layout::FormLayoutOverlay as FormLayout;
 pub use self::format::FormatOverlay as Format;
 pub use self::information::InformationOverlay as Information;
 pub use self::label::LabelOverlay as Label;
