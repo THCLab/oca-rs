@@ -214,6 +214,7 @@ impl AttributeTranslation {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum AttributeType {
     Boolean,
+    Binary,
     Text,
     Number,
     Date,
