@@ -113,19 +113,18 @@ impl<'de> Deserialize<'de> for OCABuilder {
     {
         let de_oca = serde_value::Value::deserialize(deserializer)?;
         if let serde_value::Value::Map(ref oca) = de_oca {
-            let capture_base;
             let overlays;
             let mut meta_translations: HashMap<Language, OCATranslation> = HashMap::new();
 
-            match oca.get(&serde_value::Value::String("capture_base".to_string())) {
+            let capture_base = match oca.get(&serde_value::Value::String("capture_base".to_string())) {
                 Some(de_capture_base) => {
-                    capture_base = de_capture_base
+                    de_capture_base
                         .clone()
                         .deserialize_into::<CaptureBase>()
-                        .unwrap();
+                        .unwrap()
                 }
                 None => return Err(serde::de::Error::missing_field("capture_base")),
-            }
+            };
             match oca.get(&serde_value::Value::String("overlays".to_string())) {
                 Some(de_overlays) => {
                     if let serde_value::Value::Seq(de_overlays_value) = de_overlays {

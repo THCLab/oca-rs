@@ -67,7 +67,7 @@ impl LabelOverlay {
             let mut category_exists = false;
             for (cat_id, cat_label) in self.cat_labels.iter() {
                 if cat_label == category && regex.is_match(cat_id) {
-                    let cat_temp = cat_id.replace("_", "");
+                    let cat_temp = cat_id.replace('_', "");
                     let mut temp = cat_temp.split('-').collect::<Vec<&str>>();
                     temp.remove(0);
                     supercats = temp.iter().map(|c| c.parse::<i32>().unwrap()).collect();
