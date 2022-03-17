@@ -50,16 +50,17 @@ Building local package with command line app and XLS parser:
 
 `cargo test --all-features`
 
-## WASM bindings
+## JS WASM bindings
 
 ### Build
 
 Building local NPM package  
-`wasm-pack build bindings/wasm -t nodejs -d pkg-node`  
+in bindings/js/wasm directory:  
+`bash build-pkg.sh`  
 
-### Run [tests](bindings/wasm/js/test)
+### Run [tests](bindings/js/example/test)
 
-Go to bindings/wasm/js directory and install dependencies  
+Go to bindings/js/example directory and install dependencies  
 
 ```
 yarn install

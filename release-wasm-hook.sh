@@ -1,4 +1,4 @@
 #!/bin/bash
-cd bindings/wasm
+cd bindings/js/wasm
 cargo c
 cd ../..

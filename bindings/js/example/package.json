@@ -15,6 +15,6 @@
     "test": "jest -c jest.ts-config.js"
   },
   "dependencies": {
-    "oca.js": "file:../pkg"
+    "oca.js": "file:../wasm/pkg"
   }
 }
