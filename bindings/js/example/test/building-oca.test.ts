@@ -36,7 +36,7 @@ describe('OCA with attributes is built', () => {
       pl_PL: "PJ desc"
     })
     .addAttribute(
-      new AttributeBuilder("attr_name", AttributeType.Number)
+      new AttributeBuilder("attr_name", AttributeType.Numeric)
       .setPii()
       .addUnit("days")
       .addLabel({
@@ -86,7 +86,7 @@ describe('OCA with attributes is built', () => {
 
     it('attributes properly added', () => {
       expect(captureBase.attributes).to.have.keys("attr_name", "attr2", "attr3")
-      expect(captureBase.attributes).to.have.property("attr_name", "Number")
+      expect(captureBase.attributes).to.have.property("attr_name", "Numeric")
       expect(captureBase.attributes).to.have.property("attr2", "Date")
       expect(captureBase.attributes).to.have.property("attr3", "SAI:sai")
       expect(captureBase.pii).to.eql(["attr_name"])
