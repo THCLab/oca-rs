@@ -216,7 +216,7 @@ pub enum AttributeType {
     Boolean,
     Binary,
     Text,
-    Number,
+    Numeric,
     Date,
     #[serde(rename = "SAI")]
     Sai,

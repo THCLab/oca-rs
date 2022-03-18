@@ -248,7 +248,7 @@ mod tests {
                     .build(),
             )
             .add_attribute(
-                AttributeBuilder::new("age".to_string(), AttributeType::Number)
+                AttributeBuilder::new("age".to_string(), AttributeType::Numeric)
                     .add_label(hashmap! {
                         "En".to_string() => "Age: ".to_string(),
                         "Pl".to_string() => "Wiek: ".to_string(),
