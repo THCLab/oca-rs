@@ -20,12 +20,15 @@ struct PageConfigCss {
     #[serde(skip_serializing_if = "Option::is_none")]
     style: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    classes: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     background_image: Option<String>,
 }
 #[derive(Debug, Serialize, Deserialize)]
 struct PageConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     css: Option<PageConfigCss>,
+    name: String
 }
 #[derive(Debug, Serialize, Deserialize)]
 struct ElementConfigCss {
@@ -56,8 +59,7 @@ struct Element {
 }
 #[derive(Debug, Serialize, Deserialize)]
 struct Page {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    config: Option<PageConfig>,
+    config: PageConfig,
     elements: Vec<Element>,
 }
 #[derive(Debug, Serialize, Deserialize)]

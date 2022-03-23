@@ -360,8 +360,10 @@ type CredentialLayoutOverlay = {
       config?: {
         css?: {
           style?: string,
+          classes?: string[],
           background_image?: string
-        }
+        },
+        name: string
       },
       elements: {
         type: string,
