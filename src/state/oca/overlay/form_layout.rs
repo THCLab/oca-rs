@@ -1,12 +1,12 @@
-use crate::state::{attribute::Attribute, oca::Overlay};
+use crate::state::{attribute::Attribute, oca::layout::form::Layout, oca::Overlay};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct FormLayoutOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    layout: String,
+    layout: Layout,
 }
 
 impl Overlay for FormLayoutOverlay {
@@ -23,11 +23,15 @@ impl Overlay for FormLayoutOverlay {
     fn add(&mut self, _attribute: &Attribute) {}
 }
 impl FormLayoutOverlay {
-    pub fn new(layout: String) -> Box<FormLayoutOverlay> {
-        Box::new(FormLayoutOverlay {
-            capture_base: String::new(),
-            overlay_type: "spec/overlays/form_layout/1.0".to_string(),
-            layout,
-        })
+    pub fn new(layout_str: String) -> Box<FormLayoutOverlay> {
+        let yaml: Result<Layout, _> = serde_yaml::from_str(&layout_str);
+        match yaml {
+            Ok(layout) => Box::new(FormLayoutOverlay {
+                capture_base: String::new(),
+                overlay_type: "spec/overlays/form_layout/1.0".to_string(),
+                layout,
+            }),
+            Err(e) => panic!("{:#?}", e),
+        }
     }
 }

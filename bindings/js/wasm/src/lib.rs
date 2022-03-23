@@ -347,7 +347,42 @@ type CharacterEncodingOverlay = {
 type CredentialLayoutOverlay = {
   capture_base: string,
   type: string,
-  layout: string
+  layout: {
+    version: string,
+    config?: {
+      css?: {
+        width?: string,
+        height?: string,
+        style?: string
+      }
+    },
+    pages: {
+      config?: {
+        css?: {
+          style?: string,
+          background_image?: string
+        }
+      },
+      elements: {
+        type: string,
+        size?: string,
+        name?: string,
+        content?: string,
+        config?: {
+          css?: {
+            style?: string
+            classes?: string[]
+          }
+        },
+        elements?: CredentialLayoutOverlay['layout']['pages'][0]['elements']
+      }[]
+    }[],
+    labels?: {
+      [label: string]: {
+        [language: string]: string
+      }
+    }
+  }
 }
 
 type EntryOverlay = {
@@ -366,7 +401,33 @@ type EntryCodeOverlay = {
 type FormLayoutOverlay = {
   capture_base: string,
   type: string,
-  layout: string
+  layout: {
+    config?: {
+      css?: {
+        style?: string
+      }
+    },
+    elements: {
+      type: string,
+      config?: {
+        css?: {
+          style?: string,
+          classes?: string[]
+        }
+      },
+      id?: string,
+      name?: string,
+      parts?: {
+        name: string,
+        config?: {
+          css?: {
+            style?: string,
+            classes?: string[]
+          }
+        }
+      }[]
+    }[]
+  }
 }
 
 type FormatOverlay = {

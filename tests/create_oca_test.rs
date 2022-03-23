@@ -12,7 +12,15 @@ use oca_rust::controller::load_oca;
 #[test]
 fn create_oca() {
     let oca_builder = OCABuilder::new(Encoding::Utf8)
-        .add_form_layout("form layout".to_string())
+        .add_form_layout(
+            "
+                elements:
+                    - type: meta
+                      parts:
+                          - name: name
+                         "
+            .to_string(),
+        )
         .add_name(hashmap! {
             "en_EN".to_string() => "Driving Licence".to_string(),
             "pl_PL".to_string() => "Prawo Jazdy".to_string(),

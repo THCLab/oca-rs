@@ -3,6 +3,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
 
 mod capture_base;
+mod layout;
 mod overlay;
 use crate::state::{
     attribute::Attribute,
@@ -116,15 +117,14 @@ impl<'de> Deserialize<'de> for OCABuilder {
             let overlays;
             let mut meta_translations: HashMap<Language, OCATranslation> = HashMap::new();
 
-            let capture_base = match oca.get(&serde_value::Value::String("capture_base".to_string())) {
-                Some(de_capture_base) => {
-                    de_capture_base
+            let capture_base =
+                match oca.get(&serde_value::Value::String("capture_base".to_string())) {
+                    Some(de_capture_base) => de_capture_base
                         .clone()
                         .deserialize_into::<CaptureBase>()
-                        .unwrap()
-                }
-                None => return Err(serde::de::Error::missing_field("capture_base")),
-            };
+                        .unwrap(),
+                    None => return Err(serde::de::Error::missing_field("capture_base")),
+                };
             match oca.get(&serde_value::Value::String("overlays".to_string())) {
                 Some(de_overlays) => {
                     if let serde_value::Value::Seq(de_overlays_value) = de_overlays {
@@ -506,8 +506,85 @@ mod tests {
     #[test]
     fn build_oca_with_attributes() {
         let oca_builder = OCABuilder::new(Encoding::Utf8)
-            .add_form_layout("form layout".to_string())
-            .add_credential_layout("credential layout".to_string())
+            .add_form_layout(
+                "
+                config:
+                    css:
+                        style: >-
+                            form { background-color: white; }
+                elements:
+                    - type: meta
+                      config:
+                          css:
+                              style: >-
+                                  justify-content: space-between;
+                      parts:
+                          - name: language
+                          - name: name
+                          - name: description
+                    - type: category
+                      id: _cat-1_
+                    - type: attribute
+                      name: n1
+                      parts:
+                          - name: label
+                          - name: input
+                          - name: information
+                    - type: attribute
+                      name: n2
+                      parts:
+                          - name: label
+                          - name: input
+                          - name: information
+            "
+                .to_string(),
+            )
+            .add_credential_layout(
+                "
+version: beta-1
+config:
+  css:
+    width: 200px
+    height: 100px
+    style: >-
+      @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@700&display=swap');
+pages:
+  - config:
+      name: Page 0
+    elements:
+      - type: row
+        config:
+          css:
+            style: >-
+              height: 32px;
+        elements:
+      - type: row
+        elements:
+          - type: col
+            size: 4
+            config:
+              css:
+                style: >-
+                  padding-right: 0;
+            elements:
+              - type: row
+                elements:
+                  - type: col
+                    size: 8
+                    elements:
+                      - type: row
+                        elements:
+                          - type: col
+                            elements:
+                            - type: attribute
+                              name: n1
+labels:
+  passport:
+    en: Passport
+    fr: Passeport
+                                   "
+                .to_string(),
+            )
             .add_name(hashmap! {
                 "En".to_string() => "Driving Licence".to_string(),
                 "Pl".to_string() => "Prawo Jazdy".to_string(),

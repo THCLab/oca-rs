@@ -1,19 +1,19 @@
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-use clap::{App, Arg};
+use clap::{Arg, Command};
 use oca_rust::state::{oca::OCA, validator};
 use oca_rust::xls_parser::{self, entries::ParsedResult as ParsedEntries};
 use said::derivation::SelfAddressing;
 use std::io::prelude::*;
 
 fn main() {
-    let matches = App::new("XLS(X) Parser")
+    let matches = Command::new("XLS(X) Parser")
         .version(VERSION)
         .subcommand(
-            App::new("parse")
+            Command::new("parse")
             .about("Parse XLS(X) file to OCA or entries")
             .subcommand(
-                App::new("oca")
+                Command::new("oca")
                     .about("Parse XLS(X) file to OCA")
                     .arg(
                         Arg::new("path")
@@ -21,37 +21,37 @@ fn main() {
                             .long("path")
                             .required(true)
                             .takes_value(true)
-                            .about("Path to XLS(X) file. Sample XLS(X) file can be found here: https://github.com/THCLab/oca-rust/blob/main/tests/assets/oca_template.xlsx"),
+                            .help("Path to XLS(X) file. Sample XLS(X) file can be found here: https://github.com/THCLab/oca-rust/blob/main/tests/assets/oca_template.xlsx"),
                     )
                     .arg(
                         Arg::new("form-layout")
                             .long("form-layout")
                             .required(false)
                             .takes_value(true)
-                            .about("Path to YAML file with Form Layout."),
+                            .help("Path to YAML file with Form Layout."),
                     )
                     .arg(
                         Arg::new("credential-layout")
                             .long("credential-layout")
                             .required(false)
                             .takes_value(true)
-                            .about("Path to YAML file with Credential Layout."),
+                            .help("Path to YAML file with Credential Layout."),
                     )
                     .arg(
                         Arg::new("no-validation")
                             .long("no-validation")
                             .takes_value(false)
-                            .about("Disables OCA validation"),
+                            .help("Disables OCA validation"),
                     )
                     .arg(
                         Arg::new("zip")
                             .long("zip")
                             .takes_value(false)
-                            .about("Generate OCA in zip file"),
+                            .help("Generate OCA in zip file"),
                     ),
             )
             .subcommand(
-                App::new("entries")
+                Command::new("entries")
                     .about("Parse XLS(X) file to entries")
                     .arg(
                         Arg::new("path")
@@ -59,13 +59,13 @@ fn main() {
                             .long("path")
                             .required(true)
                             .takes_value(true)
-                            .about("Path to XLS(X) file. Sample XLS(X) file can be found here: https://github.com/THCLab/oca-rust/blob/main/tests/assets/entries_template.xlsx"),
+                            .help("Path to XLS(X) file. Sample XLS(X) file can be found here: https://github.com/THCLab/oca-rust/blob/main/tests/assets/entries_template.xlsx"),
                     )
                     .arg(
                         Arg::new("zip")
                             .long("zip")
                             .takes_value(false)
-                            .about("Generate OCA in zip file"),
+                            .help("Generate OCA in zip file"),
                     ),
             )
         )

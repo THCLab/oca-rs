@@ -1,12 +1,12 @@
-use crate::state::{attribute::Attribute, oca::Overlay};
+use crate::state::{attribute::Attribute, oca::layout::credential::Layout, oca::Overlay};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CredentialLayoutOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    layout: String,
+    layout: Layout,
 }
 
 impl Overlay for CredentialLayoutOverlay {
@@ -23,11 +23,15 @@ impl Overlay for CredentialLayoutOverlay {
     fn add(&mut self, _attribute: &Attribute) {}
 }
 impl CredentialLayoutOverlay {
-    pub fn new(layout: String) -> Box<CredentialLayoutOverlay> {
-        Box::new(CredentialLayoutOverlay {
-            capture_base: String::new(),
-            overlay_type: "spec/overlays/credential_layout/1.0".to_string(),
-            layout,
-        })
+    pub fn new(layout_str: String) -> Box<CredentialLayoutOverlay> {
+        let yaml: Result<Layout, _> = serde_yaml::from_str(&layout_str);
+        match yaml {
+            Ok(layout) => Box::new(CredentialLayoutOverlay {
+                capture_base: String::new(),
+                overlay_type: "spec/overlays/credential_layout/1.0".to_string(),
+                layout,
+            }),
+            Err(e) => panic!("{:#?}", e),
+        }
     }
 }
