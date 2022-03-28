@@ -17,6 +17,8 @@ pub struct Attribute {
     pub unit: Option<String>,
     pub entry_codes: Option<EntryCodes>,
     pub sai: Option<String>,
+    pub condition: Option<String>,
+    pub dependencies: Option<Vec<String>>,
 }
 
 pub struct AttributeBuilder {
@@ -36,12 +38,24 @@ impl AttributeBuilder {
                 unit: None,
                 entry_codes: None,
                 sai: None,
+                condition: None,
+                dependencies: None,
             },
         }
     }
 
     pub fn set_pii(mut self) -> AttributeBuilder {
         self.attribute.is_pii = true;
+        self
+    }
+
+    pub fn add_condition(
+        mut self,
+        condition: String,
+        dependencies: Vec<String>,
+    ) -> AttributeBuilder {
+        self.attribute.condition = Some(condition);
+        self.attribute.dependencies = Some(dependencies);
         self
     }
 

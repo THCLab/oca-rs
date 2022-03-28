@@ -1,4 +1,5 @@
 pub mod character_encoding;
+pub mod conditional;
 pub mod credential_layout;
 pub mod entry;
 pub mod entry_code;
@@ -10,6 +11,7 @@ pub mod meta;
 pub mod unit;
 
 pub use self::character_encoding::CharacterEncodingOverlay as CharacterEncoding;
+pub use self::conditional::ConditionalOverlay as Conditional;
 pub use self::credential_layout::CredentialLayoutOverlay as CredentialLayout;
 pub use self::entry::EntryOverlay as Entry;
 pub use self::entry_code::EntryCodeOverlay as EntryCode;

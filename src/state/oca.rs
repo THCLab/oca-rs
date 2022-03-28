@@ -30,6 +30,12 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             .deserialize_into::<overlay::CharacterEncoding>()
                             .unwrap(),
                     ));
+                } else if overlay_type.contains("/conditional/") {
+                    return Ok(Box::new(
+                        de_overlay
+                            .deserialize_into::<overlay::Conditional>()
+                            .unwrap(),
+                    ));
                 } else if overlay_type.contains("/entry/") {
                     return Ok(Box::new(
                         de_overlay.deserialize_into::<overlay::Entry>().unwrap(),
@@ -302,6 +308,21 @@ impl OCABuilder {
 
     pub fn add_attribute(mut self, attr: Attribute) -> OCABuilder {
         self.oca.capture_base.add(&attr);
+
+        if attr.condition.is_some() {
+            let mut conditional_ov = self
+                .oca
+                .overlays
+                .iter_mut()
+                .find(|x| x.overlay_type().contains("/conditional/"));
+            if conditional_ov.is_none() {
+                self.oca.overlays.push(overlay::Conditional::new());
+                conditional_ov = self.oca.overlays.last_mut();
+            }
+            if let Some(ov) = conditional_ov {
+                ov.add(&attr);
+            }
+        }
 
         if attr.encoding.is_some() {
             let encoding_ov = self
@@ -632,6 +653,7 @@ labels:
                 "En".to_string() => "Date: ".to_string(),
                 "Pl".to_string() => "Data: ".to_string(),
             })
+            .add_condition("${0} == 'op1'".to_string(), vec!["n1".to_string()])
             .add_encoding(Encoding::Iso8859_1)
             .add_format("DD/MM/YYYY".to_string())
             .build();
