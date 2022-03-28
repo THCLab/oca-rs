@@ -23,6 +23,8 @@ const PII_FLAG_INDEX: u32 = 3;
 const ENCODING_INDEX: u32 = 4;
 const FORMAT_INDEX: u32 = 5;
 const ENTRY_CODES_INDEX: u32 = 6;
+const CONDITION_INDEX: u32 = 7;
+const DEPENDENCIES_INDEX: u32 = 8;
 
 const LABEL_INDEX: u32 = 3;
 const ENTRIES_INDEX: u32 = 4;
@@ -183,6 +185,24 @@ pub fn parse(
                     entry_codes = EntryCodes::Array(codes);
                 }
                 attribute_builder = attribute_builder.add_entry_codes(entry_codes);
+            }
+        }
+
+        if let Some(DataType::String(condition_value)) =
+            main_sheet.get_value((attr_index, CONDITION_INDEX))
+        {
+            if let Some(DataType::String(dependencies_value)) =
+                main_sheet.get_value((attr_index, DEPENDENCIES_INDEX))
+            {
+                attribute_builder = attribute_builder.add_condition(
+                    condition_value.clone(),
+                    dependencies_value
+                        .split(",")
+                        .collect::<Vec<&str>>()
+                        .iter()
+                        .map(|c| c.to_string())
+                        .collect(),
+                );
             }
         }
         attribute_builders.push((attr_index, attribute_builder));
