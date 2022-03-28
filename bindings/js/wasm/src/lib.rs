@@ -27,6 +27,8 @@ extern "C" {
     pub type Entries;
     #[wasm_bindgen(typescript_type = "string | string[]")]
     pub type EntryCodes;
+    #[wasm_bindgen(typescript_type = "string[]")]
+    pub type Dependencies;
 }
 
 #[wasm_bindgen]
@@ -218,6 +220,20 @@ impl AttributeBuilder {
         self
     }
 
+    #[wasm_bindgen(js_name = "addCondition")]
+    pub fn add_condition(
+        mut self,
+        condition: String,
+        dependencies: Dependencies,
+    ) -> AttributeBuilder {
+        let dependencies_value = JsValue::from(dependencies);
+        self.raw = self.raw.add_condition(
+            condition,
+            serde_wasm_bindgen::from_value(dependencies_value).unwrap(),
+        );
+        self
+    }
+
     #[wasm_bindgen(js_name = "addEncoding")]
     pub fn add_encoding(mut self, encoding: Encoding) -> AttributeBuilder {
         self.raw = self.raw.add_encoding(encoding);
@@ -327,6 +343,7 @@ type CaptureBase = {
 
 type Overlay =
   | CharacterEncodingOverlay
+  | ConditionalOverlay
   | EntryOverlay
   | EntryCodeOverlay
   | FormatOverlay
@@ -342,6 +359,13 @@ type CharacterEncodingOverlay = {
   type: string,
   default_character_encoding: string,
   attr_character_encoding: { [attr_name: string]: string }
+}
+
+type ConditionalOverlay = {
+  capture_base: string,
+  type: string,
+  attr_conditions: { [attr_name: string]: string },
+  attr_dependencies: { [attr_name: string]: string[] }
 }
 
 type CredentialLayoutOverlay = {

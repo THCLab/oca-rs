@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import type {
-  CharacterEncodingOverlay, EntryOverlay, EntryCodeOverlay, FormatOverlay,
+  CharacterEncodingOverlay, ConditionalOverlay, EntryOverlay, EntryCodeOverlay, FormatOverlay,
   InformationOverlay, LabelOverlay, MetaOverlay, UnitOverlay
 } from 'oca.js'
 import { AttributeBuilder, AttributeType, Encoding, Entry, OCA, OCABuilder } from 'oca.js'
@@ -63,6 +63,7 @@ describe('OCA with attributes is built', () => {
     .addAttribute(
       new AttributeBuilder("attr2", AttributeType.Date)
       .addEncoding(Encoding.Iso8859_1)
+      .addCondition("${0} == 'o1'", ['attr_name'])
       .addFormat("DD.MM.YYYY")
       .addLabel({
         en_EN: "Date: ",
@@ -134,6 +135,21 @@ describe('OCA with attributes is built', () => {
         expect(overlay.default_character_encoding).to.eql("utf-8")
         expect(overlay.attr_character_encoding).to.have.keys("attr2")
         expect(overlay).to.have.nested.property("attr_character_encoding.attr2", "iso-8859-1")
+      })
+    })
+
+    describe("Conditional", () => {
+      const overlays = allOverlays.filter(o => o.type.includes("/conditional/")) as ConditionalOverlay[]
+
+      it('properly defined', () => {
+        expect(overlays).to.lengthOf(1)
+        const overlay = overlays[0]
+
+        expect(overlay.attr_conditions).to.have.keys("attr2")
+        expect(overlay).to.have.nested.property("attr_conditions.attr2", "${0} == 'o1'")
+
+        expect(overlay.attr_dependencies).to.have.keys("attr2")
+        expect(overlay).to.nested.include({ "attr_dependencies.attr2[0]": 'attr_name' })
       })
     })
 
