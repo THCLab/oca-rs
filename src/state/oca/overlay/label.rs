@@ -11,7 +11,8 @@ pub struct LabelOverlay {
     attr_labels: BTreeMap<String, String>,
     attr_categories: Vec<String>,
     cat_labels: BTreeMap<String, String>,
-    cat_attributes: BTreeMap<String, Vec<String>>,
+    #[serde(skip)]
+    pub cat_attributes: BTreeMap<String, Vec<String>>,
 }
 
 impl Overlay for LabelOverlay {

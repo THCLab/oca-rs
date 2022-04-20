@@ -1,6 +1,6 @@
 use said::derivation::SelfAddressing;
 use serde::{Deserialize, Deserializer, Serialize};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 mod capture_base;
 mod layout;
@@ -103,6 +103,66 @@ pub struct OCA {
 }
 
 #[derive(Serialize)]
+struct CatAttributes {
+    cat_labels: HashMap<String, String>,
+    categorized: BTreeMap<String, Vec<String>>,
+    uncategorized: Vec<String>,
+    lang: String,
+}
+
+impl CatAttributes {
+    fn add_to_category(&mut self, categories: Vec<&str>, attribute_name: String) {
+        if categories.is_empty() {
+            self.uncategorized.push(attribute_name);
+            return;
+        }
+        let mut supercats: Vec<i32> = vec![];
+        for (i, category) in categories.iter().enumerate() {
+            let supercats_str: Vec<String> = supercats.iter().map(|c| c.to_string()).collect();
+            let mut supercat = String::new();
+            if !supercats_str.is_empty() {
+                supercat = format!("-{}", supercats_str.join("-"))
+            }
+            let regex =
+                regex::Regex::new(format!("^_cat{}(-[0-9]*)_$", supercat).as_str()).unwrap();
+            let mut acctual_cat_id = String::new();
+            let mut category_exists = false;
+            for (cat_id, cat_label) in self.cat_labels.iter() {
+                if cat_label == category && regex.is_match(cat_id) {
+                    let cat_temp = cat_id.replace('_', "");
+                    let mut temp = cat_temp.split('-').collect::<Vec<&str>>();
+                    temp.remove(0);
+                    supercats = temp.iter().map(|c| c.parse::<i32>().unwrap()).collect();
+                    acctual_cat_id = cat_id.to_string();
+                    category_exists = true;
+                }
+            }
+
+            if !category_exists {
+                let mut count = 0;
+                for cat in self.categorized.keys() {
+                    if regex.is_match(cat.as_str()) {
+                        count += 1;
+                    }
+                }
+                acctual_cat_id = format!("_cat{}-{}_", supercat, count + 1);
+                supercats.push(count + 1);
+                self.cat_labels
+                    .insert(acctual_cat_id.clone(), category.to_string());
+                self.categorized.insert(acctual_cat_id.clone(), vec![]);
+            }
+
+            if i + 1 == categories.len() {
+                self.categorized
+                    .get_mut(acctual_cat_id.as_str())
+                    .unwrap()
+                    .push(attribute_name.clone());
+            }
+        }
+    }
+}
+
+#[derive(Serialize)]
 pub struct OCABuilder {
     pub oca: OCA,
     #[serde(skip)]
@@ -111,6 +171,8 @@ pub struct OCABuilder {
     pub form_layout: Option<String>,
     #[serde(skip)]
     pub credential_layout: Option<String>,
+    #[serde(skip)]
+    cat_attributes: CatAttributes,
 }
 
 impl<'de> Deserialize<'de> for OCABuilder {
@@ -236,6 +298,12 @@ impl<'de> Deserialize<'de> for OCABuilder {
                 meta_translations,
                 form_layout: None,
                 credential_layout: None,
+                cat_attributes: CatAttributes {
+                    categorized: BTreeMap::new(),
+                    uncategorized: vec![],
+                    cat_labels: HashMap::new(),
+                    lang: String::new(),
+                },
             })
         } else {
             Err(serde::de::Error::custom(format!(
@@ -256,6 +324,12 @@ impl OCABuilder {
             meta_translations: HashMap::new(),
             form_layout: None,
             credential_layout: None,
+            cat_attributes: CatAttributes {
+                cat_labels: HashMap::new(),
+                categorized: BTreeMap::new(),
+                uncategorized: vec![],
+                lang: String::new(),
+            },
         }
     }
 
@@ -383,6 +457,16 @@ impl OCABuilder {
             }
         }
 
+        if self.cat_attributes.lang.is_empty() {
+            self.cat_attributes.lang = attr.translations.keys().next().unwrap().clone();
+        }
+        let attr_tr = attr.translations.get(&self.cat_attributes.lang).unwrap();
+        if let Some(value) = &attr_tr.label {
+            let mut splitted = value.split('|').collect::<Vec<&str>>();
+            splitted.pop();
+            self.cat_attributes
+                .add_to_category(splitted, attr.name.clone());
+        }
         for (lang, attr_tr) in attr.translations.iter() {
             let mut label_ov = self.oca.overlays.iter_mut().find(|x| {
                 if let Some(o_lang) = x.language() {
@@ -445,13 +529,19 @@ impl OCABuilder {
                 .overlays
                 .push(overlay::Meta::new(lang.to_string(), translation));
         }
-        if let Some(layout) = self.form_layout {
-            self.oca.overlays.push(overlay::FormLayout::new(layout));
-        }
-        if let Some(layout) = self.credential_layout {
-            self.oca
+        match self.form_layout {
+            Some(ref layout) => self.oca.overlays.push(overlay::FormLayout::new(layout.clone())),
+            None => self
+                .oca
                 .overlays
-                .push(overlay::CredentialLayout::new(layout));
+                .push(overlay::FormLayout::new(self.build_default_form_layout())),
+        }
+        match self.credential_layout {
+            Some(ref layout) => self.oca.overlays.push(overlay::CredentialLayout::new(layout.clone())),
+            None => self
+                .oca
+                .overlays
+                .push(overlay::CredentialLayout::new(self.build_default_credential_layout())),
         }
 
         let cs_json = serde_json::to_string(&self.oca.capture_base).unwrap();
@@ -460,6 +550,321 @@ impl OCABuilder {
             o.sign(&sai);
         }
         self.oca
+    }
+
+    fn build_default_form_layout(&self) -> String {
+        let mut layout = String::from(
+            r#"config:
+  css:
+    style: >-
+      form {
+        background-color: white;
+        font-family: 'Lato', 'sans-serif';
+        color: #575756;
+        padding: 20px;
+        border: 1px solid rgba(0, 0, 0, .1);
+        border-radius: 5px;
+        box-shadow: 0 5px 8px 0 rgb(0 0 0 / 10%), 0 3px 10px 0 rgb(0 0 0 / 10%);
+      }
+      ._category h1, h2, h3, h4, h5, h6 {
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.15em;
+        margin: 0.3em 0;
+      }
+      ._category h1 { font-size: 22px; }
+      ._category h2 { font-size: 18px; }
+      ._category {
+        border: 0;
+        border-bottom: 2px dashed #0000004d;
+        margin: 10px 0 20px 0;
+      }
+
+      ._control {
+        margin: 5px 0;
+      }
+      ._label {
+        display: block;
+      }
+      ._input {
+        padding: 0 0.5em;
+      }
+
+      ._input[multiple] {
+        height: 6.5em;
+        display: grid;
+        align-items: center;
+      }
+
+      ._input, .language {
+        margin: 2px 0;
+        width: 100%;
+        height: 2.5em;
+        background-color: white;
+        border-radius: 3px;
+        border-width: 1px;
+      }
+      ._information {
+        color: #6A6A6A;
+        font-size: 14px;
+        font-style: italic;
+        line-height: 1.5;
+        text-align: justify;
+      }
+      .language {
+        width: 100px;
+        height: 1.75em;
+        float: right;
+      }
+      #submit {
+        margin-top: 10px;
+        width: 150px;
+        height: 2em;
+        background-color: white;
+        border-width: 1px;
+        border-radius: 3px;
+      }
+      #submit:hover {
+        background-color: lightgray;
+      }
+elements:
+  - type: meta
+    config:
+      css:
+        style: >-
+          justify-content: space-between;
+    parts:
+      - name: language
+        config:
+          css:
+            classes: ['language']
+      - name: name
+        config:
+          css:
+            style: >-
+              font-size: 24px;
+              font-weight: 700;
+              margin: 10px 0;
+      - name: description
+        config:
+          css:
+            style: >-
+              font-size: 16px;
+              font-weight: 300;
+              line-height: 1.5;"#,
+        );
+        for attr_name in self.cat_attributes.uncategorized.iter() {
+            layout.push_str(
+                format!(
+                    r#"
+  - type: attribute
+    name: {}
+    parts:
+      - name: label
+      - name: input
+      - name: information"#,
+                    attr_name
+                )
+                .as_str(),
+            );
+        }
+        for (cat, attributes) in &self.cat_attributes.categorized {
+            layout.push_str(
+                format!(
+                    r#"
+  - type: category
+    id: {}"#,
+                    cat
+                )
+                .as_str(),
+            );
+            for attr_name in attributes.iter() {
+                layout.push_str(
+                    format!(
+                        r#"
+  - type: attribute
+    name: {}
+    parts:
+      - name: label
+      - name: input
+      - name: information"#,
+                        attr_name
+                    )
+                    .as_str(),
+                );
+            }
+        }
+        layout
+    }
+
+    fn build_default_credential_layout(&self) -> String {
+        let mut layout = String::from(
+r#"version: beta-1
+config:
+  css:
+    width: 630px
+    style: >-
+      .language-select {
+        margin: 2px 0;
+        background-color: white;
+        border-radius: 3px;
+        border-width: 1px;
+        width: 100px;
+        height: 1.75em;
+        float: right;
+      }
+      body {
+        background-color: white;
+        font-family: 'Lato', 'sans-serif';
+        color: rgb(87, 87, 86);
+        padding: 20px;
+        border: 1px solid rgba(0, 0, 0, .1);
+        border-radius: 5px;
+        box-shadow: 0 5px 8px 0 rgb(0 0 0 / 10%), 0 3px 10px 0 rgb(0 0 0 / 10%);
+      }
+      ._category h1, h2, h3, h4, h5, h6 {
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.15em;
+        margin: 0.3em 0;
+      }
+      ._category h1 { font-size: 22px; }
+      ._category h2 { font-size: 18px; }
+      ._category {
+        border: 0;
+        border-bottom: 2px dashed rgba(0, 0, 0, .4);
+        margin: 10px 0 20px 0;
+      }
+      ._attribute {
+        border: 1px dashed rgba(0,0,0,0.3);
+        min-height: 2em;
+        line-height: 2em;
+        border-radius: 3px;
+        padding: 0 10px;
+        margin: 0.5em 0;
+      }
+      ._information {
+        color: rgb(106, 106, 106);
+        overflow-wrap: anywhere;
+        font-size: 14px;
+        font-style: italic;
+        line-height: 1.5;
+        text-align: justify;
+      }
+pages:
+  - config:
+      name: Credential
+    elements:
+      - type: row
+        elements:
+          - type: col
+            elements:
+              - type: oca-name
+                config:
+                  css:
+                    style: >-
+                      font-size: 24px;
+                      font-weight: 700;
+                      margin-bottom: 10px;
+      - type: row
+        elements:
+          - type: col
+            elements:
+              - type: oca-description
+                config:
+                  css:
+                    style: >-
+                      font-size: 16px;
+                      font-weight: 300;
+                      line-height: 1.5;
+"#
+            );
+        for attr_name in self.cat_attributes.uncategorized.iter() {
+            layout.push_str(
+                format!(
+                    r#"
+      - type: row
+        elements:
+          - type: col
+            elements:
+              - type: label
+                name: {}
+      - type: row
+        elements:
+          - type: col
+            elements:
+              - type: attribute
+                config:
+                  css:
+                    classes: ['_attribute']
+                name: {}
+      - type: row
+        elements:
+          - type: col
+            elements:
+              - type: information
+                config:
+                  css:
+                    classes: ['_information']
+                name: {}"#,
+                    attr_name, attr_name, attr_name
+                )
+                .as_str(),
+            );
+        }
+
+        for (cat, attributes) in &self.cat_attributes.categorized {
+            layout.push_str(
+                format!(
+                    r#"
+      - type: row
+        elements:
+          - type: col
+            elements:
+              - type: category
+                config:
+                  css:
+                    classes: ['_category']
+                name: {}"#,
+                    cat
+                )
+                .as_str(),
+            );
+            for attr_name in attributes.iter() {
+                layout.push_str(
+                    format!(
+                        r#"
+      - type: row
+        elements:
+          - type: col
+            elements:
+              - type: label
+                name: {}
+      - type: row
+        elements:
+          - type: col
+            elements:
+              - type: attribute
+                config:
+                  css:
+                    classes: ['_attribute']
+                name: {}
+      - type: row
+        elements:
+          - type: col
+            elements:
+              - type: information
+                config:
+                  css:
+                    classes: ['_information']
+                name: {}"#,
+                        attr_name, attr_name, attr_name
+                    )
+                    .as_str(),
+                );
+            }
+        }
+        layout
     }
 }
 

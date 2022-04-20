@@ -21,7 +21,7 @@ describe('Plain OCA is built', () => {
     expect(oca.capture_base.attributes).to.be.an('object').that.is.empty
     expect(oca.capture_base.classification).to.eq("GICS:35102020")
     expect(oca.capture_base.pii).to.be.an('array').that.is.empty
-    expect(oca.overlays).to.be.an('array').lengthOf(1)
+    expect(oca.overlays).to.be.an('array').lengthOf(3)
   })
 })
 
