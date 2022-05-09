@@ -30,6 +30,8 @@ extern "C" {
     #[wasm_bindgen(typescript_type = "string | string[]")]
     pub type EntryCodes;
     #[wasm_bindgen(typescript_type = "string[]")]
+    pub type EntryCodesMapping;
+    #[wasm_bindgen(typescript_type = "string[]")]
     pub type Dependencies;
 }
 
@@ -303,6 +305,16 @@ impl AttributeBuilder {
         self
     }
 
+    #[wasm_bindgen(js_name = "addEntryCodesMapping")]
+    pub fn add_entry_codes_mapping(mut self, mappings: EntryCodesMapping) -> AttributeBuilder {
+        let mappings_value = JsValue::from(mappings);
+
+        self.raw = self.raw.add_entry_codes_mapping(
+            serde_wasm_bindgen::from_value(mappings_value).unwrap()
+        );
+        self
+    }
+
     #[wasm_bindgen(js_name = "addEntries")]
     pub fn add_entries(mut self, entries: Entries) -> AttributeBuilder {
         let entries_value = JsValue::from(entries);
@@ -371,6 +383,7 @@ type Overlay =
   | ConformanceOverlay
   | EntryOverlay
   | EntryCodeOverlay
+  | EntryCodeMappingOverlay
   | FormatOverlay
   | InformationOverlay
   | LabelOverlay
@@ -460,6 +473,12 @@ type EntryCodeOverlay = {
   capture_base: string,
   type: string,
   attr_entry_codes: { [attr_name: string]: string[] }
+}
+
+type EntryCodeMappingOverlay = {
+  capture_base: string,
+  type: string,
+  attr_mapping: { [attr_name: string]: string[] }
 }
 
 type FormLayoutOverlay = {
@@ -558,6 +577,7 @@ type Attribute = {
   metric_system?: string
   unit?: string
   entry_codes?: string[]
+  entry_codes_mapping?: string[]
   mapping?: string
   cardinality?: string
   conformance?: 'O' | 'M'

@@ -29,6 +29,7 @@ const CARDINALITY_INDEX: u32 = 9;
 const CONFORMANCE_INDEX: u32 = 10;
 const UNIT_INDEX: u32 = 11;
 const ATTRIBUTE_MAPPING_INDEX: u32 = 12;
+const ENTRY_CODE_MAPPING_INDEX: u32 = 13;
 
 const LABEL_INDEX: u32 = 3;
 const ENTRIES_INDEX: u32 = 4;
@@ -246,6 +247,19 @@ pub fn parse(
             main_sheet.get_value((attr_index, ATTRIBUTE_MAPPING_INDEX))
         {
             attribute_builder = attribute_builder.add_mapping(mapping_value.clone());
+        }
+
+        if let Some(DataType::String(mapping_value)) =
+            main_sheet.get_value((attr_index, ENTRY_CODE_MAPPING_INDEX))
+        {
+            attribute_builder = attribute_builder.add_entry_codes_mapping(
+                mapping_value
+                    .split("|")
+                    .collect::<Vec<&str>>()
+                    .iter()
+                    .map(|c| c.to_string())
+                    .collect(),
+            );
         }
         attribute_builders.push((attr_index, attribute_builder));
     }

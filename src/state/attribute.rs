@@ -18,6 +18,7 @@ pub struct Attribute {
     pub metric_system: Option<String>,
     pub unit: Option<String>,
     pub entry_codes: Option<EntryCodes>,
+    pub entry_codes_mapping: Option<Vec<String>>,
     pub sai: Option<String>,
     pub condition: Option<String>,
     pub dependencies: Option<Vec<String>>,
@@ -43,6 +44,7 @@ impl AttributeBuilder {
                 metric_system: None,
                 unit: None,
                 entry_codes: None,
+                entry_codes_mapping: None,
                 sai: None,
                 condition: None,
                 dependencies: None,
@@ -130,6 +132,11 @@ impl AttributeBuilder {
 
     pub fn add_entry_codes(mut self, entry_codes: EntryCodes) -> AttributeBuilder {
         self.attribute.entry_codes = Some(entry_codes);
+        self
+    }
+
+    pub fn add_entry_codes_mapping(mut self, mapping: Vec<String>) -> AttributeBuilder {
+        self.attribute.entry_codes_mapping = Some(mapping);
         self
     }
 

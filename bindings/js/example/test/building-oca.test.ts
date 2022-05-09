@@ -48,6 +48,7 @@ describe('OCA with attributes is built', () => {
         pl_PL: "pl info"
       })
       .addEntryCodes(["o1", "o2"])
+      .addEntryCodesMapping(["o1:op1"])
       .addEntries([
         new Entry("o1", {
           en_EN: "option 1",

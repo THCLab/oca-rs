@@ -62,6 +62,10 @@ impl<'de> Deserialize<'de> for DynOverlay {
                     return Ok(Box::new(
                         de_overlay.deserialize_into::<overlay::EntryCode>().unwrap(),
                     ));
+                } else if overlay_type.contains("/entry_code_mapping/") {
+                    return Ok(Box::new(
+                        de_overlay.deserialize_into::<overlay::EntryCodeMapping>().unwrap(),
+                    ));
                 } else if overlay_type.contains("/format/") {
                     return Ok(Box::new(
                         de_overlay.deserialize_into::<overlay::Format>().unwrap(),
@@ -525,6 +529,22 @@ impl OCABuilder {
             }
 
             if let Some(ov) = entry_code_ov {
+                ov.add(&attr)
+            }
+        }
+
+        if attr.entry_codes_mapping.is_some() {
+            let mut entry_code_mapping_ov = self
+                .oca
+                .overlays
+                .iter_mut()
+                .find(|x| x.overlay_type().contains("/entry_code_mapping/"));
+            if entry_code_mapping_ov.is_none() {
+                self.oca.overlays.push(overlay::EntryCodeMapping::new());
+                entry_code_mapping_ov = self.oca.overlays.last_mut();
+            }
+
+            if let Some(ov) = entry_code_mapping_ov {
                 ov.add(&attr)
             }
         }
