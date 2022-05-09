@@ -25,6 +25,7 @@ const FORMAT_INDEX: u32 = 5;
 const ENTRY_CODES_INDEX: u32 = 6;
 const CONDITION_INDEX: u32 = 7;
 const DEPENDENCIES_INDEX: u32 = 8;
+const CARDINALITY_INDEX: u32 = 9;
 
 const LABEL_INDEX: u32 = 3;
 const ENTRIES_INDEX: u32 = 4;
@@ -204,6 +205,12 @@ pub fn parse(
                         .collect(),
                 );
             }
+        }
+
+        if let Some(DataType::Float(cardinality_value)) =
+            main_sheet.get_value((attr_index, CARDINALITY_INDEX))
+        {
+            attribute_builder = attribute_builder.add_cardinality(cardinality_value.to_string().clone());
         }
         attribute_builders.push((attr_index, attribute_builder));
     }

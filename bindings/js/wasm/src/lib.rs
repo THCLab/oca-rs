@@ -234,6 +234,12 @@ impl AttributeBuilder {
         self
     }
 
+    #[wasm_bindgen(js_name = "addCardinality")]
+    pub fn add_cardinality(mut self, cardinality: String) -> AttributeBuilder {
+        self.raw = self.raw.add_cardinality(cardinality);
+        self
+    }
+
     #[wasm_bindgen(js_name = "addEncoding")]
     pub fn add_encoding(mut self, encoding: Encoding) -> AttributeBuilder {
         self.raw = self.raw.add_encoding(encoding);
@@ -342,6 +348,7 @@ type CaptureBase = {
 }
 
 type Overlay =
+  | CardinalityOverlay
   | CharacterEncodingOverlay
   | ConditionalOverlay
   | EntryOverlay
@@ -353,6 +360,12 @@ type Overlay =
   | UnitOverlay
   | FormLayoutOverlay
   | CredentialLayoutOverlay
+
+type CardinalityOverlay = {
+  capture_base: string,
+  type: string,
+  attr_cardinality: { [attr_name: string]: string }
+}
 
 type CharacterEncodingOverlay = {
   capture_base: string,
@@ -512,6 +525,7 @@ type Attribute = {
   format?: string
   unit?: string
   entry_codes?: string[]
+  cardinality?: string
 }
 "#;
 

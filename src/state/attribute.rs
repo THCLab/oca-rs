@@ -19,6 +19,7 @@ pub struct Attribute {
     pub sai: Option<String>,
     pub condition: Option<String>,
     pub dependencies: Option<Vec<String>>,
+    pub cardinality: Option<String>,
 }
 
 pub struct AttributeBuilder {
@@ -40,6 +41,7 @@ impl AttributeBuilder {
                 sai: None,
                 condition: None,
                 dependencies: None,
+                cardinality: None,
             },
         }
     }
@@ -56,6 +58,14 @@ impl AttributeBuilder {
     ) -> AttributeBuilder {
         self.attribute.condition = Some(condition);
         self.attribute.dependencies = Some(dependencies);
+        self
+    }
+
+    pub fn add_cardinality(
+        mut self,
+        cardinality: String,
+    ) -> AttributeBuilder {
+        self.attribute.cardinality = Some(cardinality);
         self
     }
 

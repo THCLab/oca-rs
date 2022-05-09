@@ -1,3 +1,4 @@
+pub mod cardinality;
 pub mod character_encoding;
 pub mod conditional;
 pub mod credential_layout;
@@ -10,6 +11,7 @@ pub mod label;
 pub mod meta;
 pub mod unit;
 
+pub use self::cardinality::CardinalityOverlay as Cardinality;
 pub use self::character_encoding::CharacterEncodingOverlay as CharacterEncoding;
 pub use self::conditional::ConditionalOverlay as Conditional;
 pub use self::credential_layout::CredentialLayoutOverlay as CredentialLayout;

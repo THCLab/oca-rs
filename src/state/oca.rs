@@ -30,6 +30,12 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             .deserialize_into::<overlay::CharacterEncoding>()
                             .unwrap(),
                     ));
+                } else if overlay_type.contains("/cardinality/") {
+                    return Ok(Box::new(
+                        de_overlay
+                            .deserialize_into::<overlay::Cardinality>()
+                            .unwrap(),
+                    ));
                 } else if overlay_type.contains("/conditional/") {
                     return Ok(Box::new(
                         de_overlay
@@ -395,6 +401,22 @@ impl OCABuilder {
             }
             if let Some(ov) = conditional_ov {
                 ov.add(&attr);
+            }
+        }
+
+        if attr.cardinality.is_some() {
+            let mut cardinality_ov = self
+                .oca
+                .overlays
+                .iter_mut()
+                .find(|x| x.overlay_type().contains("/cardinality/"));
+            if cardinality_ov.is_none() {
+                self.oca.overlays.push(overlay::Cardinality::new());
+                cardinality_ov = self.oca.overlays.last_mut();
+            }
+
+            if let Some(ov) = cardinality_ov {
+                ov.add(&attr)
             }
         }
 
