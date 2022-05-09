@@ -38,7 +38,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-oca-rust = "0.1.33"
+oca-rust = "0.1.34"
 ```
 
 ### Build
