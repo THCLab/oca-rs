@@ -20,6 +20,7 @@ pub struct Attribute {
     pub condition: Option<String>,
     pub dependencies: Option<Vec<String>>,
     pub cardinality: Option<String>,
+    pub conformance: Option<String>,
 }
 
 pub struct AttributeBuilder {
@@ -42,6 +43,7 @@ impl AttributeBuilder {
                 condition: None,
                 dependencies: None,
                 cardinality: None,
+                conformance: None,
             },
         }
     }
@@ -66,6 +68,14 @@ impl AttributeBuilder {
         cardinality: String,
     ) -> AttributeBuilder {
         self.attribute.cardinality = Some(cardinality);
+        self
+    }
+
+    pub fn add_conformance(
+        mut self,
+        conformance: String,
+    ) -> AttributeBuilder {
+        self.attribute.conformance = Some(conformance);
         self
     }
 

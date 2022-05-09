@@ -19,6 +19,8 @@ extern "C" {
     pub type OCA;
     #[wasm_bindgen(typescript_type = "Attribute")]
     pub type Attribute;
+    #[wasm_bindgen(typescript_type = "'O' | 'M'")]
+    pub type ConformanceOptions;
     #[wasm_bindgen(typescript_type = "ITranslations")]
     pub type ITranslations;
     #[wasm_bindgen(typescript_type = "IEntry")]
@@ -240,6 +242,15 @@ impl AttributeBuilder {
         self
     }
 
+    #[wasm_bindgen(js_name = "addConformance")]
+    pub fn add_conformance(mut self, conformance: ConformanceOptions) -> AttributeBuilder {
+        let conformance_value = JsValue::from(conformance);
+        self.raw = self.raw.add_conformance(
+            serde_wasm_bindgen::from_value(conformance_value).unwrap()
+        );
+        self
+    }
+
     #[wasm_bindgen(js_name = "addEncoding")]
     pub fn add_encoding(mut self, encoding: Encoding) -> AttributeBuilder {
         self.raw = self.raw.add_encoding(encoding);
@@ -351,6 +362,7 @@ type Overlay =
   | CardinalityOverlay
   | CharacterEncodingOverlay
   | ConditionalOverlay
+  | ConformanceOverlay
   | EntryOverlay
   | EntryCodeOverlay
   | FormatOverlay
@@ -379,6 +391,12 @@ type ConditionalOverlay = {
   type: string,
   attr_conditions: { [attr_name: string]: string },
   attr_dependencies: { [attr_name: string]: string[] }
+}
+
+type ConformanceOverlay = {
+  capture_base: string,
+  type: string,
+  attr_conformance: { [attr_name: string]: 'O' | 'M' }
 }
 
 type CredentialLayoutOverlay = {
@@ -526,6 +544,7 @@ type Attribute = {
   unit?: string
   entry_codes?: string[]
   cardinality?: string
+  conformance?: 'O' | 'M'
 }
 "#;
 
