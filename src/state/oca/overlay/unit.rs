@@ -39,7 +39,7 @@ impl UnitOverlay {
         Box::new(UnitOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overlays/unit/1.0".to_string(),
-            metric_system: metric_system.clone(),
+            metric_system,
             attr_units: BTreeMap::new(),
         })
     }
