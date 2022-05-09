@@ -228,12 +228,22 @@ impl AttributeTranslation {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum AttributeType {
     Boolean,
+    #[serde(rename = "Array[Boolean]")]
+    ArrayBoolean,
     Binary,
+    #[serde(rename = "Array[Binary]")]
+    ArrayBinary,
     Text,
-    Numeric,
-    Date,
-    #[serde(rename = "SAI")]
-    Sai,
     #[serde(rename = "Array[Text]")]
     ArrayText,
+    Numeric,
+    #[serde(rename = "Array[Numeric]")]
+    ArrayNumeric,
+    Date,
+    #[serde(rename = "Array[Date]")]
+    ArrayDate,
+    #[serde(rename = "SAI")]
+    Sai,
+    #[serde(rename = "Array[SAI]")]
+    ArraySai,
 }

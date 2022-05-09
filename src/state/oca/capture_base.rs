@@ -34,6 +34,12 @@ impl CaptureBase {
             attr_type_str.push(':');
             attr_type_str.push_str(attribute.sai.as_ref().unwrap_or(&"".to_string()));
         }
+        if let AttributeType::ArraySai = attribute.attr_type {
+            attr_type_str.pop();
+            attr_type_str.push(':');
+            attr_type_str.push_str(attribute.sai.as_ref().unwrap_or(&"".to_string()));
+            attr_type_str.push(']');
+        }
         self.attributes
             .insert(attribute.name.clone(), attr_type_str);
         if attribute.is_pii {
