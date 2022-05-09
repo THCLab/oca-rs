@@ -214,7 +214,8 @@ pub fn parse(
         if let Some(DataType::Float(cardinality_value)) =
             main_sheet.get_value((attr_index, CARDINALITY_INDEX))
         {
-            attribute_builder = attribute_builder.add_cardinality(cardinality_value.to_string().clone());
+            attribute_builder =
+                attribute_builder.add_cardinality(cardinality_value.to_string().clone());
         }
 
         if let Some(DataType::String(conformance_value)) =
@@ -223,9 +224,7 @@ pub fn parse(
             attribute_builder = attribute_builder.add_conformance(conformance_value.clone());
         }
 
-        if let Some(DataType::String(unit_value)) =
-            main_sheet.get_value((attr_index, UNIT_INDEX))
-        {
+        if let Some(DataType::String(unit_value)) = main_sheet.get_value((attr_index, UNIT_INDEX)) {
             let mut metric_system = String::new();
             let mut unit = unit_value.clone();
 

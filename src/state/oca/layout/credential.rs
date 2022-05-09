@@ -28,7 +28,7 @@ struct PageConfigCss {
 struct PageConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     css: Option<PageConfigCss>,
-    name: String
+    name: String,
 }
 #[derive(Debug, Serialize, Deserialize)]
 struct ElementConfigCss {

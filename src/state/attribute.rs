@@ -69,18 +69,12 @@ impl AttributeBuilder {
         self
     }
 
-    pub fn add_cardinality(
-        mut self,
-        cardinality: String,
-    ) -> AttributeBuilder {
+    pub fn add_cardinality(mut self, cardinality: String) -> AttributeBuilder {
         self.attribute.cardinality = Some(cardinality);
         self
     }
 
-    pub fn add_conformance(
-        mut self,
-        conformance: String,
-    ) -> AttributeBuilder {
+    pub fn add_conformance(mut self, conformance: String) -> AttributeBuilder {
         self.attribute.conformance = Some(conformance);
         self
     }
@@ -90,10 +84,7 @@ impl AttributeBuilder {
         self
     }
 
-    pub fn add_mapping(
-        mut self,
-        mapping: String,
-    ) -> AttributeBuilder {
+    pub fn add_mapping(mut self, mapping: String) -> AttributeBuilder {
         self.attribute.mapping = Some(mapping);
         self
     }

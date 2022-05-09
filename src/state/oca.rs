@@ -64,7 +64,9 @@ impl<'de> Deserialize<'de> for DynOverlay {
                     ));
                 } else if overlay_type.contains("/entry_code_mapping/") {
                     return Ok(Box::new(
-                        de_overlay.deserialize_into::<overlay::EntryCodeMapping>().unwrap(),
+                        de_overlay
+                            .deserialize_into::<overlay::EntryCodeMapping>()
+                            .unwrap(),
                     ));
                 } else if overlay_type.contains("/format/") {
                     return Ok(Box::new(
@@ -496,19 +498,17 @@ impl OCABuilder {
         }
 
         if attr.unit.is_some() {
-            let mut unit_ov = self
-                .oca
-                .overlays
-                .iter_mut()
-                .find(|x| {
-                    if let Some(o_metric_system) = x.metric_system() {
-
-                      return o_metric_system == attr.metric_system.as_ref().unwrap() && x.overlay_type().contains("/unit/");
-                    }
-                    false
-                });
+            let mut unit_ov = self.oca.overlays.iter_mut().find(|x| {
+                if let Some(o_metric_system) = x.metric_system() {
+                    return o_metric_system == attr.metric_system.as_ref().unwrap()
+                        && x.overlay_type().contains("/unit/");
+                }
+                false
+            });
             if unit_ov.is_none() {
-                self.oca.overlays.push(overlay::Unit::new(attr.metric_system.as_ref().unwrap().clone()));
+                self.oca.overlays.push(overlay::Unit::new(
+                    attr.metric_system.as_ref().unwrap().clone(),
+                ));
                 unit_ov = self.oca.overlays.last_mut();
             }
 
@@ -622,18 +622,23 @@ impl OCABuilder {
                 .push(overlay::Meta::new(lang.to_string(), translation));
         }
         match self.form_layout {
-            Some(ref layout) => self.oca.overlays.push(overlay::FormLayout::new(layout.clone())),
+            Some(ref layout) => self
+                .oca
+                .overlays
+                .push(overlay::FormLayout::new(layout.clone())),
             None => self
                 .oca
                 .overlays
                 .push(overlay::FormLayout::new(self.build_default_form_layout())),
         }
         match self.credential_layout {
-            Some(ref layout) => self.oca.overlays.push(overlay::CredentialLayout::new(layout.clone())),
-            None => self
+            Some(ref layout) => self
                 .oca
                 .overlays
-                .push(overlay::CredentialLayout::new(self.build_default_credential_layout())),
+                .push(overlay::CredentialLayout::new(layout.clone())),
+            None => self.oca.overlays.push(overlay::CredentialLayout::new(
+                self.build_default_credential_layout(),
+            )),
         }
 
         let cs_json = serde_json::to_string(&self.oca.capture_base).unwrap();
@@ -791,7 +796,7 @@ elements:
 
     fn build_default_credential_layout(&self) -> String {
         let mut layout = String::from(
-r#"version: beta-1
+            r#"version: beta-1
 config:
   css:
     width: 630px
@@ -869,8 +874,8 @@ pages:
                       font-size: 16px;
                       font-weight: 300;
                       line-height: 1.5;
-"#
-            );
+"#,
+        );
         for attr_name in self.cat_attributes.uncategorized.iter() {
             layout.push_str(
                 format!(
