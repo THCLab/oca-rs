@@ -263,6 +263,12 @@ impl AttributeBuilder {
         self
     }
 
+    #[wasm_bindgen(js_name = "addMapping")]
+    pub fn add_mapping(mut self, mapping: String) -> AttributeBuilder {
+        self.raw = self.raw.add_mapping(mapping);
+        self
+    }
+
     #[wasm_bindgen(js_name = "addUnit")]
     pub fn add_unit(mut self, metric_system: String, unit: String) -> AttributeBuilder {
         self.raw = self.raw.add_unit(metric_system, unit);
@@ -368,6 +374,7 @@ type Overlay =
   | FormatOverlay
   | InformationOverlay
   | LabelOverlay
+  | MappingOverlay
   | MetaOverlay
   | UnitOverlay
   | FormLayoutOverlay
@@ -510,6 +517,12 @@ type LabelOverlay = {
   cat_attributes: { [cat_id: string]: string[] }
 }
 
+type MappingOverlay = {
+  capture_base: string,
+  type: string,
+  attr_mapping: { [attr_name: string]: string }
+}
+
 type MetaOverlay = {
   capture_base: string,
   type: string,
@@ -545,6 +558,7 @@ type Attribute = {
   metric_system?: string
   unit?: string
   entry_codes?: string[]
+  mapping?: string
   cardinality?: string
   conformance?: 'O' | 'M'
 }

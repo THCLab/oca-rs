@@ -12,6 +12,7 @@ pub struct Attribute {
     pub attr_type: AttributeType,
     pub is_pii: bool,
     pub translations: HashMap<Language, AttributeTranslation>,
+    pub mapping: Option<String>,
     pub encoding: Option<Encoding>,
     pub format: Option<String>,
     pub metric_system: Option<String>,
@@ -36,6 +37,7 @@ impl AttributeBuilder {
                 attr_type,
                 is_pii: false,
                 translations: HashMap::new(),
+                mapping: None,
                 encoding: None,
                 format: None,
                 metric_system: None,
@@ -83,6 +85,14 @@ impl AttributeBuilder {
 
     pub fn add_encoding(mut self, encoding: Encoding) -> AttributeBuilder {
         self.attribute.encoding = Some(encoding);
+        self
+    }
+
+    pub fn add_mapping(
+        mut self,
+        mapping: String,
+    ) -> AttributeBuilder {
+        self.attribute.mapping = Some(mapping);
         self
     }
 

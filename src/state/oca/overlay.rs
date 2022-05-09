@@ -1,3 +1,4 @@
+pub mod attribute_mapping;
 pub mod cardinality;
 pub mod character_encoding;
 pub mod conditional;
@@ -12,6 +13,7 @@ pub mod label;
 pub mod meta;
 pub mod unit;
 
+pub use self::attribute_mapping::AttributeMappingOverlay as AttributeMapping;
 pub use self::cardinality::CardinalityOverlay as Cardinality;
 pub use self::character_encoding::CharacterEncodingOverlay as CharacterEncoding;
 pub use self::conditional::ConditionalOverlay as Conditional;

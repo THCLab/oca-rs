@@ -24,7 +24,13 @@ impl<'de> Deserialize<'de> for DynOverlay {
             if let Some(serde_value::Value::String(overlay_type)) =
                 overlay.get(&serde_value::Value::String("type".to_string()))
             {
-                if overlay_type.contains("/character_encoding/") {
+                if overlay_type.contains("/mapping/") {
+                    return Ok(Box::new(
+                        de_overlay
+                            .deserialize_into::<overlay::AttributeMapping>()
+                            .unwrap(),
+                    ));
+                } else if overlay_type.contains("/character_encoding/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::CharacterEncoding>()
@@ -394,6 +400,22 @@ impl OCABuilder {
 
     pub fn add_attribute(mut self, attr: Attribute) -> OCABuilder {
         self.oca.capture_base.add(&attr);
+
+        if attr.mapping.is_some() {
+            let mut attribute_mapping_ov = self
+                .oca
+                .overlays
+                .iter_mut()
+                .find(|x| x.overlay_type().contains("/mapping/"));
+            if attribute_mapping_ov.is_none() {
+                self.oca.overlays.push(overlay::AttributeMapping::new());
+                attribute_mapping_ov = self.oca.overlays.last_mut();
+            }
+
+            if let Some(ov) = attribute_mapping_ov {
+                ov.add(&attr)
+            }
+        }
 
         if attr.condition.is_some() {
             let mut conditional_ov = self
