@@ -36,7 +36,8 @@ mod tests {
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/unit/1.0",
-      "attr_units": { "n1": "days" }
+      "metric_system": "SI",
+      "attr_units": { "n1": "cm" }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",

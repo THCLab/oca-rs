@@ -27,6 +27,7 @@ const CONDITION_INDEX: u32 = 7;
 const DEPENDENCIES_INDEX: u32 = 8;
 const CARDINALITY_INDEX: u32 = 9;
 const CONFORMANCE_INDEX: u32 = 10;
+const UNIT_INDEX: u32 = 11;
 
 const LABEL_INDEX: u32 = 3;
 const ENTRIES_INDEX: u32 = 4;
@@ -218,6 +219,26 @@ pub fn parse(
             main_sheet.get_value((attr_index, CONFORMANCE_INDEX))
         {
             attribute_builder = attribute_builder.add_conformance(conformance_value.clone());
+        }
+
+        if let Some(DataType::String(unit_value)) =
+            main_sheet.get_value((attr_index, UNIT_INDEX))
+        {
+            let mut metric_system = String::new();
+            let mut unit = unit_value.clone();
+
+            let mut splitted: Vec<String> = unit_value
+                .split("|")
+                .collect::<Vec<&str>>()
+                .iter()
+                .map(|c| c.to_string())
+                .collect();
+            if splitted.len() > 1 {
+                unit = splitted.pop().unwrap();
+                metric_system = splitted.join("|");
+            }
+
+            attribute_builder = attribute_builder.add_unit(metric_system, unit);
         }
         attribute_builders.push((attr_index, attribute_builder));
     }

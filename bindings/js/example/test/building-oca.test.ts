@@ -38,7 +38,7 @@ describe('OCA with attributes is built', () => {
     .addAttribute(
       new AttributeBuilder("attr_name", AttributeType.Numeric)
       .setPii()
-      .addUnit("days")
+      .addUnit("SI", "cm")
       .addLabel({
         en_EN: "Name: ",
         pl_PL: "Imię: "
@@ -160,8 +160,9 @@ describe('OCA with attributes is built', () => {
         expect(overlays).to.lengthOf(1)
         const overlay = overlays[0]
 
+        expect(overlay).to.have.property("metric_system", "SI")
         expect(overlay.attr_units).to.have.keys("attr_name")
-        expect(overlay).to.have.nested.property("attr_units.attr_name", "days")
+        expect(overlay).to.have.nested.property("attr_units.attr_name", "cm")
       })
     })
 

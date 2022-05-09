@@ -474,9 +474,15 @@ impl OCABuilder {
                 .oca
                 .overlays
                 .iter_mut()
-                .find(|x| x.overlay_type().contains("/unit/"));
+                .find(|x| {
+                    if let Some(o_metric_system) = x.metric_system() {
+
+                      return o_metric_system == attr.metric_system.as_ref().unwrap() && x.overlay_type().contains("/unit/");
+                    }
+                    false
+                });
             if unit_ov.is_none() {
-                self.oca.overlays.push(overlay::Unit::new());
+                self.oca.overlays.push(overlay::Unit::new(attr.metric_system.as_ref().unwrap().clone()));
                 unit_ov = self.oca.overlays.last_mut();
             }
 
@@ -1094,7 +1100,7 @@ labels:
                 "En".to_string() => "info en".to_string(),
                 "Pl".to_string() => "info pl".to_string(),
             })
-            .add_unit("days".to_string())
+            .add_unit("SI".to_string(), "cm".to_string())
             .build();
 
         let attr2 = AttributeBuilder::new(String::from("n2"), AttributeType::Date)

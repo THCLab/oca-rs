@@ -35,6 +35,9 @@ pub trait Overlay: erased_serde::Serialize {
     fn language(&self) -> Option<&Language> {
         None
     }
+    fn metric_system(&self) -> Option<&String> {
+        None
+    }
     fn attributes(&self) -> Vec<&String>;
 
     fn add(&mut self, attribute: &Attribute);

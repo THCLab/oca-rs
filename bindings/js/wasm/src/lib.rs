@@ -264,8 +264,8 @@ impl AttributeBuilder {
     }
 
     #[wasm_bindgen(js_name = "addUnit")]
-    pub fn add_unit(mut self, unit: String) -> AttributeBuilder {
-        self.raw = self.raw.add_unit(unit);
+    pub fn add_unit(mut self, metric_system: String, unit: String) -> AttributeBuilder {
+        self.raw = self.raw.add_unit(metric_system, unit);
         self
     }
 
@@ -521,6 +521,7 @@ type MetaOverlay = {
 type UnitOverlay = {
   capture_base: string,
   type: string,
+  metric_system: string,
   attr_units: { [attr_name: string]: string }
 }
 "#;
@@ -541,6 +542,7 @@ type Attribute = {
   translations: { [language: string]: AttributeTranslation }
   encoding?: string
   format?: string
+  metric_system?: string
   unit?: string
   entry_codes?: string[]
   cardinality?: string

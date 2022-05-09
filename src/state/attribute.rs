@@ -14,6 +14,7 @@ pub struct Attribute {
     pub translations: HashMap<Language, AttributeTranslation>,
     pub encoding: Option<Encoding>,
     pub format: Option<String>,
+    pub metric_system: Option<String>,
     pub unit: Option<String>,
     pub entry_codes: Option<EntryCodes>,
     pub sai: Option<String>,
@@ -37,6 +38,7 @@ impl AttributeBuilder {
                 translations: HashMap::new(),
                 encoding: None,
                 format: None,
+                metric_system: None,
                 unit: None,
                 entry_codes: None,
                 sai: None,
@@ -94,7 +96,8 @@ impl AttributeBuilder {
         self
     }
 
-    pub fn add_unit(mut self, unit: String) -> AttributeBuilder {
+    pub fn add_unit(mut self, metric_system: String, unit: String) -> AttributeBuilder {
+        self.attribute.metric_system = Some(metric_system);
         self.attribute.unit = Some(unit);
         self
     }
