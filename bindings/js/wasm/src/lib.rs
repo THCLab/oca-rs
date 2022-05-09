@@ -578,6 +578,8 @@ type Attribute = {
   unit?: string
   entry_codes?: string[]
   entry_codes_mapping?: string[]
+  condition?: string
+  dependencies?: string[]
   mapping?: string
   cardinality?: string
   conformance?: 'O' | 'M'
