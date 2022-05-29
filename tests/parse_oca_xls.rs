@@ -19,7 +19,7 @@ fn parse_oca_xls() {
     let parsed = result.unwrap();
     assert_eq!(parsed.languages.len(), 2);
 
-    let oca = parsed.oca;
+    let oca = parsed.oca_builder.finalize();
     assert_eq!(oca.capture_base.attributes.len(), 18);
     assert_eq!(oca.capture_base.pii.len(), 3);
 

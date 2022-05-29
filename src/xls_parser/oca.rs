@@ -434,8 +434,9 @@ mod tests {
         );
         assert!(result.is_ok());
         if let Ok(parsed) = result {
-            assert_eq!(parsed.oca.capture_base.attributes.len(), 18);
             assert_eq!(parsed.languages.len(), 2);
+            let oca = parsed.oca_builder.finalize();
+            assert_eq!(oca.capture_base.attributes.len(), 18);
         }
     }
 
@@ -452,8 +453,9 @@ mod tests {
         assert!(result.is_ok());
 
         if let Ok(parsed) = result {
-            assert_eq!(parsed.oca.capture_base.attributes.len(), 18);
             assert_eq!(parsed.languages.len(), 2);
+            let oca = parsed.oca_builder.finalize();
+            assert_eq!(oca.capture_base.attributes.len(), 18);
         }
     }
 
