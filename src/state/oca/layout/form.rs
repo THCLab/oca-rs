@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct LayoutConfigCss {
@@ -28,6 +29,8 @@ struct ElementConfig {
 struct Part {
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    layout: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     config: Option<ElementConfig>,
 }
 #[derive(Debug, Serialize, Deserialize)]
@@ -48,4 +51,6 @@ pub struct Layout {
     #[serde(skip_serializing_if = "Option::is_none")]
     config: Option<LayoutConfig>,
     elements: Vec<Element>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reference_layouts: Option<BTreeMap<String, Layout>>,
 }

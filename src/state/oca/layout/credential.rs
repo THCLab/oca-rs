@@ -53,6 +53,8 @@ struct Element {
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    layout: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     config: Option<ElementConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     elements: Option<Vec<Element>>,
@@ -70,4 +72,6 @@ pub struct Layout {
     pages: Vec<Page>,
     #[serde(skip_serializing_if = "Option::is_none")]
     labels: Option<BTreeMap<String, BTreeMap<String, String>>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reference_layouts: Option<BTreeMap<String, Layout>>,
 }

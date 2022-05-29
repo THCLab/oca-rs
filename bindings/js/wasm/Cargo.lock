@@ -255,6 +255,7 @@ name = "oca-rust"
 version = "0.1.35"
 dependencies = [
  "erased-serde",
+ "indexmap",
  "regex",
  "said",
  "serde",

@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use said::derivation::SelfAddressing;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::{BTreeMap, HashMap};
@@ -126,18 +127,22 @@ pub struct OCA {
     pub overlays: Vec<DynOverlay>,
 }
 
-#[derive(Serialize)]
 struct CatAttributes {
     cat_labels: HashMap<String, String>,
-    categorized: BTreeMap<String, Vec<String>>,
-    uncategorized: Vec<String>,
+    categorized: IndexMap<String, IndexMap<String, Option<String>>>,
+    uncategorized: IndexMap<String, Option<String>>,
     lang: String,
 }
 
 impl CatAttributes {
-    fn add_to_category(&mut self, categories: Vec<&str>, attribute_name: String) {
+    fn add_to_category(
+        &mut self,
+        categories: Vec<&str>,
+        attribute_name: String,
+        attribute_sai: Option<String>,
+    ) {
         if categories.is_empty() {
-            self.uncategorized.push(attribute_name);
+            self.uncategorized.insert(attribute_name, attribute_sai);
             return;
         }
         let mut supercats: Vec<i32> = vec![];
@@ -173,14 +178,15 @@ impl CatAttributes {
                 supercats.push(count + 1);
                 self.cat_labels
                     .insert(acctual_cat_id.clone(), category.to_string());
-                self.categorized.insert(acctual_cat_id.clone(), vec![]);
+                self.categorized
+                    .insert(acctual_cat_id.clone(), IndexMap::new());
             }
 
             if i + 1 == categories.len() {
                 self.categorized
                     .get_mut(acctual_cat_id.as_str())
                     .unwrap()
-                    .push(attribute_name.clone());
+                    .insert(attribute_name.clone(), attribute_sai.clone());
             }
         }
     }
@@ -194,7 +200,11 @@ pub struct OCABuilder {
     #[serde(skip)]
     pub form_layout: Option<String>,
     #[serde(skip)]
+    pub form_layout_reference: BTreeMap<String, String>,
+    #[serde(skip)]
     pub credential_layout: Option<String>,
+    #[serde(skip)]
+    pub credential_layout_reference: BTreeMap<String, String>,
     #[serde(skip)]
     cat_attributes: CatAttributes,
 }
@@ -321,10 +331,12 @@ impl<'de> Deserialize<'de> for OCABuilder {
                 },
                 meta_translations,
                 form_layout: None,
+                form_layout_reference: BTreeMap::new(),
                 credential_layout: None,
+                credential_layout_reference: BTreeMap::new(),
                 cat_attributes: CatAttributes {
-                    categorized: BTreeMap::new(),
-                    uncategorized: vec![],
+                    categorized: IndexMap::new(),
+                    uncategorized: IndexMap::new(),
                     cat_labels: HashMap::new(),
                     lang: String::new(),
                 },
@@ -347,11 +359,13 @@ impl OCABuilder {
             },
             meta_translations: HashMap::new(),
             form_layout: None,
+            form_layout_reference: BTreeMap::new(),
             credential_layout: None,
+            credential_layout_reference: BTreeMap::new(),
             cat_attributes: CatAttributes {
                 cat_labels: HashMap::new(),
-                categorized: BTreeMap::new(),
-                uncategorized: vec![],
+                categorized: IndexMap::new(),
+                uncategorized: IndexMap::new(),
                 lang: String::new(),
             },
         }
@@ -557,7 +571,7 @@ impl OCABuilder {
             let mut splitted = value.split('|').collect::<Vec<&str>>();
             splitted.pop();
             self.cat_attributes
-                .add_to_category(splitted, attr.name.clone());
+                .add_to_category(splitted, attr.name.clone(), attr.sai.clone());
         }
         for (lang, attr_tr) in attr.translations.iter() {
             let mut label_ov = self.oca.overlays.iter_mut().find(|x| {
@@ -621,24 +635,74 @@ impl OCABuilder {
                 .overlays
                 .push(overlay::Meta::new(lang.to_string(), translation));
         }
+        let mut form_layout_tmp = None;
         match self.form_layout {
-            Some(ref layout) => self
-                .oca
-                .overlays
-                .push(overlay::FormLayout::new(layout.clone())),
-            None => self
-                .oca
-                .overlays
-                .push(overlay::FormLayout::new(self.build_default_form_layout())),
+            Some(ref layout) => {
+                if !layout.is_empty() {
+                    form_layout_tmp = Some(layout.clone());
+                }
+            }
+            None => {
+                form_layout_tmp = Some(self.build_default_form_layout());
+            }
         }
+        if let Some(mut layout) = form_layout_tmp {
+            for (i, (name, ref_layout)) in self.form_layout_reference.iter().enumerate() {
+                if i == 0 {
+                    layout.push_str(
+                        r#"
+reference_layouts:"#,
+                    );
+                }
+                layout.push_str(
+                    format!(
+                        r#"
+  {}:
+    {}"#,
+                        name,
+                        ref_layout.replace('\n', "\n    ")
+                    )
+                    .as_str(),
+                );
+            }
+
+            self.oca.overlays.push(overlay::FormLayout::new(layout));
+        }
+
+        let mut credential_layout_tmp = None;
         match self.credential_layout {
-            Some(ref layout) => self
-                .oca
+            Some(ref layout) => {
+                if !layout.is_empty() {
+                    credential_layout_tmp = Some(layout.clone());
+                }
+            }
+            None => {
+                credential_layout_tmp = Some(self.build_default_credential_layout());
+            }
+        }
+        if let Some(mut layout) = credential_layout_tmp {
+            for (i, (name, ref_layout)) in self.credential_layout_reference.iter().enumerate() {
+                if i == 0 {
+                    layout.push_str(
+                        r#"
+reference_layouts:"#,
+                    );
+                }
+                layout.push_str(
+                    format!(
+                        r#"
+  {}:
+    {}"#,
+                        name,
+                        ref_layout.replace('\n', "\n    ")
+                    )
+                    .as_str(),
+                );
+            }
+
+            self.oca
                 .overlays
-                .push(overlay::CredentialLayout::new(layout.clone())),
-            None => self.oca.overlays.push(overlay::CredentialLayout::new(
-                self.build_default_credential_layout(),
-            )),
+                .push(overlay::CredentialLayout::new(layout));
         }
 
         let cs_json = serde_json::to_string(&self.oca.capture_base).unwrap();
@@ -646,10 +710,11 @@ impl OCABuilder {
         for o in self.oca.overlays.iter_mut() {
             o.sign(&sai);
         }
+
         self.oca
     }
 
-    fn build_default_form_layout(&self) -> String {
+    pub fn build_default_form_layout(&self) -> String {
         let mut layout = String::from(
             r#"config:
   css:
@@ -691,6 +756,11 @@ impl OCABuilder {
         height: 6.5em;
         display: grid;
         align-items: center;
+      }
+
+      ._reference {
+        width: 100%;
+        height: 100%;
       }
 
       ._input, .language {
@@ -750,7 +820,7 @@ elements:
               font-weight: 300;
               line-height: 1.5;"#,
         );
-        for attr_name in self.cat_attributes.uncategorized.iter() {
+        for (attr_name, attr_sai) in self.cat_attributes.uncategorized.iter() {
             layout.push_str(
                 format!(
                     r#"
@@ -758,11 +828,26 @@ elements:
     name: {}
     parts:
       - name: label
-      - name: input
-      - name: information"#,
+      - name: input"#,
                     attr_name
                 )
                 .as_str(),
+            );
+
+            if let Some(sai) = attr_sai {
+                layout.push_str(
+                    format!(
+                        r#"
+        layout: {}"#,
+                        sai
+                    )
+                    .as_str(),
+                );
+            }
+
+            layout.push_str(
+                r#"
+      - name: information"#,
             );
         }
         for (cat, attributes) in &self.cat_attributes.categorized {
@@ -775,7 +860,7 @@ elements:
                 )
                 .as_str(),
             );
-            for attr_name in attributes.iter() {
+            for (attr_name, attr_sai) in attributes.iter() {
                 layout.push_str(
                     format!(
                         r#"
@@ -783,25 +868,47 @@ elements:
     name: {}
     parts:
       - name: label
-      - name: input
-      - name: information"#,
+      - name: input"#,
                         attr_name
                     )
                     .as_str(),
+                );
+
+                if let Some(sai) = attr_sai {
+                    layout.push_str(
+                        format!(
+                            r#"
+        layout: {}"#,
+                            sai
+                        )
+                        .as_str(),
+                    );
+                }
+
+                layout.push_str(
+                    r#"
+      - name: information"#,
                 );
             }
         }
         layout
     }
 
-    fn build_default_credential_layout(&self) -> String {
-        let mut layout = String::from(
+    pub fn add_form_layout_reference(&mut self, name: String, layout: String) {
+        self.form_layout_reference.insert(name, layout);
+    }
+
+    pub fn build_default_credential_layout(&self) -> String {
+        let height = (self.oca.capture_base.attributes.len() * 130)
+            + (self.cat_attributes.categorized.len() * 65);
+        let mut layout = format!(
             r#"version: beta-1
 config:
   css:
     width: 630px
+    height: {}px
     style: >-
-      .language-select {
+      .language-select {{
         margin: 2px 0;
         background-color: white;
         border-radius: 3px;
@@ -809,8 +916,8 @@ config:
         width: 100px;
         height: 1.75em;
         float: right;
-      }
-      body {
+      }}
+      body {{
         background-color: white;
         font-family: 'Lato', 'sans-serif';
         color: rgb(87, 87, 86);
@@ -818,36 +925,36 @@ config:
         border: 1px solid rgba(0, 0, 0, .1);
         border-radius: 5px;
         box-shadow: 0 5px 8px 0 rgb(0 0 0 / 10%), 0 3px 10px 0 rgb(0 0 0 / 10%);
-      }
-      ._category h1, h2, h3, h4, h5, h6 {
+      }}
+      ._category h1, h2, h3, h4, h5, h6 {{
         font-size: 14px;
         font-weight: 500;
         line-height: 1.15em;
         margin: 0.3em 0;
-      }
-      ._category h1 { font-size: 22px; }
-      ._category h2 { font-size: 18px; }
-      ._category {
+      }}
+      ._category h1 {{ font-size: 22px; }}
+      ._category h2 {{ font-size: 18px; }}
+      ._category {{
         border: 0;
         border-bottom: 2px dashed rgba(0, 0, 0, .4);
         margin: 10px 0 20px 0;
-      }
-      ._attribute {
+      }}
+      ._attribute {{
         border: 1px dashed rgba(0,0,0,0.3);
         min-height: 2em;
         line-height: 2em;
         border-radius: 3px;
         padding: 0 10px;
         margin: 0.5em 0;
-      }
-      ._information {
+      }}
+      ._information {{
         color: rgb(106, 106, 106);
         overflow-wrap: anywhere;
         font-size: 14px;
         font-style: italic;
         line-height: 1.5;
         text-align: justify;
-      }
+      }}
 pages:
   - config:
       name: Credential
@@ -875,8 +982,9 @@ pages:
                       font-weight: 300;
                       line-height: 1.5;
 "#,
+            height
         );
-        for attr_name in self.cat_attributes.uncategorized.iter() {
+        for (attr_name, attr_sai) in self.cat_attributes.uncategorized.iter() {
             layout.push_str(
                 format!(
                     r#"
@@ -885,7 +993,31 @@ pages:
           - type: col
             elements:
               - type: label
+                name: {}"#,
+                    attr_name
+                )
+                .as_str(),
+            );
+
+            if let Some(sai) = attr_sai {
+                layout.push_str(
+                    format!(
+                        r#"
+      - type: row
+        elements:
+          - type: col
+            elements:
+              - type: reference
                 name: {}
+                layout: {}"#,
+                        attr_name, sai
+                    )
+                    .as_str(),
+                );
+            } else {
+                layout.push_str(
+                    format!(
+                        r#"
       - type: row
         elements:
           - type: col
@@ -894,7 +1026,16 @@ pages:
                 config:
                   css:
                     classes: ['_attribute']
-                name: {}
+                name: {}"#,
+                        attr_name
+                    )
+                    .as_str(),
+                );
+            }
+
+            layout.push_str(
+                format!(
+                    r#"
       - type: row
         elements:
           - type: col
@@ -904,7 +1045,7 @@ pages:
                   css:
                     classes: ['_information']
                 name: {}"#,
-                    attr_name, attr_name, attr_name
+                    attr_name
                 )
                 .as_str(),
             );
@@ -927,7 +1068,7 @@ pages:
                 )
                 .as_str(),
             );
-            for attr_name in attributes.iter() {
+            for (attr_name, attr_sai) in attributes.iter() {
                 layout.push_str(
                     format!(
                         r#"
@@ -936,7 +1077,31 @@ pages:
           - type: col
             elements:
               - type: label
+                name: {}"#,
+                        attr_name
+                    )
+                    .as_str(),
+                );
+
+                if let Some(sai) = attr_sai {
+                    layout.push_str(
+                        format!(
+                            r#"
+      - type: row
+        elements:
+          - type: col
+            elements:
+              - type: reference
                 name: {}
+                layout: {}"#,
+                            attr_name, sai
+                        )
+                        .as_str(),
+                    );
+                } else {
+                    layout.push_str(
+                        format!(
+                            r#"
       - type: row
         elements:
           - type: col
@@ -945,7 +1110,16 @@ pages:
                 config:
                   css:
                     classes: ['_attribute']
-                name: {}
+                name: {}"#,
+                            attr_name
+                        )
+                        .as_str(),
+                    );
+                }
+
+                layout.push_str(
+                    format!(
+                        r#"
       - type: row
         elements:
           - type: col
@@ -955,13 +1129,17 @@ pages:
                   css:
                     classes: ['_information']
                 name: {}"#,
-                        attr_name, attr_name, attr_name
+                        attr_name
                     )
                     .as_str(),
                 );
             }
         }
         layout
+    }
+
+    pub fn add_credential_layout_reference(&mut self, name: String, layout: String) {
+        self.credential_layout_reference.insert(name, layout);
     }
 }
 

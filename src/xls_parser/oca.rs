@@ -4,7 +4,7 @@ use crate::state::{
     entries::EntriesElement,
     entry_codes::EntryCodes,
     language::Language,
-    oca::{OCABuilder, OCA},
+    oca::OCABuilder,
 };
 use calamine::{open_workbook_auto, DataType, Reader};
 use std::collections::{BTreeMap, HashMap};
@@ -12,7 +12,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 pub struct ParsedResult {
-    pub oca: OCA,
+    pub oca_builder: OCABuilder,
     pub languages: Vec<Language>,
 }
 
@@ -133,8 +133,11 @@ pub fn parse(
             &main_sheet.get_value((attr_index, ATTR_TYPE_INDEX)).unwrap()
         );
         let attribute_type_tmp = attribute_type_value.split(":").collect::<Vec<&str>>();
-        let attribute_type = attribute_type_tmp.get(0).unwrap();
+        let mut attribute_type = attribute_type_tmp.get(0).unwrap().to_string();
         let attribute_sai = attribute_type_tmp.get(1);
+        if attribute_type == "Array[SAI" {
+            attribute_type.push(']');
+        }
         let mut attribute_builder = AttributeBuilder::new(
             attribute_name.clone(),
             serde_json::from_str::<AttributeType>(format!("\"{}\"", attribute_type).as_str())
@@ -148,7 +151,11 @@ pub fn parse(
                 })?,
         );
         if let Some(sai) = attribute_sai {
-            attribute_builder = attribute_builder.add_sai(sai.to_string());
+            let mut sai_string = sai.to_string();
+            if sai_string.ends_with(']') {
+                sai_string.pop();
+            }
+            attribute_builder = attribute_builder.add_sai(sai_string);
         }
         if let Some(DataType::String(_value)) = main_sheet.get_value((attr_index, PII_FLAG_INDEX)) {
             attribute_builder = attribute_builder.set_pii();
@@ -403,9 +410,12 @@ pub fn parse(
     }
     oca_builder = oca_builder.add_name(name_trans);
     oca_builder = oca_builder.add_description(description_trans);
-    let oca = oca_builder.finalize();
+    // let oca = oca_builder.finalize();
 
-    Ok(ParsedResult { oca, languages })
+    Ok(ParsedResult {
+        oca_builder,
+        languages,
+    })
 }
 
 #[cfg(test)]

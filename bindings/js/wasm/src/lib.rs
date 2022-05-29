@@ -365,8 +365,11 @@ impl AttributeBuilder {
 #[wasm_bindgen(typescript_custom_section)]
 const OCA_TYPE: &'static str = r#"
 type OCA = {
-  capture_base: CaptureBase;
-  overlays: Overlay[];
+  capture_base: CaptureBase,
+  overlays: Overlay[],
+  references?: {
+    [capture_base_sai: string]: OCA
+  }
 }
 
 type CaptureBase = {
@@ -444,6 +447,7 @@ type CredentialLayoutOverlay = {
         type: string,
         size?: string,
         name?: string,
+        layout?: string,
         content?: string,
         config?: {
           css?: {
@@ -458,6 +462,9 @@ type CredentialLayoutOverlay = {
       [label: string]: {
         [language: string]: string
       }
+    },
+    reference_layouts?: {
+      [reference_layout: string]: CredentialLayoutOverlay['layout']
     }
   }
 }
@@ -502,6 +509,7 @@ type FormLayoutOverlay = {
       name?: string,
       parts?: {
         name: string,
+        layout?: string,
         config?: {
           css?: {
             style?: string,
@@ -509,7 +517,10 @@ type FormLayoutOverlay = {
           }
         }
       }[]
-    }[]
+    }[],
+    reference_layouts?: {
+      [reference_layout: string]: FormLayoutOverlay['layout']
+    }
   }
 }
 
