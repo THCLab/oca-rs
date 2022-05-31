@@ -19,7 +19,7 @@ pub struct ParsedResult {
 const CLASSIFICATION_INDEX: u32 = 0;
 const ATTR_NAME_INDEX: u32 = 1;
 const ATTR_TYPE_INDEX: u32 = 2;
-const PII_FLAG_INDEX: u32 = 3;
+const FLAGGED_INDEX: u32 = 3;
 const ENCODING_INDEX: u32 = 4;
 const FORMAT_INDEX: u32 = 5;
 const ENTRY_CODES_INDEX: u32 = 6;
@@ -157,8 +157,8 @@ pub fn parse(
             }
             attribute_builder = attribute_builder.add_sai(sai_string);
         }
-        if let Some(DataType::String(_value)) = main_sheet.get_value((attr_index, PII_FLAG_INDEX)) {
-            attribute_builder = attribute_builder.set_pii();
+        if let Some(DataType::String(_value)) = main_sheet.get_value((attr_index, FLAGGED_INDEX)) {
+            attribute_builder = attribute_builder.set_flagged();
         }
         if let Some(DataType::String(encoding_value)) =
             main_sheet.get_value((attr_index, ENCODING_INDEX))

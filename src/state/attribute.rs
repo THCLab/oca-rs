@@ -10,7 +10,7 @@ use crate::state::{
 pub struct Attribute {
     pub name: String,
     pub attr_type: AttributeType,
-    pub is_pii: bool,
+    pub is_flagged: bool,
     pub translations: HashMap<Language, AttributeTranslation>,
     pub mapping: Option<String>,
     pub encoding: Option<Encoding>,
@@ -36,7 +36,7 @@ impl AttributeBuilder {
             attribute: Attribute {
                 name,
                 attr_type,
-                is_pii: false,
+                is_flagged: false,
                 translations: HashMap::new(),
                 mapping: None,
                 encoding: None,
@@ -54,8 +54,8 @@ impl AttributeBuilder {
         }
     }
 
-    pub fn set_pii(mut self) -> AttributeBuilder {
-        self.attribute.is_pii = true;
+    pub fn set_flagged(mut self) -> AttributeBuilder {
+        self.attribute.is_flagged = true;
         self
     }
 

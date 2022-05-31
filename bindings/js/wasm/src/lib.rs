@@ -212,9 +212,9 @@ impl AttributeBuilder {
         }
     }
 
-    #[wasm_bindgen(js_name = "setPii")]
-    pub fn set_pii(mut self) -> AttributeBuilder {
-        self.raw = self.raw.set_pii();
+    #[wasm_bindgen(js_name = "setFlagged")]
+    pub fn set_flagged(mut self) -> AttributeBuilder {
+        self.raw = self.raw.set_flagged();
         self
     }
 
@@ -376,7 +376,7 @@ type CaptureBase = {
   type: string,
   classification: string,
   attributes: { [attr_name: string]: string },
-  pii: string[]
+  flagged_attributes: string[]
 }
 
 type Overlay =
@@ -581,7 +581,7 @@ type Attribute = {
   name: string
   attr_type: string
   sai?: string
-  is_pii: boolean
+  is_flagged: boolean
   translations: { [language: string]: AttributeTranslation }
   encoding?: string
   format?: string

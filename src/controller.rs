@@ -24,7 +24,7 @@ mod tests {
     "type": "spec/capture_base/1.0",
     "classification": "classification",
     "attributes": { "n1": "Text", "n2": "Date", "n3": "SAI:asd" },
-    "pii": [ "n1" ]
+    "flagged_attributes": [ "n1" ]
   },
   "overlays": [
     {

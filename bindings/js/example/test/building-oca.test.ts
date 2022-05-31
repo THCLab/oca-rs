@@ -15,12 +15,12 @@ describe('Plain OCA is built', () => {
     expect(oca).to.have.nested.property("capture_base.type")
     expect(oca).to.have.nested.property("capture_base.classification")
     expect(oca).to.have.nested.property("capture_base.attributes")
-    expect(oca).to.have.nested.property("capture_base.pii")
+    expect(oca).to.have.nested.property("capture_base.flagged_attributes")
     expect(oca).to.haveOwnProperty("overlays")
 
     expect(oca.capture_base.attributes).to.be.an('object').that.is.empty
     expect(oca.capture_base.classification).to.eq("GICS:35102020")
-    expect(oca.capture_base.pii).to.be.an('array').that.is.empty
+    expect(oca.capture_base.flagged_attributes).to.be.an('array').that.is.empty
     expect(oca.overlays).to.be.an('array').lengthOf(3)
   })
 })
@@ -37,7 +37,7 @@ describe('OCA with attributes is built', () => {
     })
     .addAttribute(
       new AttributeBuilder("attr_name", AttributeType.Numeric)
-      .setPii()
+      .setFlagged()
       .addUnit("SI", "cm")
       .addLabel({
         en_EN: "Name: ",
@@ -91,7 +91,7 @@ describe('OCA with attributes is built', () => {
       expect(captureBase.attributes).to.have.property("attr_name", "Numeric")
       expect(captureBase.attributes).to.have.property("attr2", "Date")
       expect(captureBase.attributes).to.have.property("attr3", "SAI:sai")
-      expect(captureBase.pii).to.eql(["attr_name"])
+      expect(captureBase.flagged_attributes).to.eql(["attr_name"])
     })
   })
 

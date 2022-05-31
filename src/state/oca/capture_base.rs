@@ -8,7 +8,7 @@ pub struct CaptureBase {
     pub schema_type: String,
     pub classification: String,
     pub attributes: BTreeMap<String, String>,
-    pub pii: Vec<String>,
+    pub flagged_attributes: Vec<String>,
 }
 
 impl Default for CaptureBase {
@@ -23,7 +23,7 @@ impl CaptureBase {
             schema_type: String::from("spec/capture_base/1.0"),
             classification: String::from(""),
             attributes: BTreeMap::new(),
-            pii: Vec::new(),
+            flagged_attributes: Vec::new(),
         }
     }
 
@@ -42,8 +42,8 @@ impl CaptureBase {
         }
         self.attributes
             .insert(attribute.name.clone(), attr_type_str);
-        if attribute.is_pii {
-            self.pii.push(attribute.name.clone());
+        if attribute.is_flagged {
+            self.flagged_attributes.push(attribute.name.clone());
         }
     }
 }

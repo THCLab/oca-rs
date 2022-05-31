@@ -1296,7 +1296,7 @@ labels:
             });
 
         let attr1 = AttributeBuilder::new(String::from("n1"), AttributeType::Text)
-            .set_pii()
+            .set_flagged()
             .add_label(hashmap! {
                 "En".to_string() => "Name: ".to_string(),
                 "Pl".to_string() => "Imię: ".to_string(),
@@ -1362,6 +1362,6 @@ labels:
             Some(&"SAI:sai".to_string())
         );
         assert_eq!(oca.capture_base.attributes.len(), 3);
-        assert_eq!(oca.capture_base.pii.len(), 1);
+        assert_eq!(oca.capture_base.flagged_attributes.len(), 1);
     }
 }

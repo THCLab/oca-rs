@@ -38,7 +38,7 @@ fn create_oca() {
         .build();
 
     let last_name_attr = AttributeBuilder::new(String::from("last_name"), AttributeType::Text)
-        .set_pii()
+        .set_flagged()
         .add_label(hashmap! {
             "en_EN".to_string() => "Last name: ".to_string(),
             "pl_PL".to_string() => "Nazwisko: ".to_string(),
@@ -78,7 +78,7 @@ fn create_oca() {
         .add_attribute(gender_attr)
         .finalize();
     assert_eq!(oca.capture_base.attributes.len(), 3);
-    assert_eq!(oca.capture_base.pii.len(), 1);
+    assert_eq!(oca.capture_base.flagged_attributes.len(), 1);
 
     let validator =
         Validator::new().enforce_translations(vec!["en_EN".to_string(), "pl_PL".to_string()]);
@@ -89,7 +89,7 @@ fn create_oca() {
     let loaded_oca_builder = load_oca(&mut oca_json.as_bytes()).unwrap();
 
     let birth_date_attr = AttributeBuilder::new(String::from("birth_date"), AttributeType::Date)
-        .set_pii()
+        .set_flagged()
         .add_label(hashmap! {
             "en_EN".to_string() => "Birth date: ".to_string(),
             "pl_PL".to_string() => "Data urodzenia: ".to_string(),
@@ -100,5 +100,5 @@ fn create_oca() {
     let loaded_oca = loaded_oca_builder.add_attribute(birth_date_attr).finalize();
 
     assert_eq!(loaded_oca.capture_base.attributes.len(), 4);
-    assert_eq!(loaded_oca.capture_base.pii.len(), 2);
+    assert_eq!(loaded_oca.capture_base.flagged_attributes.len(), 2);
 }
