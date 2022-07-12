@@ -99,7 +99,10 @@ fn main() {
                     xls_parser::oca::parse(path.clone(), form_layout_path, credential_layout_path);
 
                 if let Err(e) = result {
-                    println!("Error: {}", e);
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&serde_json::json!({ "errors": e })).unwrap()
+                    );
                     return;
                 }
 

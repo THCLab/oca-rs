@@ -20,7 +20,7 @@ fn parse_oca_xls() {
     assert_eq!(parsed.languages.len(), 2);
 
     let oca = parsed.oca_builder.finalize();
-    assert_eq!(oca.capture_base.attributes.len(), 18);
+    assert_eq!(oca.capture_base.attributes.len(), 17);
     assert_eq!(oca.capture_base.flagged_attributes.len(), 3);
 
     let validator = Validator::new().enforce_translations(vec!["en".to_string(), "zh".to_string()]);

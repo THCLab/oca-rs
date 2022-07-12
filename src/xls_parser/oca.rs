@@ -6,7 +6,7 @@ use crate::state::{
     language::Language,
     oca::OCABuilder,
 };
-use calamine::{open_workbook_auto, DataType, Reader};
+use calamine::{open_workbook_auto, DataType, Range, Reader};
 use std::collections::{BTreeMap, HashMap};
 use std::fs::File;
 use std::io::prelude::*;
@@ -40,7 +40,8 @@ pub fn parse(
     path: String,
     form_layout_path: Option<&str>,
     credential_layout_path: Option<&str>,
-) -> Result<ParsedResult, Box<dyn std::error::Error>> {
+) -> Result<ParsedResult, Vec<std::string::String>> {
+    let mut errors: Vec<String> = vec![];
     let mut form_layout = None;
     let mut credential_layout = None;
     if let Some(path) = form_layout_path {
@@ -61,16 +62,30 @@ pub fn parse(
 
         credential_layout = Some(contents);
     }
-    let mut workbook = open_workbook_auto(path).or(Err(
-        "Provided file cannot be parsed. Check if file exists and format is XLS(X)",
-    ))?;
+    let mut workbook = open_workbook_auto(path).or_else(|_| {
+        errors.push(
+            "Provided file cannot be parsed. Check if file exists and format is XLS(X)".to_string(),
+        );
+        Err(errors.clone())
+    })?;
     let mut sheet_names = workbook.sheet_names().to_vec();
     let mut languages = vec![];
     sheet_names.retain(|n| n != "READ ME");
 
-    let main_sheet_name = sheet_names
-        .first()
-        .ok_or(format!("Missing sheets. {}", SAMPLE_TEMPLATE_MSG))?;
+    let main_sheet_name = sheet_names.first().ok_or_else(|| {
+        errors.push(format!("Missing sheets. {}", SAMPLE_TEMPLATE_MSG));
+        errors.clone()
+    })?;
+    if !(main_sheet_name.eq("Main") || main_sheet_name.eq("main")) {
+        errors.push(format!(
+            "Provided XLS file does not match template. Missing Main sheet. {}",
+            SAMPLE_TEMPLATE_MSG
+        ));
+    }
+
+    if !errors.is_empty() {
+        return Err(errors);
+    }
     let main_sheet = workbook.worksheet_range(main_sheet_name).unwrap().unwrap();
     let translation_sheet_names = sheet_names.split_off(1);
     let mut translation_sheets: Vec<(Language, _)> = vec![];
@@ -86,15 +101,18 @@ pub fn parse(
         ));
     }
 
-    let first_translation_sheet = &translation_sheets
-        .first()
-        .ok_or(format!(
-            "Missing translation sheets. {}",
-            SAMPLE_TEMPLATE_MSG
-        ))?
-        .1;
     let start: u32 = 3;
-    let oca_range = (start, first_translation_sheet.height() as u32);
+    let mut end: u32 = main_sheet.height() as u32;
+    for (i, row) in main_sheet.rows().enumerate().rev() {
+        if row
+            .iter()
+            .any(|cell| cell != &DataType::Empty && cell != &DataType::String("".to_string()))
+        {
+            end = start + i as u32;
+            break;
+        }
+    }
+    let oca_range = (start, end);
 
     let mut oca_builder = OCABuilder::new(Encoding::Utf8);
 
@@ -112,13 +130,23 @@ pub fn parse(
     }
     oca_builder = oca_builder.add_classification(classification);
 
-    let mut attribute_names = vec![];
+    // let mut attribute_names = vec![];
     let mut attribute_builders: Vec<(u32, AttributeBuilder)> = vec![];
-    for attr_index in oca_range.0..oca_range.1 {
-        let mut attribute_name = main_sheet
+    fn parse_row(
+        attr_index: u32,
+        main_sheet: &Range<DataType>,
+    ) -> Result<AttributeBuilder, String> {
+        let attribute_name = main_sheet
             .get_value((attr_index, ATTR_NAME_INDEX))
             .unwrap()
             .to_string();
+        if attribute_name.is_empty() {
+            return Err(format!(
+                "Parsing attribute in row {} failed. Attribute name is empty.",
+                attr_index + 1
+            ));
+        }
+        /*
         let attribute_count = attribute_names
             .iter()
             .filter(|&name| *name == attribute_name)
@@ -128,6 +156,7 @@ pub fn parse(
         }
 
         attribute_names.push(attribute_name.clone());
+        */
         let attribute_type_value = &format!(
             r#"{}"#,
             &main_sheet.get_value((attr_index, ATTR_TYPE_INDEX)).unwrap()
@@ -267,7 +296,14 @@ pub fn parse(
                     .collect(),
             );
         }
-        attribute_builders.push((attr_index, attribute_builder));
+        Ok(attribute_builder)
+    }
+
+    for attr_index in oca_range.0..oca_range.1 {
+        match parse_row(attr_index, &main_sheet) {
+            Ok(attribute_builder) => attribute_builders.push((attr_index, attribute_builder)),
+            Err(e) => errors.push(e),
+        }
     }
 
     let mut name_trans: HashMap<Language, String> = HashMap::new();
@@ -379,10 +415,13 @@ pub fn parse(
                                 let lang_entry = &mut entry_vec
                                     .iter_mut()
                                     .find(|el| &el.id == e_key)
-                                    .ok_or(format!(
-                                        "Unknown entry code in {} translation: {}",
-                                        lang, e_key
-                                    ))?
+                                    .ok_or_else(|| {
+                                        errors.push(format!(
+                                            "Unknown entry code in {} translation: {}",
+                                            lang, e_key
+                                        ));
+                                        errors.clone()
+                                    })?
                                     .translations;
                                 lang_entry.insert(lang.to_string(), e_val.clone());
                             }
@@ -412,10 +451,14 @@ pub fn parse(
     oca_builder = oca_builder.add_description(description_trans);
     // let oca = oca_builder.finalize();
 
-    Ok(ParsedResult {
-        oca_builder,
-        languages,
-    })
+    if errors.is_empty() {
+        return Ok(ParsedResult {
+            oca_builder,
+            languages,
+        });
+    } else {
+        return Err(errors);
+    }
 }
 
 #[cfg(test)]
@@ -436,7 +479,7 @@ mod tests {
         if let Ok(parsed) = result {
             assert_eq!(parsed.languages.len(), 2);
             let oca = parsed.oca_builder.finalize();
-            assert_eq!(oca.capture_base.attributes.len(), 18);
+            assert_eq!(oca.capture_base.attributes.len(), 17);
         }
     }
 
@@ -455,7 +498,7 @@ mod tests {
         if let Ok(parsed) = result {
             assert_eq!(parsed.languages.len(), 2);
             let oca = parsed.oca_builder.finalize();
-            assert_eq!(oca.capture_base.attributes.len(), 18);
+            assert_eq!(oca.capture_base.attributes.len(), 17);
         }
     }
 

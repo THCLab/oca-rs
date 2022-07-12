@@ -563,66 +563,68 @@ impl OCABuilder {
             }
         }
 
-        if self.cat_attributes.lang.is_empty() {
-            self.cat_attributes.lang = attr.translations.keys().next().unwrap().clone();
-        }
-        let attr_tr = attr.translations.get(&self.cat_attributes.lang).unwrap();
-        if let Some(value) = &attr_tr.label {
-            let mut splitted = value.split('|').collect::<Vec<&str>>();
-            splitted.pop();
-            self.cat_attributes
-                .add_to_category(splitted, attr.name.clone(), attr.sai.clone());
-        }
-        for (lang, attr_tr) in attr.translations.iter() {
-            let mut label_ov = self.oca.overlays.iter_mut().find(|x| {
-                if let Some(o_lang) = x.language() {
-                    return o_lang == lang && x.overlay_type().contains("/label/");
-                }
-                false
-            });
-            if label_ov.is_none() {
-                self.oca
-                    .overlays
-                    .push(overlay::Label::new(lang.to_string()));
-                label_ov = self.oca.overlays.last_mut();
+        if !attr.translations.is_empty() {
+            if self.cat_attributes.lang.is_empty() {
+                self.cat_attributes.lang = attr.translations.keys().next().unwrap().clone();
             }
-            if let Some(ov) = label_ov {
-                ov.add(&attr);
+            let attr_tr = attr.translations.get(&self.cat_attributes.lang).unwrap();
+            if let Some(value) = &attr_tr.label {
+                let mut splitted = value.split('|').collect::<Vec<&str>>();
+                splitted.pop();
+                self.cat_attributes
+                    .add_to_category(splitted, attr.name.clone(), attr.sai.clone());
             }
-
-            if attr_tr.information.is_some() {
-                let mut information_ov = self.oca.overlays.iter_mut().find(|x| {
+            for (lang, attr_tr) in attr.translations.iter() {
+                let mut label_ov = self.oca.overlays.iter_mut().find(|x| {
                     if let Some(o_lang) = x.language() {
-                        return o_lang == lang && x.overlay_type().contains("/information/");
+                        return o_lang == lang && x.overlay_type().contains("/label/");
                     }
                     false
                 });
-                if information_ov.is_none() {
+                if label_ov.is_none() {
                     self.oca
                         .overlays
-                        .push(overlay::Information::new(lang.to_string()));
-                    information_ov = self.oca.overlays.last_mut();
+                        .push(overlay::Label::new(lang.to_string()));
+                    label_ov = self.oca.overlays.last_mut();
                 }
-                if let Some(ov) = information_ov {
+                if let Some(ov) = label_ov {
                     ov.add(&attr);
                 }
-            }
 
-            if attr_tr.entries.is_some() {
-                let mut entry_ov = self.oca.overlays.iter_mut().find(|x| {
-                    if let Some(o_lang) = x.language() {
-                        return o_lang == lang && x.overlay_type().contains("/entry/");
+                if attr_tr.information.is_some() {
+                    let mut information_ov = self.oca.overlays.iter_mut().find(|x| {
+                        if let Some(o_lang) = x.language() {
+                            return o_lang == lang && x.overlay_type().contains("/information/");
+                        }
+                        false
+                    });
+                    if information_ov.is_none() {
+                        self.oca
+                            .overlays
+                            .push(overlay::Information::new(lang.to_string()));
+                        information_ov = self.oca.overlays.last_mut();
                     }
-                    false
-                });
-                if entry_ov.is_none() {
-                    self.oca
-                        .overlays
-                        .push(overlay::Entry::new(lang.to_string()));
-                    entry_ov = self.oca.overlays.last_mut();
+                    if let Some(ov) = information_ov {
+                        ov.add(&attr);
+                    }
                 }
-                if let Some(ov) = entry_ov {
-                    ov.add(&attr);
+
+                if attr_tr.entries.is_some() {
+                    let mut entry_ov = self.oca.overlays.iter_mut().find(|x| {
+                        if let Some(o_lang) = x.language() {
+                            return o_lang == lang && x.overlay_type().contains("/entry/");
+                        }
+                        false
+                    });
+                    if entry_ov.is_none() {
+                        self.oca
+                            .overlays
+                            .push(overlay::Entry::new(lang.to_string()));
+                        entry_ov = self.oca.overlays.last_mut();
+                    }
+                    if let Some(ov) = entry_ov {
+                        ov.add(&attr);
+                    }
                 }
             }
         }
