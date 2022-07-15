@@ -106,7 +106,7 @@ pub fn parse(
     for (i, row) in main_sheet.rows().enumerate().rev() {
         if row
             .iter()
-            .any(|cell| cell != &DataType::Empty && cell != &DataType::String("".to_string()))
+            .any(|cell| cell != &DataType::Empty && cell.get_string().unwrap().trim().ne(""))
         {
             end = start + i as u32;
             break;
@@ -126,7 +126,7 @@ pub fn parse(
     let mut classification = String::new();
     let classification_value = main_sheet.get_value((oca_range.0, CLASSIFICATION_INDEX));
     if let Some(class) = classification_value {
-        classification = class.to_string();
+        classification = class.to_string().trim().to_string();
     }
     oca_builder = oca_builder.add_classification(classification);
 
@@ -139,7 +139,7 @@ pub fn parse(
         let attribute_name = main_sheet
             .get_value((attr_index, ATTR_NAME_INDEX))
             .unwrap()
-            .to_string();
+            .to_string().trim().to_string();
         if attribute_name.is_empty() {
             return Err(format!(
                 "Parsing attribute in row {} failed. Attribute name is empty.",
@@ -160,7 +160,7 @@ pub fn parse(
         let attribute_type_value = &format!(
             r#"{}"#,
             &main_sheet.get_value((attr_index, ATTR_TYPE_INDEX)).unwrap()
-        );
+        ).trim().to_string();
         let attribute_type_tmp = attribute_type_value.split(":").collect::<Vec<&str>>();
         let mut attribute_type = attribute_type_tmp.get(0).unwrap().to_string();
         let attribute_sai = attribute_type_tmp.get(1);
@@ -192,7 +192,7 @@ pub fn parse(
         if let Some(DataType::String(encoding_value)) =
             main_sheet.get_value((attr_index, ENCODING_INDEX))
         {
-            let encoding = serde_json::from_str::<Encoding>(&format!(r#""{}""#, encoding_value))
+            let encoding = serde_json::from_str::<Encoding>(&format!(r#""{}""#, encoding_value.trim().to_string()))
                 .or_else(|e| {
                     Err(format!(
                         "Parsing character encoding in row {} failed. {}",
@@ -206,7 +206,7 @@ pub fn parse(
         if let Some(DataType::String(format_value)) =
             main_sheet.get_value((attr_index, FORMAT_INDEX))
         {
-            attribute_builder = attribute_builder.add_format(format_value.clone());
+            attribute_builder = attribute_builder.add_format(format_value.clone().trim().to_string());
         }
         if let Some(DataType::String(entry_codes_value)) =
             main_sheet.get_value((attr_index, ENTRY_CODES_INDEX))
@@ -218,10 +218,11 @@ pub fn parse(
                     entry_codes = EntryCodes::Sai(sai.to_string());
                 } else {
                     let codes: Vec<String> = entry_codes_value
+                        .trim().to_string()
                         .split("|")
                         .collect::<Vec<&str>>()
                         .iter()
-                        .map(|c| c.to_string())
+                        .map(|c| c.to_string().trim().to_string())
                         .collect();
                     entry_codes = EntryCodes::Array(codes);
                 }
@@ -236,12 +237,12 @@ pub fn parse(
                 main_sheet.get_value((attr_index, DEPENDENCIES_INDEX))
             {
                 attribute_builder = attribute_builder.add_condition(
-                    condition_value.clone(),
+                    condition_value.clone().trim().to_string(),
                     dependencies_value
                         .split(",")
                         .collect::<Vec<&str>>()
                         .iter()
-                        .map(|c| c.to_string())
+                        .map(|c| c.to_string().trim().to_string())
                         .collect(),
                 );
             }
@@ -251,24 +252,25 @@ pub fn parse(
             main_sheet.get_value((attr_index, CARDINALITY_INDEX))
         {
             attribute_builder =
-                attribute_builder.add_cardinality(cardinality_value.to_string().clone());
+                attribute_builder.add_cardinality(cardinality_value.to_string().clone().trim().to_string());
         }
 
         if let Some(DataType::String(conformance_value)) =
             main_sheet.get_value((attr_index, CONFORMANCE_INDEX))
         {
-            attribute_builder = attribute_builder.add_conformance(conformance_value.clone());
+            attribute_builder = attribute_builder.add_conformance(conformance_value.clone().trim().to_string());
         }
 
         if let Some(DataType::String(unit_value)) = main_sheet.get_value((attr_index, UNIT_INDEX)) {
             let mut metric_system = String::new();
-            let mut unit = unit_value.clone();
+            let mut unit = unit_value.clone().trim().to_string();
 
             let mut splitted: Vec<String> = unit_value
+                .trim().to_string()
                 .split("|")
                 .collect::<Vec<&str>>()
                 .iter()
-                .map(|c| c.to_string())
+                .map(|c| c.to_string().trim().to_string())
                 .collect();
             if splitted.len() > 1 {
                 unit = splitted.pop().unwrap();
@@ -281,7 +283,7 @@ pub fn parse(
         if let Some(DataType::String(mapping_value)) =
             main_sheet.get_value((attr_index, ATTRIBUTE_MAPPING_INDEX))
         {
-            attribute_builder = attribute_builder.add_mapping(mapping_value.clone());
+            attribute_builder = attribute_builder.add_mapping(mapping_value.clone().trim().to_string());
         }
 
         if let Some(DataType::String(mapping_value)) =
@@ -289,10 +291,11 @@ pub fn parse(
         {
             attribute_builder = attribute_builder.add_entry_codes_mapping(
                 mapping_value
+                    .trim().to_string()
                     .split("|")
                     .collect::<Vec<&str>>()
                     .iter()
-                    .map(|c| c.to_string())
+                    .map(|c| c.to_string().trim().to_string())
                     .collect(),
             );
         }
@@ -316,11 +319,11 @@ pub fn parse(
     for (lang, sheet) in translation_sheets.iter() {
         name_trans.insert(
             lang.to_string(),
-            sheet.get_value((oca_range.0, 0)).unwrap().to_string(),
+            sheet.get_value((oca_range.0, 0)).unwrap().to_string().trim().to_string(),
         );
         description_trans.insert(
             lang.to_string(),
-            sheet.get_value((oca_range.0, 1)).unwrap().to_string(),
+            sheet.get_value((oca_range.0, 1)).unwrap().to_string().trim().to_string(),
         );
 
         for attr_index in (oca_range.0)..(oca_range.1) {
@@ -328,11 +331,11 @@ pub fn parse(
             {
                 match label_trans.get_mut(&attr_index) {
                     Some(attr_label_tr) => {
-                        attr_label_tr.insert(lang.to_string(), label_value.clone());
+                        attr_label_tr.insert(lang.to_string(), label_value.clone().trim().to_string());
                     }
                     None => {
                         let mut attr_label_tr: HashMap<Language, String> = HashMap::new();
-                        attr_label_tr.insert(lang.to_string(), label_value.clone());
+                        attr_label_tr.insert(lang.to_string(), label_value.clone().trim().to_string());
                         label_trans.insert(attr_index, attr_label_tr);
                     }
                 }
@@ -343,7 +346,7 @@ pub fn parse(
             {
                 let entries_el: EntriesElement;
                 if entries_value.starts_with("SAI:") {
-                    let sai = entries_value.strip_prefix("SAI:").unwrap();
+                    let sai = entries_value.strip_prefix("SAI:").unwrap().trim().to_string();
                     entries_el = EntriesElement::Sai(sai.to_string());
                 } else {
                     let entries_obj = entries_value.split("|").collect::<Vec<&str>>().iter().fold(
@@ -378,11 +381,11 @@ pub fn parse(
             {
                 match information_trans.get_mut(&attr_index) {
                     Some(attr_info_tr) => {
-                        attr_info_tr.insert(lang.to_string(), information_value.clone());
+                        attr_info_tr.insert(lang.to_string(), information_value.clone().trim().to_string());
                     }
                     None => {
                         let mut attr_info_tr: HashMap<Language, String> = HashMap::new();
-                        attr_info_tr.insert(lang.to_string(), information_value.clone());
+                        attr_info_tr.insert(lang.to_string(), information_value.clone().trim().to_string());
                         information_trans.insert(attr_index, attr_info_tr);
                     }
                 }
