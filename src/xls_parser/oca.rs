@@ -349,17 +349,37 @@ pub fn parse(
                     let sai = entries_value.strip_prefix("SAI:").unwrap().trim().to_string();
                     entries_el = EntriesElement::Sai(sai.to_string());
                 } else {
-                    let entries_obj = entries_value.split("|").collect::<Vec<&str>>().iter().fold(
-                        BTreeMap::new(),
-                        |mut acc, x| {
-                            let splitted = x.split(":").collect::<Vec<&str>>();
-                            acc.insert(
-                                splitted.get(0).unwrap().to_string(),
-                                splitted.get(1).unwrap().to_string(),
-                            );
-                            acc
-                        },
-                    );
+                    let entries_values = entries_value.split("|").collect::<Vec<&str>>();
+                    for (i, entries_value_element) in entries_values.iter().enumerate() {
+                        let splitted = entries_value_element.split(":").collect::<Vec<&str>>();
+                        let entry_key = splitted.get(0).unwrap().trim().to_string();
+                        if entry_key.is_empty() {
+                            errors.push(format!(
+                                    "Parsing attribute in row {} failed. Invalid Entry Overlay definition for {} language. Missing entry key in position {}",
+                                                attr_index + 1,
+                                                lang,
+                                                i + 1)
+                                );
+                            return Err(errors)
+                        }
+                        splitted.get(1).ok_or_else(|| {
+                            errors.push(format!(
+                                    "Parsing attribute in row {} failed. Invalid Entry Overlay definition for {} language. Missing entry value in position {}",
+                                                attr_index + 1,
+                                                lang,
+                                                i + 1)
+                                );
+                            errors.clone()
+                        })?;
+                    }
+                    let entries_obj = entries_values.iter().fold(BTreeMap::new(), |mut acc, x| {
+                        let splitted = x.split(":").collect::<Vec<&str>>();
+                        acc.insert(
+                            splitted.get(0).unwrap().to_string().trim().to_string(),
+                            splitted.get(1).unwrap().to_string().trim().to_string(),
+                        );
+                        acc
+                    });
                     entries_el = EntriesElement::Object(entries_obj);
                 }
                 match entries_trans.get_mut(&attr_index) {
