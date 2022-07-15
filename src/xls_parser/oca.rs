@@ -34,7 +34,7 @@ const ENTRY_CODE_MAPPING_INDEX: u32 = 13;
 const LABEL_INDEX: u32 = 3;
 const ENTRIES_INDEX: u32 = 4;
 const INFORMATION_INDEX: u32 = 5;
-const SAMPLE_TEMPLATE_MSG: &str = "Sample file template can be found here: https://github.com/THCLab/oca-rust/blob/main/tests/assets/oca_template.xlsx";
+const SAMPLE_TEMPLATE_MSG: &str = "Template file can be found here: https://github.com/THCLab/oca-ecosystem/raw/main/examples/template.xlsx";
 
 pub fn parse(
     path: String,
