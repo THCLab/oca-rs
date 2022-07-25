@@ -1,17 +1,21 @@
 use crate::state::{attribute::Attribute, encoding::Encoding, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::any::Any;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CharacterEncodingOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    default_character_encoding: Encoding,
-    attr_character_encoding: BTreeMap<String, Encoding>,
+    pub default_character_encoding: Encoding,
+    pub attr_character_encoding: BTreeMap<String, Encoding>,
 }
 
 impl Overlay for CharacterEncodingOverlay {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
     fn capture_base(&mut self) -> &mut String {
         &mut self.capture_base
     }

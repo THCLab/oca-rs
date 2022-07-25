@@ -1,16 +1,20 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::any::Any;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EntryCodeMappingOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    attr_mapping: BTreeMap<String, Vec<String>>,
+    pub attr_mapping: BTreeMap<String, Vec<String>>,
 }
 
 impl Overlay for EntryCodeMappingOverlay {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
     fn capture_base(&mut self) -> &mut String {
         &mut self.capture_base
     }

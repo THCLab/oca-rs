@@ -29,11 +29,13 @@ pub use self::information::InformationOverlay as Information;
 pub use self::label::LabelOverlay as Label;
 pub use self::meta::MetaOverlay as Meta;
 pub use self::unit::UnitOverlay as Unit;
+use std::any::Any;
 use crate::state::{attribute::Attribute, language::Language};
 
 erased_serde::serialize_trait_object!(Overlay);
 
 pub trait Overlay: erased_serde::Serialize {
+    fn as_any(&self) -> &dyn Any;
     fn capture_base(&mut self) -> &mut String;
     fn overlay_type(&self) -> &String;
     fn language(&self) -> Option<&Language> {

@@ -1,6 +1,7 @@
 use crate::state::{attribute::Attribute, language::Language, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::any::Any;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LabelOverlay {
@@ -8,14 +9,17 @@ pub struct LabelOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
-    attr_labels: BTreeMap<String, String>,
-    attr_categories: Vec<String>,
-    cat_labels: BTreeMap<String, String>,
+    pub attr_labels: BTreeMap<String, String>,
+    pub attr_categories: Vec<String>,
+    pub cat_labels: BTreeMap<String, String>,
     #[serde(skip)]
     pub cat_attributes: BTreeMap<String, Vec<String>>,
 }
 
 impl Overlay for LabelOverlay {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
     fn capture_base(&mut self) -> &mut String {
         &mut self.capture_base
     }

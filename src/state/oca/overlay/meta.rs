@@ -4,6 +4,7 @@ use crate::state::{
     oca::{OCATranslation, Overlay},
 };
 use serde::{Deserialize, Serialize};
+use std::any::Any;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MetaOverlay {
@@ -11,11 +12,14 @@ pub struct MetaOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
-    name: String,
-    description: String,
+    pub name: String,
+    pub description: String,
 }
 
 impl Overlay for MetaOverlay {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
     fn capture_base(&mut self) -> &mut String {
         &mut self.capture_base
     }

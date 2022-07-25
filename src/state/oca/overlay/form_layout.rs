@@ -1,15 +1,19 @@
 use crate::state::{attribute::Attribute, oca::layout::form::Layout, oca::Overlay};
 use serde::{Deserialize, Serialize};
+use std::any::Any;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FormLayoutOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    layout: Layout,
+    pub layout: Layout,
 }
 
 impl Overlay for FormLayoutOverlay {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
     fn capture_base(&mut self) -> &mut String {
         &mut self.capture_base
     }

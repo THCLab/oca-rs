@@ -1,16 +1,20 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::any::Any;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ConformanceOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    attr_conformance: BTreeMap<String, String>,
+    pub attr_conformance: BTreeMap<String, String>,
 }
 
 impl Overlay for ConformanceOverlay {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
     fn capture_base(&mut self) -> &mut String {
         &mut self.capture_base
     }

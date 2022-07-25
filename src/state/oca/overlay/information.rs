@@ -1,6 +1,7 @@
 use crate::state::{attribute::Attribute, language::Language, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::any::Any;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InformationOverlay {
@@ -8,10 +9,13 @@ pub struct InformationOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
-    attr_information: BTreeMap<String, String>,
+    pub attr_information: BTreeMap<String, String>,
 }
 
 impl Overlay for InformationOverlay {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
     fn capture_base(&mut self) -> &mut String {
         &mut self.capture_base
     }

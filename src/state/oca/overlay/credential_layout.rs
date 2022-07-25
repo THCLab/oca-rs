@@ -1,15 +1,19 @@
 use crate::state::{attribute::Attribute, oca::layout::credential::Layout, oca::Overlay};
 use serde::{Deserialize, Serialize};
+use std::any::Any;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CredentialLayoutOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    layout: Layout,
+    pub layout: Layout,
 }
 
 impl Overlay for CredentialLayoutOverlay {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
     fn capture_base(&mut self) -> &mut String {
         &mut self.capture_base
     }

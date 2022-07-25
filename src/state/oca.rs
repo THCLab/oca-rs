@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, HashMap};
 
 mod capture_base;
 mod layout;
-mod overlay;
+pub mod overlay;
 use crate::state::{
     attribute::Attribute,
     encoding::Encoding,
