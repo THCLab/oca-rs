@@ -485,7 +485,7 @@ type EntryCodeOverlay = {
 type EntryCodeMappingOverlay = {
   capture_base: string,
   type: string,
-  attr_entry_codes_mappings: { [attr_name: string]: string[] }
+  attr_entry_codes_mapping: { [attr_name: string]: string[] }
 }
 
 type FormLayoutOverlay = {
@@ -550,7 +550,7 @@ type LabelOverlay = {
 type MappingOverlay = {
   capture_base: string,
   type: string,
-  attr_mappings: { [attr_name: string]: string }
+  attr_mapping: { [attr_name: string]: string }
 }
 
 type MetaOverlay = {
