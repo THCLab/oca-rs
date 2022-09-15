@@ -13,6 +13,7 @@ pub mod information;
 pub mod label;
 pub mod meta;
 pub mod unit;
+pub mod subset;
 
 pub use self::attribute_mapping::AttributeMappingOverlay as AttributeMapping;
 pub use self::cardinality::CardinalityOverlay as Cardinality;
@@ -29,6 +30,7 @@ pub use self::information::InformationOverlay as Information;
 pub use self::label::LabelOverlay as Label;
 pub use self::meta::MetaOverlay as Meta;
 pub use self::unit::UnitOverlay as Unit;
+pub use self::subset::SubsetOverlay as Subset;
 use std::any::Any;
 use crate::state::{attribute::Attribute, language::Language};
 

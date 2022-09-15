@@ -115,6 +115,12 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             .deserialize_into::<overlay::CredentialLayout>()
                             .map_err(|e| serde::de::Error::custom(e.to_string()))?,
                     ));
+                } else if overlay_type.contains("/subset/") {
+                    return Ok(Box::new(
+                        de_overlay
+                            .deserialize_into::<overlay::Subset>()
+                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                    ));
                 } else {
                     return Err(serde::de::Error::custom(format!(
                         "unknown overlay type: {}",
