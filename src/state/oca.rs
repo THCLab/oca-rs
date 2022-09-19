@@ -1348,7 +1348,7 @@ labels:
             .add_unit("SI".to_string(), "cm".to_string())
             .build();
 
-        let attr2 = AttributeBuilder::new(String::from("n2"), AttributeType::Date)
+        let attr2 = AttributeBuilder::new(String::from("n2"), AttributeType::DateTime)
             .add_label(hashmap! {
                 "En".to_string() => "Date: ".to_string(),
                 "Pl".to_string() => "Data: ".to_string(),

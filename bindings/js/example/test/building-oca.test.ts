@@ -62,7 +62,7 @@ describe('OCA with attributes is built', () => {
       .build()
     )
     .addAttribute(
-      new AttributeBuilder("attr2", AttributeType.Date)
+      new AttributeBuilder("attr2", AttributeType.DateTime)
       .addEncoding(Encoding.Iso8859_1)
       .addCondition("${0} == 'o1'", ['attr_name'])
       .addFormat("DD.MM.YYYY")
@@ -89,7 +89,7 @@ describe('OCA with attributes is built', () => {
     it('attributes properly added', () => {
       expect(captureBase.attributes).to.have.keys("attr_name", "attr2", "attr3")
       expect(captureBase.attributes).to.have.property("attr_name", "Numeric")
-      expect(captureBase.attributes).to.have.property("attr2", "Date")
+      expect(captureBase.attributes).to.have.property("attr2", "DateTime")
       expect(captureBase.attributes).to.have.property("attr3", "SAI:sai")
       expect(captureBase.flagged_attributes).to.eql(["attr_name"])
     })

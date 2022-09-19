@@ -270,9 +270,9 @@ pub enum AttributeType {
     Numeric,
     #[serde(rename = "Array[Numeric]")]
     ArrayNumeric,
-    Date,
-    #[serde(rename = "Array[Date]")]
-    ArrayDate,
+    DateTime,
+    #[serde(rename = "Array[DateTime]")]
+    ArrayDateTime,
     #[serde(rename = "SAI")]
     Sai,
     #[serde(rename = "Array[SAI]")]
