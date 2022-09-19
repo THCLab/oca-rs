@@ -134,8 +134,8 @@ describe('OCA with attributes is built', () => {
         const overlay = overlays[0]
 
         expect(overlay.default_character_encoding).to.eql("utf-8")
-        expect(overlay.attr_character_encoding).to.have.keys("attr2")
-        expect(overlay).to.have.nested.property("attr_character_encoding.attr2", "iso-8859-1")
+        expect(overlay.attribute_character_encoding).to.have.keys("attr2")
+        expect(overlay).to.have.nested.property("attribute_character_encoding.attr2", "iso-8859-1")
       })
     })
 
@@ -146,11 +146,11 @@ describe('OCA with attributes is built', () => {
         expect(overlays).to.lengthOf(1)
         const overlay = overlays[0]
 
-        expect(overlay.attr_conditions).to.have.keys("attr2")
-        expect(overlay).to.have.nested.property("attr_conditions.attr2", "${0} == 'o1'")
+        expect(overlay.attribute_conditions).to.have.keys("attr2")
+        expect(overlay).to.have.nested.property("attribute_conditions.attr2", "${0} == 'o1'")
 
-        expect(overlay.attr_dependencies).to.have.keys("attr2")
-        expect(overlay).to.nested.include({ "attr_dependencies.attr2[0]": 'attr_name' })
+        expect(overlay.attribute_dependencies).to.have.keys("attr2")
+        expect(overlay).to.nested.include({ "attribute_dependencies.attr2[0]": 'attr_name' })
       })
     })
 
@@ -162,8 +162,8 @@ describe('OCA with attributes is built', () => {
         const overlay = overlays[0]
 
         expect(overlay).to.have.property("metric_system", "SI")
-        expect(overlay.attr_units).to.have.keys("attr_name")
-        expect(overlay).to.have.nested.property("attr_units.attr_name", "cm")
+        expect(overlay.attribute_units).to.have.keys("attr_name")
+        expect(overlay).to.have.nested.property("attribute_units.attr_name", "cm")
       })
     })
 
@@ -174,8 +174,8 @@ describe('OCA with attributes is built', () => {
         expect(overlays).to.lengthOf(1)
         const overlay = overlays[0]
 
-        expect(overlay.attr_formats).to.have.keys("attr2")
-        expect(overlay).to.have.nested.property("attr_formats.attr2", "DD.MM.YYYY")
+        expect(overlay.attribute_formats).to.have.keys("attr2")
+        expect(overlay).to.have.nested.property("attribute_formats.attr2", "DD.MM.YYYY")
       })
     })
 
@@ -186,8 +186,8 @@ describe('OCA with attributes is built', () => {
         expect(overlays).to.lengthOf(1)
         const overlay = overlays[0]
 
-        expect(overlay.attr_entry_codes).to.have.keys("attr_name")
-        expect(overlay).to.have.nested.property("attr_entry_codes.attr_name").members(["o1", "o2"])
+        expect(overlay.attribute_entry_codes).to.have.keys("attr_name")
+        expect(overlay).to.have.nested.property("attribute_entry_codes.attr_name").members(["o1", "o2"])
       })
     })
 
@@ -196,7 +196,7 @@ describe('OCA with attributes is built', () => {
 
       it('properly defined', () => {
         const expected: {
-          [lang: string]: { [attr_name: string]: string }
+          [lang: string]: { [attribute_name: string]: string }
         } = {
           pl_PL: {
             "attr_name": "Imię: ",
@@ -214,10 +214,10 @@ describe('OCA with attributes is built', () => {
         overlays.forEach(overlay => {
           const exp = expected[overlay.language]
           expect(exp).to.exist
-          expect(overlay.attr_labels).to.have.keys("attr_name", "attr2", "attr3")
-          expect(overlay.attr_labels).to.have.property("attr_name", exp["attr_name"])
-          expect(overlay.attr_labels).to.have.property("attr2", exp["attr2"])
-          expect(overlay.attr_labels).to.have.property("attr3", exp["attr3"])
+          expect(overlay.attribute_labels).to.have.keys("attr_name", "attr2", "attr3")
+          expect(overlay.attribute_labels).to.have.property("attr_name", exp["attr_name"])
+          expect(overlay.attribute_labels).to.have.property("attr2", exp["attr2"])
+          expect(overlay.attribute_labels).to.have.property("attr3", exp["attr3"])
         })
       })
     })
@@ -227,7 +227,7 @@ describe('OCA with attributes is built', () => {
 
       it('properly defined', () => {
         const expected: {
-          [lang: string]: { [attr_name: string]: string }
+          [lang: string]: { [attribute_name: string]: string }
         } = {
           pl_PL: {
             "attr_name": "pl info",
@@ -241,8 +241,8 @@ describe('OCA with attributes is built', () => {
         overlays.forEach(overlay => {
           const exp = expected[overlay.language]
           expect(exp).to.exist
-          expect(overlay.attr_information).to.have.keys("attr_name")
-          expect(overlay.attr_information).to.have.property("attr_name", exp["attr_name"])
+          expect(overlay.attribute_information).to.have.keys("attr_name")
+          expect(overlay.attribute_information).to.have.property("attr_name", exp["attr_name"])
         })
       })
     })
@@ -252,7 +252,7 @@ describe('OCA with attributes is built', () => {
 
       it('properly defined', () => {
         const expected: {
-          [lang: string]: { [attr_name: string]: { [entry_code: string]: string } }
+          [lang: string]: { [attribute_name: string]: { [entry_code: string]: string } }
         } = {
           pl_PL: {
             "attr_name": { "o1": "opcja 1", "o2": "opcja 2" },
@@ -266,10 +266,10 @@ describe('OCA with attributes is built', () => {
         overlays.forEach(overlay => {
           const exp = expected[overlay.language]
           expect(exp).to.exist
-          expect(overlay.attr_entries).to.have.keys("attr_name")
-          expect(overlay.attr_entries).to.have.property("attr_name")
+          expect(overlay.attribute_entries).to.have.keys("attr_name")
+          expect(overlay.attribute_entries).to.have.property("attr_name")
             .that.have.property("o1", exp["attr_name"]["o1"])
-          expect(overlay.attr_entries).to.have.property("attr_name")
+          expect(overlay.attribute_entries).to.have.property("attr_name")
             .that.have.property("o2", exp["attr_name"]["o2"])
         })
       })

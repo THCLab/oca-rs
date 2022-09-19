@@ -8,7 +8,7 @@ pub struct EntryCodeOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    pub attr_entry_codes: BTreeMap<String, EntryCodes>,
+    pub attribute_entry_codes: BTreeMap<String, EntryCodes>,
 }
 
 impl Overlay for EntryCodeOverlay {
@@ -22,12 +22,12 @@ impl Overlay for EntryCodeOverlay {
         &self.overlay_type
     }
     fn attributes(&self) -> Vec<&String> {
-        self.attr_entry_codes.keys().collect::<Vec<&String>>()
+        self.attribute_entry_codes.keys().collect::<Vec<&String>>()
     }
 
     fn add(&mut self, attribute: &Attribute) {
         if attribute.entry_codes.is_some() {
-            self.attr_entry_codes.insert(
+            self.attribute_entry_codes.insert(
                 attribute.name.clone(),
                 attribute.entry_codes.as_ref().unwrap().clone(),
             );
@@ -39,7 +39,7 @@ impl EntryCodeOverlay {
         Box::new(EntryCodeOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overlays/entry_code/1.0".to_string(),
-            attr_entry_codes: BTreeMap::new(),
+            attribute_entry_codes: BTreeMap::new(),
         })
     }
 }

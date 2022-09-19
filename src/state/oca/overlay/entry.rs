@@ -11,7 +11,7 @@ pub struct EntryOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
-    pub attr_entries: BTreeMap<String, EntriesElement>,
+    pub attribute_entries: BTreeMap<String, EntriesElement>,
 }
 
 impl Overlay for EntryOverlay {
@@ -28,13 +28,13 @@ impl Overlay for EntryOverlay {
         Some(&self.language)
     }
     fn attributes(&self) -> Vec<&String> {
-        self.attr_entries.keys().collect::<Vec<&String>>()
+        self.attribute_entries.keys().collect::<Vec<&String>>()
     }
 
     fn add(&mut self, attribute: &Attribute) {
         if let Some(tr) = attribute.translations.get(&self.language) {
             if let Some(entries) = &tr.entries {
-                self.attr_entries
+                self.attribute_entries
                     .insert(attribute.name.clone(), entries.clone());
             }
         }
@@ -46,7 +46,7 @@ impl EntryOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overlays/entry/1.0".to_string(),
             language: lang,
-            attr_entries: BTreeMap::new(),
+            attribute_entries: BTreeMap::new(),
         })
     }
 }

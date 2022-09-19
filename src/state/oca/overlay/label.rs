@@ -9,11 +9,11 @@ pub struct LabelOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
-    pub attr_labels: BTreeMap<String, String>,
-    pub attr_categories: Vec<String>,
-    pub cat_labels: BTreeMap<String, String>,
+    pub attribute_labels: BTreeMap<String, String>,
+    pub attribute_categories: Vec<String>,
+    pub category_labels: BTreeMap<String, String>,
     #[serde(skip)]
-    pub cat_attributes: BTreeMap<String, Vec<String>>,
+    pub category_attributes: BTreeMap<String, Vec<String>>,
 }
 
 impl Overlay for LabelOverlay {
@@ -30,7 +30,7 @@ impl Overlay for LabelOverlay {
         Some(&self.language)
     }
     fn attributes(&self) -> Vec<&String> {
-        self.attr_labels.keys().collect::<Vec<&String>>()
+        self.attribute_labels.keys().collect::<Vec<&String>>()
     }
 
     fn add(&mut self, attribute: &Attribute) {
@@ -38,7 +38,7 @@ impl Overlay for LabelOverlay {
             if let Some(value) = &tr.label {
                 let mut splitted = value.split('|').collect::<Vec<&str>>();
                 let label = splitted.pop().unwrap().to_string();
-                self.attr_labels.insert(attribute.name.clone(), label);
+                self.attribute_labels.insert(attribute.name.clone(), label);
                 self.add_to_category(splitted, attribute);
             }
         }
@@ -51,10 +51,10 @@ impl LabelOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overlays/label/1.0".to_string(),
             language: lang,
-            attr_labels: BTreeMap::new(),
-            attr_categories: vec![],
-            cat_labels: BTreeMap::new(),
-            cat_attributes: BTreeMap::new(),
+            attribute_labels: BTreeMap::new(),
+            attribute_categories: vec![],
+            category_labels: BTreeMap::new(),
+            category_attributes: BTreeMap::new(),
         })
     }
 
@@ -70,7 +70,7 @@ impl LabelOverlay {
                 regex::Regex::new(format!("^_cat{}(-[0-9]*)_$", supercat).as_str()).unwrap();
             let mut acctual_cat_id = String::new();
             let mut category_exists = false;
-            for (cat_id, cat_label) in self.cat_labels.iter() {
+            for (cat_id, cat_label) in self.category_labels.iter() {
                 if cat_label == category && regex.is_match(cat_id) {
                     let cat_temp = cat_id.replace('_', "");
                     let mut temp = cat_temp.split('-').collect::<Vec<&str>>();
@@ -83,21 +83,21 @@ impl LabelOverlay {
 
             if !category_exists {
                 let mut count = 0;
-                for cat in self.attr_categories.iter() {
+                for cat in self.attribute_categories.iter() {
                     if regex.is_match(cat.as_str()) {
                         count += 1;
                     }
                 }
                 acctual_cat_id = format!("_cat{}-{}_", supercat, count + 1);
                 supercats.push(count + 1);
-                self.cat_labels
+                self.category_labels
                     .insert(acctual_cat_id.clone(), category.to_string());
-                self.attr_categories.push(acctual_cat_id.clone());
-                self.cat_attributes.insert(acctual_cat_id.clone(), vec![]);
+                self.attribute_categories.push(acctual_cat_id.clone());
+                self.category_attributes.insert(acctual_cat_id.clone(), vec![]);
             }
 
             if i + 1 == categories.len() {
-                self.cat_attributes
+                self.category_attributes
                     .get_mut(acctual_cat_id.as_str())
                     .unwrap()
                     .push(attribute.name.clone());
@@ -130,26 +130,26 @@ mod tests {
                 .build(),
         );
 
-        assert_eq!(overlay.attr_categories.len(), 2);
-        assert!(overlay.attr_categories.contains(&"_cat-1_".to_string()));
-        assert!(overlay.attr_categories.contains(&"_cat-2_".to_string()));
+        assert_eq!(overlay.attribute_categories.len(), 2);
+        assert!(overlay.attribute_categories.contains(&"_cat-1_".to_string()));
+        assert!(overlay.attribute_categories.contains(&"_cat-2_".to_string()));
 
-        assert!(overlay.cat_labels.get(&"_cat-1_".to_string()).is_some());
-        if let Some(cat1) = overlay.cat_labels.get(&"_cat-1_".to_string()) {
+        assert!(overlay.category_labels.get(&"_cat-1_".to_string()).is_some());
+        if let Some(cat1) = overlay.category_labels.get(&"_cat-1_".to_string()) {
             assert_eq!(*cat1, "Cat 1".to_string());
         }
-        assert!(overlay.cat_labels.get(&"_cat-2_".to_string()).is_some());
-        if let Some(cat2) = overlay.cat_labels.get(&"_cat-2_".to_string()) {
+        assert!(overlay.category_labels.get(&"_cat-2_".to_string()).is_some());
+        if let Some(cat2) = overlay.category_labels.get(&"_cat-2_".to_string()) {
             assert_eq!(*cat2, "Cat 2".to_string());
         }
 
-        assert!(overlay.cat_attributes.get(&"_cat-1_".to_string()).is_some());
-        if let Some(cat1_attrs) = overlay.cat_attributes.get(&"_cat-1_".to_string()) {
+        assert!(overlay.category_attributes.get(&"_cat-1_".to_string()).is_some());
+        if let Some(cat1_attrs) = overlay.category_attributes.get(&"_cat-1_".to_string()) {
             assert_eq!(cat1_attrs.len(), 1);
             assert!(cat1_attrs.contains(&"attr1".to_string()));
         }
-        assert!(overlay.cat_attributes.get(&"_cat-2_".to_string()).is_some());
-        if let Some(cat2_attrs) = overlay.cat_attributes.get(&"_cat-2_".to_string()) {
+        assert!(overlay.category_attributes.get(&"_cat-2_".to_string()).is_some());
+        if let Some(cat2_attrs) = overlay.category_attributes.get(&"_cat-2_".to_string()) {
             assert_eq!(cat2_attrs.len(), 1);
             assert!(cat2_attrs.contains(&"attr2".to_string()));
         }

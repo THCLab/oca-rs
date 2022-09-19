@@ -8,7 +8,7 @@ pub struct CardinalityOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    pub attr_cardinality: BTreeMap<String, String>,
+    pub attribute_cardinality: BTreeMap<String, String>,
 }
 
 impl Overlay for CardinalityOverlay {
@@ -22,12 +22,12 @@ impl Overlay for CardinalityOverlay {
         &self.overlay_type
     }
     fn attributes(&self) -> Vec<&String> {
-        self.attr_cardinality.keys().collect::<Vec<&String>>()
+        self.attribute_cardinality.keys().collect::<Vec<&String>>()
     }
 
     fn add(&mut self, attribute: &Attribute) {
         if attribute.cardinality.is_some() {
-            self.attr_cardinality.insert(
+            self.attribute_cardinality.insert(
                 attribute.name.clone(),
                 attribute.cardinality.as_ref().unwrap().clone(),
             );
@@ -39,7 +39,7 @@ impl CardinalityOverlay {
         Box::new(CardinalityOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overlays/cardinality/1.0".to_string(),
-            attr_cardinality: BTreeMap::new(),
+            attribute_cardinality: BTreeMap::new(),
         })
     }
 }

@@ -8,7 +8,7 @@ pub struct ConformanceOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    pub attr_conformance: BTreeMap<String, String>,
+    pub attribute_conformance: BTreeMap<String, String>,
 }
 
 impl Overlay for ConformanceOverlay {
@@ -22,12 +22,12 @@ impl Overlay for ConformanceOverlay {
         &self.overlay_type
     }
     fn attributes(&self) -> Vec<&String> {
-        self.attr_conformance.keys().collect::<Vec<&String>>()
+        self.attribute_conformance.keys().collect::<Vec<&String>>()
     }
 
     fn add(&mut self, attribute: &Attribute) {
         if attribute.conformance.is_some() {
-            self.attr_conformance.insert(
+            self.attribute_conformance.insert(
                 attribute.name.clone(),
                 attribute.conformance.as_ref().unwrap().clone(),
             );
@@ -39,7 +39,7 @@ impl ConformanceOverlay {
         Box::new(ConformanceOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overlays/conformance/1.0".to_string(),
-            attr_conformance: BTreeMap::new(),
+            attribute_conformance: BTreeMap::new(),
         })
     }
 }

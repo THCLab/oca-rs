@@ -9,7 +9,7 @@ use crate::state::{
 #[derive(Serialize, Deserialize)]
 pub struct Attribute {
     pub name: String,
-    pub attr_type: AttributeType,
+    pub attribute_type: AttributeType,
     pub is_flagged: bool,
     pub translations: HashMap<Language, AttributeTranslation>,
     pub mapping: Option<String>,
@@ -31,11 +31,11 @@ pub struct AttributeBuilder {
 }
 
 impl AttributeBuilder {
-    pub fn new(name: String, attr_type: AttributeType) -> AttributeBuilder {
+    pub fn new(name: String, attribute_type: AttributeType) -> AttributeBuilder {
         AttributeBuilder {
             attribute: Attribute {
                 name,
-                attr_type,
+                attribute_type,
                 is_flagged: false,
                 translations: HashMap::new(),
                 mapping: None,

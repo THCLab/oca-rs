@@ -9,7 +9,7 @@ pub struct UnitOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     pub metric_system: String,
-    pub attr_units: BTreeMap<String, String>,
+    pub attribute_units: BTreeMap<String, String>,
 }
 
 impl Overlay for UnitOverlay {
@@ -26,12 +26,12 @@ impl Overlay for UnitOverlay {
         Some(&self.metric_system)
     }
     fn attributes(&self) -> Vec<&String> {
-        self.attr_units.keys().collect::<Vec<&String>>()
+        self.attribute_units.keys().collect::<Vec<&String>>()
     }
 
     fn add(&mut self, attribute: &Attribute) {
         if attribute.unit.is_some() {
-            self.attr_units.insert(
+            self.attribute_units.insert(
                 attribute.name.clone(),
                 attribute.unit.as_ref().unwrap().clone(),
             );
@@ -44,7 +44,7 @@ impl UnitOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overlays/unit/1.0".to_string(),
             metric_system,
-            attr_units: BTreeMap::new(),
+            attribute_units: BTreeMap::new(),
         })
     }
 }

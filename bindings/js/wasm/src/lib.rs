@@ -206,9 +206,9 @@ pub struct AttributeBuilder {
 #[wasm_bindgen]
 impl AttributeBuilder {
     #[wasm_bindgen(constructor)]
-    pub fn new(name: String, attr_type: AttributeType) -> AttributeBuilder {
+    pub fn new(name: String, attribute_type: AttributeType) -> AttributeBuilder {
         AttributeBuilder {
-            raw: AttributeBuilderRaw::new(name, attr_type),
+            raw: AttributeBuilderRaw::new(name, attribute_type),
         }
     }
 
@@ -375,7 +375,7 @@ type OCA = {
 type CaptureBase = {
   type: string,
   classification: string,
-  attributes: { [attr_name: string]: string },
+  attributes: { [attribute_name: string]: string },
   flagged_attributes: string[]
 }
 
@@ -400,27 +400,27 @@ type Overlay =
 type CardinalityOverlay = {
   capture_base: string,
   type: string,
-  attr_cardinality: { [attr_name: string]: string }
+  attribute_cardinality: { [attribute_name: string]: string }
 }
 
 type CharacterEncodingOverlay = {
   capture_base: string,
   type: string,
   default_character_encoding: string,
-  attr_character_encoding: { [attr_name: string]: string }
+  attribute_character_encoding: { [attribute_name: string]: string }
 }
 
 type ConditionalOverlay = {
   capture_base: string,
   type: string,
-  attr_conditions: { [attr_name: string]: string },
-  attr_dependencies: { [attr_name: string]: string[] }
+  attribute_conditions: { [attribute_name: string]: string },
+  attribute_dependencies: { [attribute_name: string]: string[] }
 }
 
 type ConformanceOverlay = {
   capture_base: string,
   type: string,
-  attr_conformance: { [attr_name: string]: 'O' | 'M' }
+  attribute_conformance: { [attribute_name: string]: 'O' | 'M' }
 }
 
 type CredentialLayoutOverlay = {
@@ -474,19 +474,19 @@ type EntryOverlay = {
   capture_base: string,
   type: string,
   language: string,
-  attr_entries: { [attr_name: string]: { [entry_code: string]: string } }
+  attribute_entries: { [attribute_name: string]: { [entry_code: string]: string } }
 }
 
 type EntryCodeOverlay = {
   capture_base: string,
   type: string,
-  attr_entry_codes: { [attr_name: string]: string[] }
+  attribute_entry_codes: { [attribute_name: string]: string[] }
 }
 
 type EntryCodeMappingOverlay = {
   capture_base: string,
   type: string,
-  attr_entry_codes_mapping: { [attr_name: string]: string[] }
+  attribute_entry_codes_mapping: { [attribute_name: string]: string[] }
 }
 
 type FormLayoutOverlay = {
@@ -528,30 +528,30 @@ type FormLayoutOverlay = {
 type FormatOverlay = {
   capture_base: string,
   type: string,
-  attr_formats: { [attr_name: string]: string }
+  attribute_formats: { [attribute_name: string]: string }
 }
 
 type InformationOverlay = {
   capture_base: string,
   type: string,
   language: string,
-  attr_information: { [attr_name: string]: string }
+  attribute_information: { [attribute_name: string]: string }
 }
 
 type LabelOverlay = {
   capture_base: string,
   type: string,
   language: string,
-  attr_labels: { [attr_name: string]: string }
-  attr_categories: string[],
-  cat_labels: { [cat_id: string]: string },
-  cat_attributes: { [cat_id: string]: string[] }
+  attribute_labels: { [attribute_name: string]: string }
+  attribute_categories: string[],
+  category_labels: { [cat_id: string]: string },
+  category_attributes: { [cat_id: string]: string[] }
 }
 
 type MappingOverlay = {
   capture_base: string,
   type: string,
-  attr_mapping: { [attr_name: string]: string }
+  attribute_mapping: { [attribute_name: string]: string }
 }
 
 type MetaOverlay = {
@@ -566,7 +566,7 @@ type UnitOverlay = {
   capture_base: string,
   type: string,
   metric_system: string,
-  attr_units: { [attr_name: string]: string }
+  attribute_units: { [attribute_name: string]: string }
 }
 
 type SubsetOverlay = {
@@ -586,7 +586,7 @@ type AttributeTranslation = {
 
 type Attribute = {
   name: string
-  attr_type: string
+  attribute_type: string
   sai?: string
   is_flagged: boolean
   translations: { [language: string]: AttributeTranslation }

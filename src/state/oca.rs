@@ -146,7 +146,7 @@ pub struct OCA {
 }
 
 struct CatAttributes {
-    cat_labels: HashMap<String, String>,
+    category_labels: HashMap<String, String>,
     categorized: IndexMap<String, IndexMap<String, Option<String>>>,
     uncategorized: IndexMap<String, Option<String>>,
     lang: String,
@@ -174,7 +174,7 @@ impl CatAttributes {
                 regex::Regex::new(format!("^_cat{}(-[0-9]*)_$", supercat).as_str()).unwrap();
             let mut acctual_cat_id = String::new();
             let mut category_exists = false;
-            for (cat_id, cat_label) in self.cat_labels.iter() {
+            for (cat_id, cat_label) in self.category_labels.iter() {
                 if cat_label == category && regex.is_match(cat_id) {
                     let cat_temp = cat_id.replace('_', "");
                     let mut temp = cat_temp.split('-').collect::<Vec<&str>>();
@@ -194,7 +194,7 @@ impl CatAttributes {
                 }
                 acctual_cat_id = format!("_cat{}-{}_", supercat, count + 1);
                 supercats.push(count + 1);
-                self.cat_labels
+                self.category_labels
                     .insert(acctual_cat_id.clone(), category.to_string());
                 self.categorized
                     .insert(acctual_cat_id.clone(), IndexMap::new());
@@ -355,7 +355,7 @@ impl<'de> Deserialize<'de> for OCABuilder {
                 cat_attributes: CatAttributes {
                     categorized: IndexMap::new(),
                     uncategorized: IndexMap::new(),
-                    cat_labels: HashMap::new(),
+                    category_labels: HashMap::new(),
                     lang: String::new(),
                 },
             })
@@ -381,7 +381,7 @@ impl OCABuilder {
             credential_layout: None,
             credential_layout_reference: BTreeMap::new(),
             cat_attributes: CatAttributes {
-                cat_labels: HashMap::new(),
+                category_labels: HashMap::new(),
                 categorized: IndexMap::new(),
                 uncategorized: IndexMap::new(),
                 lang: String::new(),

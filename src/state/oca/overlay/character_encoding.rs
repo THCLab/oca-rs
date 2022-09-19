@@ -9,7 +9,7 @@ pub struct CharacterEncodingOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     pub default_character_encoding: Encoding,
-    pub attr_character_encoding: BTreeMap<String, Encoding>,
+    pub attribute_character_encoding: BTreeMap<String, Encoding>,
 }
 
 impl Overlay for CharacterEncodingOverlay {
@@ -23,13 +23,13 @@ impl Overlay for CharacterEncodingOverlay {
         &self.overlay_type
     }
     fn attributes(&self) -> Vec<&String> {
-        self.attr_character_encoding
+        self.attribute_character_encoding
             .keys()
             .collect::<Vec<&String>>()
     }
 
     fn add(&mut self, attribute: &Attribute) {
-        self.attr_character_encoding
+        self.attribute_character_encoding
             .insert(attribute.name.clone(), attribute.encoding.unwrap());
     }
 }
@@ -39,7 +39,7 @@ impl CharacterEncodingOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overlays/character_encoding/1.0".to_string(),
             default_character_encoding: *encoding,
-            attr_character_encoding: BTreeMap::new(),
+            attribute_character_encoding: BTreeMap::new(),
         })
     }
 }

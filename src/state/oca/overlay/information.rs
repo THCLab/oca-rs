@@ -9,7 +9,7 @@ pub struct InformationOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
-    pub attr_information: BTreeMap<String, String>,
+    pub attribute_information: BTreeMap<String, String>,
 }
 
 impl Overlay for InformationOverlay {
@@ -26,13 +26,13 @@ impl Overlay for InformationOverlay {
         Some(&self.language)
     }
     fn attributes(&self) -> Vec<&String> {
-        self.attr_information.keys().collect::<Vec<&String>>()
+        self.attribute_information.keys().collect::<Vec<&String>>()
     }
 
     fn add(&mut self, attribute: &Attribute) {
         if let Some(tr) = attribute.translations.get(&self.language) {
             if let Some(info) = &tr.information {
-                self.attr_information
+                self.attribute_information
                     .insert(attribute.name.clone(), info.clone());
             }
         }
@@ -44,7 +44,7 @@ impl InformationOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overlays/information/1.0".to_string(),
             language: lang,
-            attr_information: BTreeMap::new(),
+            attribute_information: BTreeMap::new(),
         })
     }
 }

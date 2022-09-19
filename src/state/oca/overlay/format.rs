@@ -8,7 +8,7 @@ pub struct FormatOverlay {
     capture_base: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    pub attr_formats: BTreeMap<String, String>,
+    pub attribute_formats: BTreeMap<String, String>,
 }
 
 impl Overlay for FormatOverlay {
@@ -22,12 +22,12 @@ impl Overlay for FormatOverlay {
         &self.overlay_type
     }
     fn attributes(&self) -> Vec<&String> {
-        self.attr_formats.keys().collect::<Vec<&String>>()
+        self.attribute_formats.keys().collect::<Vec<&String>>()
     }
 
     fn add(&mut self, attribute: &Attribute) {
         if attribute.format.is_some() {
-            self.attr_formats.insert(
+            self.attribute_formats.insert(
                 attribute.name.clone(),
                 attribute.format.as_ref().unwrap().clone(),
             );
@@ -39,7 +39,7 @@ impl FormatOverlay {
         Box::new(FormatOverlay {
             capture_base: String::new(),
             overlay_type: "spec/overlays/format/1.0".to_string(),
-            attr_formats: BTreeMap::new(),
+            attribute_formats: BTreeMap::new(),
         })
     }
 }

@@ -31,65 +31,65 @@ mod tests {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/character_encoding/1.0",
       "default_character_encoding": "utf-8",
-      "attr_character_encoding": { "n2": "iso-8859-1" }
+      "attribute_character_encoding": { "n2": "iso-8859-1" }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/unit/1.0",
       "metric_system": "SI",
-      "attr_units": { "n1": "cm" }
+      "attribute_units": { "n1": "cm" }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/entry_code/1.0",
-      "attr_entry_codes": { "n1": [ "op1", "op2" ] }
+      "attribute_entry_codes": { "n1": [ "op1", "op2" ] }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/label/1.0",
       "language": "pl_PL",
-      "attr_labels": { "n1": "Imię: ", "n2": "Data: ", "n3": "Referecja: " },
-      "attr_categories": [ "_cat-1_" ],
-      "cat_labels": { "_cat-1_": "Category 1" },
-      "cat_attributes": { "_cat-1_": [ "n1", "n2", "n3" ] }
+      "attribute_labels": { "n1": "Imię: ", "n2": "Data: ", "n3": "Referecja: " },
+      "attribute_categories": [ "_cat-1_" ],
+      "category_labels": { "_cat-1_": "Category 1" },
+      "category_attributes": { "_cat-1_": [ "n1", "n2", "n3" ] }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/information/1.0",
       "language": "pl_PL",
-      "attr_information": { "n1": "info pl" }
+      "attribute_information": { "n1": "info pl" }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/entry/1.0",
       "language": "pl_PL",
-      "attr_entries": { "n1": { "op2": "Opcja 2", "op1": "Opcja 1" } }
+      "attribute_entries": { "n1": { "op2": "Opcja 2", "op1": "Opcja 1" } }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/label/1.0",
       "language": "en_EN",
-      "attr_labels": { "n2": "Date: ", "n1": "Name: ", "n3": "Reference: " },
-      "attr_categories": [ "_cat-1_" ],
-      "cat_labels": { "_cat-1_": "Category 1" },
-      "cat_attributes": { "_cat-1_": [ "n1", "n2", "n3" ] }
+      "attribute_labels": { "n2": "Date: ", "n1": "Name: ", "n3": "Reference: " },
+      "attribute_categories": [ "_cat-1_" ],
+      "category_labels": { "_cat-1_": "Category 1" },
+      "category_attributes": { "_cat-1_": [ "n1", "n2", "n3" ] }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/information/1.0",
       "language": "en_EN",
-      "attr_information": { "n1": "info en" }
+      "attribute_information": { "n1": "info en" }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/entry/1.0",
       "language": "en_EN",
-      "attr_entries": { "n1": { "op1": "Option 1", "op2": "Option 2" } }
+      "attribute_entries": { "n1": { "op1": "Option 1", "op2": "Option 2" } }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
       "type": "spec/overlays/format/1.0",
-      "attr_formats": { "n2": "DD/MM/YYYY" }
+      "attribute_formats": { "n2": "DD/MM/YYYY" }
     },
     {
       "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
