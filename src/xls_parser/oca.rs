@@ -386,7 +386,7 @@ pub fn parse(
                     } else if v.starts_with("OL-LA:") {
                         sheet_column_indicies.insert("LABEL_INDEX", i as u32);
                     } else if v.starts_with("OL-EN:") {
-                        sheet_column_indicies.insert("ENTRY_INDEX", i as u32);
+                        sheet_column_indicies.insert("ENTRIES_INDEX", i as u32);
                     } else if v.starts_with("OL-IN:") {
                         sheet_column_indicies.insert("INFORMATION_INDEX", i as u32);
                     }
