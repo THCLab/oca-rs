@@ -23,6 +23,8 @@ struct ElementConfigCss {
 struct ElementConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     css: Option<ElementConfigCss>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    widget: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
