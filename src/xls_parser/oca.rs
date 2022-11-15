@@ -93,6 +93,8 @@ pub fn parse(
                     column_indicies.insert("ATTR_NAME_INDEX", i as u32);
                 } else if v.starts_with("CB-AT:") {
                     column_indicies.insert("ATTR_TYPE_INDEX", i as u32);
+                } else if v.starts_with("CB-RS:") {
+                    column_indicies.insert("REFERENCE_SAI_INDEX", i as u32);
                 } else if v.starts_with("CB-FA:") {
                     column_indicies.insert("FLAGGED_INDEX", i as u32);
                 } else if v.starts_with("OL-CH:") {
@@ -191,15 +193,29 @@ pub fn parse(
 
         attribute_names.push(attribute_name.clone());
         */
-        let attribute_type_value = &format!(
+        let attribute_type = &format!(
             r#"{}"#,
             &main_sheet.get_value((attr_index, *column_indicies.get("ATTR_TYPE_INDEX").unwrap())).unwrap()
         ).trim().to_string();
-        let attribute_type_tmp = attribute_type_value.split(":").collect::<Vec<&str>>();
-        let mut attribute_type = attribute_type_tmp.get(0).unwrap().to_string();
-        let attribute_sai = attribute_type_tmp.get(1);
-        if attribute_type == "Array[SAI" {
-            attribute_type.push(']');
+        let mut attribute_sai: Option<String> = None;
+        if attribute_type.contains("Reference") {
+            match column_indicies.get("REFERENCE_SAI_INDEX") {
+                Some(reference_sai_index) => {
+                    if let Some(sai_value) = &main_sheet.get_value((attr_index, *reference_sai_index)) {
+                        if let DataType::Empty = sai_value {
+                            return Err(format!(
+                                "Parsing attribute type in row {} ({}) failed. Missing reference SAI",
+                                attr_index + 1,
+                                attribute_name,
+                            ))
+                        }
+                        attribute_sai = Some(format!(r#"{}"#, sai_value).trim().to_string());
+                    }
+                },
+                None => {
+                    return Err("Missing CB-RS: Reference SAI column".to_string())
+                }
+            }
         }
         let mut attribute_builder = AttributeBuilder::new(
             attribute_name.clone(),
