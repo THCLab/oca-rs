@@ -1358,7 +1358,7 @@ labels:
             .add_format("DD/MM/YYYY".to_string())
             .build();
 
-        let attr3 = AttributeBuilder::new(String::from("n3"), AttributeType::Sai)
+        let attr3 = AttributeBuilder::new(String::from("n3"), AttributeType::Reference)
             .add_sai("sai".to_string())
             .add_label(hashmap! {
                 "En".to_string() => "Reference: ".to_string(),
@@ -1379,7 +1379,7 @@ labels:
 
         assert_eq!(
             oca.capture_base.attributes.get(&"n3".to_string()),
-            Some(&"SAI:sai".to_string())
+            Some(&"Reference:sai".to_string())
         );
         assert_eq!(oca.capture_base.attributes.len(), 3);
         assert_eq!(oca.capture_base.flagged_attributes.len(), 1);

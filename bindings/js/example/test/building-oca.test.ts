@@ -73,7 +73,7 @@ describe('OCA with attributes is built', () => {
       .build()
     )
     .addAttribute(
-      new AttributeBuilder("attr3", AttributeType.Sai)
+      new AttributeBuilder("attr3", AttributeType.Reference)
       .addSai("sai")
       .addLabel({
         en_EN: "Reference: ",
@@ -90,7 +90,7 @@ describe('OCA with attributes is built', () => {
       expect(captureBase.attributes).to.have.keys("attr_name", "attr2", "attr3")
       expect(captureBase.attributes).to.have.property("attr_name", "Numeric")
       expect(captureBase.attributes).to.have.property("attr2", "DateTime")
-      expect(captureBase.attributes).to.have.property("attr3", "SAI:sai")
+      expect(captureBase.attributes).to.have.property("attr3", "Reference:sai")
       expect(captureBase.flagged_attributes).to.eql(["attr_name"])
     })
   })
