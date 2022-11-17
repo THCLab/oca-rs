@@ -22,9 +22,8 @@ describe('Translations are not enforced', () => {
   const validator = new Validator()
   const result = validator.validate(oca)
 
-  it('return errors', () => {
-    expect(result.success).to.be.false
-    expect(result.errors).to.be.an('array').lengthOf(1)
+  it('return success', () => {
+    expect(result.success).to.be.true
   })
 })
 
