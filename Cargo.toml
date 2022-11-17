@@ -2,7 +2,7 @@
 license = "GPL-3.0"
 description = "Rust implementation of Overlays Capture Architecture"
 name = "oca-rust"
-version = "0.2.6"
+version = "0.2.7"
 authors = ["Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>", "Robert Mitwicki <robert.mitwicki@opensoftware.pl>", "Michał Pietrus <michal.pietrus@opensoftware.pl>"]
 edition = "2018"
 
