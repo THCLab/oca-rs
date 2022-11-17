@@ -242,7 +242,8 @@ impl<'de> Deserialize<'de> for OCABuilder {
                     Some(de_capture_base) => de_capture_base
                         .clone()
                         .deserialize_into::<CaptureBase>()
-                        .unwrap(),
+                        .map_err(|e| serde::de::Error::custom(format!("Capture Base: {}", e.to_string())))?,
+
                     None => return Err(serde::de::Error::missing_field("capture_base")),
                 };
             match oca.get(&serde_value::Value::String("overlays".to_string())) {
@@ -334,7 +335,7 @@ impl<'de> Deserialize<'de> for OCABuilder {
                         let de_rest_overlays = serde_value::Value::Seq(rest_overlays);
                         overlays = de_rest_overlays
                             .deserialize_into::<Vec<DynOverlay>>()
-                            .unwrap();
+                            .map_err(|e| serde::de::Error::custom(e.to_string()))?;
                     } else {
                         return Err(serde::de::Error::custom("overlays must be an array"));
                     }

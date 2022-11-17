@@ -3,6 +3,7 @@ use crate::state::{
     oca::{DynOverlay, OCABuilder, OCATranslation, OCA},
 };
 use std::collections::{HashMap, HashSet};
+use said::derivation::SelfAddressing;
 
 #[derive(Debug)]
 pub enum Error {
@@ -44,73 +45,87 @@ impl Validator {
         let mut errors: Vec<Error> = vec![];
 
         let oca_str = serde_json::to_string(&serde_json::value::to_value(oca).unwrap()).unwrap();
-        let oca_builder: OCABuilder = serde_json::from_str(oca_str.as_str()).unwrap();
+        let oca_builder: OCABuilder = serde_json::from_str(oca_str.as_str()).map_err(|e| vec![Error::Custom(e.to_string())])?;
 
-        if !oca_builder.meta_translations.is_empty() {
-            if let Err(meta_errors) =
-                self.validate_meta(&enforced_langs, &oca_builder.meta_translations)
-            {
-                errors = errors
-                    .into_iter()
-                    .chain(meta_errors.into_iter().map(|e| {
-                        if let Error::UnexpectedTranslations(lang) = e {
-                            Error::Custom(format!(
-                                "meta overlay: translations in {:?} language are not enforced",
-                                lang
-                            ))
-                        } else if let Error::MissingTranslations(lang) = e {
-                            Error::Custom(format!(
-                                "meta overlay: translations in {:?} language are missing",
-                                lang
-                            ))
-                        } else if let Error::MissingMetaTranslation(lang, attr) = e {
-                            Error::Custom(format!(
-                                "meta overlay: for '{}' translation in {:?} language is missing",
-                                attr, lang
-                            ))
-                        } else {
-                            e
-                        }
-                    }))
-                    .collect();
+        let cb_json = serde_json::to_string(&oca_builder.oca.capture_base).unwrap();
+        let sai = format!("{}", SelfAddressing::Blake3_256.derive(cb_json.as_bytes()));
+        for mut o in oca_builder.oca.overlays {
+            if o.capture_base() != &sai {
+                let msg = match o.language() {
+                    Some(lang) => format!("{} ({}): Mismatch capture_base SAI", o.overlay_type(), lang),
+                    None => format!("{}: Mismatch capture_base SAI", o.overlay_type()),
+                };
+                errors.push(Error::Custom(msg));
             }
         }
 
-        for overlay_type in &["entry", "information", "label"] {
-            let typed_overlays: Vec<_> = oca
-                .overlays
-                .iter()
-                .filter(|x| {
-                    x.overlay_type()
-                        .contains(format!("/{}/", overlay_type).as_str())
-                })
-                .collect();
-            if typed_overlays.is_empty() {
-                continue;
+        if !enforced_langs.is_empty() {
+            if !oca_builder.meta_translations.is_empty() {
+                if let Err(meta_errors) =
+                    self.validate_meta(&enforced_langs, &oca_builder.meta_translations)
+                {
+                    errors = errors
+                        .into_iter()
+                        .chain(meta_errors.into_iter().map(|e| {
+                            if let Error::UnexpectedTranslations(lang) = e {
+                                Error::Custom(format!(
+                                    "meta overlay: translations in {:?} language are not enforced",
+                                    lang
+                                ))
+                            } else if let Error::MissingTranslations(lang) = e {
+                                Error::Custom(format!(
+                                    "meta overlay: translations in {:?} language are missing",
+                                    lang
+                                ))
+                            } else if let Error::MissingMetaTranslation(lang, attr) = e {
+                                Error::Custom(format!(
+                                    "meta overlay: for '{}' translation in {:?} language is missing",
+                                    attr, lang
+                                ))
+                            } else {
+                                e
+                            }
+                        }))
+                        .collect();
+                }
             }
 
-            if let Err(translation_errors) =
-                self.validate_translations(&enforced_langs, typed_overlays)
-            {
-                errors = errors.into_iter().chain(
-                    translation_errors.into_iter().map(|e| {
-                        if let Error::UnexpectedTranslations(lang) = e {
-                            Error::Custom(
-                                format!("{} overlay: translations in {:?} language are not enforced", overlay_type, lang)
-                            )
-                        } else if let Error::MissingTranslations(lang) = e {
-                            Error::Custom(
-                                format!("{} overlay: translations in {:?} language are missing", overlay_type, lang)
-                            )
-                        } else if let Error::MissingAttributeTranslation(lang, attr_name) = e {
-                            Error::Custom(
-                                format!("{} overlay: for '{}' attribute missing translations in {:?} language", overlay_type, attr_name, lang)
-                            )
-                        } else {
-                            e
-                        }
+            for overlay_type in &["entry", "information", "label"] {
+                let typed_overlays: Vec<_> = oca
+                    .overlays
+                    .iter()
+                    .filter(|x| {
+                        x.overlay_type()
+                            .contains(format!("/{}/", overlay_type).as_str())
                     })
-                ).collect();
+                    .collect();
+                if typed_overlays.is_empty() {
+                    continue;
+                }
+
+                if let Err(translation_errors) =
+                    self.validate_translations(&enforced_langs, typed_overlays)
+                {
+                    errors = errors.into_iter().chain(
+                        translation_errors.into_iter().map(|e| {
+                            if let Error::UnexpectedTranslations(lang) = e {
+                                Error::Custom(
+                                    format!("{} overlay: translations in {:?} language are not enforced", overlay_type, lang)
+                                )
+                            } else if let Error::MissingTranslations(lang) = e {
+                                Error::Custom(
+                                    format!("{} overlay: translations in {:?} language are missing", overlay_type, lang)
+                                )
+                            } else if let Error::MissingAttributeTranslation(lang, attr_name) = e {
+                                Error::Custom(
+                                    format!("{} overlay: for '{}' attribute missing translations in {:?} language", overlay_type, attr_name, lang)
+                                )
+                            } else {
+                                e
+                            }
+                        })
+                    ).collect();
+                }
             }
         }
 

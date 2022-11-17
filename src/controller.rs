@@ -109,18 +109,21 @@ mod tests {
 }
         "#;
 
-        let oca_builder = load_oca(&mut data.as_bytes()).unwrap();
-        let oca = oca_builder
-            .add_attribute(
-                AttributeBuilder::new("new_attr".to_string(), AttributeType::Text)
-                    .add_label(hashmap! {
-                        "En".to_string() => "New: ".to_string(),
-                        "Pl".to_string() => "Nowy: ".to_string(),
-                    })
-                    .build(),
-            )
-            .finalize();
+        let oca_builder_result = load_oca(&mut data.as_bytes());
+        assert!(oca_builder_result.is_ok());
+        if let Ok(oca_builder) = oca_builder_result {
+            let oca = oca_builder
+                .add_attribute(
+                    AttributeBuilder::new("new_attr".to_string(), AttributeType::Text)
+                        .add_label(hashmap! {
+                            "En".to_string() => "New: ".to_string(),
+                            "Pl".to_string() => "Nowy: ".to_string(),
+                        })
+                        .build(),
+                )
+                .finalize();
 
-        assert_eq!(oca.capture_base.attributes.len(), 4);
+            assert_eq!(oca.capture_base.attributes.len(), 4);
+        }
     }
 }
