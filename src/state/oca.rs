@@ -30,7 +30,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::AttributeMapping>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Meta overlay: {}", e.to_string())
+                                format!("Meta overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/character_encoding/") {
@@ -38,7 +38,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::CharacterEncoding>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Character Encoding overlay: {}", e.to_string())
+                                format!("Character Encoding overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/cardinality/") {
@@ -46,7 +46,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Cardinality>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Cardinality overlay: {}", e.to_string())
+                                format!("Cardinality overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/conformance/") {
@@ -54,7 +54,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Conformance>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Conformance overlay: {}", e.to_string())
+                                format!("Conformance overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/conditional/") {
@@ -62,7 +62,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Conditional>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Conditional overlay: {}", e.to_string())
+                                format!("Conditional overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/entry/") {
@@ -70,7 +70,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Entry>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Entry overlay: {}", e.to_string())
+                                format!("Entry overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/entry_code/") {
@@ -78,7 +78,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::EntryCode>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Entry Code overlay: {}", e.to_string())
+                                format!("Entry Code overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/entry_code_mapping/") {
@@ -86,7 +86,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::EntryCodeMapping>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Entry Code Mapping overlay: {}", e.to_string())
+                                format!("Entry Code Mapping overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/format/") {
@@ -94,7 +94,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Format>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Format overlay: {}", e.to_string())
+                                format!("Format overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/information/") {
@@ -102,7 +102,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Information>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Information overlay: {}", e.to_string())
+                                format!("Information overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/label/") {
@@ -110,7 +110,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Label>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Label overlay: {}", e.to_string())
+                                format!("Label overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/unit/") {
@@ -118,7 +118,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Unit>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Unit overlay: {}", e.to_string())
+                                format!("Unit overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/meta/") {
@@ -126,7 +126,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Meta>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Meta overlay: {}", e.to_string())
+                                format!("Meta overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/form_layout/") {
@@ -134,7 +134,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::FormLayout>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Form Layout overlay: {}", e.to_string())
+                                format!("Form Layout overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/credential_layout/") {
@@ -142,7 +142,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::CredentialLayout>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Credential Layout overlay: {}", e.to_string())
+                                format!("Credential Layout overlay: {}", e)
                             ))?,
                     ));
                 } else if overlay_type.contains("/subset/") {
@@ -150,7 +150,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Subset>()
                             .map_err(|e| serde::de::Error::custom(
-                                format!("Subset overlay: {}", e.to_string())
+                                format!("Subset overlay: {}", e)
                             ))?,
                     ));
                 } else {
@@ -274,7 +274,7 @@ impl<'de> Deserialize<'de> for OCABuilder {
                     Some(de_capture_base) => de_capture_base
                         .clone()
                         .deserialize_into::<CaptureBase>()
-                        .map_err(|e| serde::de::Error::custom(format!("Capture Base: {}", e.to_string())))?,
+                        .map_err(|e| serde::de::Error::custom(format!("Capture Base: {}", e)))?,
 
                     None => return Err(serde::de::Error::missing_field("capture_base")),
                 };

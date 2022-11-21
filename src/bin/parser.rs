@@ -73,8 +73,8 @@ fn main() {
         )
         .get_matches();
 
-    if let Some(ref matches) = matches.subcommand_matches("parse") {
-        if let Some(ref matches) = matches.subcommand_matches("oca") {
+    if let Some(matches) = matches.subcommand_matches("parse") {
+        if let Some(matches) = matches.subcommand_matches("oca") {
             let _validation = !matches.is_present("no-validation");
             let to_be_zipped = matches.is_present("zip");
             let paths: Vec<&str> = matches.values_of("path").unwrap().collect();
@@ -150,17 +150,17 @@ fn main() {
             if errors.is_empty() {
                 if to_be_zipped {
                     let filename = first_path
-                        .split("/")
+                        .split('/')
                         .collect::<Vec<&str>>()
                         .pop()
                         .unwrap()
-                        .rsplit(".")
+                        .rsplit('.')
                         .collect::<Vec<&str>>()
                         .pop()
                         .unwrap()
                         .to_string();
                     match zip_oca(parsed_oca_list, filename.clone()) {
-                        Ok(_) => println!("OCA written to {}.zip", filename.clone()),
+                        Ok(_) => println!("OCA written to {}.zip", filename),
                         Err(e) => println!("Error: {:?}", e),
                     }
                 } else {
@@ -172,7 +172,7 @@ fn main() {
             }
         }
 
-        if let Some(ref matches) = matches.subcommand_matches("entries") {
+        if let Some(matches) = matches.subcommand_matches("entries") {
             let path = matches.value_of("path").unwrap().to_string();
             let result = xls_parser::entries::parse(path.clone());
 
@@ -186,17 +186,17 @@ fn main() {
 
             if to_be_zipped {
                 let filename = path
-                    .split("/")
+                    .split('/')
                     .collect::<Vec<&str>>()
                     .pop()
                     .unwrap()
-                    .rsplit(".")
+                    .rsplit('.')
                     .collect::<Vec<&str>>()
                     .pop()
                     .unwrap()
                     .to_string();
                 match zip_entries(parsed, filename.clone()) {
-                    Ok(_) => println!("Entries written to {}.zip", filename.clone()),
+                    Ok(_) => println!("Entries written to {}.zip", filename),
                     Err(e) => println!("Error: {:?}", e),
                 }
             } else {
@@ -208,9 +208,9 @@ fn main() {
 }
 
 fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
-    let zip_name = format!("{}.zip", filename.clone());
+    let zip_name = format!("{}.zip", filename);
     let zip_path = std::path::Path::new(zip_name.as_str());
-    let file = std::fs::File::create(&zip_path).unwrap();
+    let file = std::fs::File::create(zip_path).unwrap();
     let mut zip = zip::ZipWriter::new(file);
 
     let mut root_cb_sai = String::new();
@@ -226,7 +226,7 @@ fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
             format!("{}.json", cb_sai),
             zip::write::FileOptions::default(),
         )?;
-        zip.write(cb_json.as_bytes())?;
+        zip.write_all(cb_json.as_bytes())?;
         let files = files_json.as_object_mut().unwrap();
         files.insert(format!("capture_base-{}", i), serde_json::json!(cb_sai));
 
@@ -237,7 +237,7 @@ fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
                 format!("{}.json", overlay_sai,),
                 zip::write::FileOptions::default(),
             )?;
-            zip.write(overlay_json.as_bytes())?;
+            zip.write_all(overlay_json.as_bytes())?;
 
             let overlay_type = overlay.overlay_type().split('/').collect::<Vec<&str>>()[2];
             let files_overlay_key = match overlay.language() {
@@ -253,7 +253,7 @@ fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
         String::from("meta.json"),
         zip::write::FileOptions::default(),
     )?;
-    zip.write(
+    zip.write_all(
         serde_json::to_string_pretty(
             &serde_json::json!({ "root": root_cb_sai, "files": files_json }),
         )
@@ -266,9 +266,9 @@ fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
 }
 
 fn zip_entries(parsed: ParsedEntries, filename: String) -> zip::result::ZipResult<()> {
-    let zip_name = format!("{}.zip", filename.clone());
+    let zip_name = format!("{}.zip", filename);
     let zip_path = std::path::Path::new(zip_name.as_str());
-    let file = std::fs::File::create(&zip_path).unwrap();
+    let file = std::fs::File::create(zip_path).unwrap();
     let mut zip = zip::ZipWriter::new(file);
     let codes_json = serde_json::to_string(&parsed.codes).unwrap();
     let codes_sai = SelfAddressing::Blake3_256.derive(codes_json.as_bytes());
@@ -276,7 +276,7 @@ fn zip_entries(parsed: ParsedEntries, filename: String) -> zip::result::ZipResul
         format!("{}.json", codes_sai),
         zip::write::FileOptions::default(),
     )?;
-    zip.write(codes_json.as_bytes())?;
+    zip.write_all(codes_json.as_bytes())?;
 
     for (lang, translation) in parsed.translations.iter() {
         let translation_json = serde_json::to_string(&translation).unwrap();
@@ -285,7 +285,7 @@ fn zip_entries(parsed: ParsedEntries, filename: String) -> zip::result::ZipResul
             format!("[{}] {}.json", lang, translation_sai,),
             zip::write::FileOptions::default(),
         )?;
-        zip.write(translation_json.as_bytes())?;
+        zip.write_all(translation_json.as_bytes())?;
     }
 
     zip.finish()?;

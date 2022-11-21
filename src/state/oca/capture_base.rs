@@ -29,7 +29,7 @@ impl CaptureBase {
 
     pub fn add(&mut self, attribute: &Attribute) {
         let mut attr_type_str: String =
-            serde_json::from_value(serde_json::to_value(&attribute.attribute_type).unwrap()).unwrap();
+            serde_json::from_value(serde_json::to_value(attribute.attribute_type).unwrap()).unwrap();
         if let AttributeType::Reference = attribute.attribute_type {
             attr_type_str.push(':');
             attr_type_str.push_str(attribute.sai.as_ref().unwrap_or(&"".to_string()));

@@ -44,11 +44,11 @@ pub fn parse(
 
         credential_layout = Some(contents);
     }
-    let mut workbook = open_workbook_auto(path).or_else(|_| {
+    let mut workbook = open_workbook_auto(path).map_err(|_| {
         errors.push(
             "Provided file cannot be parsed. Check if file exists and format is XLS(X)".to_string(),
         );
-        Err(errors.clone())
+        errors.clone()
     })?;
     let mut sheet_names = workbook.sheet_names().to_vec();
     let mut languages = vec![];
@@ -124,10 +124,10 @@ pub fn parse(
         }
     }
 
-    if let None = column_indicies.get("ATTR_NAME_INDEX") {
+    if column_indicies.get("ATTR_NAME_INDEX").is_none() {
         errors.push("Not found column with Attribute Names definiton".to_string());
     }
-    if let None = column_indicies.get("ATTR_NAME_INDEX") {
+    if column_indicies.get("ATTR_NAME_INDEX").is_none() {
         errors.push("Not found column with Attribute Names definiton".to_string());
     }
     if !errors.is_empty() {
@@ -219,18 +219,15 @@ pub fn parse(
         }
         let mut attribute_builder = AttributeBuilder::new(
             attribute_name.clone(),
-            serde_json::from_str::<AttributeType>(format!("\"{}\"", attribute_type).as_str())
-                .or_else(|e| {
-                    Err(format!(
+            serde_json::from_str::<AttributeType>(format!("\"{}\"", attribute_type).as_str()).map_err(|e| format!(
                         "Parsing attribute type in row {} ({}) failed. {}",
                         attr_index + 1,
                         attribute_name,
-                        e.to_string()
-                    ))
-                })?,
+                        e
+                    ))?,
         );
         if let Some(sai) = attribute_sai {
-            let mut sai_string = sai.to_string();
+            let mut sai_string = sai;
             if sai_string.ends_with(']') {
                 sai_string.pop();
             }
@@ -245,14 +242,11 @@ pub fn parse(
             if let Some(DataType::String(encoding_value)) =
                 main_sheet.get_value((attr_index, *encoding_index))
             {
-                let encoding = serde_json::from_str::<Encoding>(&format!(r#""{}""#, encoding_value.trim().to_string()))
-                    .or_else(|e| {
-                        Err(format!(
+                let encoding = serde_json::from_str::<Encoding>(&format!(r#""{}""#, encoding_value.trim())).map_err(|e| format!(
                             "Parsing character encoding in row {} failed. {}",
                             attr_index + 1,
-                            e.to_string()
-                        ))
-                    })?;
+                            e
+                        ))?;
                 attribute_builder = attribute_builder.add_encoding(encoding);
             }
         }
@@ -269,20 +263,19 @@ pub fn parse(
                 main_sheet.get_value((attr_index, *entry_codes_index))
             {
                 if entry_codes_value != &"[SAI]".to_string() {
-                    let entry_codes: EntryCodes;
-                    if entry_codes_value.starts_with("SAI:") {
+                    let entry_codes: EntryCodes = if entry_codes_value.starts_with("SAI:") {
                         let sai = entry_codes_value.strip_prefix("SAI:").unwrap();
-                        entry_codes = EntryCodes::Sai(sai.to_string());
+                        EntryCodes::Sai(sai.to_string())
                     } else {
                         let codes: Vec<String> = entry_codes_value
                             .trim().to_string()
-                            .split("|")
+                            .split('|')
                             .collect::<Vec<&str>>()
                             .iter()
                             .map(|c| c.to_string().trim().to_string())
                             .collect();
-                        entry_codes = EntryCodes::Array(codes);
-                    }
+                        EntryCodes::Array(codes)
+                    };
                     attribute_builder = attribute_builder.add_entry_codes(entry_codes);
                 }
             }
@@ -299,7 +292,7 @@ pub fn parse(
                         attribute_builder = attribute_builder.add_condition(
                             condition_value.clone().trim().to_string(),
                             dependencies_value
-                                .split(",")
+                                .split(',')
                                 .collect::<Vec<&str>>()
                                 .iter()
                                 .map(|c| c.to_string().trim().to_string())
@@ -315,7 +308,7 @@ pub fn parse(
                 main_sheet.get_value((attr_index, *cardinality_index))
             {
                 attribute_builder =
-                    attribute_builder.add_cardinality(cardinality_value.to_string().clone().trim().to_string());
+                    attribute_builder.add_cardinality(cardinality_value.to_string().trim().to_string());
             }
         }
 
@@ -334,7 +327,7 @@ pub fn parse(
 
                 let mut splitted: Vec<String> = unit_value
                     .trim().to_string()
-                    .split("|")
+                    .split('|')
                     .collect::<Vec<&str>>()
                     .iter()
                     .map(|c| c.to_string().trim().to_string())
@@ -363,7 +356,7 @@ pub fn parse(
                 attribute_builder = attribute_builder.add_entry_codes_mapping(
                     mapping_value
                         .trim().to_string()
-                        .split("|")
+                        .split('|')
                         .collect::<Vec<&str>>()
                         .iter()
                         .map(|c| c.to_string().trim().to_string())
@@ -442,15 +435,14 @@ pub fn parse(
                 if let Some(DataType::String(entries_value)) =
                     sheet.get_value((attr_index, *entries_index))
                 {
-                    let entries_el: EntriesElement;
-                    if entries_value.starts_with("SAI:") {
+                    let entries_el: EntriesElement = if entries_value.starts_with("SAI:") {
                         let sai = entries_value.strip_prefix("SAI:").unwrap().trim().to_string();
-                        entries_el = EntriesElement::Sai(sai.to_string());
+                        EntriesElement::Sai(sai.to_string())
                     } else {
-                        let entries_values = entries_value.split("|").collect::<Vec<&str>>();
+                        let entries_values = entries_value.split('|').collect::<Vec<&str>>();
                         for (i, entries_value_element) in entries_values.iter().enumerate() {
-                            let splitted = entries_value_element.split(":").collect::<Vec<&str>>();
-                            let entry_key = splitted.get(0).unwrap().trim().to_string();
+                            let splitted = entries_value_element.split(':').collect::<Vec<&str>>();
+                            let entry_key = splitted.first().unwrap().trim().to_string();
                             if entry_key.is_empty() {
                                 errors.push(format!(
                                         "Parsing attribute in row {} failed. Invalid Entry Overlay definition for {} language. Missing entry key in position {}",
@@ -471,15 +463,15 @@ pub fn parse(
                             })?;
                         }
                         let entries_obj = entries_values.iter().fold(BTreeMap::new(), |mut acc, x| {
-                            let splitted = x.split(":").collect::<Vec<&str>>();
+                            let splitted = x.split(':').collect::<Vec<&str>>();
                             acc.insert(
-                                splitted.get(0).unwrap().to_string().trim().to_string(),
+                                splitted.first().unwrap().to_string().trim().to_string(),
                                 splitted.get(1).unwrap().to_string().trim().to_string(),
                             );
                             acc
                         });
-                        entries_el = EntriesElement::Object(entries_obj);
-                    }
+                        EntriesElement::Object(entries_obj)
+                    };
                     match entries_trans.get_mut(&attr_index) {
                         Some(attr_entries_tr) => {
                             if attr_entries_tr.get(lang).is_none() {
@@ -576,12 +568,12 @@ pub fn parse(
     // let oca = oca_builder.finalize();
 
     if errors.is_empty() {
-        return Ok(ParsedResult {
+        Ok(ParsedResult {
             oca_builder,
             languages,
-        });
+        })
     } else {
-        return Err(errors);
+        Err(errors)
     }
 }
 

@@ -51,7 +51,7 @@ impl Validator {
         let cb_json = serde_json::to_string(&oca_builder.oca.capture_base).unwrap();
         let sai = format!("{}", SelfAddressing::Blake3_256.derive(cb_json.as_bytes()));
         for o in oca_value.get("overlays").unwrap().as_array().unwrap() {
-            if o.get("capture_base").unwrap().as_str().unwrap() != &sai {
+            if o.get("capture_base").unwrap().as_str().unwrap() != sai {
                 let msg = match o.get("language") {
                     Some(lang) => format!("{} ({}): Mismatch capture_base SAI", o.get("type").unwrap().as_str().unwrap(), lang),
                     None => format!("{}: Mismatch capture_base SAI", o.get("type").unwrap().as_str().unwrap()),
