@@ -29,97 +29,129 @@ impl<'de> Deserialize<'de> for DynOverlay {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::AttributeMapping>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Meta overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/character_encoding/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::CharacterEncoding>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Character Encoding overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/cardinality/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Cardinality>()
-                            .unwrap(),
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Cardinality overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/conformance/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Conformance>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Conformance overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/conditional/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Conditional>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Conditional overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/entry/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Entry>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Entry overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/entry_code/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::EntryCode>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Entry Code overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/entry_code_mapping/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::EntryCodeMapping>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Entry Code Mapping overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/format/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Format>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Format overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/information/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Information>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Information overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/label/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Label>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Label overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/unit/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Unit>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Unit overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/meta/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Meta>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Meta overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/form_layout/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::FormLayout>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Form Layout overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/credential_layout/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::CredentialLayout>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Credential Layout overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else if overlay_type.contains("/subset/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Subset>()
-                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                            .map_err(|e| serde::de::Error::custom(
+                                format!("Subset overlay: {}", e.to_string())
+                            ))?,
                     ));
                 } else {
                     return Err(serde::de::Error::custom(format!(
