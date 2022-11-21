@@ -167,29 +167,38 @@ impl Validator {
             errors: Vec<String>,
         }
         let return_result: ReturnResult;
-        let oca_raw: OCARaw = oca.into_serde().unwrap();
-        let result = self.raw.validate(&oca_raw);
-        match result {
-            Ok(()) => {
-                return_result = ReturnResult {
-                    success: true,
-                    errors: vec![],
+        match oca.into_serde::<OCARaw>() {
+            Ok(oca_raw) => {
+                let result = self.raw.validate(&oca_raw);
+                match result {
+                    Ok(()) => {
+                        return_result = ReturnResult {
+                            success: true,
+                            errors: vec![],
+                        }
+                    }
+                    Err(err) => {
+                        let errors: Vec<String> = err
+                            .iter()
+                            .map(|e| {
+                                if let validator::Error::Custom(msg) = e {
+                                    msg.clone()
+                                } else {
+                                    "undefined error".to_string()
+                                }
+                            })
+                            .collect();
+                        return_result = ReturnResult {
+                            success: false,
+                            errors,
+                        }
+                    }
                 }
             }
             Err(err) => {
-                let errors: Vec<String> = err
-                    .iter()
-                    .map(|e| {
-                        if let validator::Error::Custom(msg) = e {
-                            msg.clone()
-                        } else {
-                            "undefined error".to_string()
-                        }
-                    })
-                    .collect();
                 return_result = ReturnResult {
                     success: false,
-                    errors,
+                    errors: vec![err.to_string()],
                 }
             }
         }

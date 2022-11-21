@@ -44,16 +44,17 @@ impl Validator {
         let enforced_langs: HashSet<_> = self.enforced_translations.iter().collect();
         let mut errors: Vec<Error> = vec![];
 
-        let oca_str = serde_json::to_string(&serde_json::value::to_value(oca).unwrap()).unwrap();
+        let oca_value = serde_json::value::to_value(oca).unwrap();
+        let oca_str = serde_json::to_string(&oca_value).unwrap();
         let oca_builder: OCABuilder = serde_json::from_str(oca_str.as_str()).map_err(|e| vec![Error::Custom(e.to_string())])?;
 
         let cb_json = serde_json::to_string(&oca_builder.oca.capture_base).unwrap();
         let sai = format!("{}", SelfAddressing::Blake3_256.derive(cb_json.as_bytes()));
-        for mut o in oca_builder.oca.overlays {
-            if o.capture_base() != &sai {
-                let msg = match o.language() {
-                    Some(lang) => format!("{} ({}): Mismatch capture_base SAI", o.overlay_type(), lang),
-                    None => format!("{}: Mismatch capture_base SAI", o.overlay_type()),
+        for o in oca_value.get("overlays").unwrap().as_array().unwrap() {
+            if o.get("capture_base").unwrap().as_str().unwrap() != &sai {
+                let msg = match o.get("language") {
+                    Some(lang) => format!("{} ({}): Mismatch capture_base SAI", o.get("type").unwrap().as_str().unwrap(), lang),
+                    None => format!("{}: Mismatch capture_base SAI", o.get("type").unwrap().as_str().unwrap()),
                 };
                 errors.push(Error::Custom(msg));
             }
