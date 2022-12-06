@@ -20,9 +20,15 @@ OCA is a standardized global solution for data capture and exchange which
 protects PII data and provides a positive alternative to current architectures.
 See more on: <https://oca.colossi.network/>
 
+## License
+
+EUPL 1.2 
+
+We have distilled the most crucial license specifics to make your adoption seamless: [see here for details](https://github.com/THCLab/licensing).
+
 # Documentation
 
-- [OCA Spec](https://the-human-colossus-foundation.github.io/oca-spec/)
+- [OCA Spec](https://oca.colossi.network/)
 - [API reference (docs.rs)](https://docs.rs/oca-rust)
 
 
