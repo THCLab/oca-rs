@@ -52,7 +52,7 @@ pub fn parse(
     })?;
     let mut sheet_names = workbook.sheet_names().to_vec();
     let mut languages = vec![];
-    sheet_names.retain(|n| n != "READ ME");
+    sheet_names.retain(|n| n != "READ ME" && n != "README" && n != "Start Here" && n != "Documentation");
 
     let main_sheet_name = sheet_names.first().ok_or_else(|| {
         errors.push(format!("Missing sheets. {}", SAMPLE_TEMPLATE_MSG));
