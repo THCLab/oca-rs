@@ -84,7 +84,7 @@ pub fn parse(
     }
 
     let mut column_indicies: HashMap<&str, u32> = HashMap::new();
-    for (_, row) in main_sheet.rows().enumerate().filter(|&(i, _)| i == 0) {
+    for row in main_sheet.rows().filter(|&row| if let DataType::String(v) = &row[0] { v.starts_with("CB") || v.starts_with("OL") } else { false }) {
         for (i, value) in row.iter().enumerate() {
             if let DataType::String(v) = value {
                 if v.starts_with("CB-CL:") {
@@ -383,7 +383,7 @@ pub fn parse(
 
     for (lang, sheet) in translation_sheets.iter() {
         let mut sheet_column_indicies: HashMap<&str, u32> = HashMap::new();
-        for (_, row) in sheet.rows().enumerate().filter(|&(i, _)| i == 2) {
+        for row in sheet.rows().filter(|&row| if let DataType::String(v) = &row[0] { v.starts_with("CB") || v.starts_with("OL") } else { false }) {
             for (i, value) in row.iter().enumerate() {
                 if let DataType::String(v) = value {
                     if v.starts_with("OL-MN:") {
