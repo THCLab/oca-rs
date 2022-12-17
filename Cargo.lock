@@ -370,7 +370,7 @@ dependencies = [
 
 [[package]]
 name = "oca-rust"
-version = "0.2.11"
+version = "0.2.12"
 dependencies = [
  "calamine",
  "clap",
