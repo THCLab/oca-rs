@@ -11,7 +11,9 @@ fn parse_oca_xls() {
             "{}/tests/assets/oca_template.xlsx",
             env!("CARGO_MANIFEST_DIR")
         ),
+        true,
         None,
+        true,
         None,
     );
 

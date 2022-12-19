@@ -594,7 +594,9 @@ mod tests {
                 "{}/tests/assets/oca_template.xlsx",
                 env!("CARGO_MANIFEST_DIR")
             ),
+            true,
             None,
+            true,
             None,
         );
         assert!(result.is_ok());
@@ -612,7 +614,9 @@ mod tests {
                 "{}/tests/assets/oca_template.xls",
                 env!("CARGO_MANIFEST_DIR")
             ),
+            true,
             None,
+            true,
             None,
         );
         assert!(result.is_ok());
@@ -631,7 +635,9 @@ mod tests {
                 "{}/tests/assets/invalid_format.txt",
                 env!("CARGO_MANIFEST_DIR")
             ),
+            true,
             None,
+            true,
             None,
         );
         assert!(result.is_err());
