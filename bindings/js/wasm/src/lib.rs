@@ -80,9 +80,21 @@ impl OCABuilder {
         self
     }
 
+    #[wasm_bindgen(js_name = "addDefaultFormLayout")]
+    pub fn add_default_form_layout(mut self) -> OCABuilder {
+        self.raw = self.raw.add_default_form_layout();
+        self
+    }
+
     #[wasm_bindgen(js_name = "addFormLayout")]
     pub fn add_form_layout(mut self, layout: String) -> OCABuilder {
         self.raw = self.raw.add_form_layout(layout);
+        self
+    }
+
+    #[wasm_bindgen(js_name = "addDefaultCredentialLayout")]
+    pub fn add_default_credential_layout(mut self) -> OCABuilder {
+        self.raw = self.raw.add_default_credential_layout();
         self
     }
 

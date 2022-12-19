@@ -8,6 +8,8 @@ import { AttributeBuilder, AttributeType, Encoding, Entry, OCA, OCABuilder } fro
 describe('Plain OCA is built', () => {
   const oca: OCA = new OCABuilder(Encoding.Utf8)
     .addClassification("GICS:35102020")
+    .addDefaultFormLayout()
+    .addDefaultCredentialLayout()
     .finalize()
 
   it('return OCA as JS object', () => {
