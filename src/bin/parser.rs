@@ -50,6 +50,12 @@ fn main() {
                             .long("zip")
                             .takes_value(false)
                             .help("Generate OCA in zip file"),
+                    )
+                    .arg(
+                        Arg::new("xls-data-entry")
+                            .long("xls-data-entry")
+                            .takes_value(false)
+                            .help("Generate OCA data entry xls file"),
                     ),
             )
             .subcommand(
@@ -77,6 +83,7 @@ fn main() {
         if let Some(matches) = matches.subcommand_matches("oca") {
             let _validation = !matches.is_present("no-validation");
             let to_be_zipped = matches.is_present("zip");
+            let with_data_entry = matches.is_present("xls-data-entry");
             let paths: Vec<&str> = matches.values_of("path").unwrap().collect();
             let first_path = paths.first().unwrap().to_string();
             let mut parsed_oca_builder_list = vec![];
@@ -148,17 +155,29 @@ fn main() {
             */
 
             if errors.is_empty() {
+                let filename = first_path
+                    .split('/')
+                    .collect::<Vec<&str>>()
+                    .pop()
+                    .unwrap()
+                    .rsplit('.')
+                    .collect::<Vec<&str>>()
+                    .pop()
+                    .unwrap()
+                    .to_string();
+
+                if with_data_entry {
+                    match xls_parser::data_entry::generate(&parsed_oca_list, filename.clone()) {
+                        Ok(_) => {
+                            if to_be_zipped {
+                                println!("OCA Data Entry written to {}-data_entry.xlsx", filename);
+                            }
+                        },
+                        Err(e) => println!("{:?}", e),
+                    }
+                }
+
                 if to_be_zipped {
-                    let filename = first_path
-                        .split('/')
-                        .collect::<Vec<&str>>()
-                        .pop()
-                        .unwrap()
-                        .rsplit('.')
-                        .collect::<Vec<&str>>()
-                        .pop()
-                        .unwrap()
-                        .to_string();
                     match zip_oca(parsed_oca_list, filename.clone()) {
                         Ok(_) => println!("OCA written to {}.zip", filename),
                         Err(e) => println!("Error: {:?}", e),

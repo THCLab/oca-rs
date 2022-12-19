@@ -10,7 +10,7 @@ edition = "2018"
 
 [features]
 command_line = ["clap", "zip"]
-xls_parser = ["calamine"]
+xls_parser = ["calamine", "xlsxwriter"]
 
 [[bin]]
 name = "parser"
@@ -29,6 +29,7 @@ clap = { version = "3.0.0-beta.4", optional = true }
 zip = { version = "0.5.13", optional = true }
 regex = "1.5.4"
 indexmap = "1.8.0"
+xlsxwriter = { version = "0.5.0", optional = true }
 
 [dev-dependencies]
 maplit = "1.0.2"
