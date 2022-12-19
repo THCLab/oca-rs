@@ -510,7 +510,7 @@ dependencies = [
 
 [[package]]
 name = "oca-rust"
-version = "0.2.14"
+version = "0.2.15"
 dependencies = [
  "calamine",
  "clap 3.1.6",
