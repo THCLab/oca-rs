@@ -20,7 +20,9 @@ const SAMPLE_TEMPLATE_MSG: &str = "Template file can be found here: https://gith
 
 pub fn parse(
     path: String,
+    default_form_layout: bool,
     form_layout_path: Option<&str>,
+    default_credential_layout: bool,
     credential_layout_path: Option<&str>,
 ) -> Result<ParsedResult, Vec<std::string::String>> {
     let mut errors: Vec<String> = vec![];
@@ -151,9 +153,13 @@ pub fn parse(
 
     if let Some(layout) = form_layout {
         oca_builder = oca_builder.add_form_layout(layout);
+    } else if default_form_layout {
+        oca_builder = oca_builder.add_default_form_layout();
     }
     if let Some(layout) = credential_layout {
         oca_builder = oca_builder.add_credential_layout(layout);
+    } else if default_credential_layout {
+        oca_builder = oca_builder.add_default_credential_layout();
     }
 
     let mut classification = String::new();

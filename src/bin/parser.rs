@@ -26,18 +26,30 @@ fn main() {
                             .help("Path to XLS(X) file. Sample XLS(X) file can be found here: https://github.com/THCLab/oca-rust/blob/main/tests/assets/oca_template.xlsx"),
                     )
                     .arg(
+                        Arg::new("default-form-layout")
+                            .long("default-form-layout")
+                            .takes_value(false)
+                            .help("Generate default Form Layout"),
+                    )
+                    .arg(
                         Arg::new("form-layout")
                             .long("form-layout")
                             .required(false)
                             .takes_value(true)
-                            .help("Path to YAML file with Form Layout."),
+                            .help("Path to YAML file with Form Layout"),
+                    )
+                    .arg(
+                        Arg::new("default-credential-layout")
+                            .long("default-credential-layout")
+                            .takes_value(false)
+                            .help("Generate default Credential Layout"),
                     )
                     .arg(
                         Arg::new("credential-layout")
                             .long("credential-layout")
                             .required(false)
                             .takes_value(true)
-                            .help("Path to YAML file with Credential Layout."),
+                            .help("Path to YAML file with Credential Layout"),
                     )
                     .arg(
                         Arg::new("no-validation")
@@ -102,8 +114,15 @@ fn main() {
                 } else {
                     None
                 };
+
                 let result =
-                    xls_parser::oca::parse(path.clone(), form_layout_path, credential_layout_path);
+                    xls_parser::oca::parse(
+                        path.clone(),
+                        matches.is_present("default-form-layout"),
+                        form_layout_path,
+                        matches.is_present("default-credential-layout"),
+                        credential_layout_path
+                    );
 
                 if let Err(e) = result {
                     println!(

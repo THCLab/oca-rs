@@ -250,9 +250,13 @@ pub struct OCABuilder {
     #[serde(skip)]
     pub form_layout: Option<String>,
     #[serde(skip)]
+    pub default_form_layout: bool,
+    #[serde(skip)]
     pub form_layout_reference: BTreeMap<String, String>,
     #[serde(skip)]
     pub credential_layout: Option<String>,
+    #[serde(skip)]
+    pub default_credential_layout: bool,
     #[serde(skip)]
     pub credential_layout_reference: BTreeMap<String, String>,
     #[serde(skip)]
@@ -382,8 +386,10 @@ impl<'de> Deserialize<'de> for OCABuilder {
                 },
                 meta_translations,
                 form_layout: None,
+                default_form_layout: false,
                 form_layout_reference: BTreeMap::new(),
                 credential_layout: None,
+                default_credential_layout: false,
                 credential_layout_reference: BTreeMap::new(),
                 cat_attributes: CatAttributes {
                     categorized: IndexMap::new(),
@@ -409,9 +415,11 @@ impl OCABuilder {
                 overlays: vec![overlay::CharacterEncoding::new(&default_encoding)],
             },
             meta_translations: HashMap::new(),
+            default_form_layout: false,
             form_layout: None,
             form_layout_reference: BTreeMap::new(),
             credential_layout: None,
+            default_credential_layout: false,
             credential_layout_reference: BTreeMap::new(),
             cat_attributes: CatAttributes {
                 category_labels: HashMap::new(),
@@ -432,8 +440,18 @@ impl OCABuilder {
         self
     }
 
+    pub fn add_default_form_layout(mut self) -> OCABuilder {
+        self.default_form_layout = true;
+        self
+    }
+
     pub fn add_credential_layout(mut self, layout: String) -> OCABuilder {
         self.credential_layout = Some(layout);
+        self
+    }
+
+    pub fn add_default_credential_layout(mut self) -> OCABuilder {
+        self.default_credential_layout = true;
         self
     }
 
@@ -689,15 +707,12 @@ impl OCABuilder {
                 .push(overlay::Meta::new(lang.to_string(), translation));
         }
         let mut form_layout_tmp = None;
-        match self.form_layout {
-            Some(ref layout) => {
-                if !layout.is_empty() {
-                    form_layout_tmp = Some(layout.clone());
-                }
+        if let Some(ref layout) = self.form_layout {
+            if !layout.is_empty() {
+                form_layout_tmp = Some(layout.clone());
             }
-            None => {
-                form_layout_tmp = Some(self.build_default_form_layout());
-            }
+        } else if self.default_form_layout {
+            form_layout_tmp = Some(self.build_default_form_layout());
         }
         if let Some(mut layout) = form_layout_tmp {
             for (i, (name, ref_layout)) in self.form_layout_reference.iter().enumerate() {
@@ -723,15 +738,12 @@ reference_layouts:"#,
         }
 
         let mut credential_layout_tmp = None;
-        match self.credential_layout {
-            Some(ref layout) => {
-                if !layout.is_empty() {
-                    credential_layout_tmp = Some(layout.clone());
-                }
+        if let Some(ref layout) = self.credential_layout {
+            if !layout.is_empty() {
+                credential_layout_tmp = Some(layout.clone());
             }
-            None => {
-                credential_layout_tmp = Some(self.build_default_credential_layout());
-            }
+        } else if self.default_credential_layout {
+            credential_layout_tmp = Some(self.build_default_credential_layout());
         }
         if let Some(mut layout) = credential_layout_tmp {
             for (i, (name, ref_layout)) in self.credential_layout_reference.iter().enumerate() {
