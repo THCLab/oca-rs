@@ -3,6 +3,7 @@ use crate::state::{
     language::Language,
     oca::{OCATranslation, Overlay},
 };
+use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 use std::any::Any;
 
@@ -14,6 +15,8 @@ pub struct MetaOverlay {
     language: Language,
     pub name: String,
     pub description: String,
+    #[serde(flatten)]
+    pub extra: BTreeMap<String, String>,
 }
 
 impl Overlay for MetaOverlay {
@@ -47,6 +50,7 @@ impl MetaOverlay {
                 .as_ref()
                 .unwrap_or(&"".to_string())
                 .clone(),
+            extra: oca_tr.extra.clone(),
         })
     }
 }

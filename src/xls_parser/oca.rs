@@ -382,6 +382,7 @@ pub fn parse(
 
     let mut name_trans: HashMap<Language, String> = HashMap::new();
     let mut description_trans: HashMap<Language, String> = HashMap::new();
+    let mut extra_trans: HashMap<String, HashMap<Language, String>> = HashMap::new();
 
     let mut label_trans: HashMap<u32, HashMap<Language, String>> = HashMap::new();
     let mut entries_trans: HashMap<u32, HashMap<Language, EntriesElement>> = HashMap::new();
@@ -394,8 +395,8 @@ pub fn parse(
                 if let DataType::String(v) = value {
                     if v.starts_with("OL-MN:") {
                         sheet_column_indicies.insert("META_NAME_INDEX", i as u32);
-                    } else if v.starts_with("OL-MD:") {
-                        sheet_column_indicies.insert("META_DESC_INDEX", i as u32);
+                    } else if v.starts_with("OL-MV:") {
+                        sheet_column_indicies.insert("META_VALUE_INDEX", i as u32);
                     } else if v.starts_with("CB-AN:") {
                         sheet_column_indicies.insert("ATTR_NAME_INDEX", i as u32);
                     } else if v.starts_with("OL-LA:") {
@@ -409,14 +410,35 @@ pub fn parse(
             }
         }
 
-        if let Some(meta_name_index) = sheet_column_indicies.get("META_NAME_INDEX") {
-            if let Some(DataType::String(meta_name_value)) = sheet.get_value((oca_range.0, *meta_name_index)) {
-                name_trans.insert(lang.to_string(), meta_name_value.to_string());
-            }
-        }
-        if let Some(meta_desc_index) = sheet_column_indicies.get("META_DESC_INDEX") {
-            if let Some(DataType::String(meta_desc_value)) = sheet.get_value((oca_range.0, *meta_desc_index)) {
-                description_trans.insert(lang.to_string(), meta_desc_value.to_string());
+        for attr_index in (oca_range.0)..(sheet.height() as u32) {
+            if let Some(name_index) = sheet_column_indicies.get("META_NAME_INDEX") {
+                if let Some(DataType::String(name_value)) =
+                    sheet.get_value((attr_index, *name_index))
+                {
+                    if let Some(value_index) = sheet_column_indicies.get("META_VALUE_INDEX") {
+                        if let Some(DataType::String(value_value)) =
+                            sheet.get_value((attr_index, *value_index))
+                        {
+                            if name_value.eq("name") {
+                                name_trans.insert(lang.to_string(), value_value.to_string());
+                            } else if name_value.eq("description") {
+                                description_trans.insert(lang.to_string(), value_value.to_string());
+                            } else {
+                                match extra_trans.get_mut(name_value) {
+                                    Some(e_trans) => {
+                                        e_trans.insert(lang.to_string(), value_value.to_string());
+                                    },
+                                    None => {
+                                        let mut e_trans = HashMap::new();
+                                        e_trans.insert(lang.to_string(), value_value.to_string());
+                                        extra_trans.insert(name_value.to_string(), e_trans);
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -571,6 +593,9 @@ pub fn parse(
     }
     oca_builder = oca_builder.add_name(name_trans);
     oca_builder = oca_builder.add_description(description_trans);
+    for (name, value_trans) in extra_trans {
+        oca_builder = oca_builder.add_meta(name, value_trans);
+    }
     // let oca = oca_builder.finalize();
 
     if errors.is_empty() {

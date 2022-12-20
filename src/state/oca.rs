@@ -2,6 +2,7 @@ use indexmap::IndexMap;
 use said::derivation::SelfAddressing;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::{BTreeMap, HashMap};
+use serde_value::Value;
 
 mod capture_base;
 mod layout;
@@ -314,6 +315,7 @@ impl<'de> Deserialize<'de> for OCABuilder {
                                 let language;
                                 let name;
                                 let description;
+                                let mut extra: BTreeMap<String, String> = BTreeMap::new();
                                 match meta_overlay_value
                                     .get(&serde_value::Value::String("language".to_string()))
                                 {
@@ -328,6 +330,24 @@ impl<'de> Deserialize<'de> for OCABuilder {
                                             "language in meta overlay",
                                         ))
                                     }
+                                }
+
+                                let meta_const_fields = vec![
+                                    Value::String("capture_base".to_string()),
+                                    Value::String("type".to_string()),
+                                    Value::String("language".to_string()),
+                                    Value::String("name".to_string()),
+                                    Value::String("description".to_string()),
+                                ];
+
+                                for (key, value) in &meta_overlay_value {
+                                    if meta_const_fields.contains(key) {
+                                        continue;
+                                    }
+                                    extra.insert(
+                                        key.clone().deserialize_into::<String>().unwrap(),
+                                        value.clone().deserialize_into::<String>().unwrap(),
+                                    );
                                 }
                                 match meta_overlay_value
                                     .get(&serde_value::Value::String("name".to_string()))
@@ -363,6 +383,9 @@ impl<'de> Deserialize<'de> for OCABuilder {
                                 }
                                 if !description.trim().is_empty() {
                                     t.add_description(description);
+                                }
+                                for (key, value) in extra {
+                                    t.add_extra(key, value);
                                 }
                                 meta_translations.insert(language, t);
                             }
@@ -480,6 +503,22 @@ impl OCABuilder {
                 None => {
                     let mut t = OCATranslation::new();
                     t.add_description(description.clone());
+                    self.meta_translations.insert(lang.clone(), t);
+                }
+            }
+        }
+        self
+    }
+
+    pub fn add_meta(mut self, name: String, values: HashMap<Language, String>) -> OCABuilder {
+        for (lang, value) in values.iter() {
+            match self.meta_translations.get_mut(lang) {
+                Some(t) => {
+                    t.add_extra(name.clone(), value.clone());
+                }
+                None => {
+                    let mut t = OCATranslation::new();
+                    t.add_extra(name.clone(), value.clone());
                     self.meta_translations.insert(lang.clone(), t);
                 }
             }
@@ -1212,6 +1251,7 @@ pages:
 pub struct OCATranslation {
     pub name: Option<String>,
     pub description: Option<String>,
+    pub extra: BTreeMap<String, String>,
 }
 
 impl Default for OCATranslation {
@@ -1225,6 +1265,7 @@ impl OCATranslation {
         OCATranslation {
             name: None,
             description: None,
+            extra: BTreeMap::new(),
         }
     }
 
@@ -1235,6 +1276,11 @@ impl OCATranslation {
 
     pub fn add_description(&mut self, description: String) -> &mut OCATranslation {
         self.description = Some(description);
+        self
+    }
+
+    pub fn add_extra(&mut self, name: String, value: String) -> &mut OCATranslation {
+        self.extra.insert(name, value);
         self
     }
 }
