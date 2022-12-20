@@ -10,7 +10,7 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -28,10 +28,13 @@ jobs:
         run:  cargo build --features command_line,xls_parser --target x86_64-pc-windows-gnu --release --verbose
       - name: Build x86_64-unknown-linux-gnu
         run: cargo build --features command_line,xls_parser --target x86_64-unknown-linux-gnu --release --verbose
-      - uses: meeDamian/github-release@2.0
+      - uses: svenstaro/upload-release-action@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          gzip: folders
-          files: >
-            parser.bin:target/x86_64-unknown-linux-gnu/release/parser
-            parser.exe:target/x86_64-pc-windows-gnu/release/parser.exe
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/x86_64-unknown-linux-gnu/release/parser
+          asset_name: parser.bin
+      - uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/x86_64-pc-windows-gnu/release/parser.exe
+          asset_name: parser.exe
