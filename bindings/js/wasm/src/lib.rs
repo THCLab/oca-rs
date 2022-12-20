@@ -132,6 +132,20 @@ impl OCABuilder {
         self
     }
 
+    #[wasm_bindgen(js_name = "addMeta")]
+    pub fn add_meta(mut self, name: String, values: ITranslations) -> OCABuilder {
+        let values_str: HashMap<String, String> =
+            serde_wasm_bindgen::from_value(JsValue::from(values)).unwrap();
+
+        let mut values_raw: HashMap<Language, String> = HashMap::new();
+        for (lang, value) in values_str.iter() {
+            values_raw.insert(lang.to_string(), value.clone());
+        }
+
+        self.raw = self.raw.add_meta(name, values_raw);
+        self
+    }
+
     #[wasm_bindgen(js_name = "addAttribute")]
     pub fn add_attribute(mut self, attr: Attribute) -> OCABuilder {
         let attr_raw: AttributeRaw = attr.into_serde().unwrap();
