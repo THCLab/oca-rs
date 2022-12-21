@@ -3,7 +3,6 @@ use crate::state::{
     oca::{DynOverlay, OCABuilder, OCATranslation, OCA},
 };
 use std::collections::{HashMap, HashSet};
-use said::derivation::SelfAddressing;
 
 #[derive(Debug)]
 pub enum Error {
@@ -48,8 +47,7 @@ impl Validator {
         let oca_str = serde_json::to_string(&oca_value).unwrap();
         let oca_builder: OCABuilder = serde_json::from_str(oca_str.as_str()).map_err(|e| vec![Error::Custom(e.to_string())])?;
 
-        let cb_json = serde_json::to_string(&oca_builder.oca.capture_base).unwrap();
-        let sai = format!("{}", SelfAddressing::Blake3_256.derive(cb_json.as_bytes()));
+        let sai = oca_builder.oca.capture_base.said;
         for o in oca_value.get("overlays").unwrap().as_array().unwrap() {
             if o.get("capture_base").unwrap().as_str().unwrap() != sai {
                 let msg = match o.get("language") {

@@ -21,89 +21,152 @@ mod tests {
         let data = r#"
 {
   "capture_base": {
-    "type": "spec/capture_base/1.0",
-    "classification": "classification",
-    "attributes": { "n1": "Text", "n2": "DateTime", "n3": "SAI:asd" },
-    "flagged_attributes": [ "n1" ]
+    "attributes": {
+      "n1": "Text",
+      "n2": "DateTime",
+      "n3": "Reference:sai"
+    },
+    "classification": "",
+    "digest": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+    "flagged_attributes": [
+      "n1"
+    ],
+    "type": "spec/capture_base/1.0"
   },
   "overlays": [
     {
-      "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
-      "type": "spec/overlays/character_encoding/1.0",
+      "attribute_character_encoding": {
+        "n2": "iso-8859-1"
+      },
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
       "default_character_encoding": "utf-8",
-      "attribute_character_encoding": { "n2": "iso-8859-1" }
+      "digest": "E-fCW5Gcnzn4uTBIUUH4Gdl3xRdlDg25cM3UCk3blubU",
+      "type": "spec/overlays/character_encoding/1.0"
     },
     {
-      "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
-      "type": "spec/overlays/unit/1.0",
+      "attribute_units": {
+        "n1": "cm"
+      },
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "digest": "E-gA3mYg2RbZcLXuNrWyMNJqCaclfzMrgQogVUlpFcoY",
       "metric_system": "SI",
-      "attribute_units": { "n1": "cm" }
+      "type": "spec/overlays/unit/1.0"
     },
     {
-      "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
-      "type": "spec/overlays/entry_code/1.0",
-      "attribute_entry_codes": { "n1": [ "op1", "op2" ] }
+      "attribute_entry_codes": {
+        "n1": [
+          "op1",
+          "op2"
+        ]
+      },
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "digest": "E4L-BukSBsqZoDDIJvw4_gGjAJs5It4UUfiA200lGup0",
+      "type": "spec/overlays/entry_code/1.0"
     },
     {
-      "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
-      "type": "spec/overlays/label/1.0",
-      "language": "pl_PL",
-      "attribute_labels": { "n1": "Imię: ", "n2": "Data: ", "n3": "Referecja: " },
-      "attribute_categories": [ "_cat-1_" ],
-      "category_labels": { "_cat-1_": "Category 1" },
-      "category_attributes": { "_cat-1_": [ "n1", "n2", "n3" ] }
+      "attribute_categories": [],
+      "attribute_labels": {
+        "n1": "Name: ",
+        "n2": "Date: ",
+        "n3": "Reference: "
+      },
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "category_labels": {},
+      "digest": "EwXoTd4_ZSZMnRmfQGFkXTfw7uMu9z9bnIah2ZM6hPpQ",
+      "language": "En",
+      "type": "spec/overlays/label/1.0"
     },
     {
-      "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
-      "type": "spec/overlays/information/1.0",
-      "language": "pl_PL",
-      "attribute_information": { "n1": "info pl" }
+      "attribute_information": {
+        "n1": "info en"
+      },
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "digest": "EUcv8Udxqj7pZfHF1XxrIpb01lfRhpRtWdzxVS706EVI",
+      "language": "En",
+      "type": "spec/overlays/information/1.0"
     },
     {
-      "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
-      "type": "spec/overlays/entry/1.0",
-      "language": "pl_PL",
-      "attribute_entries": { "n1": { "op2": "Opcja 2", "op1": "Opcja 1" } }
+      "attribute_entries": {
+        "n1": {
+          "op1": "Option 1",
+          "op2": "Option 2"
+        }
+      },
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "digest": "EcNtZGAs1yPlPSVRO38t13sxr1abF67MnqvjTJQGM3jc",
+      "language": "En",
+      "type": "spec/overlays/entry/1.0"
     },
     {
-      "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
-      "type": "spec/overlays/label/1.0",
-      "language": "en_EN",
-      "attribute_labels": { "n2": "Date: ", "n1": "Name: ", "n3": "Reference: " },
-      "attribute_categories": [ "_cat-1_" ],
-      "category_labels": { "_cat-1_": "Category 1" },
-      "category_attributes": { "_cat-1_": [ "n1", "n2", "n3" ] }
+      "attribute_categories": [],
+      "attribute_labels": {
+        "n1": "Imię: ",
+        "n2": "Data: ",
+        "n3": "Referecja: "
+      },
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "category_labels": {},
+      "digest": "Eme3tfHtbrY0nT8ZNEorzM2Nrkdf3PzwFIP1hnAmXkdg",
+      "language": "Pl",
+      "type": "spec/overlays/label/1.0"
     },
     {
-      "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
-      "type": "spec/overlays/information/1.0",
-      "language": "en_EN",
-      "attribute_information": { "n1": "info en" }
+      "attribute_information": {
+        "n1": "info pl"
+      },
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "digest": "EZvWNCh1yj7FSOdyz67WK1n7pq_xyo-M7RjDiFDR4Q7I",
+      "language": "Pl",
+      "type": "spec/overlays/information/1.0"
     },
     {
-      "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
-      "type": "spec/overlays/entry/1.0",
-      "language": "en_EN",
-      "attribute_entries": { "n1": { "op1": "Option 1", "op2": "Option 2" } }
+      "attribute_entries": {
+        "n1": {
+          "op1": "Opcja 1",
+          "op2": "Opcja 2"
+        }
+      },
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "digest": "EBXzK5l6KiH40PyJSoDjB4WBMpXh6DwvgpLMbZ2jj-Ws",
+      "language": "Pl",
+      "type": "spec/overlays/entry/1.0"
     },
     {
-      "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
-      "type": "spec/overlays/format/1.0",
-      "attribute_formats": { "n2": "DD/MM/YYYY" }
+      "attribute_conditions": {
+        "n2": "${0} == 'op1'"
+      },
+      "attribute_dependencies": {
+        "n2": [
+          "n1"
+        ]
+      },
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "digest": "EkyIEvDwMete4Y-adBJZcGihh6K2Orswhkv_unFmXzHM",
+      "type": "spec/overlays/conditional/1.0"
     },
     {
-      "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
-      "type": "spec/overlays/meta/1.0",
-      "language": "en_EN",
+      "attribute_formats": {
+        "n2": "DD/MM/YYYY"
+      },
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "digest": "EGiJKfiFCIf8Hdt8QLlnksOB9AH6_gcuc0l3gx0aATnM",
+      "type": "spec/overlays/format/1.0"
+    },
+    {
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "description": "DL desc",
+      "digest": "Eluyyqh9h7TQWJt980o16ZfHSqSKQD2q0q7QtTUiIBPc",
+      "language": "En",
       "name": "Driving Licence",
-      "description": "DL desc"
+      "type": "spec/overlays/meta/1.0"
     },
     {
-      "capture_base": "EP20A21C9EHJu8fOOrjV4ywgn6bGFQbQ3cfWFwWL57io",
-      "type": "spec/overlays/meta/1.0",
-      "language": "pl_PL",
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "description": "PJ desc",
+      "digest": "EfDTiIz_5kHXWQIxw8JmDEou__3pi94c63cMrIRo7nK4",
+      "language": "Pl",
       "name": "Prawo Jazdy",
-      "description": "PJ desc"
+      "type": "spec/overlays/meta/1.0"
     }
   ]
 }

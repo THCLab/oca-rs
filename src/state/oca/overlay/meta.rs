@@ -10,6 +10,8 @@ use std::any::Any;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MetaOverlay {
     capture_base: String,
+    #[serde(rename = "digest")]
+    said: String,
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
@@ -25,6 +27,12 @@ impl Overlay for MetaOverlay {
     }
     fn capture_base(&mut self) -> &mut String {
         &mut self.capture_base
+    }
+    fn said(&self) -> &String {
+        &self.said
+    }
+    fn said_mut(&mut self) -> &mut String {
+        &mut self.said
     }
     fn overlay_type(&self) -> &String {
         &self.overlay_type
@@ -42,6 +50,7 @@ impl MetaOverlay {
     pub fn new(lang: Language, oca_tr: &OCATranslation) -> Box<MetaOverlay> {
         Box::new(MetaOverlay {
             capture_base: String::new(),
+            said: String::from("############################################"),
             overlay_type: "spec/overlays/meta/1.0".to_string(),
             language: lang,
             name: oca_tr.name.as_ref().unwrap_or(&"".to_string()).clone(),

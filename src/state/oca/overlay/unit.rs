@@ -6,6 +6,8 @@ use std::any::Any;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UnitOverlay {
     capture_base: String,
+    #[serde(rename = "digest")]
+    said: String,
     #[serde(rename = "type")]
     overlay_type: String,
     pub metric_system: String,
@@ -18,6 +20,12 @@ impl Overlay for UnitOverlay {
     }
     fn capture_base(&mut self) -> &mut String {
         &mut self.capture_base
+    }
+    fn said(&self) -> &String {
+        &self.said
+    }
+    fn said_mut(&mut self) -> &mut String {
+        &mut self.said
     }
     fn overlay_type(&self) -> &String {
         &self.overlay_type
@@ -42,6 +50,7 @@ impl UnitOverlay {
     pub fn new(metric_system: String) -> Box<UnitOverlay> {
         Box::new(UnitOverlay {
             capture_base: String::new(),
+            said: String::from("############################################"),
             overlay_type: "spec/overlays/unit/1.0".to_string(),
             metric_system,
             attribute_units: BTreeMap::new(),

@@ -140,8 +140,7 @@ fn main() {
             let mut root_oca_builder = parsed_oca_builder_list.pop().unwrap();
 
             for mut oca_builder in parsed_oca_builder_list {
-                let cs_json = serde_json::to_string(&oca_builder.oca.capture_base).unwrap();
-                let sai = format!("{}", SelfAddressing::Blake3_256.derive(cs_json.as_bytes()));
+                let sai = oca_builder.oca.capture_base.said.clone();
                 root_oca_builder.add_form_layout_reference(
                     sai.clone(),
                     oca_builder.build_default_form_layout(),
@@ -255,13 +254,13 @@ fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
     let mut files_json = serde_json::json!({});
     for (i, oca) in oca_list.iter().enumerate() {
         let cb_json = serde_json::to_string(&oca.capture_base).unwrap();
-        let cb_sai = SelfAddressing::Blake3_256.derive(cb_json.as_bytes());
+        let cb_sai = oca.capture_base.said.clone();
         if i == 0 {
-            root_cb_sai = format!("{}", cb_sai)
+            root_cb_sai = cb_sai.clone();
         }
 
         zip.start_file(
-            format!("{}.json", cb_sai),
+            format!("{}.json", cb_sai,),
             zip::write::FileOptions::default(),
         )?;
         zip.write_all(cb_json.as_bytes())?;
@@ -272,7 +271,7 @@ fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
 
         for overlay in oca.overlays.iter() {
             let overlay_json = serde_json::to_string(&overlay).unwrap();
-            let overlay_sai = SelfAddressing::Blake3_256.derive(overlay_json.as_bytes());
+            let overlay_sai = overlay.said();
             zip.start_file(
                 format!("{}.json", overlay_sai,),
                 zip::write::FileOptions::default(),

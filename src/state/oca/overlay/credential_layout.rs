@@ -5,6 +5,8 @@ use std::any::Any;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CredentialLayoutOverlay {
     capture_base: String,
+    #[serde(rename = "digest")]
+    said: String,
     #[serde(rename = "type")]
     overlay_type: String,
     pub layout: Layout,
@@ -16,6 +18,12 @@ impl Overlay for CredentialLayoutOverlay {
     }
     fn capture_base(&mut self) -> &mut String {
         &mut self.capture_base
+    }
+    fn said(&self) -> &String {
+        &self.said
+    }
+    fn said_mut(&mut self) -> &mut String {
+        &mut self.said
     }
     fn overlay_type(&self) -> &String {
         &self.overlay_type
@@ -32,6 +40,7 @@ impl CredentialLayoutOverlay {
         match yaml {
             Ok(layout) => Box::new(CredentialLayoutOverlay {
                 capture_base: String::new(),
+                said: String::from("############################################"),
                 overlay_type: "spec/overlays/credential_layout/1.0".to_string(),
                 layout,
             }),

@@ -1,5 +1,4 @@
 use indexmap::IndexMap;
-use said::derivation::SelfAddressing;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::{BTreeMap, HashMap};
 use serde_value::Value;
@@ -809,10 +808,9 @@ reference_layouts:"#,
                 .push(overlay::CredentialLayout::new(layout));
         }
 
-        let cs_json = serde_json::to_string(&self.oca.capture_base).unwrap();
-        let sai = format!("{}", SelfAddressing::Blake3_256.derive(cs_json.as_bytes()));
+        self.oca.capture_base.sign();
         for o in self.oca.overlays.iter_mut() {
-            o.sign(&sai);
+            o.sign(&self.oca.capture_base.said);
         }
 
         self.oca

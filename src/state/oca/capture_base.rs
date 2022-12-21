@@ -1,11 +1,14 @@
 use crate::state::attribute::{Attribute, AttributeType};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use said::derivation::SelfAddressing;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CaptureBase {
     #[serde(rename = "type")]
     pub schema_type: String,
+    #[serde(rename = "digest")]
+    pub said: String,
     pub classification: String,
     pub attributes: BTreeMap<String, String>,
     pub flagged_attributes: Vec<String>,
@@ -21,6 +24,7 @@ impl CaptureBase {
     pub fn new() -> CaptureBase {
         CaptureBase {
             schema_type: String::from("spec/capture_base/1.0"),
+            said: String::from("############################################"),
             classification: String::from(""),
             attributes: BTreeMap::new(),
             flagged_attributes: Vec::new(),
@@ -45,5 +49,10 @@ impl CaptureBase {
         if attribute.is_flagged {
             self.flagged_attributes.push(attribute.name.clone());
         }
+    }
+
+    pub fn sign(&mut self) {
+        let self_json = serde_json::to_string(&self).unwrap();
+        self.said = format!("{}", SelfAddressing::Blake3_256.derive(self_json.as_bytes()));
     }
 }

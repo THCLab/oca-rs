@@ -15,6 +15,7 @@ describe('Plain OCA is built', () => {
   it('return OCA as JS object', () => {
     expect(oca).to.haveOwnProperty("capture_base")
     expect(oca).to.have.nested.property("capture_base.type")
+    expect(oca).to.have.nested.property("capture_base.digest")
     expect(oca).to.have.nested.property("capture_base.classification")
     expect(oca).to.have.nested.property("capture_base.attributes")
     expect(oca).to.have.nested.property("capture_base.flagged_attributes")

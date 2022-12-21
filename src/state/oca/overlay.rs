@@ -33,12 +33,15 @@ pub use self::unit::UnitOverlay as Unit;
 pub use self::subset::SubsetOverlay as Subset;
 use std::any::Any;
 use crate::state::{attribute::Attribute, language::Language};
+use said::derivation::SelfAddressing;
 
 erased_serde::serialize_trait_object!(Overlay);
 
 pub trait Overlay: erased_serde::Serialize {
     fn as_any(&self) -> &dyn Any;
     fn capture_base(&mut self) -> &mut String;
+    fn said(&self) -> &String;
+    fn said_mut(&mut self) -> &mut String;
     fn overlay_type(&self) -> &String;
     fn language(&self) -> Option<&Language> {
         None
@@ -53,5 +56,17 @@ pub trait Overlay: erased_serde::Serialize {
     fn sign(&mut self, capture_base_sai: &str) {
         self.capture_base().clear();
         self.capture_base().push_str(capture_base_sai);
+
+        let mut buf = vec![];
+        {
+            let json_serializer = &mut serde_json::Serializer::new(&mut buf);
+            let mut erased_serializer: Box<dyn erased_serde::Serializer> = Box::new(<dyn erased_serde::Serializer>::erase(json_serializer));
+            self.erased_serialize(erased_serializer.as_mut()).unwrap();
+        }
+        let self_json = std::str::from_utf8(buf.as_slice()).unwrap().to_string();
+        self.said_mut().clear();
+        self.said_mut().push_str(
+            &format!("{}", SelfAddressing::Blake3_256.derive(self_json.as_bytes()))
+        )
     }
 }

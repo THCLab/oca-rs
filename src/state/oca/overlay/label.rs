@@ -6,6 +6,8 @@ use std::any::Any;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LabelOverlay {
     capture_base: String,
+    #[serde(rename = "digest")]
+    said: String,
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
@@ -25,6 +27,12 @@ impl Overlay for LabelOverlay {
     }
     fn overlay_type(&self) -> &String {
         &self.overlay_type
+    }
+    fn said(&self) -> &String {
+        &self.said
+    }
+    fn said_mut(&mut self) -> &mut String {
+        &mut self.said
     }
     fn language(&self) -> Option<&Language> {
         Some(&self.language)
@@ -49,6 +57,7 @@ impl LabelOverlay {
     pub fn new(lang: Language) -> Box<LabelOverlay> {
         Box::new(LabelOverlay {
             capture_base: String::new(),
+            said: String::from("############################################"),
             overlay_type: "spec/overlays/label/1.0".to_string(),
             language: lang,
             attribute_labels: BTreeMap::new(),
