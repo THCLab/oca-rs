@@ -266,7 +266,9 @@ fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
         )?;
         zip.write_all(cb_json.as_bytes())?;
         let files = files_json.as_object_mut().unwrap();
-        files.insert(format!("capture_base-{}", i), serde_json::json!(cb_sai));
+
+        let mut cb_overlays_json = serde_json::json!({});
+        let cb_overlays = cb_overlays_json.as_object_mut().unwrap();
 
         for overlay in oca.overlays.iter() {
             let overlay_json = serde_json::to_string(&overlay).unwrap();
@@ -279,12 +281,12 @@ fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
 
             let overlay_type = overlay.overlay_type().split('/').collect::<Vec<&str>>()[2];
             let files_overlay_key = match overlay.language() {
-                Some(lang) => format!("[{}] {} ({})", cb_sai, overlay_type, lang),
-                None => format!("[{}] {}", cb_sai, overlay_type),
+                Some(lang) => format!("{} ({})", overlay_type, lang),
+                None => overlay_type.to_string(),
             };
-            let files = files_json.as_object_mut().unwrap();
-            files.insert(files_overlay_key, serde_json::json!(overlay_sai));
+            cb_overlays.insert(files_overlay_key, serde_json::json!(overlay_sai));
         }
+        files.insert(serde_json::json!(cb_sai).as_str().unwrap().to_string(), cb_overlays_json);
     }
 
     zip.start_file(
