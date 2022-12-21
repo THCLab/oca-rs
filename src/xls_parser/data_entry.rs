@@ -1,5 +1,5 @@
 use crate::state::{entries::EntriesElement, entry_codes::EntryCodes, oca::overlay, oca::OCA};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashSet, HashMap};
 use std::convert::TryInto;
 use std::iter::FromIterator;
 use xlsxwriter::*;
@@ -229,6 +229,19 @@ pub fn generate(oca_list: &[OCA], filename: String) -> Result<(), Vec<String>> {
     let mut lang: Option<&String> = None;
     let mut skipped: usize = 0;
     let mut lookup_entries: HashMap<String, &BTreeMap<String, String>> = HashMap::new();
+
+    let languages: Vec<Option<&String>> = oca.overlays.iter()
+        .map(|o| o.language())
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect();
+    for language_option in languages {
+        if let Some(l) = language_option {
+            if l.to_lowercase().starts_with("en") {
+                lang = language_option;
+            }
+        }
+    }
 
     for (i, o) in oca.overlays.iter().enumerate() {
         if o.overlay_type().contains("/character_encoding/") {
