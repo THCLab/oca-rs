@@ -56,6 +56,8 @@ pub trait Overlay: erased_serde::Serialize {
     fn sign(&mut self, capture_base_sai: &str) {
         self.capture_base().clear();
         self.capture_base().push_str(capture_base_sai);
+        self.said_mut().clear();
+        self.said_mut().push_str("############################################");
 
         let mut buf = vec![];
         {
