@@ -1,5 +1,5 @@
 [package]
-license = "GPL-3.0"
+license = "EUPL-1.2"
 description = "Rust implementation of Overlays Capture Architecture"
 name = "oca-rust"
 version = "0.2.23"
