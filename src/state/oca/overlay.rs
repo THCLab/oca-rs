@@ -12,8 +12,8 @@ pub mod format;
 pub mod information;
 pub mod label;
 pub mod meta;
-pub mod unit;
 pub mod subset;
+pub mod unit;
 
 pub use self::attribute_mapping::AttributeMappingOverlay as AttributeMapping;
 pub use self::cardinality::CardinalityOverlay as Cardinality;
@@ -29,11 +29,11 @@ pub use self::format::FormatOverlay as Format;
 pub use self::information::InformationOverlay as Information;
 pub use self::label::LabelOverlay as Label;
 pub use self::meta::MetaOverlay as Meta;
-pub use self::unit::UnitOverlay as Unit;
 pub use self::subset::SubsetOverlay as Subset;
-use std::any::Any;
+pub use self::unit::UnitOverlay as Unit;
 use crate::state::{attribute::Attribute, language::Language};
 use said::derivation::SelfAddressing;
+use std::any::Any;
 
 erased_serde::serialize_trait_object!(Overlay);
 
@@ -57,18 +57,21 @@ pub trait Overlay: erased_serde::Serialize {
         self.capture_base().clear();
         self.capture_base().push_str(capture_base_sai);
         self.said_mut().clear();
-        self.said_mut().push_str("############################################");
+        self.said_mut()
+            .push_str("############################################");
 
         let mut buf = vec![];
         {
             let json_serializer = &mut serde_json::Serializer::new(&mut buf);
-            let mut erased_serializer: Box<dyn erased_serde::Serializer> = Box::new(<dyn erased_serde::Serializer>::erase(json_serializer));
+            let mut erased_serializer: Box<dyn erased_serde::Serializer> =
+                Box::new(<dyn erased_serde::Serializer>::erase(json_serializer));
             self.erased_serialize(erased_serializer.as_mut()).unwrap();
         }
         let self_json = std::str::from_utf8(buf.as_slice()).unwrap().to_string();
         self.said_mut().clear();
-        self.said_mut().push_str(
-            &format!("{}", SelfAddressing::Blake3_256.derive(self_json.as_bytes()))
-        )
+        self.said_mut().push_str(&format!(
+            "{}",
+            SelfAddressing::Blake3_256.derive(self_json.as_bytes())
+        ))
     }
 }

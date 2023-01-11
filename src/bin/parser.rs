@@ -115,14 +115,13 @@ fn main() {
                     None
                 };
 
-                let result =
-                    xls_parser::oca::parse(
-                        path.clone(),
-                        matches.is_present("default-form-layout"),
-                        form_layout_path,
-                        matches.is_present("default-credential-layout"),
-                        credential_layout_path
-                    );
+                let result = xls_parser::oca::parse(
+                    path.clone(),
+                    matches.is_present("default-form-layout"),
+                    form_layout_path,
+                    matches.is_present("default-credential-layout"),
+                    credential_layout_path,
+                );
 
                 if let Err(e) = result {
                     println!(
@@ -190,7 +189,7 @@ fn main() {
                             if to_be_zipped {
                                 println!("OCA Data Entry written to {}-data_entry.xlsx", filename);
                             }
-                        },
+                        }
                         Err(e) => println!("{:?}", e),
                     }
                 }
@@ -285,7 +284,10 @@ fn zip_oca(oca_list: Vec<OCA>, filename: String) -> zip::result::ZipResult<()> {
             };
             cb_overlays.insert(files_overlay_key, serde_json::json!(overlay_sai));
         }
-        files.insert(serde_json::json!(cb_sai).as_str().unwrap().to_string(), cb_overlays_json);
+        files.insert(
+            serde_json::json!(cb_sai).as_str().unwrap().to_string(),
+            cb_overlays_json,
+        );
     }
 
     zip.start_file(

@@ -1,7 +1,7 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use std::any::Any;
+use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EntryCodeMappingOverlay {
@@ -30,7 +30,9 @@ impl Overlay for EntryCodeMappingOverlay {
         &self.overlay_type
     }
     fn attributes(&self) -> Vec<&String> {
-        self.attribute_entry_codes_mapping.keys().collect::<Vec<&String>>()
+        self.attribute_entry_codes_mapping
+            .keys()
+            .collect::<Vec<&String>>()
     }
 
     fn add(&mut self, attribute: &Attribute) {

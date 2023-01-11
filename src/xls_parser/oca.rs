@@ -54,7 +54,8 @@ pub fn parse(
     })?;
     let mut sheet_names = workbook.sheet_names().to_vec();
     let mut languages = vec![];
-    sheet_names.retain(|n| n != "READ ME" && n != "README" && n != "Start Here" && n != "Documentation");
+    sheet_names
+        .retain(|n| n != "READ ME" && n != "README" && n != "Start Here" && n != "Documentation");
 
     let main_sheet_name = sheet_names.first().ok_or_else(|| {
         errors.push(format!("Missing sheets. {}", SAMPLE_TEMPLATE_MSG));
@@ -86,7 +87,13 @@ pub fn parse(
     }
 
     let mut column_indicies: HashMap<&str, u32> = HashMap::new();
-    for row in main_sheet.rows().filter(|&row| if let DataType::String(v) = &row[0] { v.starts_with("CB") || v.starts_with("OL") } else { false }) {
+    for row in main_sheet.rows().filter(|&row| {
+        if let DataType::String(v) = &row[0] {
+            v.starts_with("CB") || v.starts_with("OL")
+        } else {
+            false
+        }
+    }) {
         for (i, value) in row.iter().enumerate() {
             if let DataType::String(v) = value {
                 if v.starts_with("CB-CL:") {
@@ -133,10 +140,10 @@ pub fn parse(
         errors.push("Not found column with Attribute Names definiton".to_string());
     }
     if !errors.is_empty() {
-        return Err(errors)
+        return Err(errors);
     }
 
-    let sheet_version = main_sheet.get_value((0,0));
+    let sheet_version = main_sheet.get_value((0, 0));
     let start: u32 = 3;
     let end_offset = if let Some(_) = sheet_version { 1 } else { 3 };
     let mut end: u32 = main_sheet.height() as u32;
@@ -178,12 +185,14 @@ pub fn parse(
     fn parse_row(
         attr_index: u32,
         main_sheet: &Range<DataType>,
-        column_indicies: HashMap<&str, u32>
+        column_indicies: HashMap<&str, u32>,
     ) -> Result<AttributeBuilder, String> {
         let attribute_name = main_sheet
             .get_value((attr_index, *column_indicies.get("ATTR_NAME_INDEX").unwrap()))
             .unwrap()
-            .to_string().trim().to_string();
+            .to_string()
+            .trim()
+            .to_string();
         if attribute_name.is_empty() {
             return Err(format!(
                 "Parsing attribute in row {} failed. Attribute name is empty.",
@@ -203,36 +212,43 @@ pub fn parse(
         */
         let attribute_type = &format!(
             r#"{}"#,
-            &main_sheet.get_value((attr_index, *column_indicies.get("ATTR_TYPE_INDEX").unwrap())).unwrap()
-        ).trim().to_string();
+            &main_sheet
+                .get_value((attr_index, *column_indicies.get("ATTR_TYPE_INDEX").unwrap()))
+                .unwrap()
+        )
+        .trim()
+        .to_string();
         let mut attribute_sai: Option<String> = None;
         if attribute_type.contains("Reference") {
             match column_indicies.get("REFERENCE_SAI_INDEX") {
                 Some(reference_sai_index) => {
-                    if let Some(sai_value) = &main_sheet.get_value((attr_index, *reference_sai_index)) {
+                    if let Some(sai_value) =
+                        &main_sheet.get_value((attr_index, *reference_sai_index))
+                    {
                         if let DataType::Empty = sai_value {
                             return Err(format!(
                                 "Parsing attribute type in row {} ({}) failed. Missing reference SAI",
                                 attr_index + 1,
                                 attribute_name,
-                            ))
+                            ));
                         }
                         attribute_sai = Some(format!(r#"{}"#, sai_value).trim().to_string());
                     }
-                },
-                None => {
-                    return Err("Missing CB-RS: Reference SAI column".to_string())
                 }
+                None => return Err("Missing CB-RS: Reference SAI column".to_string()),
             }
         }
         let mut attribute_builder = AttributeBuilder::new(
             attribute_name.clone(),
-            serde_json::from_str::<AttributeType>(format!("\"{}\"", attribute_type).as_str()).map_err(|e| format!(
+            serde_json::from_str::<AttributeType>(format!("\"{}\"", attribute_type).as_str())
+                .map_err(|e| {
+                    format!(
                         "Parsing attribute type in row {} ({}) failed. {}",
                         attr_index + 1,
                         attribute_name,
                         e
-                    ))?,
+                    )
+                })?,
         );
         if let Some(sai) = attribute_sai {
             let mut sai_string = sai;
@@ -242,7 +258,9 @@ pub fn parse(
             attribute_builder = attribute_builder.add_sai(sai_string);
         }
         if let Some(flagged_index) = column_indicies.get("FLAGGED_INDEX") {
-            if let Some(DataType::String(_value)) = main_sheet.get_value((attr_index, *flagged_index)) {
+            if let Some(DataType::String(_value)) =
+                main_sheet.get_value((attr_index, *flagged_index))
+            {
                 attribute_builder = attribute_builder.set_flagged();
             }
         }
@@ -250,11 +268,15 @@ pub fn parse(
             if let Some(DataType::String(encoding_value)) =
                 main_sheet.get_value((attr_index, *encoding_index))
             {
-                let encoding = serde_json::from_str::<Encoding>(&format!(r#""{}""#, encoding_value.trim())).map_err(|e| format!(
-                            "Parsing character encoding in row {} failed. {}",
-                            attr_index + 1,
-                            e
-                        ))?;
+                let encoding =
+                    serde_json::from_str::<Encoding>(&format!(r#""{}""#, encoding_value.trim()))
+                        .map_err(|e| {
+                            format!(
+                                "Parsing character encoding in row {} failed. {}",
+                                attr_index + 1,
+                                e
+                            )
+                        })?;
                 attribute_builder = attribute_builder.add_encoding(encoding);
             }
         }
@@ -263,7 +285,8 @@ pub fn parse(
             if let Some(DataType::String(format_value)) =
                 main_sheet.get_value((attr_index, *format_index))
             {
-                attribute_builder = attribute_builder.add_format(format_value.clone().trim().to_string());
+                attribute_builder =
+                    attribute_builder.add_format(format_value.clone().trim().to_string());
             }
         }
         if let Some(entry_codes_index) = column_indicies.get("ENTRY_CODES_INDEX") {
@@ -276,7 +299,8 @@ pub fn parse(
                         EntryCodes::Sai(sai.to_string())
                     } else {
                         let codes: Vec<String> = entry_codes_value
-                            .trim().to_string()
+                            .trim()
+                            .to_string()
                             .split('|')
                             .collect::<Vec<&str>>()
                             .iter()
@@ -315,8 +339,8 @@ pub fn parse(
             if let Some(DataType::String(cardinality_value)) =
                 main_sheet.get_value((attr_index, *cardinality_index))
             {
-                attribute_builder =
-                    attribute_builder.add_cardinality(cardinality_value.to_string().trim().to_string());
+                attribute_builder = attribute_builder
+                    .add_cardinality(cardinality_value.to_string().trim().to_string());
             }
         }
 
@@ -324,17 +348,21 @@ pub fn parse(
             if let Some(DataType::String(conformance_value)) =
                 main_sheet.get_value((attr_index, *conformance_index))
             {
-                attribute_builder = attribute_builder.add_conformance(conformance_value.clone().trim().to_string());
+                attribute_builder =
+                    attribute_builder.add_conformance(conformance_value.clone().trim().to_string());
             }
         }
 
         if let Some(unit_index) = column_indicies.get("UNIT_INDEX") {
-            if let Some(DataType::String(unit_value)) = main_sheet.get_value((attr_index, *unit_index)) {
+            if let Some(DataType::String(unit_value)) =
+                main_sheet.get_value((attr_index, *unit_index))
+            {
                 let mut metric_system = String::new();
                 let mut unit = unit_value.clone().trim().to_string();
 
                 let mut splitted: Vec<String> = unit_value
-                    .trim().to_string()
+                    .trim()
+                    .to_string()
                     .split('|')
                     .collect::<Vec<&str>>()
                     .iter()
@@ -353,7 +381,8 @@ pub fn parse(
             if let Some(DataType::String(mapping_value)) =
                 main_sheet.get_value((attr_index, *attribute_mapping_index))
             {
-                attribute_builder = attribute_builder.add_mapping(mapping_value.clone().trim().to_string());
+                attribute_builder =
+                    attribute_builder.add_mapping(mapping_value.clone().trim().to_string());
             }
         }
 
@@ -363,7 +392,8 @@ pub fn parse(
             {
                 attribute_builder = attribute_builder.add_entry_codes_mapping(
                     mapping_value
-                        .trim().to_string()
+                        .trim()
+                        .to_string()
                         .split('|')
                         .collect::<Vec<&str>>()
                         .iter()
@@ -392,7 +422,13 @@ pub fn parse(
 
     for (lang, sheet) in translation_sheets.iter() {
         let mut sheet_column_indicies: HashMap<&str, u32> = HashMap::new();
-        for row in sheet.rows().filter(|&row| if let DataType::String(v) = &row[0] { v.starts_with("CB") || v.starts_with("OL") } else { false }) {
+        for row in sheet.rows().filter(|&row| {
+            if let DataType::String(v) = &row[0] {
+                v.starts_with("CB") || v.starts_with("OL")
+            } else {
+                false
+            }
+        }) {
             for (i, value) in row.iter().enumerate() {
                 if let DataType::String(v) = value {
                     if v.starts_with("OL-MN:") {
@@ -429,12 +465,11 @@ pub fn parse(
                                 match extra_trans.get_mut(name_value) {
                                     Some(e_trans) => {
                                         e_trans.insert(lang.to_string(), value_value.to_string());
-                                    },
+                                    }
                                     None => {
                                         let mut e_trans = HashMap::new();
                                         e_trans.insert(lang.to_string(), value_value.to_string());
                                         extra_trans.insert(name_value.to_string(), e_trans);
-
                                     }
                                 }
                             }
@@ -446,15 +481,18 @@ pub fn parse(
 
         for attr_index in (oca_range.0)..(oca_range.1) {
             if let Some(label_index) = sheet_column_indicies.get("LABEL_INDEX") {
-                if let Some(DataType::String(label_value)) = sheet.get_value((attr_index, *label_index))
+                if let Some(DataType::String(label_value)) =
+                    sheet.get_value((attr_index, *label_index))
                 {
                     match label_trans.get_mut(&attr_index) {
                         Some(attr_label_tr) => {
-                            attr_label_tr.insert(lang.to_string(), label_value.clone().trim().to_string());
+                            attr_label_tr
+                                .insert(lang.to_string(), label_value.clone().trim().to_string());
                         }
                         None => {
                             let mut attr_label_tr: HashMap<Language, String> = HashMap::new();
-                            attr_label_tr.insert(lang.to_string(), label_value.clone().trim().to_string());
+                            attr_label_tr
+                                .insert(lang.to_string(), label_value.clone().trim().to_string());
                             label_trans.insert(attr_index, attr_label_tr);
                         }
                     }
@@ -466,7 +504,11 @@ pub fn parse(
                     sheet.get_value((attr_index, *entries_index))
                 {
                     let entries_el: EntriesElement = if entries_value.starts_with("SAI:") {
-                        let sai = entries_value.strip_prefix("SAI:").unwrap().trim().to_string();
+                        let sai = entries_value
+                            .strip_prefix("SAI:")
+                            .unwrap()
+                            .trim()
+                            .to_string();
                         EntriesElement::Sai(sai.to_string())
                     } else {
                         let entries_values = entries_value.split('|').collect::<Vec<&str>>();
@@ -480,7 +522,7 @@ pub fn parse(
                                                     lang,
                                                     i + 1)
                                     );
-                                return Err(errors)
+                                return Err(errors);
                             }
                             splitted.get(1).ok_or_else(|| {
                                 errors.push(format!(
@@ -492,14 +534,15 @@ pub fn parse(
                                 errors.clone()
                             })?;
                         }
-                        let entries_obj = entries_values.iter().fold(BTreeMap::new(), |mut acc, x| {
-                            let splitted = x.split(':').collect::<Vec<&str>>();
-                            acc.insert(
-                                splitted.first().unwrap().to_string().trim().to_string(),
-                                splitted.get(1).unwrap().to_string().trim().to_string(),
-                            );
-                            acc
-                        });
+                        let entries_obj =
+                            entries_values.iter().fold(BTreeMap::new(), |mut acc, x| {
+                                let splitted = x.split(':').collect::<Vec<&str>>();
+                                acc.insert(
+                                    splitted.first().unwrap().to_string().trim().to_string(),
+                                    splitted.get(1).unwrap().to_string().trim().to_string(),
+                                );
+                                acc
+                            });
                         EntriesElement::Object(entries_obj)
                     };
                     match entries_trans.get_mut(&attr_index) {
@@ -509,7 +552,8 @@ pub fn parse(
                             }
                         }
                         None => {
-                            let mut attr_entries_tr: HashMap<Language, EntriesElement> = HashMap::new();
+                            let mut attr_entries_tr: HashMap<Language, EntriesElement> =
+                                HashMap::new();
                             attr_entries_tr.insert(lang.to_string(), entries_el);
                             entries_trans.insert(attr_index, attr_entries_tr);
                         }
@@ -523,11 +567,17 @@ pub fn parse(
                 {
                     match information_trans.get_mut(&attr_index) {
                         Some(attr_info_tr) => {
-                            attr_info_tr.insert(lang.to_string(), information_value.clone().trim().to_string());
+                            attr_info_tr.insert(
+                                lang.to_string(),
+                                information_value.clone().trim().to_string(),
+                            );
                         }
                         None => {
                             let mut attr_info_tr: HashMap<Language, String> = HashMap::new();
-                            attr_info_tr.insert(lang.to_string(), information_value.clone().trim().to_string());
+                            attr_info_tr.insert(
+                                lang.to_string(),
+                                information_value.clone().trim().to_string(),
+                            );
                             information_trans.insert(attr_index, attr_info_tr);
                         }
                     }

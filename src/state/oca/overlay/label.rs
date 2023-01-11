@@ -1,7 +1,7 @@
 use crate::state::{attribute::Attribute, language::Language, oca::Overlay};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use std::any::Any;
+use std::collections::BTreeMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LabelOverlay {
@@ -102,7 +102,8 @@ impl LabelOverlay {
                 self.category_labels
                     .insert(acctual_cat_id.clone(), category.to_string());
                 self.attribute_categories.push(acctual_cat_id.clone());
-                self.category_attributes.insert(acctual_cat_id.clone(), vec![]);
+                self.category_attributes
+                    .insert(acctual_cat_id.clone(), vec![]);
             }
 
             if i + 1 == categories.len() {
@@ -140,24 +141,40 @@ mod tests {
         );
 
         assert_eq!(overlay.attribute_categories.len(), 2);
-        assert!(overlay.attribute_categories.contains(&"_cat-1_".to_string()));
-        assert!(overlay.attribute_categories.contains(&"_cat-2_".to_string()));
+        assert!(overlay
+            .attribute_categories
+            .contains(&"_cat-1_".to_string()));
+        assert!(overlay
+            .attribute_categories
+            .contains(&"_cat-2_".to_string()));
 
-        assert!(overlay.category_labels.get(&"_cat-1_".to_string()).is_some());
+        assert!(overlay
+            .category_labels
+            .get(&"_cat-1_".to_string())
+            .is_some());
         if let Some(cat1) = overlay.category_labels.get(&"_cat-1_".to_string()) {
             assert_eq!(*cat1, "Cat 1".to_string());
         }
-        assert!(overlay.category_labels.get(&"_cat-2_".to_string()).is_some());
+        assert!(overlay
+            .category_labels
+            .get(&"_cat-2_".to_string())
+            .is_some());
         if let Some(cat2) = overlay.category_labels.get(&"_cat-2_".to_string()) {
             assert_eq!(*cat2, "Cat 2".to_string());
         }
 
-        assert!(overlay.category_attributes.get(&"_cat-1_".to_string()).is_some());
+        assert!(overlay
+            .category_attributes
+            .get(&"_cat-1_".to_string())
+            .is_some());
         if let Some(cat1_attrs) = overlay.category_attributes.get(&"_cat-1_".to_string()) {
             assert_eq!(cat1_attrs.len(), 1);
             assert!(cat1_attrs.contains(&"attr1".to_string()));
         }
-        assert!(overlay.category_attributes.get(&"_cat-2_".to_string()).is_some());
+        assert!(overlay
+            .category_attributes
+            .get(&"_cat-2_".to_string())
+            .is_some());
         if let Some(cat2_attrs) = overlay.category_attributes.get(&"_cat-2_".to_string()) {
             assert_eq!(cat2_attrs.len(), 1);
             assert!(cat2_attrs.contains(&"attr2".to_string()));

@@ -88,14 +88,15 @@ fn create_oca() {
     let oca_json = serde_json::to_string_pretty(&serde_json::to_value(&oca).unwrap()).unwrap();
     let loaded_oca_builder = load_oca(&mut oca_json.as_bytes()).unwrap();
 
-    let birth_date_attr = AttributeBuilder::new(String::from("birth_date"), AttributeType::DateTime)
-        .set_flagged()
-        .add_label(hashmap! {
-            "en_EN".to_string() => "Birth date: ".to_string(),
-            "pl_PL".to_string() => "Data urodzenia: ".to_string(),
-        })
-        .add_format("DD/MM/YYYY".to_string())
-        .build();
+    let birth_date_attr =
+        AttributeBuilder::new(String::from("birth_date"), AttributeType::DateTime)
+            .set_flagged()
+            .add_label(hashmap! {
+                "en_EN".to_string() => "Birth date: ".to_string(),
+                "pl_PL".to_string() => "Data urodzenia: ".to_string(),
+            })
+            .add_format("DD/MM/YYYY".to_string())
+            .build();
 
     let loaded_oca = loaded_oca_builder.add_attribute(birth_date_attr).finalize();
 
