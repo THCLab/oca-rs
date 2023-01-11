@@ -136,14 +136,16 @@ pub fn parse(
         return Err(errors)
     }
 
+    let sheet_version = main_sheet.get_value((0,0));
     let start: u32 = 3;
+    let end_offset = if let Some(_) = sheet_version { 1 } else { 3 };
     let mut end: u32 = main_sheet.height() as u32;
     for (i, row) in main_sheet.rows().enumerate().rev() {
         if row
             .iter()
             .any(|cell| cell != &DataType::Empty && cell.get_string().unwrap().trim().ne(""))
         {
-            end = start + i as u32;
+            end = end_offset + i as u32;
             break;
         }
     }
