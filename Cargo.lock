@@ -232,7 +232,7 @@ dependencies = [
 
 [[package]]
 name = "oca-rs"
-version = "0.2.23"
+version = "0.2.24"
 dependencies = [
  "erased-serde",
  "indexmap",
