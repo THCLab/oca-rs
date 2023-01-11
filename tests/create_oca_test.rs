@@ -1,5 +1,5 @@
 use maplit::hashmap;
-use oca_rust::state::{
+use oca_rs::state::{
     attribute::{AttributeBuilder, AttributeType, Entries, Entry},
     encoding::Encoding,
     entry_codes::EntryCodes,
@@ -7,7 +7,7 @@ use oca_rust::state::{
     validator::Validator,
 };
 
-use oca_rust::controller::load_oca;
+use oca_rs::controller::load_oca;
 
 #[test]
 fn create_oca() {

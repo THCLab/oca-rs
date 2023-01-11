@@ -1,3 +1,3 @@
 # oca.js
 
-generated from oca-rust
+generated from oca-rs

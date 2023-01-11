@@ -1,7 +1,7 @@
 [package]
 license = "EUPL-1.2"
 description = "Rust implementation of Overlays Capture Architecture"
-name = "oca-rust"
+name = "oca-rs"
 version = "0.2.23"
 authors = ["Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>", "Robert Mitwicki <robert.mitwicki@opensoftware.pl>", "Michał Pietrus <michal.pietrus@opensoftware.pl>"]
 edition = "2018"

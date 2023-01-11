@@ -1,6 +1,14 @@
 {
   "name": "oca.js",
   "version": "_VERSION_",
+  "license": "EUPL-1.2",
+  {
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/THCLab/oca-rs.git",
+      "directory": "bindings/js/wasm"
+    }
+  },
   "files": [
     "nodejs/*",
     "web/*"

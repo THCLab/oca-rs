@@ -1,15 +1,15 @@
 # [![Rust Build Status]][Rust actions] [![Cargo version]][crates.io] [![WASM Build Status]][WASM actions] [![NPM version]][npmjs.com]
 
-[Rust Build Status]: https://github.com/THCLab/oca-rust/actions/workflows/rust.yml/badge.svg?branch=main
-[Rust actions]: https://github.com/THCLab/oca-rust/actions/workflows/rust.yml
-[Cargo version]: https://img.shields.io/crates/v/oca-rust
-[crates.io]: https://crates.io/crates/oca-rust
-[WASM Build Status]: https://github.com/THCLab/oca-rust/actions/workflows/wasm.yml/badge.svg?branch=main
-[WASM actions]: https://github.com/THCLab/oca-rust/actions/workflows/wasm.yml
+[Rust Build Status]: https://github.com/THCLab/oca-rs/actions/workflows/rust.yml/badge.svg?branch=main
+[Rust actions]: https://github.com/THCLab/oca-rs/actions/workflows/rust.yml
+[Cargo version]: https://img.shields.io/crates/v/oca-rs
+[crates.io]: https://crates.io/crates/oca-rs
+[WASM Build Status]: https://github.com/THCLab/oca-rs/actions/workflows/wasm.yml/badge.svg?branch=main
+[WASM actions]: https://github.com/THCLab/oca-rs/actions/workflows/wasm.yml
 [NPM version]: https://img.shields.io/npm/v/oca.js
 [npmjs.com]: https://www.npmjs.com/package/oca.js
-[Crates.io actions]: https://github.com/THCLab/oca-rust/actions/workflows/create.yml
-[npmjs.com actions]: https://github.com/THCLab/oca-rust/actions/workflows/npm-publish.yml
+[Crates.io actions]: https://github.com/THCLab/oca-rs/actions/workflows/create.yml
+[npmjs.com actions]: https://github.com/THCLab/oca-rs/actions/workflows/npm-publish.yml
 
 # Rust implementation of Overlays Capture architecture
 
@@ -26,7 +26,7 @@ We have distilled the most crucial license specifics to make your adoption seaml
 # Documentation
 
 - [OCA Spec](https://oca.colossi.network/)
-- [API reference (docs.rs)](https://docs.rs/oca-rust)
+- [API reference (docs.rs)](https://docs.rs/oca-rs)
 
 
 # Usage
@@ -37,7 +37,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-oca-rust = "0.2.23"
+oca-rs = "0.2.23"
 ```
 
 ### Build

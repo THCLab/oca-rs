@@ -1,5 +1,5 @@
 {
-  "name": "oca-rust-wasm-tests",
+  "name": "oca-rs-wasm-tests",
   "version": "0.0.1",
   "main": "index.js",
   "devDependencies": {

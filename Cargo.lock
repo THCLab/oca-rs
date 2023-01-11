@@ -231,7 +231,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oca-rust"
+name = "oca-rs"
 version = "0.2.23"
 dependencies = [
  "erased-serde",
