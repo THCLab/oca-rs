@@ -11,9 +11,6 @@
 [Crates.io actions]: https://github.com/THCLab/oca-rust/actions/workflows/create.yml
 [npmjs.com actions]: https://github.com/THCLab/oca-rust/actions/workflows/npm-publish.yml
 
-[parser.bin release]: https://github.com/THCLab/oca-rust/releases/latest/download/parser.bin
-[parser.exe release]: https://github.com/THCLab/oca-rust/releases/latest/download/parser.exe
-
 # Rust implementation of Overlays Capture architecture
 
 OCA is a standardized global solution for data capture and exchange which
@@ -34,10 +31,6 @@ We have distilled the most crucial license specifics to make your adoption seaml
 
 # Usage
 
-#### Command line parser
-
-Download [bin for linux][parser.bin release] or [exe for windows][parser.exe release]
-
 #### In cargo package
 
 Add this to your `Cargo.toml`:
@@ -49,12 +42,12 @@ oca-rust = "0.2.23"
 
 ### Build
 
-Building local package with command line app and XLS parser:  
-`cargo build --features command_line,xls_parser`
+Building local package:  
+`cargo build `
 
 ### Run [tests](tests)
 
-`cargo test --all-features`
+`cargo test`
 
 ## JS WASM bindings
 
