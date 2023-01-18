@@ -162,6 +162,14 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Subset overlay: {}", e))
                             })?,
                     ));
+                } else if overlay_type.contains("/standard/") {
+                    return Ok(Box::new(
+                        de_overlay
+                            .deserialize_into::<overlay::Standard>()
+                            .map_err(|e| {
+                                serde::de::Error::custom(format!("Standard overlay: {}", e))
+                            })?,
+                    ));
                 } else {
                     return Err(serde::de::Error::custom(format!(
                         "unknown overlay type: {}",
@@ -623,6 +631,22 @@ impl OCABuilder {
             }
 
             if let Some(ov) = format_ov {
+                ov.add(&attr)
+            }
+        }
+
+        if attr.standard.is_some() {
+            let mut standard_ov = self
+                .oca
+                .overlays
+                .iter_mut()
+                .find(|x| x.overlay_type().contains("/standard/"));
+            if standard_ov.is_none() {
+                self.oca.overlays.push(overlay::Standard::new());
+                standard_ov = self.oca.overlays.last_mut();
+            }
+
+            if let Some(ov) = standard_ov {
                 ov.add(&attr)
             }
         }

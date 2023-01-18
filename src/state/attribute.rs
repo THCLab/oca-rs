@@ -1,3 +1,4 @@
+use super::standard::Standard;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 use wasm_bindgen::prelude::*;
@@ -24,6 +25,7 @@ pub struct Attribute {
     pub dependencies: Option<Vec<String>>,
     pub cardinality: Option<String>,
     pub conformance: Option<String>,
+    pub standard: Option<Standard>,
 }
 
 pub struct AttributeBuilder {
@@ -50,6 +52,7 @@ impl AttributeBuilder {
                 dependencies: None,
                 cardinality: None,
                 conformance: None,
+                standard: None,
             },
         }
     }
@@ -96,6 +99,11 @@ impl AttributeBuilder {
 
     pub fn add_format(mut self, format: String) -> AttributeBuilder {
         self.attribute.format = Some(format);
+        self
+    }
+
+    pub fn add_standard(mut self, standard: String) -> AttributeBuilder {
+        self.attribute.standard = Some(Standard::new(standard));
         self
     }
 

@@ -12,6 +12,7 @@ pub mod format;
 pub mod information;
 pub mod label;
 pub mod meta;
+pub mod standard;
 pub mod subset;
 pub mod unit;
 
@@ -29,6 +30,7 @@ pub use self::format::FormatOverlay as Format;
 pub use self::information::InformationOverlay as Information;
 pub use self::label::LabelOverlay as Label;
 pub use self::meta::MetaOverlay as Meta;
+pub use self::standard::StandardOverlay as Standard;
 pub use self::subset::SubsetOverlay as Subset;
 pub use self::unit::UnitOverlay as Unit;
 use crate::state::{attribute::Attribute, language::Language};
