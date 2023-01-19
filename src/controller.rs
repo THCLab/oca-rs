@@ -167,6 +167,14 @@ mod tests {
       "language": "Pl",
       "name": "Prawo Jazdy",
       "type": "spec/overlays/meta/1.0"
+    },
+    {
+      "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+      "digest": "EfDTiIz_5kHXWQIxw8JmDEou__3pi94c63cMrIRo7nK4",
+      "type": "spec/overlays/standard/1.0",
+      "attribute_standards": {
+          "n1": "urn:ietf:id:123"
+      }
     }
   ]
 }
