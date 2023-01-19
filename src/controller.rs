@@ -173,7 +173,8 @@ mod tests {
       "digest": "EfDTiIz_5kHXWQIxw8JmDEou__3pi94c63cMrIRo7nK4",
       "type": "spec/overlays/standard/1.0",
       "attribute_standards": {
-          "n1": "urn:ietf:id:123"
+          "n1": "urn:ietf:id:123",
+          "n2": "urn:iso:std:iso:9999:-1:ed-1:v2:en"
       }
     }
   ]
