@@ -241,7 +241,7 @@ dependencies = [
 
 [[package]]
 name = "oca-js"
-version = "0.2.26"
+version = "0.2.27"
 dependencies = [
  "js-sys",
  "oca-rs",
@@ -252,7 +252,7 @@ dependencies = [
 
 [[package]]
 name = "oca-rs"
-version = "0.2.26"
+version = "0.2.27"
 dependencies = [
  "erased-serde",
  "indexmap",
