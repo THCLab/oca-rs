@@ -13,6 +13,29 @@ pub enum Error {
     MissingAttributeTranslation(Language, String),
 }
 
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::Custom(error) => write!(f, "{error}"),
+            Error::MissingTranslations(language) => {
+                write!(f, "Missing translation in {language} language")
+            }
+            Error::MissingMetaTranslation(language, attr) => write!(
+                f,
+                "Missing meta translation for {attr} in {language} language"
+            ),
+            Error::UnexpectedTranslations(language) => {
+                write!(f, "Unexpected translations in {language} language")
+            }
+            Error::MissingAttributeTranslation(language, attr) => {
+                write!(f, "Missing translation for {attr} in {language} language")
+            }
+        }
+    }
+}
+
+impl std::error::Error for Error {}
+
 pub struct Validator {
     enforced_translations: Vec<Language>,
 }
