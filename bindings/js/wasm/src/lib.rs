@@ -147,10 +147,17 @@ impl OCABuilder {
     }
 
     #[wasm_bindgen(js_name = "addAttribute")]
-    pub fn add_attribute(mut self, attr: Attribute) -> OCABuilder {
-        let attr_raw: AttributeRaw = attr.into_serde().unwrap();
+    pub fn add_attribute(mut self, attr: Attribute) -> Result<OCABuilder, String> {
+        let attr_raw: AttributeRaw = attr.into_serde().map_err(|e| {
+            e.to_string()
+                .split(" at line")
+                .collect::<Vec<&str>>()
+                .get(0)
+                .unwrap()
+                .to_string()
+        })?;
         self.raw = self.raw.add_attribute(attr_raw);
-        self
+        Ok(self)
     }
 
     pub fn finalize(self) -> OCA {
@@ -300,6 +307,12 @@ impl AttributeBuilder {
         self
     }
 
+    #[wasm_bindgen(js_name = "addStandard")]
+    pub fn add_standard(mut self, standard: String) -> AttributeBuilder {
+        self.raw = self.raw.add_standard(standard);
+        self
+    }
+
     #[wasm_bindgen(js_name = "addMapping")]
     pub fn add_mapping(mut self, mapping: String) -> AttributeBuilder {
         self.raw = self.raw.add_mapping(mapping);
@@ -429,6 +442,7 @@ type Overlay =
   | MappingOverlay
   | MetaOverlay
   | UnitOverlay
+  | StandardOverlay
   | SubsetOverlay
   | FormLayoutOverlay
   | CredentialLayoutOverlay
@@ -620,6 +634,13 @@ type UnitOverlay = {
   attribute_units: { [attribute_name: string]: string }
 }
 
+type StandardOverlay = {
+  capture_base: string,
+  digest: string,
+  type: string,
+  attribute_standards: { [attribute_name: string]: string }
+}
+
 type SubsetOverlay = {
   capture_base: string,
   digest: string,
@@ -644,6 +665,7 @@ type Attribute = {
   translations: { [language: string]: AttributeTranslation }
   encoding?: string
   format?: string
+  standard?: string
   metric_system?: string
   unit?: string
   entry_codes?: string[]

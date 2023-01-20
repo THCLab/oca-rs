@@ -256,12 +256,14 @@ version = "0.2.25"
 dependencies = [
  "erased-serde",
  "indexmap",
+ "lazy_static",
  "regex",
  "said",
  "serde",
  "serde-value",
  "serde_json",
  "serde_yaml",
+ "urn",
  "wasm-bindgen",
 ]
 
@@ -474,6 +476,12 @@ name = "unicode-xid"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
+
+[[package]]
+name = "urn"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67eaf234b821412d224e5853b50374f6250b5bad13016bc7897952a99c8d011e"
 
 [[package]]
 name = "version_check"

@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import type {
-  CharacterEncodingOverlay, ConditionalOverlay, EntryOverlay, EntryCodeOverlay, FormatOverlay,
+  CharacterEncodingOverlay, ConditionalOverlay, EntryOverlay, EntryCodeOverlay, FormatOverlay, StandardOverlay,
   InformationOverlay, LabelOverlay, MetaOverlay, UnitOverlay
 } from 'oca.js'
 import { AttributeBuilder, AttributeType, Encoding, Entry, OCA, OCABuilder } from 'oca.js'
@@ -50,6 +50,7 @@ describe('OCA with attributes is built', () => {
         en_EN: "en info",
         pl_PL: "pl info"
       })
+      .addStandard("URN:ISO:STD:ISO:9999:-1:ED-1:V2:EN")
       .addEntryCodes(["o1", "o2"])
       .addEntryCodesMapping(["o1:op1"])
       .addEntries([
@@ -182,6 +183,18 @@ describe('OCA with attributes is built', () => {
       })
     })
 
+    describe("Standard", () => {
+      const overlays = allOverlays.filter(o => o.type.includes("/standard/")) as StandardOverlay[]
+
+      it('properly defined', () => {
+        expect(overlays).to.lengthOf(1)
+        const overlay = overlays[0]
+
+        expect(overlay.attribute_standards).to.have.keys("attr_name")
+        expect(overlay).to.have.nested.property("attribute_standards.attr_name", "urn:iso:std:iso:9999:-1:ed-1:v2:en")
+      })
+    })
+
     describe("Entry Code", () => {
       const overlays = allOverlays.filter(o => o.type.includes("/entry_code/")) as EntryCodeOverlay[]
 
@@ -277,5 +290,19 @@ describe('OCA with attributes is built', () => {
         })
       })
     })
+  })
+})
+
+describe('Standard is invalid', () => {
+  const attribute = new AttributeBuilder("attr", AttributeType.Text)
+    .addStandard("invalid")
+    .build()
+
+  it('throws errors', () => {
+    expect(() => {
+      new OCABuilder(Encoding.Utf8)
+        .addAttribute(attribute)
+        .finalize()
+    }).to.throw()
   })
 })
