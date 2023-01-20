@@ -289,9 +289,9 @@ impl AttributeBuilder {
     #[wasm_bindgen(js_name = "addConformance")]
     pub fn add_conformance(mut self, conformance: ConformanceOptions) -> AttributeBuilder {
         let conformance_value = JsValue::from(conformance);
-        self.raw = self.raw.add_conformance(
-            serde_wasm_bindgen::from_value(conformance_value).unwrap()
-        );
+        self.raw = self
+            .raw
+            .add_conformance(serde_wasm_bindgen::from_value(conformance_value).unwrap());
         self
     }
 
@@ -357,9 +357,9 @@ impl AttributeBuilder {
     pub fn add_entry_codes_mapping(mut self, mappings: EntryCodesMapping) -> AttributeBuilder {
         let mappings_value = JsValue::from(mappings);
 
-        self.raw = self.raw.add_entry_codes_mapping(
-            serde_wasm_bindgen::from_value(mappings_value).unwrap()
-        );
+        self.raw = self
+            .raw
+            .add_entry_codes_mapping(serde_wasm_bindgen::from_value(mappings_value).unwrap());
         self
     }
 
