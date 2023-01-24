@@ -194,22 +194,48 @@ pub struct OCA {
     pub overlays: Vec<DynOverlay>,
 }
 
+#[derive(Clone)]
+struct AttributeLayoutValues {
+    pub reference_sai: Option<String>,
+    pub has_unit: bool,
+}
+
+impl AttributeLayoutValues {
+    pub fn new() -> Self {
+        Self {
+            reference_sai: None,
+            has_unit: false,
+        }
+    }
+
+    pub fn add_reference_sai(&mut self, reference_sai: String) {
+        self.reference_sai = Some(reference_sai);
+    }
+
+    pub fn add_unit(&mut self) {
+        self.has_unit = true;
+    }
+}
+
 struct CatAttributes {
     category_labels: HashMap<String, String>,
-    categorized: IndexMap<String, IndexMap<String, Option<String>>>,
-    uncategorized: IndexMap<String, Option<String>>,
+    categorized: IndexMap<String, IndexMap<String, AttributeLayoutValues>>,
+    uncategorized: IndexMap<String, AttributeLayoutValues>,
     lang: String,
 }
 
 impl CatAttributes {
-    fn add_to_category(
-        &mut self,
-        categories: Vec<&str>,
-        attribute_name: String,
-        attribute_sai: Option<String>,
-    ) {
+    fn add_to_category(&mut self, categories: Vec<&str>, attribute: &Attribute) {
+        let mut attribute_layout_values = AttributeLayoutValues::new();
+        if let Some(sai) = &attribute.sai {
+            attribute_layout_values.add_reference_sai(sai.clone());
+        }
+        if attribute.unit.is_some() {
+            attribute_layout_values.add_unit();
+        }
         if categories.is_empty() {
-            self.uncategorized.insert(attribute_name, attribute_sai);
+            self.uncategorized
+                .insert(attribute.name.clone(), attribute_layout_values);
             return;
         }
         let mut supercats: Vec<i32> = vec![];
@@ -253,7 +279,7 @@ impl CatAttributes {
                 self.categorized
                     .get_mut(acctual_cat_id.as_str())
                     .unwrap()
-                    .insert(attribute_name.clone(), attribute_sai.clone());
+                    .insert(attribute.name.clone(), attribute_layout_values.clone());
             }
         }
     }
@@ -711,8 +737,7 @@ impl OCABuilder {
             if let Some(value) = &attr_tr.label {
                 let mut splitted = value.split('|').collect::<Vec<&str>>();
                 splitted.pop();
-                self.cat_attributes
-                    .add_to_category(splitted, attr.name.clone(), attr.sai.clone());
+                self.cat_attributes.add_to_category(splitted, &attr);
             }
             for (lang, attr_tr) in attr.translations.iter() {
                 let mut label_ov = self.oca.overlays.iter_mut().find(|x| {
@@ -955,21 +980,32 @@ elements:
               font-weight: 300;
               line-height: 1.5;"#,
         );
-        for (attr_name, attr_sai) in self.cat_attributes.uncategorized.iter() {
+        for (attr_name, attr_layout_values) in self.cat_attributes.uncategorized.iter() {
             layout.push_str(
                 format!(
                     r#"
   - type: attribute
     name: {}
     parts:
-      - name: label
-      - name: input"#,
+      - name: label"#,
                     attr_name
                 )
                 .as_str(),
             );
 
-            if let Some(sai) = attr_sai {
+            if attr_layout_values.has_unit {
+                layout.push_str(
+                    r#"
+      - name: unit"#,
+                );
+            }
+
+            layout.push_str(
+                r#"
+      - name: input"#,
+            );
+
+            if let Some(sai) = &attr_layout_values.reference_sai {
                 layout.push_str(
                     format!(
                         r#"
@@ -995,21 +1031,32 @@ elements:
                 )
                 .as_str(),
             );
-            for (attr_name, attr_sai) in attributes.iter() {
+            for (attr_name, attr_layout_values) in attributes.iter() {
                 layout.push_str(
                     format!(
                         r#"
   - type: attribute
     name: {}
     parts:
-      - name: label
-      - name: input"#,
+      - name: label"#,
                         attr_name
                     )
                     .as_str(),
                 );
 
-                if let Some(sai) = attr_sai {
+                if attr_layout_values.has_unit {
+                    layout.push_str(
+                        r#"
+      - name: unit"#,
+                    );
+                }
+
+                layout.push_str(
+                    r#"
+      - name: input"#,
+                );
+
+                if let Some(sai) = &attr_layout_values.reference_sai {
                     layout.push_str(
                         format!(
                             r#"
@@ -1119,7 +1166,7 @@ pages:
 "#,
             height
         );
-        for (attr_name, attr_sai) in self.cat_attributes.uncategorized.iter() {
+        for (attr_name, attr_layout_values) in self.cat_attributes.uncategorized.iter() {
             layout.push_str(
                 format!(
                     r#"
@@ -1134,7 +1181,19 @@ pages:
                 .as_str(),
             );
 
-            if let Some(sai) = attr_sai {
+            if attr_layout_values.has_unit {
+                layout.push_str(
+                    format!(
+                        r#"
+              - type: unit
+                name: {}"#,
+                        attr_name
+                    )
+                    .as_str(),
+                );
+            }
+
+            if let Some(sai) = &attr_layout_values.reference_sai {
                 layout.push_str(
                     format!(
                         r#"
@@ -1203,7 +1262,7 @@ pages:
                 )
                 .as_str(),
             );
-            for (attr_name, attr_sai) in attributes.iter() {
+            for (attr_name, attr_layout_values) in attributes.iter() {
                 layout.push_str(
                     format!(
                         r#"
@@ -1218,7 +1277,7 @@ pages:
                     .as_str(),
                 );
 
-                if let Some(sai) = attr_sai {
+                if let Some(sai) = &attr_layout_values.reference_sai {
                     layout.push_str(
                         format!(
                             r#"
