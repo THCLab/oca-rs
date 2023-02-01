@@ -99,18 +99,15 @@ impl Validator {
                         .chain(meta_errors.into_iter().map(|e| {
                             if let Error::UnexpectedTranslations(lang) = e {
                                 Error::Custom(format!(
-                                    "meta overlay: translations in {:?} language are not enforced",
-                                    lang
+                                    "meta overlay: translations in {lang:?} language are not enforced"
                                 ))
                             } else if let Error::MissingTranslations(lang) = e {
                                 Error::Custom(format!(
-                                    "meta overlay: translations in {:?} language are missing",
-                                    lang
+                                    "meta overlay: translations in {lang:?} language are missing"
                                 ))
                             } else if let Error::MissingMetaTranslation(lang, attr) = e {
                                 Error::Custom(format!(
-                                    "meta overlay: for '{}' translation in {:?} language is missing",
-                                    attr, lang
+                                    "meta overlay: for '{attr}' translation in {lang:?} language is missing"
                                 ))
                             } else {
                                 e
@@ -126,7 +123,7 @@ impl Validator {
                     .iter()
                     .filter(|x| {
                         x.overlay_type()
-                            .contains(format!("/{}/", overlay_type).as_str())
+                            .contains(format!("/{overlay_type}/").as_str())
                     })
                     .collect();
                 if typed_overlays.is_empty() {
@@ -140,15 +137,15 @@ impl Validator {
                         translation_errors.into_iter().map(|e| {
                             if let Error::UnexpectedTranslations(lang) = e {
                                 Error::Custom(
-                                    format!("{} overlay: translations in {:?} language are not enforced", overlay_type, lang)
+                                    format!("{overlay_type} overlay: translations in {lang:?} language are not enforced")
                                 )
                             } else if let Error::MissingTranslations(lang) = e {
                                 Error::Custom(
-                                    format!("{} overlay: translations in {:?} language are missing", overlay_type, lang)
+                                    format!("{overlay_type} overlay: translations in {lang:?} language are missing")
                                 )
                             } else if let Error::MissingAttributeTranslation(lang, attr_name) = e {
                                 Error::Custom(
-                                    format!("{} overlay: for '{}' attribute missing translations in {:?} language", overlay_type, attr_name, lang)
+                                    format!("{overlay_type} overlay: for '{attr_name}' attribute missing translations in {lang:?} language")
                                 )
                             } else {
                                 e

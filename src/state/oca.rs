@@ -29,19 +29,14 @@ impl<'de> Deserialize<'de> for DynOverlay {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::AttributeMapping>()
-                            .map_err(|e| {
-                                serde::de::Error::custom(format!("Meta overlay: {}", e))
-                            })?,
+                            .map_err(|e| serde::de::Error::custom(format!("Meta overlay: {e}")))?,
                     ));
                 } else if overlay_type.contains("/character_encoding/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::CharacterEncoding>()
                             .map_err(|e| {
-                                serde::de::Error::custom(format!(
-                                    "Character Encoding overlay: {}",
-                                    e
-                                ))
+                                serde::de::Error::custom(format!("Character Encoding overlay: {e}"))
                             })?,
                     ));
                 } else if overlay_type.contains("/cardinality/") {
@@ -49,7 +44,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Cardinality>()
                             .map_err(|e| {
-                                serde::de::Error::custom(format!("Cardinality overlay: {}", e))
+                                serde::de::Error::custom(format!("Cardinality overlay: {e}"))
                             })?,
                     ));
                 } else if overlay_type.contains("/conformance/") {
@@ -57,7 +52,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Conformance>()
                             .map_err(|e| {
-                                serde::de::Error::custom(format!("Conformance overlay: {}", e))
+                                serde::de::Error::custom(format!("Conformance overlay: {e}"))
                             })?,
                     ));
                 } else if overlay_type.contains("/conditional/") {
@@ -65,23 +60,21 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Conditional>()
                             .map_err(|e| {
-                                serde::de::Error::custom(format!("Conditional overlay: {}", e))
+                                serde::de::Error::custom(format!("Conditional overlay: {e}"))
                             })?,
                     ));
                 } else if overlay_type.contains("/entry/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Entry>()
-                            .map_err(|e| {
-                                serde::de::Error::custom(format!("Entry overlay: {}", e))
-                            })?,
+                            .map_err(|e| serde::de::Error::custom(format!("Entry overlay: {e}")))?,
                     ));
                 } else if overlay_type.contains("/entry_code/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::EntryCode>()
                             .map_err(|e| {
-                                serde::de::Error::custom(format!("Entry Code overlay: {}", e))
+                                serde::de::Error::custom(format!("Entry Code overlay: {e}"))
                             })?,
                     ));
                 } else if overlay_type.contains("/entry_code_mapping/") {
@@ -89,10 +82,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::EntryCodeMapping>()
                             .map_err(|e| {
-                                serde::de::Error::custom(format!(
-                                    "Entry Code Mapping overlay: {}",
-                                    e
-                                ))
+                                serde::de::Error::custom(format!("Entry Code Mapping overlay: {e}"))
                             })?,
                     ));
                 } else if overlay_type.contains("/format/") {
@@ -100,7 +90,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Format>()
                             .map_err(|e| {
-                                serde::de::Error::custom(format!("Format overlay: {}", e))
+                                serde::de::Error::custom(format!("Format overlay: {e}"))
                             })?,
                     ));
                 } else if overlay_type.contains("/information/") {
@@ -108,39 +98,33 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Information>()
                             .map_err(|e| {
-                                serde::de::Error::custom(format!("Information overlay: {}", e))
+                                serde::de::Error::custom(format!("Information overlay: {e}"))
                             })?,
                     ));
                 } else if overlay_type.contains("/label/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Label>()
-                            .map_err(|e| {
-                                serde::de::Error::custom(format!("Label overlay: {}", e))
-                            })?,
+                            .map_err(|e| serde::de::Error::custom(format!("Label overlay: {e}")))?,
                     ));
                 } else if overlay_type.contains("/unit/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Unit>()
-                            .map_err(|e| {
-                                serde::de::Error::custom(format!("Unit overlay: {}", e))
-                            })?,
+                            .map_err(|e| serde::de::Error::custom(format!("Unit overlay: {e}")))?,
                     ));
                 } else if overlay_type.contains("/meta/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Meta>()
-                            .map_err(|e| {
-                                serde::de::Error::custom(format!("Meta overlay: {}", e))
-                            })?,
+                            .map_err(|e| serde::de::Error::custom(format!("Meta overlay: {e}")))?,
                     ));
                 } else if overlay_type.contains("/form_layout/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::FormLayout>()
                             .map_err(|e| {
-                                serde::de::Error::custom(format!("Form Layout overlay: {}", e))
+                                serde::de::Error::custom(format!("Form Layout overlay: {e}"))
                             })?,
                     ));
                 } else if overlay_type.contains("/credential_layout/") {
@@ -148,10 +132,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::CredentialLayout>()
                             .map_err(|e| {
-                                serde::de::Error::custom(format!(
-                                    "Credential Layout overlay: {}",
-                                    e
-                                ))
+                                serde::de::Error::custom(format!("Credential Layout overlay: {e}"))
                             })?,
                     ));
                 } else if overlay_type.contains("/subset/") {
@@ -159,7 +140,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Subset>()
                             .map_err(|e| {
-                                serde::de::Error::custom(format!("Subset overlay: {}", e))
+                                serde::de::Error::custom(format!("Subset overlay: {e}"))
                             })?,
                     ));
                 } else if overlay_type.contains("/standard/") {
@@ -167,13 +148,12 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         de_overlay
                             .deserialize_into::<overlay::Standard>()
                             .map_err(|e| {
-                                serde::de::Error::custom(format!("Standard overlay: {}", e))
+                                serde::de::Error::custom(format!("Standard overlay: {e}"))
                             })?,
                     ));
                 } else {
                     return Err(serde::de::Error::custom(format!(
-                        "unknown overlay type: {}",
-                        overlay_type
+                        "unknown overlay type: {overlay_type}"
                     )));
                 }
             } else {
@@ -182,8 +162,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
         }
 
         Err(serde::de::Error::custom(format!(
-            "overlay must be an object, got: {:?}",
-            de_overlay
+            "overlay must be an object, got: {de_overlay:?}"
         )))
     }
 }
@@ -245,8 +224,7 @@ impl CatAttributes {
             if !supercats_str.is_empty() {
                 supercat = format!("-{}", supercats_str.join("-"))
             }
-            let regex =
-                regex::Regex::new(format!("^_cat{}(-[0-9]*)_$", supercat).as_str()).unwrap();
+            let regex = regex::Regex::new(format!("^_cat{supercat}(-[0-9]*)_$").as_str()).unwrap();
             let mut acctual_cat_id = String::new();
             let mut category_exists = false;
             for (cat_id, cat_label) in self.category_labels.iter() {
@@ -321,7 +299,7 @@ impl<'de> Deserialize<'de> for OCABuilder {
                     Some(de_capture_base) => de_capture_base
                         .clone()
                         .deserialize_into::<CaptureBase>()
-                        .map_err(|e| serde::de::Error::custom(format!("Capture Base: {}", e)))?,
+                        .map_err(|e| serde::de::Error::custom(format!("Capture Base: {e}")))?,
 
                     None => return Err(serde::de::Error::missing_field("capture_base")),
                 };
@@ -465,8 +443,7 @@ impl<'de> Deserialize<'de> for OCABuilder {
             })
         } else {
             Err(serde::de::Error::custom(format!(
-                "OCA must be an object, got: {:?}",
-                de_oca
+                "OCA must be an object, got: {de_oca:?}"
             )))
         }
     }
@@ -985,10 +962,9 @@ elements:
                 format!(
                     r#"
   - type: attribute
-    name: {}
+    name: {attr_name}
     parts:
-      - name: label"#,
-                    attr_name
+      - name: label"#
                 )
                 .as_str(),
             );
@@ -1009,8 +985,7 @@ elements:
                 layout.push_str(
                     format!(
                         r#"
-        layout: {}"#,
-                        sai
+        layout: {sai}"#
                     )
                     .as_str(),
                 );
@@ -1026,8 +1001,7 @@ elements:
                 format!(
                     r#"
   - type: category
-    id: {}"#,
-                    cat
+    id: {cat}"#
                 )
                 .as_str(),
             );
@@ -1036,10 +1010,9 @@ elements:
                     format!(
                         r#"
   - type: attribute
-    name: {}
+    name: {attr_name}
     parts:
-      - name: label"#,
-                        attr_name
+      - name: label"#
                     )
                     .as_str(),
                 );
@@ -1060,8 +1033,7 @@ elements:
                     layout.push_str(
                         format!(
                             r#"
-        layout: {}"#,
-                            sai
+        layout: {sai}"#
                         )
                         .as_str(),
                     );
@@ -1088,7 +1060,7 @@ elements:
 config:
   css:
     width: 630px
-    height: {}px
+    height: {height}px
     style: >-
       .language-select {{
         margin: 2px 0;
@@ -1163,8 +1135,7 @@ pages:
                       font-size: 16px;
                       font-weight: 300;
                       line-height: 1.5;
-"#,
-            height
+"#
         );
         for (attr_name, attr_layout_values) in self.cat_attributes.uncategorized.iter() {
             layout.push_str(
@@ -1175,8 +1146,7 @@ pages:
           - type: col
             elements:
               - type: label
-                name: {}"#,
-                    attr_name
+                name: {attr_name}"#
                 )
                 .as_str(),
             );
@@ -1186,8 +1156,7 @@ pages:
                     format!(
                         r#"
               - type: unit
-                name: {}"#,
-                        attr_name
+                name: {attr_name}"#
                     )
                     .as_str(),
                 );
@@ -1202,9 +1171,8 @@ pages:
           - type: col
             elements:
               - type: reference
-                name: {}
-                layout: {}"#,
-                        attr_name, sai
+                name: {attr_name}
+                layout: {sai}"#
                     )
                     .as_str(),
                 );
@@ -1220,8 +1188,7 @@ pages:
                 config:
                   css:
                     classes: ['_attribute']
-                name: {}"#,
-                        attr_name
+                name: {attr_name}"#
                     )
                     .as_str(),
                 );
@@ -1238,8 +1205,7 @@ pages:
                 config:
                   css:
                     classes: ['_information']
-                name: {}"#,
-                    attr_name
+                name: {attr_name}"#
                 )
                 .as_str(),
             );
@@ -1257,8 +1223,7 @@ pages:
                 config:
                   css:
                     classes: ['_category']
-                name: {}"#,
-                    cat
+                name: {cat}"#
                 )
                 .as_str(),
             );
@@ -1271,8 +1236,7 @@ pages:
           - type: col
             elements:
               - type: label
-                name: {}"#,
-                        attr_name
+                name: {attr_name}"#
                     )
                     .as_str(),
                 );
@@ -1286,9 +1250,8 @@ pages:
           - type: col
             elements:
               - type: reference
-                name: {}
-                layout: {}"#,
-                            attr_name, sai
+                name: {attr_name}
+                layout: {sai}"#
                         )
                         .as_str(),
                     );
@@ -1304,8 +1267,7 @@ pages:
                 config:
                   css:
                     classes: ['_attribute']
-                name: {}"#,
-                            attr_name
+                name: {attr_name}"#
                         )
                         .as_str(),
                     );
@@ -1322,8 +1284,7 @@ pages:
                 config:
                   css:
                     classes: ['_information']
-                name: {}"#,
-                        attr_name
+                name: {attr_name}"#
                     )
                     .as_str(),
                 );

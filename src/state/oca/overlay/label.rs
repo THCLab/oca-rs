@@ -75,8 +75,7 @@ impl LabelOverlay {
             if !supercats_str.is_empty() {
                 supercat = format!("-{}", supercats_str.join("-"))
             }
-            let regex =
-                regex::Regex::new(format!("^_cat{}(-[0-9]*)_$", supercat).as_str()).unwrap();
+            let regex = regex::Regex::new(format!("^_cat{supercat}(-[0-9]*)_$").as_str()).unwrap();
             let mut acctual_cat_id = String::new();
             let mut category_exists = false;
             for (cat_id, cat_label) in self.category_labels.iter() {
