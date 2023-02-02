@@ -31,6 +31,8 @@ We have distilled the most crucial license specifics to make your adoption seaml
 
 # Usage
 
+The MSRV is `1.58.1`
+
 #### In cargo package
 
 Add this to your `Cargo.toml`:
