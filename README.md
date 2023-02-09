@@ -75,3 +75,7 @@ bumps version and runs `git push` with `v{version}` tag added.
 That triggers actions on github
 ([Crates.io][Crates.io actions] and [npmjs.com][npmjs.com actions])
 which build and publish packages on [crates.io][crates.io] and [npmjs.com][npmjs.com].
+
+# Contributing
+
+See https://github.com/THCLab/contributing
