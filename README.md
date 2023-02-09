@@ -39,7 +39,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-oca-rs = "0.2.28"
+oca-rs = "0.2.29"
 ```
 
 ### Build
