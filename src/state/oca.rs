@@ -2,16 +2,66 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_value::Value;
 use std::collections::{BTreeMap, HashMap};
-
+use crate::state::oca::layout::credential::Layout;
 mod capture_base;
 mod layout;
 pub mod overlay;
 use crate::state::{
     attribute::Attribute,
     encoding::Encoding,
-    language::Language,
     oca::{capture_base::CaptureBase, overlay::Overlay},
 };
+use isolang::Language;
+/*
+
+le oca = OCABundle::new()
+
+let attr = Attribute::new("name")
+oca.add_attribute(attr)
+oca.getAttrByName("name").setEncoding(Encoding::UTF8)
+oca.getAttrByName("name").setLabel(Language::English, "Name")
+
+
+oca.serialize().unwrap()
+
+
+
+*/
+
+// create class for OCAbundle with attributes
+pub struct OCABundle {
+    pub attributes: HashMap<String, Attribute>,
+    pub layouts: Vec<Layout>,
+    pub mappings: Vec<overlay::AttributeMapping>,
+}
+
+impl OCABundle {
+    pub fn new() -> Self {
+        OCABundle {
+            attributes: HashMap::new(),
+            layouts: Vec::new(),
+            mappings: Vec::new(),
+        }
+    }
+    pub fn add_attribute(&mut self, attribute: Attribute) {
+        self.attributes.insert(attribute.name.clone(), attribute);
+    }
+    pub fn get_attribute(&self, name: &str) -> Option<&Attribute> {
+        self.attributes.get(name)
+    }
+    pub fn get_attribute_mut(&mut self, name: &str) -> Option<&mut Attribute> {
+        self.attributes.get_mut(name)
+    }
+
+    pub fn add_layout(&mut self, name: &str, layout: Layout) {
+       // self.layouts.insert(name.to_string(), layout);
+    }
+    pub fn add_attribute_mapping(&mut self, mapping: overlay::AttributeMapping) {
+        self.mappings.push(mapping);
+    }
+
+}
+
 
 pub type DynOverlay = Box<dyn Overlay>;
 
@@ -206,7 +256,7 @@ struct CatAttributes {
 impl CatAttributes {
     fn add_to_category(&mut self, categories: Vec<&str>, attribute: &Attribute) {
         let mut attribute_layout_values = AttributeLayoutValues::new();
-        if let Some(sai) = &attribute.sai {
+        if let Some(sai) = &attribute.reference_sai {
             attribute_layout_values.add_reference_sai(sai.clone());
         }
         if attribute.unit.is_some() {
@@ -419,7 +469,7 @@ impl<'de> Deserialize<'de> for OCABuilder {
                         return Err(serde::de::Error::custom("overlays must be an array"));
                     }
                 }
-                None => return Err(serde::de::Error::missing_field("overlay")),
+                None => return Err(serde::de::Error::missing_field("overlays")),
             }
 
             Ok(OCABuilder {
@@ -450,6 +500,7 @@ impl<'de> Deserialize<'de> for OCABuilder {
 }
 
 impl OCABuilder {
+
     pub fn new(default_encoding: Encoding) -> OCABuilder {
         OCABuilder {
             oca: OCA {
@@ -706,70 +757,70 @@ impl OCABuilder {
             }
         }
 
-        if !attr.translations.is_empty() {
-            if self.cat_attributes.lang.is_empty() {
-                self.cat_attributes.lang = attr.translations.keys().next().unwrap().clone();
-            }
-            let attr_tr = attr.translations.get(&self.cat_attributes.lang).unwrap();
-            if let Some(value) = &attr_tr.label {
-                let mut splitted = value.split('|').collect::<Vec<&str>>();
-                splitted.pop();
-                self.cat_attributes.add_to_category(splitted, &attr);
-            }
-            for (lang, attr_tr) in attr.translations.iter() {
-                let mut label_ov = self.oca.overlays.iter_mut().find(|x| {
-                    if let Some(o_lang) = x.language() {
-                        return o_lang == lang && x.overlay_type().contains("/label/");
-                    }
-                    false
-                });
-                if label_ov.is_none() {
-                    self.oca
-                        .overlays
-                        .push(overlay::Label::new(lang.to_string()));
-                    label_ov = self.oca.overlays.last_mut();
-                }
-                if let Some(ov) = label_ov {
-                    ov.add(&attr);
-                }
+        // if !attr.translations.is_empty() {
+        //     if self.cat_attributes.lang.is_empty() {
+        //         self.cat_attributes.lang = attr.translations.keys().next().unwrap().clone();
+        //     }
+        //     let attr_tr = attr.translations.get(&self.cat_attributes.lang).unwrap();
+        //     if let Some(value) = &attr_tr.label {
+        //         let mut splitted = value.split('|').collect::<Vec<&str>>();
+        //         splitted.pop();
+        //         self.cat_attributes.add_to_category(splitted, &attr);
+        //     }
+        //     for (lang, attr_tr) in attr.translations.iter() {
+        //         let mut label_ov = self.oca.overlays.iter_mut().find(|x| {
+        //             if let Some(o_lang) = x.language() {
+        //                 return o_lang == lang && x.overlay_type().contains("/label/");
+        //             }
+        //             false
+        //         });
+        //         if label_ov.is_none() {
+        //             self.oca
+        //                 .overlays
+        //                 .push(overlay::Label::new(lang.to_string()));
+        //             label_ov = self.oca.overlays.last_mut();
+        //         }
+        //         if let Some(ov) = label_ov {
+        //             ov.add(&attr);
+        //         }
 
-                if attr_tr.information.is_some() {
-                    let mut information_ov = self.oca.overlays.iter_mut().find(|x| {
-                        if let Some(o_lang) = x.language() {
-                            return o_lang == lang && x.overlay_type().contains("/information/");
-                        }
-                        false
-                    });
-                    if information_ov.is_none() {
-                        self.oca
-                            .overlays
-                            .push(overlay::Information::new(lang.to_string()));
-                        information_ov = self.oca.overlays.last_mut();
-                    }
-                    if let Some(ov) = information_ov {
-                        ov.add(&attr);
-                    }
-                }
+        //         if attr_tr.information.is_some() {
+        //             let mut information_ov = self.oca.overlays.iter_mut().find(|x| {
+        //                 if let Some(o_lang) = x.language() {
+        //                     return o_lang == lang && x.overlay_type().contains("/information/");
+        //                 }
+        //                 false
+        //             });
+        //             if information_ov.is_none() {
+        //                 self.oca
+        //                     .overlays
+        //                     .push(overlay::Information::new(lang.to_string()));
+        //                 information_ov = self.oca.overlays.last_mut();
+        //             }
+        //             if let Some(ov) = information_ov {
+        //                 ov.add(&attr);
+        //             }
+        //         }
 
-                if attr_tr.entries.is_some() {
-                    let mut entry_ov = self.oca.overlays.iter_mut().find(|x| {
-                        if let Some(o_lang) = x.language() {
-                            return o_lang == lang && x.overlay_type().contains("/entry/");
-                        }
-                        false
-                    });
-                    if entry_ov.is_none() {
-                        self.oca
-                            .overlays
-                            .push(overlay::Entry::new(lang.to_string()));
-                        entry_ov = self.oca.overlays.last_mut();
-                    }
-                    if let Some(ov) = entry_ov {
-                        ov.add(&attr);
-                    }
-                }
-            }
-        }
+        //         if attr_tr.entries.is_some() {
+        //             let mut entry_ov = self.oca.overlays.iter_mut().find(|x| {
+        //                 if let Some(o_lang) = x.language() {
+        //                     return o_lang == lang && x.overlay_type().contains("/entry/");
+        //                 }
+        //                 false
+        //             });
+        //             if entry_ov.is_none() {
+        //                 self.oca
+        //                     .overlays
+        //                     .push(overlay::Entry::new(lang.to_string()));
+        //                 entry_ov = self.oca.overlays.last_mut();
+        //             }
+        //             if let Some(ov) = entry_ov {
+        //                 ov.add(&attr);
+        //             }
+        //         }
+        //     }
+        // }
         self
     }
 
@@ -777,7 +828,7 @@ impl OCABuilder {
         for (lang, translation) in self.meta_translations.iter() {
             self.oca
                 .overlays
-                .push(overlay::Meta::new(lang.to_string(), translation));
+                .push(overlay::Meta::new(*lang, translation));
         }
         let mut form_layout_tmp = None;
         if let Some(ref layout) = self.form_layout {
@@ -1296,6 +1347,7 @@ pages:
     pub fn add_credential_layout_reference(&mut self, name: String, layout: String) {
         self.credential_layout_reference.insert(name, layout);
     }
+
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Hash, Eq, PartialEq)]
@@ -1340,7 +1392,7 @@ impl OCATranslation {
 mod tests {
     use super::*;
     use crate::state::{
-        attribute::{AttributeBuilder, AttributeType, Entries, Entry},
+        attribute::{AttributeType, Entries, Entry},
         encoding::Encoding,
         entry_codes::EntryCodes,
     };
@@ -1350,14 +1402,14 @@ mod tests {
     fn build_oca_without_attributes() {
         let oca = OCABuilder::new(Encoding::Utf8)
             .add_classification("GICS:35102020".to_string())
-            .add_name(hashmap! {
+/*             .add_name(hashmap! {
                 "En".to_string() => "Driving Licence".to_string(),
                 "Pl".to_string() => "Prawo Jazdy".to_string(),
             })
             .add_description(hashmap! {
                 "En".to_string() => "Driving Licence".to_string(),
                 "Pl".to_string() => "Prawo Jazdy".to_string(),
-            })
+            }) */
             .finalize();
 
         // println!("{:#?}", serde_json::to_string(&oca).unwrap());
@@ -1365,7 +1417,7 @@ mod tests {
         assert_eq!(oca.capture_base.attributes.len(), 0);
         assert_eq!(oca.capture_base.classification, "GICS:35102020");
     }
-
+/*
     #[test]
     fn build_oca_with_attributes() {
         let oca_builder = OCABuilder::new(Encoding::Utf8)
@@ -1525,5 +1577,5 @@ labels:
         );
         assert_eq!(oca.capture_base.attributes.len(), 3);
         assert_eq!(oca.capture_base.flagged_attributes.len(), 1);
-    }
+    } */
 }

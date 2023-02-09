@@ -37,12 +37,12 @@ impl Overlay for AttributeMappingOverlay {
     }
 
     fn add(&mut self, attribute: &Attribute) {
-        if attribute.mapping.is_some() {
-            self.attribute_mapping.insert(
-                attribute.name.clone(),
-                attribute.mapping.as_ref().unwrap().clone(),
-            );
-        }
+        // if attribute.mapping.is_some() {
+        //     self.attribute_mapping.insert(
+        //         attribute.name.clone(),
+        //         attribute.mapping.as_ref().unwrap().clone(),
+        //     );
+        // }
     }
 }
 impl AttributeMappingOverlay {
