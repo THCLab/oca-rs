@@ -1,7 +1,7 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::any::Any;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CardinalityOverlay {
@@ -10,7 +10,7 @@ pub struct CardinalityOverlay {
     said: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    pub attribute_cardinality: BTreeMap<String, String>,
+    pub attribute_cardinality: HashMap<String, String>,
 }
 
 impl Overlay for CardinalityOverlay {
@@ -51,7 +51,7 @@ impl CardinalityOverlay {
             capture_base: String::new(),
             said: String::from("############################################"),
             overlay_type: "spec/overlays/cardinality/1.0".to_string(),
-            attribute_cardinality: BTreeMap::new(),
+            attribute_cardinality: HashMap::new(),
         })
     }
 }

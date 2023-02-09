@@ -1,9 +1,10 @@
 use crate::state::{
-    attribute::Attribute, entries::EntriesElement, language::Language, oca::Overlay,
+    attribute::Attribute, entries::EntriesElement, oca::Overlay,
 };
 use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::BTreeMap;
+use isolang::Language;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EntryOverlay {
@@ -43,12 +44,12 @@ impl Overlay for EntryOverlay {
     }
 
     fn add(&mut self, attribute: &Attribute) {
-        if let Some(tr) = attribute.translations.get(&self.language) {
-            if let Some(entries) = &tr.entries {
-                self.attribute_entries
-                    .insert(attribute.name.clone(), entries.clone());
-            }
-        }
+        // if let Some(tr) = attribute.translations.get(&self.language) {
+        //     if let Some(entries) = &tr.entries {
+        //         self.attribute_entries
+        //             .insert(attribute.name.clone(), entries.clone());
+        //     }
+        // }
     }
 }
 impl EntryOverlay {

@@ -1,11 +1,11 @@
 use crate::state::{
     attribute::Attribute,
-    language::Language,
     oca::{OCATranslation, Overlay},
 };
 use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::BTreeMap;
+use isolang::Language;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MetaOverlay {

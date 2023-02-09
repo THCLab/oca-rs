@@ -1,7 +1,13 @@
-use crate::state::{attribute::Attribute, language::Language, oca::Overlay};
+use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::any::Any;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
+use isolang::Language;
+
+pub(crate) trait Information {
+    fn add_information(&mut self, l: Language, information: String) -> ();
+}
+
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InformationOverlay {
@@ -11,7 +17,7 @@ pub struct InformationOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
-    pub attribute_information: BTreeMap<String, String>,
+    pub attribute_information: HashMap<String, String>,
 }
 
 impl Overlay for InformationOverlay {
@@ -41,10 +47,10 @@ impl Overlay for InformationOverlay {
     }
 
     fn add(&mut self, attribute: &Attribute) {
-        if let Some(tr) = attribute.translations.get(&self.language) {
-            if let Some(info) = &tr.information {
+        if let Some(informations) = &attribute.informations {
+            if let Some(value) = informations.get(&self.language) {
                 self.attribute_information
-                    .insert(attribute.name.clone(), info.clone());
+                    .insert(attribute.name.clone(), value.to_string());
             }
         }
     }
@@ -56,7 +62,7 @@ impl InformationOverlay {
             said: String::from("############################################"),
             overlay_type: "spec/overlays/information/1.0".to_string(),
             language: lang,
-            attribute_information: BTreeMap::new(),
+            attribute_information: HashMap::new(),
         })
     }
 }
