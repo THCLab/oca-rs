@@ -41,7 +41,8 @@ erased_serde::serialize_trait_object!(Overlay);
 
 pub trait Overlay: erased_serde::Serialize {
     fn as_any(&self) -> &dyn Any;
-    fn capture_base(&mut self) -> &mut String;
+    fn capture_base(&self) -> &String;
+    fn capture_base_mut(&mut self) -> &mut String;
     fn said(&self) -> &String;
     fn said_mut(&mut self) -> &mut String;
     fn overlay_type(&self) -> &String;
@@ -55,9 +56,29 @@ pub trait Overlay: erased_serde::Serialize {
 
     fn add(&mut self, attribute: &Attribute);
 
+    fn calculate_said(&self) -> String {
+        let mut buf = vec![];
+        {
+            let json_serializer = &mut serde_json::Serializer::new(&mut buf);
+            let mut erased_serializer: Box<dyn erased_serde::Serializer> =
+                Box::new(<dyn erased_serde::Serializer>::erase(json_serializer));
+            self.erased_serialize(erased_serializer.as_mut()).unwrap();
+        }
+        let self_json = std::str::from_utf8(buf.as_slice()).unwrap().to_string();
+
+        format!(
+            "{}",
+            SelfAddressing::Blake3_256.derive(
+                self_json
+                    .replace(self.said(), "############################################")
+                    .as_bytes()
+            )
+        )
+    }
+
     fn sign(&mut self, capture_base_sai: &str) {
-        self.capture_base().clear();
-        self.capture_base().push_str(capture_base_sai);
+        self.capture_base_mut().clear();
+        self.capture_base_mut().push_str(capture_base_sai);
         self.said_mut().clear();
         self.said_mut()
             .push_str("############################################");

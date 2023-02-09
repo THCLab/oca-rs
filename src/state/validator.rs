@@ -71,19 +71,28 @@ impl Validator {
         let oca_builder: OCABuilder = serde_json::from_str(oca_str.as_str())
             .map_err(|e| vec![Error::Custom(e.to_string())])?;
 
-        let sai = oca_builder.oca.capture_base.said;
-        for o in oca_value.get("overlays").unwrap().as_array().unwrap() {
-            if o.get("capture_base").unwrap().as_str().unwrap() != sai {
-                let msg = match o.get("language") {
-                    Some(lang) => format!(
-                        "{} ({}): Mismatch capture_base SAI",
-                        o.get("type").unwrap().as_str().unwrap(),
-                        lang
-                    ),
-                    None => format!(
-                        "{}: Mismatch capture_base SAI",
-                        o.get("type").unwrap().as_str().unwrap()
-                    ),
+        let capture_base = oca_builder.oca.capture_base;
+        let sai = capture_base.said.clone();
+
+        if capture_base.said.ne(&capture_base.calculate_said()) {
+            errors.push(Error::Custom("capture_base: Malformed SAID".to_string()));
+        }
+
+        for o in oca_builder.oca.overlays {
+            if o.said().ne(&o.calculate_said()) {
+                let msg = match o.language() {
+                    Some(lang) => format!("{} ({}): Malformed SAID", o.overlay_type(), lang),
+                    None => format!("{}: Malformed SAID", o.overlay_type()),
+                };
+                errors.push(Error::Custom(msg));
+            }
+
+            if o.capture_base().ne(&sai) {
+                let msg = match o.language() {
+                    Some(lang) => {
+                        format!("{} ({}): Mismatch capture_base SAI", o.overlay_type(), lang)
+                    }
+                    None => format!("{}: Mismatch capture_base SAI", o.overlay_type()),
                 };
                 errors.push(Error::Custom(msg));
             }
@@ -260,6 +269,7 @@ impl Validator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::controller::load_oca;
     use crate::state::{
         attribute::{AttributeBuilder, AttributeType},
         encoding::Encoding,
@@ -341,6 +351,44 @@ mod tests {
         assert!(result.is_err());
         if let Err(errors) = result {
             assert_eq!(errors.len(), 1);
+        }
+    }
+
+    #[test]
+    fn validate_oca_with_invalid_saids() {
+        let validator = Validator::new();
+
+        let data = r#"
+{
+    "capture_base": {
+        "type": "spec/capture_base/1.0",
+        "digest": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LK",
+        "classification": "",
+        "attributes": {
+            "n1": "Text",
+            "n2": "DateTime",
+            "n3": "Reference:sai"
+        },
+        "flagged_attributes": ["n1"]
+    },
+    "overlays": [
+        {
+            "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
+            "digest": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "type": "spec/overlays/character_encoding/1.0",
+            "default_character_encoding": "utf-8",
+            "attribute_character_encoding": {}
+        }
+    ]
+}
+        "#;
+        let oca = load_oca(&mut data.as_bytes()).unwrap().oca;
+
+        let result = validator.validate(&oca);
+
+        assert!(result.is_err());
+        if let Err(errors) = result {
+            assert_eq!(errors.len(), 3);
         }
     }
 }

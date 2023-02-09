@@ -52,12 +52,23 @@ impl CaptureBase {
         }
     }
 
-    pub fn sign(&mut self) {
-        self.said = String::from("############################################");
+    pub fn calculate_said(&self) -> String {
         let self_json = serde_json::to_string(&self).unwrap();
-        self.said = format!(
+
+        format!(
             "{}",
-            SelfAddressing::Blake3_256.derive(self_json.as_bytes())
-        );
+            SelfAddressing::Blake3_256.derive(
+                self_json
+                    .replace(
+                        self.said.as_str(),
+                        "############################################"
+                    )
+                    .as_bytes()
+            )
+        )
+    }
+
+    pub fn sign(&mut self) {
+        self.said = self.calculate_said();
     }
 }

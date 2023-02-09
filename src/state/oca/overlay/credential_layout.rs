@@ -16,7 +16,10 @@ impl Overlay for CredentialLayoutOverlay {
     fn as_any(&self) -> &dyn Any {
         self
     }
-    fn capture_base(&mut self) -> &mut String {
+    fn capture_base(&self) -> &String {
+        &self.capture_base
+    }
+    fn capture_base_mut(&mut self) -> &mut String {
         &mut self.capture_base
     }
     fn said(&self) -> &String {
