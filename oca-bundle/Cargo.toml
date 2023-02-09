@@ -20,6 +20,11 @@ regex = "1.5.4"
 indexmap = "1.8.0"
 urn = "0.5.1"
 lazy_static = "1.4.0"
+cascade = "1.0.1"
+
+[dependencies.isolang]
+features = ["serde"]
+version = "2.2.0"
 
 [dev-dependencies]
 maplit = "1.0.2"
