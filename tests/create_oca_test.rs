@@ -1,6 +1,6 @@
 use maplit::hashmap;
 use oca_rs::state::{
-    attribute::{AttributeBuilder, AttributeType, Entries, Entry},
+    attribute::{AttributeType, Entries, Entry},
     encoding::Encoding,
     entry_codes::EntryCodes,
     oca::OCABuilder,
@@ -21,7 +21,8 @@ fn create_oca() {
                          "
             .to_string(),
         )
-        .add_name(hashmap! {
+        // fix below code
+        .add_name(
             "en_EN".to_string() => "Driving Licence".to_string(),
             "pl_PL".to_string() => "Prawo Jazdy".to_string(),
         })

@@ -1,4 +1,4 @@
-use super::standard::Standard;
+use super::{standard::Standard, oca::overlay::unit::{MeasurementSystem, MeasurementUnit}};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -17,11 +17,10 @@ pub struct Attribute {
     pub mapping: Option<String>,
     pub encoding: Option<Encoding>,
     pub format: Option<String>,
-    pub metric_system: Option<String>,
-    pub unit: Option<String>,
+    pub units: Option<HashMap<MeasurementSystem, MeasurementUnit>>,
     //pub entry_codes: Option<EntryCodes>,
     pub entry_codes_mapping: Option<Vec<String>>,
-    pub reference_sai: Option<String>,
+    pub reference_sai: Option<String>, // replace with SAI and move to RefAttribute
     pub condition: Option<String>,
     pub dependencies: Option<Vec<String>>,
     pub cardinality: Option<String>,
@@ -41,8 +40,7 @@ impl Attribute {
             mapping: None,
             encoding: None,
             format: None,
-            metric_system: None,
-            unit: None,
+            units: None,
             entry_codes: None,
             entry_codes_mapping: None,
             reference_sai: None, // TODO: replace with RefAttribute which consist only with reference to another object
@@ -107,13 +105,7 @@ impl Attribute {
     //     self
     // }
 
-    // pub fn add_unit(mut self, metric_system: String, unit: String) -> AttributeBuilder {
-    //     self.attribute.metric_system = Some(metric_system);
-    //     self.attribute.unit = Some(unit);
-    //     self
-    // }
-
-    // pub fn add_entry_codes(mut self, entry_codes: EntryCodes) -> AttributeBuilder {
+     // pub fn add_entry_codes(mut self, entry_codes: EntryCodes) -> AttributeBuilder {
     //     self.attribute.entry_codes = Some(entry_codes);
     //     self
     // }
