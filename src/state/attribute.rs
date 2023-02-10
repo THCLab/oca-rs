@@ -25,7 +25,7 @@ pub struct Attribute {
     pub dependencies: Option<Vec<String>>,
     pub cardinality: Option<String>,
     pub conformance: Option<String>,
-    pub standard: Option<Standard>,
+    pub standards: Option<Vec<Standard>>,
 }
 
 impl Attribute {
@@ -48,7 +48,7 @@ impl Attribute {
             dependencies: None,
             cardinality: None,
             conformance: None,
-            standard: None,
+            standards: None,
         }
     }
 
@@ -97,11 +97,6 @@ impl Attribute {
 
     // pub fn add_format(mut self, format: String) -> AttributeBuilder {
     //     self.attribute.format = Some(format);
-    //     self
-    // }
-
-    // pub fn add_standard(mut self, standard: String) -> AttributeBuilder {
-    //     self.attribute.standard = Some(Standard::new(standard));
     //     self
     // }
 

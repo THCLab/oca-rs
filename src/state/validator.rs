@@ -276,7 +276,7 @@ mod tests {
         oca::OCABuilder,
     };
     use maplit::hashmap;
- /*   #[test]
+    #[test]
      fn validate_valid_oca() {
         let validator =
             Validator::new().enforce_translations(vec!["En".to_string(), "Pl".to_string()]);
