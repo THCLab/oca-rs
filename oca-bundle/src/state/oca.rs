@@ -28,11 +28,13 @@ oca.serialize().unwrap()
 
 */
 
-// create class for OCAbundle with attributes
 pub struct OCABundle {
     pub attributes: HashMap<String, Attribute>,
     pub layouts: Vec<Layout>,
     pub mappings: Vec<overlay::AttributeMapping>,
+    pub meta: HashMap<String, String>,
+    pub classification: String,
+
 }
 
 impl OCABundle {
@@ -41,6 +43,8 @@ impl OCABundle {
             attributes: HashMap::new(),
             layouts: Vec::new(),
             mappings: Vec::new(),
+            meta: todo!(),
+            classification: todo!(),
         }
     }
     pub fn add_attribute(&mut self, attribute: Attribute) {
@@ -259,9 +263,9 @@ impl CatAttributes {
         if let Some(sai) = &attribute.reference_sai {
             attribute_layout_values.add_reference_sai(sai.clone());
         }
-        if attribute.unit.is_some() {
-            attribute_layout_values.add_unit();
-        }
+        // if attribute.unit.is_some() {
+        //     attribute_layout_values.add_unit();
+        // }
         if categories.is_empty() {
             self.uncategorized
                 .insert(attribute.name.clone(), attribute_layout_values);
@@ -705,10 +709,10 @@ impl OCABuilder {
             }
         }
 
-        if attr.unit.is_some() {
+     /*    if attr.unit.is_some() {
             let mut unit_ov = self.oca.overlays.iter_mut().find(|x| {
-                if let Some(o_metric_system) = x.metric_system() {
-                    return o_metric_system == attr.metric_system.as_ref().unwrap()
+                if let Some(o_metric_system) = x.measurement_system() {
+                    return o_metric_system == attr.measurement_system.as_ref().unwrap()
                         && x.overlay_type().contains("/unit/");
                 }
                 false
@@ -724,7 +728,7 @@ impl OCABuilder {
                 ov.add(&attr)
             }
         }
-
+ */
         if attr.entry_codes.is_some() {
             let mut entry_code_ov = self
                 .oca

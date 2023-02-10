@@ -32,6 +32,7 @@ pub use self::label::LabelOverlay as Label;
 pub use self::meta::MetaOverlay as Meta;
 pub use self::standard::StandardOverlay as Standard;
 pub use self::subset::SubsetOverlay as Subset;
+use self::unit::MeasurementSystem;
 pub use self::unit::UnitOverlay as Unit;
 use crate::state::{attribute::Attribute};
 use said::derivation::SelfAddressing;
@@ -49,9 +50,7 @@ pub trait Overlay: erased_serde::Serialize {
     fn language(&self) -> Option<&Language> {
         None
     }
-    fn metric_system(&self) -> Option<&String> {
-        None
-    }
+
     fn attributes(&self) -> Vec<&String>;
 
     fn add(&mut self, attribute: &Attribute);
