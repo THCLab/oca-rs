@@ -693,7 +693,7 @@ impl OCABuilder {
             }
         }
 
-        if attr.standard.is_some() {
+/*         if attr.standard.is_some() {
             let mut standard_ov = self
                 .oca
                 .overlays
@@ -707,7 +707,7 @@ impl OCABuilder {
             if let Some(ov) = standard_ov {
                 ov.add(&attr)
             }
-        }
+        } */
 
      /*    if attr.unit.is_some() {
             let mut unit_ov = self.oca.overlays.iter_mut().find(|x| {

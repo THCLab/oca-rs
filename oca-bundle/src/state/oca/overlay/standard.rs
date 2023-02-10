@@ -2,7 +2,25 @@ use crate::state::standard::Standard;
 use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::any::Any;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
+
+
+pub(crate) trait StandardAttribute {
+    fn add_standard(&mut self, standard: Standard) -> ();
+}
+
+impl StandardAttribute for Attribute {
+    fn add_standard(&mut self, standard: Standard) {
+        match self.standards {
+            Some(ref mut standards) => {
+                standards.push(standard);
+            }
+            None => {
+                self.standards = Some(vec![standard]);
+            }
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct StandardOverlay {
@@ -11,7 +29,7 @@ pub struct StandardOverlay {
     said: String,
     #[serde(rename = "type")]
     overlay_type: String,
-    pub attribute_standards: BTreeMap<String, Standard>,
+    pub attribute_standards: HashMap<String, Standard>,
 }
 
 impl Overlay for StandardOverlay {
@@ -38,9 +56,10 @@ impl Overlay for StandardOverlay {
     }
 
     fn add(&mut self, attribute: &Attribute) {
-        if let Some(standard) = &attribute.standard {
+        if let Some(standard) = &attribute.standards {
+            // TODO find out how to pick right standard if there are more than one
             self.attribute_standards
-                .insert(attribute.name.clone(), standard.clone());
+                .insert(attribute.name.clone(), standard[0].clone());
         }
     }
 }
@@ -50,7 +69,7 @@ impl StandardOverlay {
             capture_base: String::new(),
             said: String::from("############################################"),
             overlay_type: "spec/overlays/standard/1.0".to_string(),
-            attribute_standards: BTreeMap::new(),
+            attribute_standards: HashMap::new(),
         })
     }
 }
