@@ -1,7 +1,7 @@
 use crate::state::attribute::{Attribute, AttributeType};
 use said::derivation::SelfAddressing;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CaptureBase {
@@ -10,7 +10,7 @@ pub struct CaptureBase {
     #[serde(rename = "digest")]
     pub said: String,
     pub classification: String,
-    pub attributes: BTreeMap<String, String>,
+    pub attributes: HashMap<String, String>,
     pub flagged_attributes: Vec<String>,
 }
 
@@ -26,7 +26,7 @@ impl CaptureBase {
             schema_type: String::from("spec/capture_base/1.0"),
             said: String::from("############################################"),
             classification: String::from(""),
-            attributes: BTreeMap::new(),
+            attributes: HashMap::new(),
             flagged_attributes: Vec::new(),
         }
     }
