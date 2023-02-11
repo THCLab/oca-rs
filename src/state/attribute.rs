@@ -1,11 +1,14 @@
-use super::{standard::Standard, oca::overlay::unit::{MeasurementSystem, MeasurementUnit}};
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use wasm_bindgen::prelude::*;
+use super::{
+    oca::overlay::unit::{MeasurementSystem, MeasurementUnit},
+    standard::Standard,
+};
 use isolang::Language;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, str::FromStr};
+use wasm_bindgen::prelude::*;
 
 use crate::state::{encoding::Encoding, entry_codes::EntryCodes};
-
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Attribute {
     pub name: String,
     pub attribute_type: Option<AttributeType>,
@@ -56,10 +59,112 @@ impl Attribute {
         self.is_flagged = true;
     }
 
-    pub fn set_attribute_type(mut self, attribute_type: AttributeType) -> () {
+    pub fn set_attribute_type(&mut self, attribute_type: AttributeType) -> () {
         self.attribute_type = Some(attribute_type);
     }
 
+    // Merge assumption is that if `other` is not None then it would overwrite `self` or would be concatenated with `self`
+    pub fn merge(&mut self, other: &Attribute) -> () {
+        if self.name != other.name {
+            panic!("Cannot merge attributes with different names");
+        } else {
+            if other.attribute_type.is_some() {
+                self.attribute_type = other.attribute_type.clone();
+            }
+
+            self.merge_labels(other);
+            self.merge_information(other);
+            self.merge_category_labels(other);
+
+            if other.mapping.is_some() {
+                self.mapping = other.mapping.clone();
+            }
+
+            if other.encoding.is_some() {
+                self.encoding = other.encoding.clone();
+            }
+
+            if other.format.is_some() {
+                self.format = other.format.clone();
+            }
+
+            if self.units.is_none() {
+                self.units = other.units.clone();
+            }
+
+            if self.entry_codes.is_none() {
+                self.entry_codes = other.entry_codes.clone();
+            }
+
+            if self.entry_codes_mapping.is_none() {
+                self.entry_codes_mapping = other.entry_codes_mapping.clone();
+            }
+
+            if other.reference_sai.is_some() {
+                self.reference_sai = other.reference_sai.clone();
+            }
+
+            if other.condition.is_some() {
+                self.condition = other.condition.clone();
+            }
+
+            if other.cardinality.is_some() {
+                self.cardinality = other.cardinality.clone();
+            }
+
+            if other.conformance.is_some() {
+                self.conformance = other.conformance.clone();
+            }
+
+            if other.standards.is_some() {
+                self.standards = other.standards.clone();
+            }
+
+        }
+    }
+
+    fn merge_category_labels(&mut self, other: &Attribute) -> () {
+        if self.category_labels.is_none() {
+            self.category_labels = other.category_labels.clone();
+        } else {
+            if let Some(category_labels) = &other.category_labels {
+                for (lang, category_label) in category_labels {
+                    self.category_labels
+                        .as_mut()
+                        .unwrap()
+                        .insert(lang.clone(), category_label.clone());
+                }
+            }
+        }
+    }
+    fn merge_information(&mut self, other: &Attribute) -> () {
+        if self.informations.is_none() {
+            self.informations = other.informations.clone();
+        } else {
+            if let Some(informations) = &other.informations {
+                for (lang, information) in informations {
+                    self.informations
+                        .as_mut()
+                        .unwrap()
+                        .insert(lang.clone(), information.clone());
+                }
+            }
+        }
+    }
+    fn merge_labels(&mut self, other: &Attribute) -> () {
+        if self.labels.is_none() {
+            self.labels = other.labels.clone();
+        } else {
+            if let Some(labels) = &other.labels {
+                for (lang, label) in labels {
+                    self.labels
+                        .as_mut()
+                        .unwrap()
+                        .insert(lang.clone(), label.clone());
+                }
+            }
+        }
+    }
     // pub fn add_condition(
     //     mut self,
     //     condition: String,
@@ -100,7 +205,7 @@ impl Attribute {
     //     self
     // }
 
-     // pub fn add_entry_codes(mut self, entry_codes: EntryCodes) -> AttributeBuilder {
+    // pub fn add_entry_codes(mut self, entry_codes: EntryCodes) -> AttributeBuilder {
     //     self.attribute.entry_codes = Some(entry_codes);
     //     self
     // }
@@ -145,7 +250,6 @@ impl Attribute {
     //     }
     //     self
     // }
-
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -187,4 +291,26 @@ pub enum AttributeType {
     Reference,
     #[serde(rename = "Array[Reference]")]
     ArrayReference,
+}
+
+impl FromStr for AttributeType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Boolean" => Ok(AttributeType::Boolean),
+            "Array[Boolean]" => Ok(AttributeType::ArrayBoolean),
+            "Binary" => Ok(AttributeType::Binary),
+            "Array[Binary]" => Ok(AttributeType::ArrayBinary),
+            "Text" => Ok(AttributeType::Text),
+            "Array[Text]" => Ok(AttributeType::ArrayText),
+            "Numeric" => Ok(AttributeType::Numeric),
+            "Array[Numeric]" => Ok(AttributeType::ArrayNumeric),
+            "DateTime" => Ok(AttributeType::DateTime),
+            "Array[DateTime]" => Ok(AttributeType::ArrayDateTime),
+            "Reference" => Ok(AttributeType::Reference),
+            "Array[Reference]" => Ok(AttributeType::ArrayReference),
+            _ => Err(()),
+        }
+    }
 }

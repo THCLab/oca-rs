@@ -1,8 +1,8 @@
+use crate::state::oca::layout::credential::Layout;
 use indexmap::IndexMap;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_value::Value;
 use std::collections::{BTreeMap, HashMap};
-use crate::state::oca::layout::credential::Layout;
 mod capture_base;
 mod layout;
 pub mod overlay;
@@ -20,52 +20,113 @@ let attr = Attribute::new("name")
 oca.add_attribute(attr)
 oca.getAttrByName("name").setEncoding(Encoding::UTF8)
 oca.getAttrByName("name").setLabel(Language::English, "Name")
+oca.getAttrByName("name").setInformation(Language::German, "Name")
+oca.getAttrByName("name").setUnit("kg")
+oca.getAttrByName("name").setStandard("ISO 1234")
+oca.getAttrByName("name").setCategory("personal")
 
 
-oca.serialize().unwrap()
+oca.generate_bundle().unwrap()
 
 
 
 */
 
-pub struct OCABundle {
-    pub attributes: HashMap<String, Attribute>,
-    pub layouts: Vec<Layout>,
-    pub mappings: Vec<overlay::AttributeMapping>,
-    pub meta: HashMap<String, String>,
-    pub classification: String,
+// https://hackmd.io/xKOhBSBBSvC_-68pwRn-wQ - OCA Bundle serialization approach
 
+/// Internal representation of OCA objects in split between non-attributes values and attributes.
+/// It is used to build dynamically objects without knowing yet whole structure of the object.
+/// Used mainly as a container to hold information while parsing OCAfile.
+pub struct OCABox {
+    pub attributes: HashMap<String, Attribute>,
+    pub layouts: Option<Vec<Layout>>,
+    pub mappings: Option<Vec<overlay::AttributeMapping>>,
+    pub meta: Option<HashMap<String, String>>,
+    pub classification: Option<String>,
 }
 
-impl OCABundle {
+impl OCABox {
     pub fn new() -> Self {
-        OCABundle {
+        OCABox {
             attributes: HashMap::new(),
-            layouts: Vec::new(),
-            mappings: Vec::new(),
-            meta: todo!(),
-            classification: todo!(),
+            layouts: None,
+            mappings: None,
+            meta: None,
+            classification: None,
         }
     }
+    /// Add an attribute to the OCA Bundle
+    /// If the attribute already exists, it will be merged with the new attribute
+    /// for simple types, the new value will overwrite the old value
+    /// for complex types, the new value will be added to the old value
     pub fn add_attribute(&mut self, attribute: Attribute) {
-        self.attributes.insert(attribute.name.clone(), attribute);
+        if let Some(attr) = self.get_attribute_mut(&attribute.name) {
+            attr.merge(&attribute);
+            return;
+        } else {
+            self.attributes.insert(attribute.name.clone(), attribute);
+        }
     }
     pub fn get_attribute(&self, name: &str) -> Option<&Attribute> {
         self.attributes.get(name)
     }
-    pub fn get_attribute_mut(&mut self, name: &str) -> Option<&mut Attribute> {
-        self.attributes.get_mut(name)
-    }
 
-    pub fn add_layout(&mut self, name: &str, layout: Layout) {
-       // self.layouts.insert(name.to_string(), layout);
+    pub fn add_layout(&mut self, layout: Layout) {
+        match self.layouts {
+            Some(ref mut layouts) => layouts.push(layout),
+            None => self.layouts = Some(vec![layout]),
+        }
     }
     pub fn add_attribute_mapping(&mut self, mapping: overlay::AttributeMapping) {
-        self.mappings.push(mapping);
+        match self.mappings {
+            Some(ref mut mappings) => mappings.push(mapping),
+            None => self.mappings = Some(vec![mapping]),
+        }
+    }
+    // TODO split meta on language specific and non language specific
+    pub fn add_meta_attribute(&mut self, key: String, value: String) {
+        match self.meta {
+            Some(ref mut meta) => {
+                meta.insert(key, value);
+            }
+            None => {
+                let mut meta = HashMap::new();
+                meta.insert(key, value);
+                self.meta = Some(meta);
+            }
+        };
+    }
+    pub fn add_classification(&mut self, classification: String) {
+        self.classification = Some(classification);
     }
 
-}
+    pub fn generate_bundle(&mut self) -> String {
+        let capture_base = self.generate_capture_base();
+        let overlays = self.generate_overlays();
+        let bundle = OCABundle { version: "OCAB10000023_".to_string(), said: "######".to_string(), capture_base: capture_base, overlays: overlays };
+        serde_json::to_string(&bundle).unwrap()
+    }
 
+    fn generate_overlays(&mut self) -> Vec<DynOverlay> {
+        let mut overlays: Vec<DynOverlay> = Vec::new();
+        if let Some(mappings) = &self.mappings {
+            for mapping in mappings {
+                overlays.push(Box::new(mapping.clone()));
+            }
+        }
+        return overlays;
+    }
+    fn generate_capture_base(&mut self) -> CaptureBase {
+        let mut capture_base = CaptureBase::new();
+        for attribute in self.attributes.values() {
+            capture_base.add(attribute);
+        }
+        return capture_base;
+    }
+    fn get_attribute_mut(&mut self, name: &str) -> Option<&mut Attribute> {
+        self.attributes.get_mut(name)
+    }
+}
 
 pub type DynOverlay = Box<dyn Overlay>;
 
@@ -220,6 +281,15 @@ impl<'de> Deserialize<'de> for DynOverlay {
         )))
     }
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct OCABundle{
+    pub version: String,
+    pub said: String,
+    pub capture_base: CaptureBase,
+    pub overlays: Vec<DynOverlay>,
+}
+
 
 #[derive(Serialize, Deserialize)]
 pub struct OCA {
@@ -504,7 +574,6 @@ impl<'de> Deserialize<'de> for OCABuilder {
 }
 
 impl OCABuilder {
-
     pub fn new(default_encoding: Encoding) -> OCABuilder {
         OCABuilder {
             oca: OCA {
@@ -693,7 +762,7 @@ impl OCABuilder {
             }
         }
 
-/*         if attr.standard.is_some() {
+        /*         if attr.standard.is_some() {
             let mut standard_ov = self
                 .oca
                 .overlays
@@ -709,26 +778,26 @@ impl OCABuilder {
             }
         } */
 
-     /*    if attr.unit.is_some() {
-            let mut unit_ov = self.oca.overlays.iter_mut().find(|x| {
-                if let Some(o_metric_system) = x.measurement_system() {
-                    return o_metric_system == attr.measurement_system.as_ref().unwrap()
-                        && x.overlay_type().contains("/unit/");
-                }
-                false
-            });
-            if unit_ov.is_none() {
-                self.oca.overlays.push(overlay::Unit::new(
-                    attr.metric_system.as_ref().unwrap().clone(),
-                ));
-                unit_ov = self.oca.overlays.last_mut();
-            }
+        /*    if attr.unit.is_some() {
+                   let mut unit_ov = self.oca.overlays.iter_mut().find(|x| {
+                       if let Some(o_metric_system) = x.measurement_system() {
+                           return o_metric_system == attr.measurement_system.as_ref().unwrap()
+                               && x.overlay_type().contains("/unit/");
+                       }
+                       false
+                   });
+                   if unit_ov.is_none() {
+                       self.oca.overlays.push(overlay::Unit::new(
+                           attr.metric_system.as_ref().unwrap().clone(),
+                       ));
+                       unit_ov = self.oca.overlays.last_mut();
+                   }
 
-            if let Some(ov) = unit_ov {
-                ov.add(&attr)
-            }
-        }
- */
+                   if let Some(ov) = unit_ov {
+                       ov.add(&attr)
+                   }
+               }
+        */
         if attr.entry_codes.is_some() {
             let mut entry_code_ov = self
                 .oca
@@ -1351,7 +1420,6 @@ pages:
     pub fn add_credential_layout_reference(&mut self, name: String, layout: String) {
         self.credential_layout_reference.insert(name, layout);
     }
-
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Hash, Eq, PartialEq)]
@@ -1406,7 +1474,7 @@ mod tests {
     fn build_oca_without_attributes() {
         let oca = OCABuilder::new(Encoding::Utf8)
             .add_classification("GICS:35102020".to_string())
-/*             .add_name(hashmap! {
+            /*             .add_name(hashmap! {
                 "En".to_string() => "Driving Licence".to_string(),
                 "Pl".to_string() => "Prawo Jazdy".to_string(),
             })
@@ -1421,165 +1489,165 @@ mod tests {
         assert_eq!(oca.capture_base.attributes.len(), 0);
         assert_eq!(oca.capture_base.classification, "GICS:35102020");
     }
-/*
-    #[test]
-    fn build_oca_with_attributes() {
-        let oca_builder = OCABuilder::new(Encoding::Utf8)
-            .add_form_layout(
+    /*
+        #[test]
+        fn build_oca_with_attributes() {
+            let oca_builder = OCABuilder::new(Encoding::Utf8)
+                .add_form_layout(
+                    "
+                    config:
+                        css:
+                            style: >-
+                                form { background-color: white; }
+                    elements:
+                        - type: meta
+                          config:
+                              css:
+                                  style: >-
+                                      justify-content: space-between;
+                          parts:
+                              - name: language
+                              - name: name
+                              - name: description
+                        - type: category
+                          id: _cat-1_
+                        - type: attribute
+                          name: n1
+                          parts:
+                              - name: label
+                              - name: input
+                              - name: information
+                        - type: attribute
+                          name: n2
+                          parts:
+                              - name: label
+                              - name: input
+                              - name: information
                 "
-                config:
-                    css:
-                        style: >-
-                            form { background-color: white; }
-                elements:
-                    - type: meta
-                      config:
-                          css:
-                              style: >-
-                                  justify-content: space-between;
-                      parts:
-                          - name: language
-                          - name: name
-                          - name: description
-                    - type: category
-                      id: _cat-1_
-                    - type: attribute
-                      name: n1
-                      parts:
-                          - name: label
-                          - name: input
-                          - name: information
-                    - type: attribute
-                      name: n2
-                      parts:
-                          - name: label
-                          - name: input
-                          - name: information
-            "
-                .to_string(),
-            )
-            .add_credential_layout(
-                "
-version: beta-1
-config:
-  css:
-    width: 200px
-    height: 100px
-    style: >-
-      @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@700&display=swap');
-pages:
-  - config:
-      name: Page 0
-    elements:
-      - type: row
-        config:
-          css:
-            style: >-
-              height: 32px;
+                    .to_string(),
+                )
+                .add_credential_layout(
+                    "
+    version: beta-1
+    config:
+      css:
+        width: 200px
+        height: 100px
+        style: >-
+          @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@700&display=swap');
+    pages:
+      - config:
+          name: Page 0
         elements:
-      - type: row
-        elements:
-          - type: col
-            size: 4
+          - type: row
             config:
               css:
                 style: >-
-                  padding-right: 0;
+                  height: 32px;
             elements:
-              - type: row
+          - type: row
+            elements:
+              - type: col
+                size: 4
+                config:
+                  css:
+                    style: >-
+                      padding-right: 0;
                 elements:
-                  - type: col
-                    size: 8
+                  - type: row
                     elements:
-                      - type: row
+                      - type: col
+                        size: 8
                         elements:
-                          - type: col
+                          - type: row
                             elements:
-                            - type: attribute
-                              name: n1
-labels:
-  passport:
-    en: Passport
-    fr: Passeport
-                                   "
-                .to_string(),
-            )
-            .add_name(hashmap! {
-                "En".to_string() => "Driving Licence".to_string(),
-                "Pl".to_string() => "Prawo Jazdy".to_string(),
-            })
-            .add_description(hashmap! {
-                "En".to_string() => "DL desc".to_string(),
-                "Pl".to_string() => "PJ desc".to_string(),
-            });
+                              - type: col
+                                elements:
+                                - type: attribute
+                                  name: n1
+    labels:
+      passport:
+        en: Passport
+        fr: Passeport
+                                       "
+                    .to_string(),
+                )
+                .add_name(hashmap! {
+                    "En".to_string() => "Driving Licence".to_string(),
+                    "Pl".to_string() => "Prawo Jazdy".to_string(),
+                })
+                .add_description(hashmap! {
+                    "En".to_string() => "DL desc".to_string(),
+                    "Pl".to_string() => "PJ desc".to_string(),
+                });
 
-        let attr1 = AttributeBuilder::new(String::from("n1"), AttributeType::Text)
-            .set_flagged()
-            .add_label(hashmap! {
-                "En".to_string() => "Name: ".to_string(),
-                "Pl".to_string() => "Imię: ".to_string(),
-            })
-            .add_entry_codes(EntryCodes::Array(vec![
-                "op1".to_string(),
-                "op2".to_string(),
-            ]))
-            .add_entries(Entries::Object(vec![
-                Entry::new(
+            let attr1 = AttributeBuilder::new(String::from("n1"), AttributeType::Text)
+                .set_flagged()
+                .add_label(hashmap! {
+                    "En".to_string() => "Name: ".to_string(),
+                    "Pl".to_string() => "Imię: ".to_string(),
+                })
+                .add_entry_codes(EntryCodes::Array(vec![
                     "op1".to_string(),
-                    hashmap! {
-                        "En".to_string() => "Option 1".to_string(),
-                        "Pl".to_string() => "Opcja 1".to_string(),
-                    },
-                ),
-                Entry::new(
                     "op2".to_string(),
-                    hashmap! {
-                        "En".to_string() => "Option 2".to_string(),
-                        "Pl".to_string() => "Opcja 2".to_string(),
-                    },
-                ),
-            ]))
-            .add_information(hashmap! {
-                "En".to_string() => "info en".to_string(),
-                "Pl".to_string() => "info pl".to_string(),
-            })
-            .add_unit("SI".to_string(), "cm".to_string())
-            .build();
+                ]))
+                .add_entries(Entries::Object(vec![
+                    Entry::new(
+                        "op1".to_string(),
+                        hashmap! {
+                            "En".to_string() => "Option 1".to_string(),
+                            "Pl".to_string() => "Opcja 1".to_string(),
+                        },
+                    ),
+                    Entry::new(
+                        "op2".to_string(),
+                        hashmap! {
+                            "En".to_string() => "Option 2".to_string(),
+                            "Pl".to_string() => "Opcja 2".to_string(),
+                        },
+                    ),
+                ]))
+                .add_information(hashmap! {
+                    "En".to_string() => "info en".to_string(),
+                    "Pl".to_string() => "info pl".to_string(),
+                })
+                .add_unit("SI".to_string(), "cm".to_string())
+                .build();
 
-        let attr2 = AttributeBuilder::new(String::from("n2"), AttributeType::DateTime)
-            .add_label(hashmap! {
-                "En".to_string() => "Date: ".to_string(),
-                "Pl".to_string() => "Data: ".to_string(),
-            })
-            .add_condition("${0} == 'op1'".to_string(), vec!["n1".to_string()])
-            .add_encoding(Encoding::Iso8859_1)
-            .add_format("DD/MM/YYYY".to_string())
-            .build();
+            let attr2 = AttributeBuilder::new(String::from("n2"), AttributeType::DateTime)
+                .add_label(hashmap! {
+                    "En".to_string() => "Date: ".to_string(),
+                    "Pl".to_string() => "Data: ".to_string(),
+                })
+                .add_condition("${0} == 'op1'".to_string(), vec!["n1".to_string()])
+                .add_encoding(Encoding::Iso8859_1)
+                .add_format("DD/MM/YYYY".to_string())
+                .build();
 
-        let attr3 = AttributeBuilder::new(String::from("n3"), AttributeType::Reference)
-            .add_sai("sai".to_string())
-            .add_label(hashmap! {
-                "En".to_string() => "Reference: ".to_string(),
-                "Pl".to_string() => "Referecja: ".to_string(),
-            })
-            .build();
+            let attr3 = AttributeBuilder::new(String::from("n3"), AttributeType::Reference)
+                .add_sai("sai".to_string())
+                .add_label(hashmap! {
+                    "En".to_string() => "Reference: ".to_string(),
+                    "Pl".to_string() => "Referecja: ".to_string(),
+                })
+                .build();
 
-        let oca = oca_builder
-            .add_attribute(attr1)
-            .add_attribute(attr2)
-            .add_attribute(attr3)
-            .finalize();
+            let oca = oca_builder
+                .add_attribute(attr1)
+                .add_attribute(attr2)
+                .add_attribute(attr3)
+                .finalize();
 
-        // println!(
-        //     "{}",
-        //     serde_json::to_string_pretty(&serde_json::to_value(&oca).unwrap()).unwrap()
-        // );
+            // println!(
+            //     "{}",
+            //     serde_json::to_string_pretty(&serde_json::to_value(&oca).unwrap()).unwrap()
+            // );
 
-        assert_eq!(
-            oca.capture_base.attributes.get(&"n3".to_string()),
-            Some(&"Reference:sai".to_string())
-        );
-        assert_eq!(oca.capture_base.attributes.len(), 3);
-        assert_eq!(oca.capture_base.flagged_attributes.len(), 1);
-    } */
+            assert_eq!(
+                oca.capture_base.attributes.get(&"n3".to_string()),
+                Some(&"Reference:sai".to_string())
+            );
+            assert_eq!(oca.capture_base.attributes.len(), 3);
+            assert_eq!(oca.capture_base.flagged_attributes.len(), 1);
+        } */
 }
