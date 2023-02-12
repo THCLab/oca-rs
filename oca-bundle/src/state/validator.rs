@@ -1,8 +1,8 @@
-use crate::state::{
-    oca::{DynOverlay, OCABuilder, OCATranslation, OCA},
-};
+use crate::state::oca::DynOverlay;
 use std::collections::{HashMap, HashSet};
 use isolang::Language;
+
+use super::oca::OCABundle;
 
 #[derive(Debug)]
 pub enum Error {
@@ -62,23 +62,21 @@ impl Validator {
         self
     }
 
-    pub fn validate(self, oca: &OCA) -> Result<(), Vec<Error>> {
+    pub fn validate(self, oca_bundle: &OCABundle) -> Result<(), Vec<Error>> {
         let enforced_langs: HashSet<_> = self.enforced_translations.iter().collect();
         let mut errors: Vec<Error> = vec![];
 
-        let oca_value = serde_json::value::to_value(oca).unwrap();
-        let oca_str = serde_json::to_string(&oca_value).unwrap();
-        let oca_builder: OCABuilder = serde_json::from_str(oca_str.as_str())
+        /* let oca_bundle: OCABundle = serde_json::from_str(oca_str.as_str())
             .map_err(|e| vec![Error::Custom(e.to_string())])?;
-
-        let capture_base = oca_builder.oca.capture_base;
+ */
+        let capture_base = &oca_bundle.capture_base;
         let sai = capture_base.said.clone();
 
         if capture_base.said.ne(&capture_base.calculate_said()) {
             errors.push(Error::Custom("capture_base: Malformed SAID".to_string()));
         }
 
-        for o in oca_builder.oca.overlays {
+        for o in &oca_bundle.overlays {
             if o.said().ne(&o.calculate_said()) {
                 let msg = match o.language() {
                     Some(lang) => format!("{} ({}): Malformed SAID", o.overlay_type(), lang),
@@ -99,7 +97,8 @@ impl Validator {
         }
 
         if !enforced_langs.is_empty() {
-            if !oca_builder.meta_translations.is_empty() {
+            // TODO what is enforced_langs?
+ /*            if !oca_bundle.meta_translations.is_empty() {
                 if let Err(meta_errors) =
                     self.validate_meta(&enforced_langs, &oca_builder.meta_translations)
                 {
@@ -124,10 +123,10 @@ impl Validator {
                         }))
                         .collect();
                 }
-            }
+            } */
 
             for overlay_type in &["entry", "information", "label"] {
-                let typed_overlays: Vec<_> = oca
+                let typed_overlays: Vec<_> = oca_bundle
                     .overlays
                     .iter()
                     .filter(|x| {
@@ -172,12 +171,14 @@ impl Validator {
         }
     }
 
+
+    // TODO
     fn validate_meta(
         &self,
         enforced_langs: &HashSet<&Language>,
-        translations: &HashMap<Language, OCATranslation>,
+        translations: &HashMap<Language, String>,
     ) -> Result<(), Vec<Error>> {
-        let mut errors: Vec<Error> = vec![];
+  /*       let mut errors: Vec<Error> = vec![];
         let translation_langs: HashSet<_> = translations.keys().collect();
 
         let missing_enforcement: HashSet<&_> =
@@ -216,12 +217,12 @@ impl Validator {
                 ));
             }
         }
-
-        if errors.is_empty() {
+    _*/
+       // if errors.is_empty() {
             Ok(())
-        } else {
-            Err(errors)
-        }
+        //} else {
+          //  Err(errors)
+       // }
     }
 
     fn validate_translations(
@@ -270,11 +271,6 @@ impl Validator {
 mod tests {
     use super::*;
     use crate::controller::load_oca;
-    use crate::state::{
-        attribute::{AttributeType},
-        encoding::Encoding,
-        oca::OCABuilder,
-    };
     use maplit::hashmap;
     #[test]
      fn validate_valid_oca() {
@@ -356,7 +352,7 @@ mod tests {
     #[test]
     fn validate_oca_with_invalid_saids() {
         let validator = Validator::new();
-
+// TODO modify to new representation
         let data = r#"
 {
     "capture_base": {
@@ -381,9 +377,9 @@ mod tests {
     ]
 }
         "#;
-        let oca = load_oca(&mut data.as_bytes()).unwrap().oca;
+        let oca_bundle = load_oca(&mut data.as_bytes()).unwrap();
 
-        let result = validator.validate(&oca);
+        let result = validator.validate(&oca_bundle);
 
         assert!(result.is_err());
         if let Err(errors) = result {
