@@ -1,10 +1,10 @@
 use crate::state::{
     attribute::Attribute,
-    oca::{OCATranslation, Overlay},
+    oca::Overlay,
 };
 use serde::{Deserialize, Serialize};
 use std::any::Any;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use isolang::Language;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -15,12 +15,12 @@ pub struct MetaOverlay {
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
-    pub name: String,
-    pub description: String,
     #[serde(flatten)]
-    pub extra: BTreeMap<String, String>,
+    pub attr_pairs: HashMap<String, String>,
 }
 
+
+// TODO: why Overlay implements fn which are not relevant for MetaOverlay?
 impl Overlay for MetaOverlay {
     fn as_any(&self) -> &dyn Any {
         self
@@ -50,19 +50,14 @@ impl Overlay for MetaOverlay {
     fn add(&mut self, _attribute: &Attribute) {}
 }
 impl MetaOverlay {
-    pub fn new(lang: Language, oca_tr: &OCATranslation) -> Box<MetaOverlay> {
+    pub fn new(lang: Language, attr_pairs: HashMap<String, String>) -> Box<MetaOverlay> {
         Box::new(MetaOverlay {
             capture_base: String::new(),
             said: String::from("############################################"),
             overlay_type: "spec/overlays/meta/1.0".to_string(),
             language: lang,
-            name: oca_tr.name.as_ref().unwrap_or(&"".to_string()).clone(),
-            description: oca_tr
-                .description
-                .as_ref()
-                .unwrap_or(&"".to_string())
-                .clone(),
-            extra: oca_tr.extra.clone(),
+            attr_pairs: attr_pairs,
+
         })
     }
 }

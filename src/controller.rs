@@ -1,11 +1,12 @@
-use crate::state::oca::OCABuilder;
 use std::io::Read;
+
+use crate::state::oca::OCABundle;
 
 pub type GenericError = Box<dyn std::error::Error + Sync + Send>;
 pub type GenericResult<T> = Result<T, GenericError>;
 
-pub fn load_oca(source: &mut dyn Read) -> GenericResult<OCABuilder> {
-    let oca: OCABuilder = serde_json::from_reader(source)?;
+pub fn load_oca(source: &mut dyn Read) -> GenericResult<OCABundle> {
+    let oca: OCABundle = serde_json::from_reader(source)?;
 
     Ok(oca)
 }
