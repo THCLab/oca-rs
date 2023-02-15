@@ -1,13 +1,27 @@
 use crate::state::attribute::{Attribute, AttributeType};
 use said::derivation::SelfAddressing;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeStruct};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize, Debug)]
+impl Serialize for CaptureBase {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("CaptureBase", 5)?;
+        state.serialize_field("said", &self.said)?;
+        state.serialize_field("type", &self.schema_type)?;
+        state.serialize_field("classification", &self.classification)?;
+        state.serialize_field("attributes", &self.attributes)?;
+        state.serialize_field("flagged_attributes", &self.flagged_attributes)?;
+        state.end()
+    }
+}
+
+#[derive(Deserialize, Debug)]
 pub struct CaptureBase {
     #[serde(rename = "type")]
     pub schema_type: String,
-    #[serde(rename = "digest")]
     pub said: String,
     pub classification: String,
     pub attributes: HashMap<String, String>,

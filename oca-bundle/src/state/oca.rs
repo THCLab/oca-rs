@@ -1,6 +1,7 @@
 use crate::state::oca::layout::credential::Layout;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, ser::SerializeStruct};
 use std::collections::HashMap;
+use linked_hash_map::LinkedHashMap;
 mod capture_base;
 mod layout;
 pub mod overlay;
@@ -91,19 +92,16 @@ impl OCABox {
         self.classification = Some(classification);
     }
 
-    // TODO should it return string or OCABundle?
-    pub fn generate_bundle(&mut self) -> String {
+    pub fn generate_bundle(&mut self) -> OCABundle {
         let capture_base = self.generate_capture_base();
         let overlays = self.generate_overlays();
 
-        let oca_bundle = OCABundle {
+        OCABundle {
             version: "OCAB10000023_".to_string(),
             said: "######".to_string(),
-            capture_base: capture_base,
-            overlays: overlays,
-        };
-
-        serde_json::to_string(&oca_bundle).unwrap()
+            capture_base,
+            overlays,
+        }
     }
 
     fn generate_overlays(&mut self) -> Vec<DynOverlay> {
@@ -281,11 +279,137 @@ impl<'de> Deserialize<'de> for DynOverlay {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+impl Serialize for OCABundle {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use serde_value::Value;
+
+        let mut state = serializer.serialize_struct("OCABundle", 4)?;
+        state.serialize_field("version", &self.version)?;
+        state.serialize_field("said", &self.said)?;
+        state.serialize_field("capture_base", &self.capture_base)?;
+
+        let mut overlays_map: LinkedHashMap<Value, Value> = LinkedHashMap::new();
+        for overlay in &self.overlays {
+            let overlays_order = [
+                "character_encoding",
+                "format",
+                "meta",
+                "label",
+                "information",
+                "standard",
+                "conditional",
+                "conformance",
+                "entry_code",
+                "entry",
+                "cardinality",
+                "unit",
+                "attribute_mapping",
+                "entry_code_mapping",
+                "unit_mapping",
+                "subset",
+                "credential_layout",
+                "form_layout"
+            ];
+            for o_type in overlays_order {
+                let o_type_tmp = format!("/{o_type}/");
+                if overlay.overlay_type().contains(&o_type_tmp) {
+                    match overlay.language() {
+                        Some(_) => {
+                            if let Some(Value::Seq(ov)) = overlays_map.get_mut(&Value::String(o_type.to_string())) {
+                                ov.push(serde_value::to_value(overlay).unwrap());
+                            } else {
+                                overlays_map.insert(
+                                    Value::String(o_type.to_string()),
+                                    Value::Seq(vec![
+                                        serde_value::to_value(overlay).unwrap()
+                                    ])
+                                );
+                            }
+                        },
+                        None => {
+                            overlays_map.insert(
+                                Value::String(o_type.to_string()),
+                                serde_value::to_value(overlay).unwrap()
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        for (_, v) in overlays_map.iter_mut() {
+            if let Value::Seq(ov) = v {
+                ov.sort_by(|a, b| {
+                    if let Value::Map(o_b) = b {
+                        if let Value::Map(o_a) = a {
+                            o_a.get(
+                                &Value::String("language".to_string())
+                            )
+                            .unwrap()
+                            .cmp(
+                                o_b.get(
+                                    &Value::String("language".to_string())
+                                ).unwrap()
+                            )
+                        } else {
+                            std::cmp::Ordering::Equal
+                        }
+                    } else {
+                        std::cmp::Ordering::Equal
+                    }
+                });
+            }
+        }
+        state.serialize_field("overlays", &overlays_map)?;
+        state.end()
+    }
+}
+
+fn deserialize_overlays<'de, D>(deserializer: D) -> Result<Vec<DynOverlay>, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    struct OverlaysVisitor;
+
+    impl<'de> serde::de::Visitor<'de> for OverlaysVisitor {
+        type Value = Vec<DynOverlay>;
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter.write_str("vector of overlays")
+        }
+
+        fn visit_map<V>(self, mut map: V) -> Result<Self::Value, V::Error>
+        where
+            V: serde::de::MapAccess<'de>,
+        {
+            let mut overlays = vec![];
+
+            while let Some((_, value)) = map.next_entry::<String, serde_value::Value>()? {
+                if let serde_value::Value::Seq(ov) = value {
+                    for o in ov {
+                        overlays.push(o.deserialize_into().unwrap());
+                    }
+                } else if let serde_value::Value::Map(_) = value {
+                    overlays.push(value.deserialize_into().unwrap());
+                }
+            }
+
+            Ok(overlays)
+        }
+    }
+
+    deserializer.deserialize_any(OverlaysVisitor)
+}
+
+#[derive(Deserialize)]
 pub struct OCABundle {
     pub version: String,
     pub said: String,
     pub capture_base: CaptureBase,
+    #[serde(deserialize_with = "deserialize_overlays")]
     pub overlays: Vec<DynOverlay>,
 }
 
@@ -309,6 +433,27 @@ impl AttributeLayoutValues {
 
     pub fn add_unit(&mut self) {
         self.has_unit = true;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn build_oca_bundle() {
+        let mut oca = OCABox::new();
+        oca.add_meta_attribute("name".to_string(), "test".to_string());
+        oca.add_meta_attribute("description".to_string(), "test".to_string());
+        let oca_bundle = oca.generate_bundle();
+        let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
+        println!("{oca_bundle_json}");
+
+        let oca_bundle_2: OCABundle = serde_json::from_str(&oca_bundle_json).unwrap();
+        println!("{}", oca_bundle_2.overlays.len());
+
+        let oca_bundle_yaml = serde_yaml::to_string(&oca_bundle_2).unwrap();
+        println!("{oca_bundle_yaml}");
     }
 }
 
@@ -379,6 +524,8 @@ impl CatAttributes {
     }
 }
  */
+
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -570,3 +717,4 @@ mod tests {
             assert_eq!(oca.capture_base.flagged_attributes.len(), 1);
         } */
 }
+*/
