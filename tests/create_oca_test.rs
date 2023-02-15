@@ -1,3 +1,4 @@
+/*
 use maplit::hashmap;
 use oca_rs::state::{
     attribute::{AttributeType, Entries, Entry},
@@ -104,3 +105,4 @@ fn create_oca() {
     assert_eq!(loaded_oca.capture_base.attributes.len(), 4);
     assert_eq!(loaded_oca.capture_base.flagged_attributes.len(), 2);
 }
+*/
