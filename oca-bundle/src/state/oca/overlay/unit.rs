@@ -1,7 +1,7 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::any::Any;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, Hash, PartialEq)]
 pub enum MeasurementSystem {

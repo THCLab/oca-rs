@@ -19,6 +19,7 @@ pub struct Attribute {
     pub entry_codes: Option<EntryCodes>,
     pub mapping: Option<String>,
     pub encoding: Option<Encoding>,
+    #[cfg(feature = "format_overlay")]
     pub format: Option<String>,
     pub units: Option<HashMap<MeasurementSystem, MeasurementUnit>>,
     //pub entry_codes: Option<EntryCodes>,
@@ -42,6 +43,7 @@ impl Attribute {
             is_flagged: false,
             mapping: None,
             encoding: None,
+            #[cfg(feature = "format_overlay")]
             format: None,
             units: None,
             entry_codes: None,
@@ -55,7 +57,7 @@ impl Attribute {
         }
     }
 
-    pub fn set_flagged(&mut self) -> () {
+    pub fn set_flagged(&mut self) {
         self.is_flagged = true;
     }
 
@@ -84,6 +86,7 @@ impl Attribute {
                 self.encoding = other.encoding.clone();
             }
 
+            #[cfg(feature = "format_overlay")]
             if other.format.is_some() {
                 self.format = other.format.clone();
             }
