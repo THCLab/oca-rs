@@ -179,8 +179,7 @@ dependencies = [
 [[package]]
 name = "isolang"
 version = "2.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b64fd6448ee8a45ce6e4365c58e4fa7d8740cba2ed70db3e9ab4879ebd93eaaa"
+source = "git+https://github.com/humenda/isolang-rs#7f059a105b8d5caa84570e1c8fededfbc308fd31"
 dependencies = [
  "phf",
  "serde",
@@ -260,6 +259,7 @@ dependencies = [
  "lazy_static",
  "linked-hash-map",
  "maplit",
+ "paste",
  "regex",
  "said",
  "serde",
@@ -286,19 +286,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "phf"
-version = "0.10.1"
+name = "paste"
+version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fabbf1ead8a5bcbc20f5f8b939ee3f5b0f6f281b6ad3468b84656b658b455259"
+checksum = "d01a5bd0424d00070b0098dd17ebca6f961a959dead1dbcbbbc1d1cd8d3deeba"
+
+[[package]]
+name = "phf"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "928c6535de93548188ef63bb7c4036bd415cd8f36ad25af44b9789b2ee72a48c"
 dependencies = [
  "phf_shared",
 ]
 
 [[package]]
 name = "phf_shared"
-version = "0.10.0"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6796ad771acdc0123d2a88dc428b5e38ef24456743ddb1744ed628f9815c096"
+checksum = "e1fb5f6f826b772a8d4c0394209441e7d37cbbb967ae9c7e0e8134365c9ee676"
 dependencies = [
  "siphasher",
 ]
