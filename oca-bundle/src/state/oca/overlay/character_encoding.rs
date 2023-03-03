@@ -1,7 +1,5 @@
-use crate::state::{attribute::Attribute, encoding::Encoding, oca::overlay::{overlay, Overlay}};
-use serde::{Deserialize, Serialize};
-use std::any::Any;
-use std::collections::HashMap;
-use paste::paste;
+use crate::state::oca::overlay::overlay;
+use crate::state::encoding::Encoding;
+use serde::ser::SerializeStruct;
 
 overlay!(CharacterEncoding, attribute_character_encoding, encoding: Encoding);

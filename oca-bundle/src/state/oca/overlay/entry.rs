@@ -3,18 +3,33 @@ use crate::state::{
 };
 use serde::{Deserialize, Serialize};
 use std::any::Any;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use isolang::Language;
+
+pub trait Entries {
+    fn set_entry(&mut self, l: Language, entry: EntriesElement);
+}
+
+impl Entries for Attribute {
+    fn set_entry(&mut self, l: Language, entry: EntriesElement) {
+        if let Some(entries) = &mut self.entries {
+            entries.insert(l, entry);
+        } else {
+            let mut entries = HashMap::new();
+            entries.insert(l, entry);
+            self.entries = Some(entries);
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EntryOverlay {
     capture_base: String,
-    #[serde(rename = "digest")]
     said: String,
     #[serde(rename = "type")]
     overlay_type: String,
     language: Language,
-    pub attribute_entries: BTreeMap<String, EntriesElement>,
+    pub attribute_entries: HashMap<String, EntriesElement>,
 }
 
 impl Overlay for EntryOverlay {
@@ -44,22 +59,22 @@ impl Overlay for EntryOverlay {
     }
 
     fn add(&mut self, attribute: &Attribute) {
-        // if let Some(tr) = attribute.translations.get(&self.language) {
-        //     if let Some(entries) = &tr.entries {
-        //         self.attribute_entries
-        //             .insert(attribute.name.clone(), entries.clone());
-        //     }
-        // }
+        if let Some(entries) = &attribute.entries {
+            if let Some(tr) = entries.get(&self.language) {
+                self.attribute_entries
+                    .insert(attribute.name.clone(), tr.clone());
+            }
+        }
     }
 }
 impl EntryOverlay {
-    pub fn new(lang: Language) -> Box<EntryOverlay> {
-        Box::new(EntryOverlay {
+    pub fn new(lang: Language) -> EntryOverlay {
+        EntryOverlay {
             capture_base: String::new(),
             said: String::from("############################################"),
             overlay_type: "spec/overlays/entry/1.0".to_string(),
             language: lang,
-            attribute_entries: BTreeMap::new(),
-        })
+            attribute_entries: HashMap::new(),
+        }
     }
 }

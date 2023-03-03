@@ -4,15 +4,25 @@ use std::any::Any;
 use std::collections::HashMap;
 use isolang::Language;
 
-pub(crate) trait Information {
-    fn add_information(&mut self, l: Language, information: String) -> ();
+pub trait Information {
+    fn set_information(&mut self, l: Language, information: String);
 }
 
+impl Information for Attribute {
+    fn set_information(&mut self, l: Language, information: String) {
+        if let Some(informations) = &mut self.informations {
+            informations.insert(l, information);
+        } else {
+            let mut informations = HashMap::new();
+            informations.insert(l, information);
+            self.informations = Some(informations);
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InformationOverlay {
     capture_base: String,
-    #[serde(rename = "digest")]
     said: String,
     #[serde(rename = "type")]
     overlay_type: String,
@@ -56,13 +66,13 @@ impl Overlay for InformationOverlay {
     }
 }
 impl InformationOverlay {
-    pub fn new(lang: Language) -> Box<InformationOverlay> {
-        Box::new(InformationOverlay {
+    pub fn new(lang: Language) -> InformationOverlay {
+        InformationOverlay {
             capture_base: String::new(),
             said: String::from("############################################"),
             overlay_type: "spec/overlays/information/1.0".to_string(),
             language: lang,
             attribute_information: HashMap::new(),
-        })
+        }
     }
 }

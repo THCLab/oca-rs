@@ -102,28 +102,42 @@ pub trait Overlay: erased_serde::Serialize {
 
 macro_rules! overlay {
     ($name:ident, $field1:ident, $field2:ident: $field2_type:ty) => {
-        paste! {
+        paste::paste! {
             pub trait [<$name s>] {
                 fn [<set_ $field2>](&mut self, $field2: $field2_type);
             }
 
-            impl [<$name s>] for Attribute {
+            impl [<$name s>] for crate::state::attribute::Attribute {
                 fn [<set_ $field2>](&mut self, $field2: $field2_type) {
                     self.$field2 = Some($field2);
                 }
             }
 
-            #[derive(Serialize, Deserialize, Debug, Clone)]
+            impl serde::Serialize for [<$name Overlay>] {
+                fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                where
+                    S: serde::Serializer,
+                {
+                    let mut state = serializer.serialize_struct(stringify!([<$name Overlay>]), 4)?;
+                    state.serialize_field("said", &self.said)?;
+                    state.serialize_field("capture_base", &self.capture_base)?;
+                    state.serialize_field("type", &self.overlay_type)?;
+                    state.serialize_field(stringify!($field1), &self.$field1)?;
+                    state.end()
+                }
+            }
+
+            #[derive(serde::Deserialize, Debug, Clone)]
             pub struct [<$name Overlay>] {
                 capture_base: String,
                 said: String,
                 #[serde(rename = "type")]
                 overlay_type: String,
-                pub $field1: HashMap<String, $field2_type>
+                pub $field1: std::collections::HashMap<String, $field2_type>
             }
 
-            impl Overlay for [<$name Overlay>] {
-                fn as_any(&self) -> &dyn Any {
+            impl crate::state::oca::overlay::Overlay for [<$name Overlay>] {
+                fn as_any(&self) -> &dyn std::any::Any {
                     self
                 }
                 fn overlay_type(&self) -> &String {
@@ -145,7 +159,7 @@ macro_rules! overlay {
                     self.$field1.keys().collect::<Vec<&String>>()
                 }
 
-                fn add(&mut self, attribute: &Attribute) {
+                fn add(&mut self, attribute: &crate::state::attribute::Attribute) {
                     if attribute.$field2.is_some() {
                         self.$field1.insert(attribute.name.clone(), attribute.$field2.clone().unwrap());
                     }
@@ -164,7 +178,7 @@ macro_rules! overlay {
                         capture_base: String::new(),
                         said: String::from("############################################"),
                         overlay_type: format!("spec/overlays/{}/1.0", stringify!([<$name:snake:lower>])),
-                        $field1: HashMap::new(),
+                        $field1: std::collections::HashMap::new(),
 
                     }
                 }

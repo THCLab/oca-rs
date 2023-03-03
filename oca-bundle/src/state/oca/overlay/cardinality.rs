@@ -1,7 +1,4 @@
-use crate::state::{attribute::Attribute, oca::overlay::{overlay, Overlay}};
-use serde::{Deserialize, Serialize};
-use std::any::Any;
-use std::collections::HashMap;
-use paste::paste;
+use crate::state::oca::overlay::overlay;
+use serde::ser::SerializeStruct;
 
 overlay!(Cardinality, attribute_cardinality, cardinality: String);

@@ -92,18 +92,20 @@ impl OCABox {
         self.classification = Some(classification);
     }
 
-    pub fn generate_bundle(&mut self) -> Result<OCABundle, ()> {
-        let capture_base = self.generate_capture_base();
-        let overlays = self.generate_overlays();
+    pub fn generate_bundle(&mut self) -> OCABundle {
+        let mut capture_base = self.generate_capture_base();
+        let mut overlays = self.generate_overlays();
 
-        Ok(
-            OCABundle {
-                version: "OCAB10000023_".to_string(),
-                said: "######".to_string(),
-                capture_base,
-                overlays,
-            }
-        )
+        capture_base.sign();
+        let cb_said = capture_base.calculate_said();
+        overlays.iter_mut().for_each(|x| x.sign(&cb_said));
+
+        OCABundle {
+            version: "OCAB10000023_".to_string(),
+            said: "######".to_string(),
+            capture_base,
+            overlays,
+        }
     }
 
     fn generate_overlays(&mut self) -> Vec<DynOverlay> {
@@ -182,6 +184,84 @@ impl OCABox {
                     ov.add(attribute);
                 }
             }
+
+            if let Some(units) = &attribute.units {
+                for measurement_system in units.keys() {
+                    let mut unit_ov = overlays
+                        .iter_mut()
+                        .find(|x| if let Some(x_unit) = x.as_any().downcast_ref::<overlay::Unit>() {
+
+                            x_unit.measurement_system() == Some(measurement_system)
+                        } else {
+                            false
+                        });
+                    if unit_ov.is_none() {
+                        overlays.push(Box::new(overlay::Unit::new(measurement_system.clone())));
+                        unit_ov = overlays.last_mut();
+                    }
+                    if let Some(ov) = unit_ov {
+                        ov.add(attribute);
+                    }
+                }
+            }
+
+            if attribute.entry_codes.is_some() {
+                let mut entry_code_ov = overlays
+                    .iter_mut()
+                    .find(|x| x.overlay_type().contains("/entry_code/"));
+                if entry_code_ov.is_none() {
+                    overlays.push(Box::new(overlay::EntryCode::new()));
+                    entry_code_ov = overlays.last_mut();
+                }
+                if let Some(ov) = entry_code_ov {
+                    ov.add(attribute);
+                }
+            }
+
+            if let Some(entries) = &attribute.entries {
+                for lang in entries.keys() {
+                    let mut entry_ov = overlays
+                        .iter_mut()
+                        .find(|x| x.overlay_type().contains("/entry/") && x.language() == Some(lang));
+                    if entry_ov.is_none() {
+                        overlays.push(Box::new(overlay::Entry::new(*lang)));
+                        entry_ov = overlays.last_mut();
+                    }
+                    if let Some(ov) = entry_ov {
+                        ov.add(attribute);
+                    }
+                }
+            }
+
+            if let Some(labels) = &attribute.labels {
+                for lang in labels.keys() {
+                    let mut label_ov = overlays
+                        .iter_mut()
+                        .find(|x| x.overlay_type().contains("/label/") && x.language() == Some(lang));
+                    if label_ov.is_none() {
+                        overlays.push(Box::new(overlay::Label::new(*lang)));
+                        label_ov = overlays.last_mut();
+                    }
+                    if let Some(ov) = label_ov {
+                        ov.add(attribute);
+                    }
+                }
+            }
+
+            if let Some(information) = &attribute.informations {
+                for lang in information.keys() {
+                    let mut info_ov = overlays
+                        .iter_mut()
+                        .find(|x| x.overlay_type().contains("/information/") && x.language() == Some(lang));
+                    if info_ov.is_none() {
+                        overlays.push(Box::new(overlay::Information::new(*lang)));
+                        info_ov = overlays.last_mut();
+                    }
+                    if let Some(ov) = info_ov {
+                        ov.add(attribute);
+                    }
+                }
+            }
         }
 
         overlays
@@ -191,7 +271,7 @@ impl OCABox {
         for attribute in self.attributes.values() {
             capture_base.add(attribute);
         }
-        return capture_base;
+        capture_base
     }
     fn get_attribute_mut(&mut self, name: &str) -> Option<&mut Attribute> {
         self.attributes.get_mut(name)
@@ -384,28 +464,28 @@ impl Serialize for OCABundle {
         state.serialize_field("capture_base", &self.capture_base)?;
 
         let mut overlays_map: LinkedHashMap<Value, Value> = LinkedHashMap::new();
-        for overlay in &self.overlays {
-            let overlays_order = [
-                "character_encoding",
-                "format",
-                "meta",
-                "label",
-                "information",
-                "standard",
-                "conditional",
-                "conformance",
-                "entry_code",
-                "entry",
-                "cardinality",
-                "unit",
-                "attribute_mapping",
-                "entry_code_mapping",
-                "unit_mapping",
-                "subset",
-                "credential_layout",
-                "form_layout"
-            ];
-            for o_type in overlays_order {
+        let overlays_order = [
+            "character_encoding",
+            "format",
+            "meta",
+            "label",
+            "information",
+            "standard",
+            "conditional",
+            "conformance",
+            "entry_code",
+            "entry",
+            "cardinality",
+            "unit",
+            "attribute_mapping",
+            "entry_code_mapping",
+            "unit_mapping",
+            "subset",
+            "credential_layout",
+            "form_layout"
+        ];
+        for o_type in overlays_order {
+            for overlay in &self.overlays {
                 let o_type_tmp = format!("/{o_type}/");
                 if overlay.overlay_type().contains(&o_type_tmp) {
                     match overlay.language() {
