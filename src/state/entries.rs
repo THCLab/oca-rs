@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum EntriesElement {
     Sai(String),
-    Object(BTreeMap<String, String>),
+    Object(HashMap<String, String>),
 }
