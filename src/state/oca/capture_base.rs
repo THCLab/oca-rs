@@ -18,7 +18,7 @@ impl Serialize for CaptureBase {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct CaptureBase {
     #[serde(rename = "type")]
     pub schema_type: String,

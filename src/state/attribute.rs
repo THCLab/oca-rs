@@ -55,7 +55,7 @@ impl Attribute {
         }
     }
 
-    pub fn set_flagged(mut self) -> () {
+    pub fn set_flagged(&mut self) -> () {
         self.is_flagged = true;
     }
 

@@ -10,6 +10,50 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge.dart';
 import 'dart:ffi' as ffi;
 
 abstract class OcaDart {
+  Future<OcaBox> newStaticMethodOcaBox({dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kNewStaticMethodOcaBoxConstMeta;
+
+  Future<void> addMetaAttrMethodOcaBox(
+      {required OcaBox that,
+      required String name,
+      required String value,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kAddMetaAttrMethodOcaBoxConstMeta;
+
+  Future<void> addAttrMethodOcaBox(
+      {required OcaBox that, required OcaAttr attr, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kAddAttrMethodOcaBoxConstMeta;
+
+  Future<OcaBundle> generateBundleMethodOcaBox(
+      {required OcaBox that, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kGenerateBundleMethodOcaBoxConstMeta;
+
+  Future<OcaAttr> newStaticMethodOcaAttr(
+      {required String name,
+      required OcaAttrType attrType,
+      required OcaEncoding encoding,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kNewStaticMethodOcaAttrConstMeta;
+
+  Future<void> setFlaggedMethodOcaAttr({required OcaAttr that, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetFlaggedMethodOcaAttrConstMeta;
+
+  Future<void> setCardinalityMethodOcaAttr(
+      {required OcaAttr that, required String cardinality, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetCardinalityMethodOcaAttrConstMeta;
+
+  Future<void> setConformanceMethodOcaAttr(
+      {required OcaAttr that, required String conformance, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetConformanceMethodOcaAttrConstMeta;
+
   Future<String> toJsonMethodOcaBundle({required OcaBundle that, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kToJsonMethodOcaBundleConstMeta;
@@ -19,12 +63,7 @@ abstract class OcaDart {
 
   FlutterRustBridgeTaskConstMeta get kCaptureBaseMethodOcaBundleConstMeta;
 
-  Future<List<OcaOverlay>> overlaysMethodOcaBundle(
-      {required OcaBundle that, dynamic hint});
-
-  FlutterRustBridgeTaskConstMeta get kOverlaysMethodOcaBundleConstMeta;
-
-  Future<List<OcaCaptureBaseAttr>> attributesMethodOcaCaptureBase(
+  Future<List<List<String>>> attributesMethodOcaCaptureBase(
       {required OcaCaptureBase that, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kAttributesMethodOcaCaptureBaseConstMeta;
@@ -35,30 +74,169 @@ abstract class OcaDart {
   FlutterRustBridgeTaskConstMeta
       get kFlaggedAttributesMethodOcaCaptureBaseConstMeta;
 
-  DropFnType get dropOpaqueArcMutexOcaBundleRaw;
-  ShareFnType get shareOpaqueArcMutexOcaBundleRaw;
-  OpaqueTypeFinalizer get ArcMutexOcaBundleRawFinalizer;
+  DropFnType get dropOpaqueMutexOcaAttrRaw;
+  ShareFnType get shareOpaqueMutexOcaAttrRaw;
+  OpaqueTypeFinalizer get MutexOcaAttrRawFinalizer;
+
+  DropFnType get dropOpaqueMutexOcaBoxRaw;
+  ShareFnType get shareOpaqueMutexOcaBoxRaw;
+  OpaqueTypeFinalizer get MutexOcaBoxRawFinalizer;
+
+  DropFnType get dropOpaqueMutexOcaBundleRaw;
+  ShareFnType get shareOpaqueMutexOcaBundleRaw;
+  OpaqueTypeFinalizer get MutexOcaBundleRawFinalizer;
+
+  DropFnType get dropOpaqueMutexOcaCaptureBaseRaw;
+  ShareFnType get shareOpaqueMutexOcaCaptureBaseRaw;
+  OpaqueTypeFinalizer get MutexOcaCaptureBaseRawFinalizer;
 }
 
 @sealed
-class ArcMutexOcaBundleRaw extends FrbOpaque {
+class MutexOcaAttrRaw extends FrbOpaque {
   final OcaDart bridge;
-  ArcMutexOcaBundleRaw.fromRaw(int ptr, int size, this.bridge)
+  MutexOcaAttrRaw.fromRaw(int ptr, int size, this.bridge)
       : super.unsafe(ptr, size);
   @override
-  DropFnType get dropFn => bridge.dropOpaqueArcMutexOcaBundleRaw;
+  DropFnType get dropFn => bridge.dropOpaqueMutexOcaAttrRaw;
 
   @override
-  ShareFnType get shareFn => bridge.shareOpaqueArcMutexOcaBundleRaw;
+  ShareFnType get shareFn => bridge.shareOpaqueMutexOcaAttrRaw;
+
+  @override
+  OpaqueTypeFinalizer get staticFinalizer => bridge.MutexOcaAttrRawFinalizer;
+}
+
+@sealed
+class MutexOcaBoxRaw extends FrbOpaque {
+  final OcaDart bridge;
+  MutexOcaBoxRaw.fromRaw(int ptr, int size, this.bridge)
+      : super.unsafe(ptr, size);
+  @override
+  DropFnType get dropFn => bridge.dropOpaqueMutexOcaBoxRaw;
+
+  @override
+  ShareFnType get shareFn => bridge.shareOpaqueMutexOcaBoxRaw;
+
+  @override
+  OpaqueTypeFinalizer get staticFinalizer => bridge.MutexOcaBoxRawFinalizer;
+}
+
+@sealed
+class MutexOcaBundleRaw extends FrbOpaque {
+  final OcaDart bridge;
+  MutexOcaBundleRaw.fromRaw(int ptr, int size, this.bridge)
+      : super.unsafe(ptr, size);
+  @override
+  DropFnType get dropFn => bridge.dropOpaqueMutexOcaBundleRaw;
+
+  @override
+  ShareFnType get shareFn => bridge.shareOpaqueMutexOcaBundleRaw;
+
+  @override
+  OpaqueTypeFinalizer get staticFinalizer => bridge.MutexOcaBundleRawFinalizer;
+}
+
+@sealed
+class MutexOcaCaptureBaseRaw extends FrbOpaque {
+  final OcaDart bridge;
+  MutexOcaCaptureBaseRaw.fromRaw(int ptr, int size, this.bridge)
+      : super.unsafe(ptr, size);
+  @override
+  DropFnType get dropFn => bridge.dropOpaqueMutexOcaCaptureBaseRaw;
+
+  @override
+  ShareFnType get shareFn => bridge.shareOpaqueMutexOcaCaptureBaseRaw;
 
   @override
   OpaqueTypeFinalizer get staticFinalizer =>
-      bridge.ArcMutexOcaBundleRawFinalizer;
+      bridge.MutexOcaCaptureBaseRawFinalizer;
+}
+
+class OcaAttr {
+  final OcaDart bridge;
+  final MutexOcaAttrRaw field0;
+
+  OcaAttr({
+    required this.bridge,
+    required this.field0,
+  });
+
+  static Future<OcaAttr> newOcaAttr(
+          {required OcaDart bridge,
+          required String name,
+          required OcaAttrType attrType,
+          required OcaEncoding encoding,
+          dynamic hint}) =>
+      bridge.newStaticMethodOcaAttr(
+          name: name, attrType: attrType, encoding: encoding, hint: hint);
+
+  Future<void> setFlagged({dynamic hint}) => bridge.setFlaggedMethodOcaAttr(
+        that: this,
+      );
+
+  Future<void> setCardinality({required String cardinality, dynamic hint}) =>
+      bridge.setCardinalityMethodOcaAttr(
+        that: this,
+        cardinality: cardinality,
+      );
+
+  Future<void> setConformance({required String conformance, dynamic hint}) =>
+      bridge.setConformanceMethodOcaAttr(
+        that: this,
+        conformance: conformance,
+      );
+}
+
+enum OcaAttrType {
+  Boolean,
+  ArrayBoolean,
+  Binary,
+  ArrayBinary,
+  Text,
+  ArrayText,
+  Numeric,
+  ArrayNumeric,
+  DateTime,
+  ArrayDateTime,
+  Reference,
+  ArrayReference,
+}
+
+class OcaBox {
+  final OcaDart bridge;
+  final MutexOcaBoxRaw field0;
+
+  OcaBox({
+    required this.bridge,
+    required this.field0,
+  });
+
+  static Future<OcaBox> newOcaBox({required OcaDart bridge, dynamic hint}) =>
+      bridge.newStaticMethodOcaBox(hint: hint);
+
+  Future<void> addMetaAttr(
+          {required String name, required String value, dynamic hint}) =>
+      bridge.addMetaAttrMethodOcaBox(
+        that: this,
+        name: name,
+        value: value,
+      );
+
+  Future<void> addAttr({required OcaAttr attr, dynamic hint}) =>
+      bridge.addAttrMethodOcaBox(
+        that: this,
+        attr: attr,
+      );
+
+  Future<OcaBundle> generateBundle({dynamic hint}) =>
+      bridge.generateBundleMethodOcaBox(
+        that: this,
+      );
 }
 
 class OcaBundle {
   final OcaDart bridge;
-  final ArcMutexOcaBundleRaw field0;
+  final MutexOcaBundleRaw field0;
 
   OcaBundle({
     required this.bridge,
@@ -73,23 +251,18 @@ class OcaBundle {
       bridge.captureBaseMethodOcaBundle(
         that: this,
       );
-
-  Future<List<OcaOverlay>> overlays({dynamic hint}) =>
-      bridge.overlaysMethodOcaBundle(
-        that: this,
-      );
 }
 
 class OcaCaptureBase {
   final OcaDart bridge;
-  final ArcMutexOcaBundleRaw field0;
+  final MutexOcaCaptureBaseRaw field0;
 
   OcaCaptureBase({
     required this.bridge,
     required this.field0,
   });
 
-  Future<List<OcaCaptureBaseAttr>> attributes({dynamic hint}) =>
+  Future<List<List<String>>> attributes({dynamic hint}) =>
       bridge.attributesMethodOcaCaptureBase(
         that: this,
       );
@@ -100,22 +273,10 @@ class OcaCaptureBase {
       );
 }
 
-class OcaCaptureBaseAttr {
-  final String name;
-  final String value;
-
-  OcaCaptureBaseAttr({
-    required this.name,
-    required this.value,
-  });
-}
-
-class OcaOverlay {
-  final String said;
-
-  OcaOverlay({
-    required this.said,
-  });
+enum OcaEncoding {
+  Base64,
+  Utf8,
+  Iso8859_1,
 }
 
 class OcaDartImpl implements OcaDart {
@@ -127,6 +288,168 @@ class OcaDartImpl implements OcaDart {
   factory OcaDartImpl.wasm(FutureOr<WasmModule> module) =>
       OcaDartImpl(module as ExternalLibrary);
   OcaDartImpl.raw(this._platform);
+  Future<OcaBox> newStaticMethodOcaBox({dynamic hint}) {
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_new__static_method__OcaBox(port_),
+      parseSuccessData: (d) => _wire2api_oca_box(d),
+      constMeta: kNewStaticMethodOcaBoxConstMeta,
+      argValues: [],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kNewStaticMethodOcaBoxConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "new__static_method__OcaBox",
+        argNames: [],
+      );
+
+  Future<void> addMetaAttrMethodOcaBox(
+      {required OcaBox that,
+      required String name,
+      required String value,
+      dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_box(that);
+    var arg1 = _platform.api2wire_String(name);
+    var arg2 = _platform.api2wire_String(value);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_add_meta_attr__method__OcaBox(port_, arg0, arg1, arg2),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kAddMetaAttrMethodOcaBoxConstMeta,
+      argValues: [that, name, value],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kAddMetaAttrMethodOcaBoxConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "add_meta_attr__method__OcaBox",
+        argNames: ["that", "name", "value"],
+      );
+
+  Future<void> addAttrMethodOcaBox(
+      {required OcaBox that, required OcaAttr attr, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_box(that);
+    var arg1 = _platform.api2wire_box_autoadd_oca_attr(attr);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_add_attr__method__OcaBox(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kAddAttrMethodOcaBoxConstMeta,
+      argValues: [that, attr],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kAddAttrMethodOcaBoxConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "add_attr__method__OcaBox",
+        argNames: ["that", "attr"],
+      );
+
+  Future<OcaBundle> generateBundleMethodOcaBox(
+      {required OcaBox that, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_box(that);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_generate_bundle__method__OcaBox(port_, arg0),
+      parseSuccessData: (d) => _wire2api_oca_bundle(d),
+      constMeta: kGenerateBundleMethodOcaBoxConstMeta,
+      argValues: [that],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kGenerateBundleMethodOcaBoxConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "generate_bundle__method__OcaBox",
+        argNames: ["that"],
+      );
+
+  Future<OcaAttr> newStaticMethodOcaAttr(
+      {required String name,
+      required OcaAttrType attrType,
+      required OcaEncoding encoding,
+      dynamic hint}) {
+    var arg0 = _platform.api2wire_String(name);
+    var arg1 = api2wire_oca_attr_type(attrType);
+    var arg2 = api2wire_oca_encoding(encoding);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_new__static_method__OcaAttr(port_, arg0, arg1, arg2),
+      parseSuccessData: (d) => _wire2api_oca_attr(d),
+      constMeta: kNewStaticMethodOcaAttrConstMeta,
+      argValues: [name, attrType, encoding],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kNewStaticMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "new__static_method__OcaAttr",
+        argNames: ["name", "attrType", "encoding"],
+      );
+
+  Future<void> setFlaggedMethodOcaAttr({required OcaAttr that, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_set_flagged__method__OcaAttr(port_, arg0),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetFlaggedMethodOcaAttrConstMeta,
+      argValues: [that],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetFlaggedMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_flagged__method__OcaAttr",
+        argNames: ["that"],
+      );
+
+  Future<void> setCardinalityMethodOcaAttr(
+      {required OcaAttr that, required String cardinality, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    var arg1 = _platform.api2wire_String(cardinality);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_set_cardinality__method__OcaAttr(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetCardinalityMethodOcaAttrConstMeta,
+      argValues: [that, cardinality],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetCardinalityMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_cardinality__method__OcaAttr",
+        argNames: ["that", "cardinality"],
+      );
+
+  Future<void> setConformanceMethodOcaAttr(
+      {required OcaAttr that, required String conformance, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    var arg1 = _platform.api2wire_String(conformance);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_set_conformance__method__OcaAttr(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetConformanceMethodOcaAttrConstMeta,
+      argValues: [that, conformance],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetConformanceMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_conformance__method__OcaAttr",
+        argNames: ["that", "conformance"],
+      );
+
   Future<String> toJsonMethodOcaBundle(
       {required OcaBundle that, dynamic hint}) {
     var arg0 = _platform.api2wire_box_autoadd_oca_bundle(that);
@@ -165,32 +488,13 @@ class OcaDartImpl implements OcaDart {
         argNames: ["that"],
       );
 
-  Future<List<OcaOverlay>> overlaysMethodOcaBundle(
-      {required OcaBundle that, dynamic hint}) {
-    var arg0 = _platform.api2wire_box_autoadd_oca_bundle(that);
-    return _platform.executeNormal(FlutterRustBridgeTask(
-      callFfi: (port_) =>
-          _platform.inner.wire_overlays__method__OcaBundle(port_, arg0),
-      parseSuccessData: _wire2api_list_oca_overlay,
-      constMeta: kOverlaysMethodOcaBundleConstMeta,
-      argValues: [that],
-      hint: hint,
-    ));
-  }
-
-  FlutterRustBridgeTaskConstMeta get kOverlaysMethodOcaBundleConstMeta =>
-      const FlutterRustBridgeTaskConstMeta(
-        debugName: "overlays__method__OcaBundle",
-        argNames: ["that"],
-      );
-
-  Future<List<OcaCaptureBaseAttr>> attributesMethodOcaCaptureBase(
+  Future<List<List<String>>> attributesMethodOcaCaptureBase(
       {required OcaCaptureBase that, dynamic hint}) {
     var arg0 = _platform.api2wire_box_autoadd_oca_capture_base(that);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) =>
           _platform.inner.wire_attributes__method__OcaCaptureBase(port_, arg0),
-      parseSuccessData: _wire2api_list_oca_capture_base_attr,
+      parseSuccessData: _wire2api_list_StringList,
       constMeta: kAttributesMethodOcaCaptureBaseConstMeta,
       argValues: [that],
       hint: hint,
@@ -223,20 +527,53 @@ class OcaDartImpl implements OcaDart {
             argNames: ["that"],
           );
 
-  DropFnType get dropOpaqueArcMutexOcaBundleRaw =>
-      _platform.inner.drop_opaque_ArcMutexOcaBundleRaw;
-  ShareFnType get shareOpaqueArcMutexOcaBundleRaw =>
-      _platform.inner.share_opaque_ArcMutexOcaBundleRaw;
-  OpaqueTypeFinalizer get ArcMutexOcaBundleRawFinalizer =>
-      _platform.ArcMutexOcaBundleRawFinalizer;
+  DropFnType get dropOpaqueMutexOcaAttrRaw =>
+      _platform.inner.drop_opaque_MutexOcaAttrRaw;
+  ShareFnType get shareOpaqueMutexOcaAttrRaw =>
+      _platform.inner.share_opaque_MutexOcaAttrRaw;
+  OpaqueTypeFinalizer get MutexOcaAttrRawFinalizer =>
+      _platform.MutexOcaAttrRawFinalizer;
+
+  DropFnType get dropOpaqueMutexOcaBoxRaw =>
+      _platform.inner.drop_opaque_MutexOcaBoxRaw;
+  ShareFnType get shareOpaqueMutexOcaBoxRaw =>
+      _platform.inner.share_opaque_MutexOcaBoxRaw;
+  OpaqueTypeFinalizer get MutexOcaBoxRawFinalizer =>
+      _platform.MutexOcaBoxRawFinalizer;
+
+  DropFnType get dropOpaqueMutexOcaBundleRaw =>
+      _platform.inner.drop_opaque_MutexOcaBundleRaw;
+  ShareFnType get shareOpaqueMutexOcaBundleRaw =>
+      _platform.inner.share_opaque_MutexOcaBundleRaw;
+  OpaqueTypeFinalizer get MutexOcaBundleRawFinalizer =>
+      _platform.MutexOcaBundleRawFinalizer;
+
+  DropFnType get dropOpaqueMutexOcaCaptureBaseRaw =>
+      _platform.inner.drop_opaque_MutexOcaCaptureBaseRaw;
+  ShareFnType get shareOpaqueMutexOcaCaptureBaseRaw =>
+      _platform.inner.share_opaque_MutexOcaCaptureBaseRaw;
+  OpaqueTypeFinalizer get MutexOcaCaptureBaseRawFinalizer =>
+      _platform.MutexOcaCaptureBaseRawFinalizer;
 
   void dispose() {
     _platform.dispose();
   }
 // Section: wire2api
 
-  ArcMutexOcaBundleRaw _wire2api_ArcMutexOcaBundleRaw(dynamic raw) {
-    return ArcMutexOcaBundleRaw.fromRaw(raw[0], raw[1], this);
+  MutexOcaAttrRaw _wire2api_MutexOcaAttrRaw(dynamic raw) {
+    return MutexOcaAttrRaw.fromRaw(raw[0], raw[1], this);
+  }
+
+  MutexOcaBoxRaw _wire2api_MutexOcaBoxRaw(dynamic raw) {
+    return MutexOcaBoxRaw.fromRaw(raw[0], raw[1], this);
+  }
+
+  MutexOcaBundleRaw _wire2api_MutexOcaBundleRaw(dynamic raw) {
+    return MutexOcaBundleRaw.fromRaw(raw[0], raw[1], this);
+  }
+
+  MutexOcaCaptureBaseRaw _wire2api_MutexOcaCaptureBaseRaw(dynamic raw) {
+    return MutexOcaCaptureBaseRaw.fromRaw(raw[0], raw[1], this);
   }
 
   String _wire2api_String(dynamic raw) {
@@ -247,12 +584,38 @@ class OcaDartImpl implements OcaDart {
     return (raw as List<dynamic>).cast<String>();
   }
 
-  List<OcaCaptureBaseAttr> _wire2api_list_oca_capture_base_attr(dynamic raw) {
-    return (raw as List<dynamic>).map(_wire2api_oca_capture_base_attr).toList();
+  List<List<String>> _wire2api_list_StringList(dynamic raw) {
+    return (raw as List<dynamic>).map(_wire2api_StringList).toList();
   }
 
-  List<OcaOverlay> _wire2api_list_oca_overlay(dynamic raw) {
-    return (raw as List<dynamic>).map(_wire2api_oca_overlay).toList();
+  OcaAttr _wire2api_oca_attr(dynamic raw) {
+    final arr = raw as List<dynamic>;
+    if (arr.length != 1)
+      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
+    return OcaAttr(
+      bridge: this,
+      field0: _wire2api_MutexOcaAttrRaw(arr[0]),
+    );
+  }
+
+  OcaBox _wire2api_oca_box(dynamic raw) {
+    final arr = raw as List<dynamic>;
+    if (arr.length != 1)
+      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
+    return OcaBox(
+      bridge: this,
+      field0: _wire2api_MutexOcaBoxRaw(arr[0]),
+    );
+  }
+
+  OcaBundle _wire2api_oca_bundle(dynamic raw) {
+    final arr = raw as List<dynamic>;
+    if (arr.length != 1)
+      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
+    return OcaBundle(
+      bridge: this,
+      field0: _wire2api_MutexOcaBundleRaw(arr[0]),
+    );
   }
 
   OcaCaptureBase _wire2api_oca_capture_base(dynamic raw) {
@@ -261,26 +624,7 @@ class OcaDartImpl implements OcaDart {
       throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
     return OcaCaptureBase(
       bridge: this,
-      field0: _wire2api_ArcMutexOcaBundleRaw(arr[0]),
-    );
-  }
-
-  OcaCaptureBaseAttr _wire2api_oca_capture_base_attr(dynamic raw) {
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return OcaCaptureBaseAttr(
-      name: _wire2api_String(arr[0]),
-      value: _wire2api_String(arr[1]),
-    );
-  }
-
-  OcaOverlay _wire2api_oca_overlay(dynamic raw) {
-    final arr = raw as List<dynamic>;
-    if (arr.length != 1)
-      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
-    return OcaOverlay(
-      said: _wire2api_String(arr[0]),
+      field0: _wire2api_MutexOcaCaptureBaseRaw(arr[0]),
     );
   }
 
@@ -291,9 +635,33 @@ class OcaDartImpl implements OcaDart {
   Uint8List _wire2api_uint_8_list(dynamic raw) {
     return raw as Uint8List;
   }
+
+  void _wire2api_unit(dynamic raw) {
+    return;
+  }
 }
 
 // Section: api2wire
+
+@protected
+int api2wire_i32(int raw) {
+  return raw;
+}
+
+@protected
+int api2wire_oca_attr_type(OcaAttrType raw) {
+  return api2wire_i32(raw.index);
+}
+
+@protected
+int api2wire_oca_encoding(OcaEncoding raw) {
+  return api2wire_i32(raw.index);
+}
+
+@protected
+int api2wire_u8(int raw) {
+  return raw;
+}
 
 // Section: finalizer
 
@@ -303,10 +671,50 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
 // Section: api2wire
 
   @protected
-  wire_ArcMutexOcaBundleRaw api2wire_ArcMutexOcaBundleRaw(
-      ArcMutexOcaBundleRaw raw) {
-    final ptr = inner.new_ArcMutexOcaBundleRaw();
-    _api_fill_to_wire_ArcMutexOcaBundleRaw(raw, ptr);
+  wire_MutexOcaAttrRaw api2wire_MutexOcaAttrRaw(MutexOcaAttrRaw raw) {
+    final ptr = inner.new_MutexOcaAttrRaw();
+    _api_fill_to_wire_MutexOcaAttrRaw(raw, ptr);
+    return ptr;
+  }
+
+  @protected
+  wire_MutexOcaBoxRaw api2wire_MutexOcaBoxRaw(MutexOcaBoxRaw raw) {
+    final ptr = inner.new_MutexOcaBoxRaw();
+    _api_fill_to_wire_MutexOcaBoxRaw(raw, ptr);
+    return ptr;
+  }
+
+  @protected
+  wire_MutexOcaBundleRaw api2wire_MutexOcaBundleRaw(MutexOcaBundleRaw raw) {
+    final ptr = inner.new_MutexOcaBundleRaw();
+    _api_fill_to_wire_MutexOcaBundleRaw(raw, ptr);
+    return ptr;
+  }
+
+  @protected
+  wire_MutexOcaCaptureBaseRaw api2wire_MutexOcaCaptureBaseRaw(
+      MutexOcaCaptureBaseRaw raw) {
+    final ptr = inner.new_MutexOcaCaptureBaseRaw();
+    _api_fill_to_wire_MutexOcaCaptureBaseRaw(raw, ptr);
+    return ptr;
+  }
+
+  @protected
+  ffi.Pointer<wire_uint_8_list> api2wire_String(String raw) {
+    return api2wire_uint_8_list(utf8.encoder.convert(raw));
+  }
+
+  @protected
+  ffi.Pointer<wire_OcaAttr> api2wire_box_autoadd_oca_attr(OcaAttr raw) {
+    final ptr = inner.new_box_autoadd_oca_attr_0();
+    _api_fill_to_wire_oca_attr(raw, ptr.ref);
+    return ptr;
+  }
+
+  @protected
+  ffi.Pointer<wire_OcaBox> api2wire_box_autoadd_oca_box(OcaBox raw) {
+    final ptr = inner.new_box_autoadd_oca_box_0();
+    _api_fill_to_wire_oca_box(raw, ptr.ref);
     return ptr;
   }
 
@@ -325,17 +733,58 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
     return ptr;
   }
 
+  @protected
+  ffi.Pointer<wire_uint_8_list> api2wire_uint_8_list(Uint8List raw) {
+    final ans = inner.new_uint_8_list_0(raw.length);
+    ans.ref.ptr.asTypedList(raw.length).setAll(0, raw);
+    return ans;
+  }
 // Section: finalizer
 
-  late final OpaqueTypeFinalizer _ArcMutexOcaBundleRawFinalizer =
-      OpaqueTypeFinalizer(inner._drop_opaque_ArcMutexOcaBundleRawPtr);
-  OpaqueTypeFinalizer get ArcMutexOcaBundleRawFinalizer =>
-      _ArcMutexOcaBundleRawFinalizer;
+  late final OpaqueTypeFinalizer _MutexOcaAttrRawFinalizer =
+      OpaqueTypeFinalizer(inner._drop_opaque_MutexOcaAttrRawPtr);
+  OpaqueTypeFinalizer get MutexOcaAttrRawFinalizer => _MutexOcaAttrRawFinalizer;
+  late final OpaqueTypeFinalizer _MutexOcaBoxRawFinalizer =
+      OpaqueTypeFinalizer(inner._drop_opaque_MutexOcaBoxRawPtr);
+  OpaqueTypeFinalizer get MutexOcaBoxRawFinalizer => _MutexOcaBoxRawFinalizer;
+  late final OpaqueTypeFinalizer _MutexOcaBundleRawFinalizer =
+      OpaqueTypeFinalizer(inner._drop_opaque_MutexOcaBundleRawPtr);
+  OpaqueTypeFinalizer get MutexOcaBundleRawFinalizer =>
+      _MutexOcaBundleRawFinalizer;
+  late final OpaqueTypeFinalizer _MutexOcaCaptureBaseRawFinalizer =
+      OpaqueTypeFinalizer(inner._drop_opaque_MutexOcaCaptureBaseRawPtr);
+  OpaqueTypeFinalizer get MutexOcaCaptureBaseRawFinalizer =>
+      _MutexOcaCaptureBaseRawFinalizer;
 // Section: api_fill_to_wire
 
-  void _api_fill_to_wire_ArcMutexOcaBundleRaw(
-      ArcMutexOcaBundleRaw apiObj, wire_ArcMutexOcaBundleRaw wireObj) {
+  void _api_fill_to_wire_MutexOcaAttrRaw(
+      MutexOcaAttrRaw apiObj, wire_MutexOcaAttrRaw wireObj) {
     wireObj.ptr = apiObj.shareOrMove();
+  }
+
+  void _api_fill_to_wire_MutexOcaBoxRaw(
+      MutexOcaBoxRaw apiObj, wire_MutexOcaBoxRaw wireObj) {
+    wireObj.ptr = apiObj.shareOrMove();
+  }
+
+  void _api_fill_to_wire_MutexOcaBundleRaw(
+      MutexOcaBundleRaw apiObj, wire_MutexOcaBundleRaw wireObj) {
+    wireObj.ptr = apiObj.shareOrMove();
+  }
+
+  void _api_fill_to_wire_MutexOcaCaptureBaseRaw(
+      MutexOcaCaptureBaseRaw apiObj, wire_MutexOcaCaptureBaseRaw wireObj) {
+    wireObj.ptr = apiObj.shareOrMove();
+  }
+
+  void _api_fill_to_wire_box_autoadd_oca_attr(
+      OcaAttr apiObj, ffi.Pointer<wire_OcaAttr> wireObj) {
+    _api_fill_to_wire_oca_attr(apiObj, wireObj.ref);
+  }
+
+  void _api_fill_to_wire_box_autoadd_oca_box(
+      OcaBox apiObj, ffi.Pointer<wire_OcaBox> wireObj) {
+    _api_fill_to_wire_oca_box(apiObj, wireObj.ref);
   }
 
   void _api_fill_to_wire_box_autoadd_oca_bundle(
@@ -348,13 +797,21 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
     _api_fill_to_wire_oca_capture_base(apiObj, wireObj.ref);
   }
 
+  void _api_fill_to_wire_oca_attr(OcaAttr apiObj, wire_OcaAttr wireObj) {
+    wireObj.field0 = api2wire_MutexOcaAttrRaw(apiObj.field0);
+  }
+
+  void _api_fill_to_wire_oca_box(OcaBox apiObj, wire_OcaBox wireObj) {
+    wireObj.field0 = api2wire_MutexOcaBoxRaw(apiObj.field0);
+  }
+
   void _api_fill_to_wire_oca_bundle(OcaBundle apiObj, wire_OcaBundle wireObj) {
-    wireObj.field0 = api2wire_ArcMutexOcaBundleRaw(apiObj.field0);
+    wireObj.field0 = api2wire_MutexOcaBundleRaw(apiObj.field0);
   }
 
   void _api_fill_to_wire_oca_capture_base(
       OcaCaptureBase apiObj, wire_OcaCaptureBase wireObj) {
-    wireObj.field0 = api2wire_ArcMutexOcaBundleRaw(apiObj.field0);
+    wireObj.field0 = api2wire_MutexOcaCaptureBaseRaw(apiObj.field0);
   }
 }
 
@@ -453,6 +910,170 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
   late final _init_frb_dart_api_dl = _init_frb_dart_api_dlPtr
       .asFunction<int Function(ffi.Pointer<ffi.Void>)>();
 
+  void wire_new__static_method__OcaBox(
+    int port_,
+  ) {
+    return _wire_new__static_method__OcaBox(
+      port_,
+    );
+  }
+
+  late final _wire_new__static_method__OcaBoxPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_new__static_method__OcaBox');
+  late final _wire_new__static_method__OcaBox =
+      _wire_new__static_method__OcaBoxPtr.asFunction<void Function(int)>();
+
+  void wire_add_meta_attr__method__OcaBox(
+    int port_,
+    ffi.Pointer<wire_OcaBox> that,
+    ffi.Pointer<wire_uint_8_list> name,
+    ffi.Pointer<wire_uint_8_list> value,
+  ) {
+    return _wire_add_meta_attr__method__OcaBox(
+      port_,
+      that,
+      name,
+      value,
+    );
+  }
+
+  late final _wire_add_meta_attr__method__OcaBoxPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(
+                  ffi.Int64,
+                  ffi.Pointer<wire_OcaBox>,
+                  ffi.Pointer<wire_uint_8_list>,
+                  ffi.Pointer<wire_uint_8_list>)>>(
+      'wire_add_meta_attr__method__OcaBox');
+  late final _wire_add_meta_attr__method__OcaBox =
+      _wire_add_meta_attr__method__OcaBoxPtr.asFunction<
+          void Function(int, ffi.Pointer<wire_OcaBox>,
+              ffi.Pointer<wire_uint_8_list>, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_add_attr__method__OcaBox(
+    int port_,
+    ffi.Pointer<wire_OcaBox> that,
+    ffi.Pointer<wire_OcaAttr> attr,
+  ) {
+    return _wire_add_attr__method__OcaBox(
+      port_,
+      that,
+      attr,
+    );
+  }
+
+  late final _wire_add_attr__method__OcaBoxPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaBox>,
+              ffi.Pointer<wire_OcaAttr>)>>('wire_add_attr__method__OcaBox');
+  late final _wire_add_attr__method__OcaBox =
+      _wire_add_attr__method__OcaBoxPtr.asFunction<
+          void Function(
+              int, ffi.Pointer<wire_OcaBox>, ffi.Pointer<wire_OcaAttr>)>();
+
+  void wire_generate_bundle__method__OcaBox(
+    int port_,
+    ffi.Pointer<wire_OcaBox> that,
+  ) {
+    return _wire_generate_bundle__method__OcaBox(
+      port_,
+      that,
+    );
+  }
+
+  late final _wire_generate_bundle__method__OcaBoxPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaBox>)>>(
+      'wire_generate_bundle__method__OcaBox');
+  late final _wire_generate_bundle__method__OcaBox =
+      _wire_generate_bundle__method__OcaBoxPtr
+          .asFunction<void Function(int, ffi.Pointer<wire_OcaBox>)>();
+
+  void wire_new__static_method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_uint_8_list> name,
+    int attr_type,
+    int encoding,
+  ) {
+    return _wire_new__static_method__OcaAttr(
+      port_,
+      name,
+      attr_type,
+      encoding,
+    );
+  }
+
+  late final _wire_new__static_method__OcaAttrPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_uint_8_list>, ffi.Int32,
+              ffi.Int32)>>('wire_new__static_method__OcaAttr');
+  late final _wire_new__static_method__OcaAttr =
+      _wire_new__static_method__OcaAttrPtr.asFunction<
+          void Function(int, ffi.Pointer<wire_uint_8_list>, int, int)>();
+
+  void wire_set_flagged__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+  ) {
+    return _wire_set_flagged__method__OcaAttr(
+      port_,
+      that,
+    );
+  }
+
+  late final _wire_set_flagged__method__OcaAttrPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64,
+              ffi.Pointer<wire_OcaAttr>)>>('wire_set_flagged__method__OcaAttr');
+  late final _wire_set_flagged__method__OcaAttr =
+      _wire_set_flagged__method__OcaAttrPtr
+          .asFunction<void Function(int, ffi.Pointer<wire_OcaAttr>)>();
+
+  void wire_set_cardinality__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+    ffi.Pointer<wire_uint_8_list> cardinality,
+  ) {
+    return _wire_set_cardinality__method__OcaAttr(
+      port_,
+      that,
+      cardinality,
+    );
+  }
+
+  late final _wire_set_cardinality__method__OcaAttrPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaAttr>,
+                  ffi.Pointer<wire_uint_8_list>)>>(
+      'wire_set_cardinality__method__OcaAttr');
+  late final _wire_set_cardinality__method__OcaAttr =
+      _wire_set_cardinality__method__OcaAttrPtr.asFunction<
+          void Function(
+              int, ffi.Pointer<wire_OcaAttr>, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_set_conformance__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+    ffi.Pointer<wire_uint_8_list> conformance,
+  ) {
+    return _wire_set_conformance__method__OcaAttr(
+      port_,
+      that,
+      conformance,
+    );
+  }
+
+  late final _wire_set_conformance__method__OcaAttrPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaAttr>,
+                  ffi.Pointer<wire_uint_8_list>)>>(
+      'wire_set_conformance__method__OcaAttr');
+  late final _wire_set_conformance__method__OcaAttr =
+      _wire_set_conformance__method__OcaAttrPtr.asFunction<
+          void Function(
+              int, ffi.Pointer<wire_OcaAttr>, ffi.Pointer<wire_uint_8_list>)>();
+
   void wire_to_json__method__OcaBundle(
     int port_,
     ffi.Pointer<wire_OcaBundle> that,
@@ -487,24 +1108,6 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
       'wire_capture_base__method__OcaBundle');
   late final _wire_capture_base__method__OcaBundle =
       _wire_capture_base__method__OcaBundlePtr
-          .asFunction<void Function(int, ffi.Pointer<wire_OcaBundle>)>();
-
-  void wire_overlays__method__OcaBundle(
-    int port_,
-    ffi.Pointer<wire_OcaBundle> that,
-  ) {
-    return _wire_overlays__method__OcaBundle(
-      port_,
-      that,
-    );
-  }
-
-  late final _wire_overlays__method__OcaBundlePtr = _lookup<
-          ffi.NativeFunction<
-              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaBundle>)>>(
-      'wire_overlays__method__OcaBundle');
-  late final _wire_overlays__method__OcaBundle =
-      _wire_overlays__method__OcaBundlePtr
           .asFunction<void Function(int, ffi.Pointer<wire_OcaBundle>)>();
 
   void wire_attributes__method__OcaCaptureBase(
@@ -543,15 +1146,65 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
       _wire_flagged_attributes__method__OcaCaptureBasePtr
           .asFunction<void Function(int, ffi.Pointer<wire_OcaCaptureBase>)>();
 
-  wire_ArcMutexOcaBundleRaw new_ArcMutexOcaBundleRaw() {
-    return _new_ArcMutexOcaBundleRaw();
+  wire_MutexOcaAttrRaw new_MutexOcaAttrRaw() {
+    return _new_MutexOcaAttrRaw();
   }
 
-  late final _new_ArcMutexOcaBundleRawPtr =
-      _lookup<ffi.NativeFunction<wire_ArcMutexOcaBundleRaw Function()>>(
-          'new_ArcMutexOcaBundleRaw');
-  late final _new_ArcMutexOcaBundleRaw = _new_ArcMutexOcaBundleRawPtr
-      .asFunction<wire_ArcMutexOcaBundleRaw Function()>();
+  late final _new_MutexOcaAttrRawPtr =
+      _lookup<ffi.NativeFunction<wire_MutexOcaAttrRaw Function()>>(
+          'new_MutexOcaAttrRaw');
+  late final _new_MutexOcaAttrRaw =
+      _new_MutexOcaAttrRawPtr.asFunction<wire_MutexOcaAttrRaw Function()>();
+
+  wire_MutexOcaBoxRaw new_MutexOcaBoxRaw() {
+    return _new_MutexOcaBoxRaw();
+  }
+
+  late final _new_MutexOcaBoxRawPtr =
+      _lookup<ffi.NativeFunction<wire_MutexOcaBoxRaw Function()>>(
+          'new_MutexOcaBoxRaw');
+  late final _new_MutexOcaBoxRaw =
+      _new_MutexOcaBoxRawPtr.asFunction<wire_MutexOcaBoxRaw Function()>();
+
+  wire_MutexOcaBundleRaw new_MutexOcaBundleRaw() {
+    return _new_MutexOcaBundleRaw();
+  }
+
+  late final _new_MutexOcaBundleRawPtr =
+      _lookup<ffi.NativeFunction<wire_MutexOcaBundleRaw Function()>>(
+          'new_MutexOcaBundleRaw');
+  late final _new_MutexOcaBundleRaw =
+      _new_MutexOcaBundleRawPtr.asFunction<wire_MutexOcaBundleRaw Function()>();
+
+  wire_MutexOcaCaptureBaseRaw new_MutexOcaCaptureBaseRaw() {
+    return _new_MutexOcaCaptureBaseRaw();
+  }
+
+  late final _new_MutexOcaCaptureBaseRawPtr =
+      _lookup<ffi.NativeFunction<wire_MutexOcaCaptureBaseRaw Function()>>(
+          'new_MutexOcaCaptureBaseRaw');
+  late final _new_MutexOcaCaptureBaseRaw = _new_MutexOcaCaptureBaseRawPtr
+      .asFunction<wire_MutexOcaCaptureBaseRaw Function()>();
+
+  ffi.Pointer<wire_OcaAttr> new_box_autoadd_oca_attr_0() {
+    return _new_box_autoadd_oca_attr_0();
+  }
+
+  late final _new_box_autoadd_oca_attr_0Ptr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<wire_OcaAttr> Function()>>(
+          'new_box_autoadd_oca_attr_0');
+  late final _new_box_autoadd_oca_attr_0 = _new_box_autoadd_oca_attr_0Ptr
+      .asFunction<ffi.Pointer<wire_OcaAttr> Function()>();
+
+  ffi.Pointer<wire_OcaBox> new_box_autoadd_oca_box_0() {
+    return _new_box_autoadd_oca_box_0();
+  }
+
+  late final _new_box_autoadd_oca_box_0Ptr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<wire_OcaBox> Function()>>(
+          'new_box_autoadd_oca_box_0');
+  late final _new_box_autoadd_oca_box_0 = _new_box_autoadd_oca_box_0Ptr
+      .asFunction<ffi.Pointer<wire_OcaBox> Function()>();
 
   ffi.Pointer<wire_OcaBundle> new_box_autoadd_oca_bundle_0() {
     return _new_box_autoadd_oca_bundle_0();
@@ -574,35 +1227,138 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
       _new_box_autoadd_oca_capture_base_0Ptr
           .asFunction<ffi.Pointer<wire_OcaCaptureBase> Function()>();
 
-  void drop_opaque_ArcMutexOcaBundleRaw(
+  ffi.Pointer<wire_uint_8_list> new_uint_8_list_0(
+    int len,
+  ) {
+    return _new_uint_8_list_0(
+      len,
+    );
+  }
+
+  late final _new_uint_8_list_0Ptr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<wire_uint_8_list> Function(
+              ffi.Int32)>>('new_uint_8_list_0');
+  late final _new_uint_8_list_0 = _new_uint_8_list_0Ptr
+      .asFunction<ffi.Pointer<wire_uint_8_list> Function(int)>();
+
+  void drop_opaque_MutexOcaAttrRaw(
     ffi.Pointer<ffi.Void> ptr,
   ) {
-    return _drop_opaque_ArcMutexOcaBundleRaw(
+    return _drop_opaque_MutexOcaAttrRaw(
       ptr,
     );
   }
 
-  late final _drop_opaque_ArcMutexOcaBundleRawPtr =
+  late final _drop_opaque_MutexOcaAttrRawPtr =
       _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
-          'drop_opaque_ArcMutexOcaBundleRaw');
-  late final _drop_opaque_ArcMutexOcaBundleRaw =
-      _drop_opaque_ArcMutexOcaBundleRawPtr
-          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+          'drop_opaque_MutexOcaAttrRaw');
+  late final _drop_opaque_MutexOcaAttrRaw = _drop_opaque_MutexOcaAttrRawPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 
-  ffi.Pointer<ffi.Void> share_opaque_ArcMutexOcaBundleRaw(
+  ffi.Pointer<ffi.Void> share_opaque_MutexOcaAttrRaw(
     ffi.Pointer<ffi.Void> ptr,
   ) {
-    return _share_opaque_ArcMutexOcaBundleRaw(
+    return _share_opaque_MutexOcaAttrRaw(
       ptr,
     );
   }
 
-  late final _share_opaque_ArcMutexOcaBundleRawPtr = _lookup<
+  late final _share_opaque_MutexOcaAttrRawPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<ffi.Void> Function(
-              ffi.Pointer<ffi.Void>)>>('share_opaque_ArcMutexOcaBundleRaw');
-  late final _share_opaque_ArcMutexOcaBundleRaw =
-      _share_opaque_ArcMutexOcaBundleRawPtr
+              ffi.Pointer<ffi.Void>)>>('share_opaque_MutexOcaAttrRaw');
+  late final _share_opaque_MutexOcaAttrRaw = _share_opaque_MutexOcaAttrRawPtr
+      .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
+
+  void drop_opaque_MutexOcaBoxRaw(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _drop_opaque_MutexOcaBoxRaw(
+      ptr,
+    );
+  }
+
+  late final _drop_opaque_MutexOcaBoxRawPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'drop_opaque_MutexOcaBoxRaw');
+  late final _drop_opaque_MutexOcaBoxRaw = _drop_opaque_MutexOcaBoxRawPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Void> share_opaque_MutexOcaBoxRaw(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _share_opaque_MutexOcaBoxRaw(
+      ptr,
+    );
+  }
+
+  late final _share_opaque_MutexOcaBoxRawPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Void> Function(
+              ffi.Pointer<ffi.Void>)>>('share_opaque_MutexOcaBoxRaw');
+  late final _share_opaque_MutexOcaBoxRaw = _share_opaque_MutexOcaBoxRawPtr
+      .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
+
+  void drop_opaque_MutexOcaBundleRaw(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _drop_opaque_MutexOcaBundleRaw(
+      ptr,
+    );
+  }
+
+  late final _drop_opaque_MutexOcaBundleRawPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'drop_opaque_MutexOcaBundleRaw');
+  late final _drop_opaque_MutexOcaBundleRaw = _drop_opaque_MutexOcaBundleRawPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Void> share_opaque_MutexOcaBundleRaw(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _share_opaque_MutexOcaBundleRaw(
+      ptr,
+    );
+  }
+
+  late final _share_opaque_MutexOcaBundleRawPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Void> Function(
+              ffi.Pointer<ffi.Void>)>>('share_opaque_MutexOcaBundleRaw');
+  late final _share_opaque_MutexOcaBundleRaw =
+      _share_opaque_MutexOcaBundleRawPtr
+          .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
+
+  void drop_opaque_MutexOcaCaptureBaseRaw(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _drop_opaque_MutexOcaCaptureBaseRaw(
+      ptr,
+    );
+  }
+
+  late final _drop_opaque_MutexOcaCaptureBaseRawPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'drop_opaque_MutexOcaCaptureBaseRaw');
+  late final _drop_opaque_MutexOcaCaptureBaseRaw =
+      _drop_opaque_MutexOcaCaptureBaseRawPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Void> share_opaque_MutexOcaCaptureBaseRaw(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _share_opaque_MutexOcaCaptureBaseRaw(
+      ptr,
+    );
+  }
+
+  late final _share_opaque_MutexOcaCaptureBaseRawPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Void> Function(
+              ffi.Pointer<ffi.Void>)>>('share_opaque_MutexOcaCaptureBaseRaw');
+  late final _share_opaque_MutexOcaCaptureBaseRaw =
+      _share_opaque_MutexOcaCaptureBaseRawPtr
           .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
 
   void free_WireSyncReturn(
@@ -622,16 +1378,43 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
 
 class _Dart_Handle extends ffi.Opaque {}
 
-class wire_ArcMutexOcaBundleRaw extends ffi.Struct {
+class wire_MutexOcaBoxRaw extends ffi.Struct {
+  external ffi.Pointer<ffi.Void> ptr;
+}
+
+class wire_OcaBox extends ffi.Struct {
+  external wire_MutexOcaBoxRaw field0;
+}
+
+class wire_uint_8_list extends ffi.Struct {
+  external ffi.Pointer<ffi.Uint8> ptr;
+
+  @ffi.Int32()
+  external int len;
+}
+
+class wire_MutexOcaAttrRaw extends ffi.Struct {
+  external ffi.Pointer<ffi.Void> ptr;
+}
+
+class wire_OcaAttr extends ffi.Struct {
+  external wire_MutexOcaAttrRaw field0;
+}
+
+class wire_MutexOcaBundleRaw extends ffi.Struct {
   external ffi.Pointer<ffi.Void> ptr;
 }
 
 class wire_OcaBundle extends ffi.Struct {
-  external wire_ArcMutexOcaBundleRaw field0;
+  external wire_MutexOcaBundleRaw field0;
+}
+
+class wire_MutexOcaCaptureBaseRaw extends ffi.Struct {
+  external ffi.Pointer<ffi.Void> ptr;
 }
 
 class wire_OcaCaptureBase extends ffi.Struct {
-  external wire_ArcMutexOcaBundleRaw field0;
+  external wire_MutexOcaCaptureBaseRaw field0;
 }
 
 typedef DartPostCObjectFnType = ffi.Pointer<

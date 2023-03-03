@@ -1,33 +1,67 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
 use flutter_rust_bridge::{frb, RustOpaque};
-use oca_rs::state::{
-    attribute::{Attribute, AttributeType},
-    encoding::Encoding,
-    oca::{OCABox as OCABoxRaw, OCABundle as OCABundleRaw},
+pub use oca_rs::state::{
+    attribute::{Attribute as OcaAttrRaw, AttributeType as OcaAttrType},
+    encoding::Encoding as OcaEncoding,
+    oca::{
+        capture_base::CaptureBase as OcaCaptureBaseRaw, OCABox as OcaBoxRaw,
+        OCABundle as OcaBundleRaw,
+    },
 };
 
-pub struct OcaBox {
-    pub meta_attrs: Vec<OcaMetaAttr>,
-    pub attrs: Vec<OcaAttr>,
+pub struct OcaBox(pub RustOpaque<Mutex<OcaBoxRaw>>);
+
+impl OcaBox {
+    pub fn new() -> OcaBox {
+        OcaBox(RustOpaque::new(Mutex::new(OcaBoxRaw::new())))
+    }
+
+    pub fn add_meta_attr(&self, name: String, value: String) {
+        let mut oca_box = self.0.lock().unwrap();
+        oca_box.add_meta_attribute(name, value);
+    }
+
+    pub fn add_attr(&self, attr: OcaAttr) {
+        let mut oca_box = self.0.lock().unwrap();
+        oca_box.add_attribute(attr.0.lock().unwrap().clone());
+    }
+
+    pub fn generate_bundle(&self) -> OcaBundle {
+        let mut oca_box = self.0.lock().unwrap();
+        let oca_bundle = oca_box.generate_bundle();
+        OcaBundle(RustOpaque::new(Mutex::new(oca_bundle)))
+    }
 }
 
-pub struct OcaMetaAttr {
-    name: String,
-    value: String,
+pub struct OcaAttr(pub RustOpaque<Mutex<OcaAttrRaw>>);
+
+impl OcaAttr {
+    pub fn new(name: String, attr_type: OcaAttrType, encoding: OcaEncoding) -> OcaAttr {
+        let mut attr = OcaAttrRaw::new(name);
+        attr.set_attribute_type(attr_type);
+        // attr.set_encoding(encoding);
+        OcaAttr(RustOpaque::new(Mutex::new(attr)))
+    }
+
+    pub fn set_flagged(&self) {
+        let mut attr = self.0.lock().unwrap();
+        attr.set_flagged();
+    }
+
+    pub fn set_cardinality(&self, cardinality: String) {
+        let mut attr = self.0.lock().unwrap();
+        // attr.set_cardinality(cardinality);
+    }
+
+    pub fn set_conformance(&self, conformance: String) {
+        let mut attr = self.0.lock().unwrap();
+        // attr.set_conformance(conformance);
+    }
 }
 
-pub struct OcaAttr {
-    pub name: String,
-    pub attribute_type: Box<AttributeType>,
-    pub is_flagged: bool,
-    pub encoding: Box<Encoding>,
-    pub cardinality: Option<String>,
-    pub conformance: Option<String>,
-}
-
-#[frb(mirror(AttributeType))]
-pub enum _AttributeType {
+#[frb(mirror(OcaAttrType))]
+pub enum _OcaAttrType {
     Boolean,
     ArrayBoolean,
     Binary,
@@ -42,40 +76,14 @@ pub enum _AttributeType {
     ArrayReference,
 }
 
-#[frb(mirror(Encoding))]
-pub enum _Encoding {
+#[frb(mirror(OcaEncoding))]
+pub enum _OcaEncoding {
     Base64,
     Utf8,
     Iso8859_1,
 }
 
-impl OcaBox {
-    fn generate_bundle(&self) -> OcaBundle {
-        let mut oca_box = OCABoxRaw::new();
-
-        for meta_attr in &self.meta_attrs {
-            oca_box.add_meta_attribute(meta_attr.name.clone(), meta_attr.value.clone());
-        }
-
-        for attr in &self.attrs {
-            let mut attribute = Attribute::new(attr.name.clone());
-            attribute.set_attribute_type(*attr.attribute_type.clone());
-            // attribute.set_encoding(*attr.encoding.clone());
-            if attr.is_flagged {
-                attribute.set_flagged();
-            }
-            // attribute.set_cardinality(attr.cardinality.clone());
-            // attribute.set_conformance(attr.conformance.clone());
-            oca_box.add_attribute(attribute);
-        }
-
-        let oca_bundle = oca_box.generate_bundle();
-
-        OcaBundle(RustOpaque::new(Arc::new(Mutex::new(oca_bundle))))
-    }
-}
-
-pub struct OcaBundle(RustOpaque<Arc<Mutex<OCABundleRaw>>>);
+pub struct OcaBundle(pub RustOpaque<Mutex<OcaBundleRaw>>);
 
 impl OcaBundle {
     pub fn to_json(&self) -> String {
@@ -84,48 +92,25 @@ impl OcaBundle {
     }
 
     pub fn capture_base(&self) -> OcaCaptureBase {
-        OcaCaptureBase(RustOpaque::new(Arc::clone(&self.0)))
-    }
-
-    pub fn overlays(&self) -> Vec<OcaOverlay> {
         let oca_bundle = self.0.lock().unwrap();
-        let mut overlays = Vec::new();
-        for overlay in &oca_bundle.overlays {
-            overlays.push(OcaOverlay {
-                said: overlay.said().to_owned(),
-            });
-        }
-        overlays
+        OcaCaptureBase(RustOpaque::new(Mutex::new(oca_bundle.capture_base.clone())))
     }
 }
 
-pub struct OcaCaptureBase(RustOpaque<Arc<Mutex<OCABundleRaw>>>);
+pub struct OcaCaptureBase(pub RustOpaque<Mutex<OcaCaptureBaseRaw>>);
 
 impl OcaCaptureBase {
-    pub fn attributes(&self) -> Vec<OcaCaptureBaseAttr> {
-        let oca_bundle = self.0.lock().unwrap();
-        let mut attributes = Vec::new();
-        for (name, value) in &oca_bundle.capture_base.attributes {
-            attributes.push(OcaCaptureBaseAttr {
-                name: name.to_string(),
-                value: value.to_string(),
-            });
-        }
-        attributes
+    pub fn attributes(&self) -> Vec<Vec<String>> {
+        let capture_base = self.0.lock().unwrap();
+        capture_base
+            .attributes
+            .iter()
+            .map(|(k, v)| vec![k.to_owned(), v.to_owned()])
+            .collect()
     }
 
     pub fn flagged_attributes(&self) -> Vec<String> {
-        let oca_bundle = self.0.lock().unwrap();
-        oca_bundle.capture_base.flagged_attributes.clone()
+        let capture_base = self.0.lock().unwrap();
+        capture_base.flagged_attributes.clone()
     }
-}
-
-pub struct OcaCaptureBaseAttr {
-    pub name: String,
-    pub value: String,
-}
-
-pub struct OcaOverlay {
-    said: String,
-    // TODO: add rest of fields
 }
