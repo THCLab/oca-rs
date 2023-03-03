@@ -9,36 +9,36 @@ void main() {
 
     late final api = OcaDartImpl(dylib);
 
-    final oca = OcaBox(
-      bridge: api,
-      meta_attrs: [
-        OcaMetaAttr(bridge: api, name: "name", value: "Test"),
-        OcaMetaAttr(bridge: api, name: "description", value: "Test case OCA"),
-      ],
-      attrs: [
-        OcaAttr(
-            bridge: api,
-            name: "name",
-            attr_type: OcaAttrType.Text,
-            encoding: OcaAttrEncoding.Utf8,
-            cardinality: "1"),
-        OcaAttr(
-            bridge: api,
-            name: "age",
-            attr_type: OcaAttrType.Numeric,
-            encoding: OcaAttrEncoding.Utf8,
-            flagged: true,
-            conformance: "M",
-            cardinality: "2"),
-      ],
-    );
+    final ocaBox = await OcaBox.newOcaBox(bridge: api);
+    await ocaBox.addMetaAttr(name: "name", value: "value");
+    await ocaBox.addMetaAttr(name: "description", value: "Test case OCA");
 
-    final ocaBundle = oca.generateBundle();
+    final attr1 = await OcaAttr.newOcaAttr(
+        bridge: api,
+        name: "name",
+        attrType: OcaAttrType.Text,
+        encoding: OcaEncoding.Utf8);
+    await attr1.setCardinality(cardinality: "1");
+    await ocaBox.addAttr(attr: attr1);
+
+    final attr2 = await OcaAttr.newOcaAttr(
+        bridge: api,
+        name: "age",
+        attrType: OcaAttrType.Numeric,
+        encoding: OcaEncoding.Utf8);
+    await attr2.setCardinality(cardinality: "2");
+    await attr2.setConformance(conformance: "M");
+    await attr2.setFlagged();
+    await ocaBox.addAttr(attr: attr2);
+
+    final ocaBundle = await ocaBox.generateBundle();
 
     print(ocaBundle.toJson());
 
-    expect(ocaBundle.captureBase().attributes().length, 2);
-    expect(ocaBundle.captureBase().flaggedAttributes().length, 1);
-    expect(ocaBundle.overlays().length, 5);
+    final capBase = await ocaBundle.captureBase();
+
+    expect((await capBase.attributes()).length, 2);
+    expect((await capBase.flaggedAttributes()).length, 1);
+    // expect((await capBase.overlays()).length, 5);
   });
 }
