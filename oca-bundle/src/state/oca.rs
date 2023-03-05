@@ -617,7 +617,7 @@ mod tests {
         let mut oca = OCABox::new();
         oca.add_meta_attribute("name".to_string(), "test".to_string());
         oca.add_meta_attribute("description".to_string(), "test".to_string());
-        let oca_bundle = oca.generate_bundle().unwrap();
+        let oca_bundle = oca.generate_bundle();
         let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
         println!("{oca_bundle_json}");
     }
