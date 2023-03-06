@@ -5,8 +5,8 @@ pub use oca_rs::state::{
     attribute::{Attribute as OcaAttrRaw, AttributeType as OcaAttrType},
     encoding::Encoding as OcaEncoding,
     oca::{
-        capture_base::CaptureBase as OcaCaptureBaseRaw, OCABox as OcaBoxRaw,
-        OCABundle as OcaBundleRaw,
+        capture_base::CaptureBase as OcaCaptureBaseRaw, overlay::Overlay as OcaOverlayRaw,
+        OCABox as OcaBoxRaw, OCABundle as OcaBundleRaw,
     },
 };
 
@@ -88,7 +88,7 @@ pub struct OcaBundle(pub RustOpaque<Mutex<OcaBundleRaw>>);
 impl OcaBundle {
     pub fn to_json(&self) -> String {
         let oca_bundle = self.0.lock().unwrap();
-        serde_json::to_string(&*oca_bundle).unwrap()
+        serde_json::to_string_pretty(&*oca_bundle).unwrap()
     }
 
     pub fn capture_base(&self) -> OcaCaptureBase {
