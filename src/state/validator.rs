@@ -253,7 +253,7 @@ impl Validator {
                 all_attributes.difference(&attributes).collect();
             for m in missing_attr_translation {
                 errors.push(Error::MissingAttributeTranslation(
-                    overlay.language().unwrap().clone(),
+                    *overlay.language().unwrap(),
                     m.to_string(),
                 ));
             }
@@ -271,43 +271,49 @@ impl Validator {
 mod tests {
     use super::*;
     use crate::controller::load_oca;
-    use maplit::hashmap;
+    use crate::state::{
+        attribute::{Attribute, AttributeType},
+        oca::OCABox,
+        encoding::Encoding,
+        oca::overlay::character_encoding::CharacterEncodings,
+        oca::overlay::label::Labels,
+    };
+
     #[test]
      fn validate_valid_oca() {
-     /*   let validator =
-            Validator::new().enforce_translations(vec!["En".to_string(), "Pl".to_string()]);
+        let validator =
+            Validator::new().enforce_translations(vec![Language::Eng, Language::Pol]);
 
-         let oca = OCABuilder::new(Encoding::Utf8)
-            .add_name(hashmap! {
-                "En".to_string() => "Driving Licence".to_string(),
-                "Pl".to_string() => "Prawo Jazdy".to_string(),
-            })
-            .add_description(hashmap! {
-                "En".to_string() => "DL".to_string(),
-                "Pl".to_string() => "PJ".to_string(),
-            })
-            .add_attribute(
-                AttributeBuilder::new("name".to_string(), AttributeType::Text)
-                    .add_label(hashmap! {
-                        "En".to_string() => "Name: ".to_string(),
-                        "Pl".to_string() => "Imię: ".to_string(),
-                    })
-                    .build(),
-            )
-            .add_attribute(
-                AttributeBuilder::new("age".to_string(), AttributeType::Numeric)
-                    .add_label(hashmap! {
-                        "En".to_string() => "Age: ".to_string(),
-                        "Pl".to_string() => "Wiek: ".to_string(),
-                    })
-                    .add_format("asd".to_string())
-                    .build(),
-            )
-            .finalize();
+        let mut oca = cascade! {
+            OCABox::new();
+            ..add_meta_attribute("name".to_string(), "Driving Licence".to_string());
+            ..add_meta_attribute("description".to_string(), "DL".to_string());
+        };
 
-        let result = validator.validate(&oca);
+        let attribute = cascade! {
+            Attribute::new("name".to_string());
+            ..set_attribute_type(AttributeType::Text);
+            ..set_encoding(Encoding::Utf8);
+            ..set_label(Language::Eng, "Name: ".to_string());
+            ..set_label(Language::Pol, "Imię: ".to_string());
+        };
 
-        assert!(result.is_ok());*/
+        oca.add_attribute(attribute);
+
+        let attribute_2 = cascade! {
+            Attribute::new("age".to_string());
+            ..set_attribute_type(AttributeType::Numeric);
+            ..set_label(Language::Eng, "Age: ".to_string());
+            ..set_label(Language::Pol, "Wiek: ".to_string());
+        };
+
+        oca.add_attribute(attribute_2);
+
+        let oca_bundle = oca.generate_bundle();
+
+        let result = validator.validate(&oca_bundle);
+
+        assert!(result.is_ok());
     }
 
     #[test]
@@ -352,12 +358,13 @@ mod tests {
     #[test]
     fn validate_oca_with_invalid_saids() {
         let validator = Validator::new();
-// TODO modify to new representation
         let data = r#"
 {
+    "version": "OCAB10000023_",
+    "said": "",
     "capture_base": {
         "type": "spec/capture_base/1.0",
-        "digest": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LK",
+        "said": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LK",
         "classification": "",
         "attributes": {
             "n1": "Text",
@@ -366,15 +373,15 @@ mod tests {
         },
         "flagged_attributes": ["n1"]
     },
-    "overlays": [
-        {
+    "overlays": {
+        "character_encoding": {
             "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
-            "digest": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "said": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
             "type": "spec/overlays/character_encoding/1.0",
             "default_character_encoding": "utf-8",
             "attribute_character_encoding": {}
         }
-    ]
+    }
 }
         "#;
         let oca_bundle = load_oca(&mut data.as_bytes()).unwrap();

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, str::FromStr};
 use wasm_bindgen::prelude::*;
 
-use crate::state::{encoding::Encoding, entry_codes::EntryCodes};
+use crate::state::{encoding::Encoding, entry_codes::EntryCodes, entries::EntriesElement};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Attribute {
     pub name: String,
@@ -17,11 +17,12 @@ pub struct Attribute {
     pub category_labels: Option<HashMap<Language, String>>,
     pub informations: Option<HashMap<Language, String>>,
     pub entry_codes: Option<EntryCodes>,
+    pub entries: Option<HashMap<Language, EntriesElement>>,
     pub mapping: Option<String>,
     pub encoding: Option<Encoding>,
+    #[cfg(feature = "format_overlay")]
     pub format: Option<String>,
     pub units: Option<HashMap<MeasurementSystem, MeasurementUnit>>,
-    //pub entry_codes: Option<EntryCodes>,
     pub entry_codes_mapping: Option<Vec<String>>,
     pub reference_sai: Option<String>, // replace with SAI and move to RefAttribute
     pub condition: Option<String>,
@@ -42,9 +43,11 @@ impl Attribute {
             is_flagged: false,
             mapping: None,
             encoding: None,
+            #[cfg(feature = "format_overlay")]
             format: None,
             units: None,
             entry_codes: None,
+            entries: None,
             entry_codes_mapping: None,
             reference_sai: None, // TODO: replace with RefAttribute which consist only with reference to another object
             condition: None,
@@ -55,7 +58,7 @@ impl Attribute {
         }
     }
 
-    pub fn set_flagged(&mut self) -> () {
+    pub fn set_flagged(&mut self) {
         self.is_flagged = true;
     }
 
@@ -84,6 +87,7 @@ impl Attribute {
                 self.encoding = other.encoding.clone();
             }
 
+            #[cfg(feature = "format_overlay")]
             if other.format.is_some() {
                 self.format = other.format.clone();
             }
@@ -94,6 +98,10 @@ impl Attribute {
 
             if self.entry_codes.is_none() {
                 self.entry_codes = other.entry_codes.clone();
+            }
+
+            if self.entries.is_none() {
+                self.entries = other.entries.clone();
             }
 
             if self.entry_codes_mapping.is_none() {

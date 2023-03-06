@@ -93,8 +93,12 @@ impl OCABox {
     }
 
     pub fn generate_bundle(&mut self) -> OCABundle {
-        let capture_base = self.generate_capture_base();
-        let overlays = self.generate_overlays();
+        let mut capture_base = self.generate_capture_base();
+        let mut overlays = self.generate_overlays();
+
+        capture_base.sign();
+        let cb_said = capture_base.calculate_said();
+        overlays.iter_mut().for_each(|x| x.sign(&cb_said));
 
         OCABundle {
             version: "OCAB10000023_".to_string(),
@@ -111,14 +115,163 @@ impl OCABox {
                 overlays.push(Box::new(mapping.clone()));
             }
         }
-        return overlays;
+        if let Some(layouts) = &self.layouts {
+            for layout in layouts {
+                let layout_ov = overlay::CredentialLayout::new(
+                    serde_json::to_string(&layout).unwrap()
+                );
+                overlays.push(layout_ov);
+            }
+        }
+        if let Some(meta) = &self.meta {
+            let meta_ov = overlay::Meta::new(
+                isolang::Language::from_639_1("en").unwrap(),
+                meta.clone()
+            );
+            overlays.push(Box::new(meta_ov));
+        }
+
+        for attribute in self.attributes.values() {
+            if attribute.encoding.is_some() {
+                let mut encoding_ov = overlays
+                    .iter_mut()
+                    .find(|x| x.overlay_type().contains("/character_encoding/"));
+                if encoding_ov.is_none() {
+                    overlays.push(Box::new(overlay::CharacterEncoding::new()));
+                    encoding_ov = overlays.last_mut();
+                }
+                if let Some(ov) = encoding_ov {
+                    ov.add(attribute);
+                }
+            }
+
+            #[cfg(feature = "format_overlay")]
+            if attribute.format.is_some() {
+                let mut format_ov = overlays
+                    .iter_mut()
+                    .find(|x| x.overlay_type().contains("/format/"));
+                if format_ov.is_none() {
+                    overlays.push(Box::new(overlay::Format::new()));
+                    format_ov = overlays.last_mut();
+                }
+                if let Some(ov) = format_ov {
+                    ov.add(attribute);
+                }
+            }
+
+            if attribute.conformance.is_some() {
+                let mut conformance_ov = overlays
+                    .iter_mut()
+                    .find(|x| x.overlay_type().contains("/conformance/"));
+                if conformance_ov.is_none() {
+                    overlays.push(Box::new(overlay::Conformance::new()));
+                    conformance_ov = overlays.last_mut();
+                }
+                if let Some(ov) = conformance_ov {
+                    ov.add(attribute);
+                }
+            }
+
+            if attribute.cardinality.is_some() {
+                let mut cardinality_ov = overlays
+                    .iter_mut()
+                    .find(|x| x.overlay_type().contains("/cardinality/"));
+                if cardinality_ov.is_none() {
+                    overlays.push(Box::new(overlay::Cardinality::new()));
+                    cardinality_ov = overlays.last_mut();
+                }
+                if let Some(ov) = cardinality_ov {
+                    ov.add(attribute);
+                }
+            }
+
+            if let Some(units) = &attribute.units {
+                for measurement_system in units.keys() {
+                    let mut unit_ov = overlays
+                        .iter_mut()
+                        .find(|x| if let Some(x_unit) = x.as_any().downcast_ref::<overlay::Unit>() {
+
+                            x_unit.measurement_system() == Some(measurement_system)
+                        } else {
+                            false
+                        });
+                    if unit_ov.is_none() {
+                        overlays.push(Box::new(overlay::Unit::new(measurement_system.clone())));
+                        unit_ov = overlays.last_mut();
+                    }
+                    if let Some(ov) = unit_ov {
+                        ov.add(attribute);
+                    }
+                }
+            }
+
+            if attribute.entry_codes.is_some() {
+                let mut entry_code_ov = overlays
+                    .iter_mut()
+                    .find(|x| x.overlay_type().contains("/entry_code/"));
+                if entry_code_ov.is_none() {
+                    overlays.push(Box::new(overlay::EntryCode::new()));
+                    entry_code_ov = overlays.last_mut();
+                }
+                if let Some(ov) = entry_code_ov {
+                    ov.add(attribute);
+                }
+            }
+
+            if let Some(entries) = &attribute.entries {
+                for lang in entries.keys() {
+                    let mut entry_ov = overlays
+                        .iter_mut()
+                        .find(|x| x.overlay_type().contains("/entry/") && x.language() == Some(lang));
+                    if entry_ov.is_none() {
+                        overlays.push(Box::new(overlay::Entry::new(*lang)));
+                        entry_ov = overlays.last_mut();
+                    }
+                    if let Some(ov) = entry_ov {
+                        ov.add(attribute);
+                    }
+                }
+            }
+
+            if let Some(labels) = &attribute.labels {
+                for lang in labels.keys() {
+                    let mut label_ov = overlays
+                        .iter_mut()
+                        .find(|x| x.overlay_type().contains("/label/") && x.language() == Some(lang));
+                    if label_ov.is_none() {
+                        overlays.push(Box::new(overlay::Label::new(*lang)));
+                        label_ov = overlays.last_mut();
+                    }
+                    if let Some(ov) = label_ov {
+                        ov.add(attribute);
+                    }
+                }
+            }
+
+            if let Some(information) = &attribute.informations {
+                for lang in information.keys() {
+                    let mut info_ov = overlays
+                        .iter_mut()
+                        .find(|x| x.overlay_type().contains("/information/") && x.language() == Some(lang));
+                    if info_ov.is_none() {
+                        overlays.push(Box::new(overlay::Information::new(*lang)));
+                        info_ov = overlays.last_mut();
+                    }
+                    if let Some(ov) = info_ov {
+                        ov.add(attribute);
+                    }
+                }
+            }
+        }
+
+        overlays
     }
     fn generate_capture_base(&mut self) -> CaptureBase {
         let mut capture_base = CaptureBase::new();
         for attribute in self.attributes.values() {
             capture_base.add(attribute);
         }
-        return capture_base;
+        capture_base
     }
     fn get_attribute_mut(&mut self, name: &str) -> Option<&mut Attribute> {
         self.attributes.get_mut(name)
@@ -143,7 +296,8 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             .deserialize_into::<overlay::AttributeMapping>()
                             .map_err(|e| serde::de::Error::custom(format!("Meta overlay: {e}")))?,
                     ));
-                } else if overlay_type.contains("/character_encoding/") {
+                }
+                if overlay_type.contains("/character_encoding/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::CharacterEncoding>()
@@ -151,7 +305,8 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Character Encoding overlay: {e}"))
                             })?,
                     ));
-                } else if overlay_type.contains("/cardinality/") {
+                }
+                if overlay_type.contains("/cardinality/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Cardinality>()
@@ -159,7 +314,8 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Cardinality overlay: {e}"))
                             })?,
                     ));
-                } else if overlay_type.contains("/conformance/") {
+                }
+                if overlay_type.contains("/conformance/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Conformance>()
@@ -167,7 +323,8 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Conformance overlay: {e}"))
                             })?,
                     ));
-                } else if overlay_type.contains("/conditional/") {
+                }
+                if overlay_type.contains("/conditional/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Conditional>()
@@ -175,13 +332,15 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Conditional overlay: {e}"))
                             })?,
                     ));
-                } else if overlay_type.contains("/entry/") {
+                }
+                if overlay_type.contains("/entry/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Entry>()
                             .map_err(|e| serde::de::Error::custom(format!("Entry overlay: {e}")))?,
                     ));
-                } else if overlay_type.contains("/entry_code/") {
+                }
+                if overlay_type.contains("/entry_code/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::EntryCode>()
@@ -189,7 +348,8 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Entry Code overlay: {e}"))
                             })?,
                     ));
-                } else if overlay_type.contains("/entry_code_mapping/") {
+                }
+                if overlay_type.contains("/entry_code_mapping/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::EntryCodeMapping>()
@@ -197,7 +357,10 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Entry Code Mapping overlay: {e}"))
                             })?,
                     ));
-                } else if overlay_type.contains("/format/") {
+                }
+
+                #[cfg(feature = "format_overlay")]
+                if overlay_type.contains("/format/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Format>()
@@ -205,7 +368,9 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Format overlay: {e}"))
                             })?,
                     ));
-                } else if overlay_type.contains("/information/") {
+                }
+
+                if overlay_type.contains("/information/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Information>()
@@ -213,25 +378,29 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Information overlay: {e}"))
                             })?,
                     ));
-                } else if overlay_type.contains("/label/") {
+                }
+                if overlay_type.contains("/label/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Label>()
                             .map_err(|e| serde::de::Error::custom(format!("Label overlay: {e}")))?,
                     ));
-                } else if overlay_type.contains("/unit/") {
+                }
+                if overlay_type.contains("/unit/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Unit>()
                             .map_err(|e| serde::de::Error::custom(format!("Unit overlay: {e}")))?,
                     ));
-                } else if overlay_type.contains("/meta/") {
+                }
+                if overlay_type.contains("/meta/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Meta>()
                             .map_err(|e| serde::de::Error::custom(format!("Meta overlay: {e}")))?,
                     ));
-                } else if overlay_type.contains("/form_layout/") {
+                }
+                if overlay_type.contains("/form_layout/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::FormLayout>()
@@ -239,7 +408,8 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Form Layout overlay: {e}"))
                             })?,
                     ));
-                } else if overlay_type.contains("/credential_layout/") {
+                }
+                if overlay_type.contains("/credential_layout/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::CredentialLayout>()
@@ -247,7 +417,8 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Credential Layout overlay: {e}"))
                             })?,
                     ));
-                } else if overlay_type.contains("/subset/") {
+                }
+                if overlay_type.contains("/subset/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Subset>()
@@ -255,7 +426,8 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Subset overlay: {e}"))
                             })?,
                     ));
-                } else if overlay_type.contains("/standard/") {
+                }
+                if overlay_type.contains("/standard/") {
                     return Ok(Box::new(
                         de_overlay
                             .deserialize_into::<overlay::Standard>()
@@ -263,11 +435,11 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 serde::de::Error::custom(format!("Standard overlay: {e}"))
                             })?,
                     ));
-                } else {
-                    return Err(serde::de::Error::custom(format!(
-                        "unknown overlay type: {overlay_type}"
-                    )));
                 }
+
+                return Err(serde::de::Error::custom(format!(
+                    "unknown overlay type: {overlay_type}"
+                )));
             } else {
                 return Err(serde::de::Error::missing_field("type"));
             }
@@ -292,28 +464,28 @@ impl Serialize for OCABundle {
         state.serialize_field("capture_base", &self.capture_base)?;
 
         let mut overlays_map: LinkedHashMap<Value, Value> = LinkedHashMap::new();
-        for overlay in &self.overlays {
-            let overlays_order = [
-                "character_encoding",
-                "format",
-                "meta",
-                "label",
-                "information",
-                "standard",
-                "conditional",
-                "conformance",
-                "entry_code",
-                "entry",
-                "cardinality",
-                "unit",
-                "attribute_mapping",
-                "entry_code_mapping",
-                "unit_mapping",
-                "subset",
-                "credential_layout",
-                "form_layout"
-            ];
-            for o_type in overlays_order {
+        let overlays_order = [
+            "character_encoding",
+            "format",
+            "meta",
+            "label",
+            "information",
+            "standard",
+            "conditional",
+            "conformance",
+            "entry_code",
+            "entry",
+            "cardinality",
+            "unit",
+            "attribute_mapping",
+            "entry_code_mapping",
+            "unit_mapping",
+            "subset",
+            "credential_layout",
+            "form_layout"
+        ];
+        for o_type in overlays_order {
+            for overlay in &self.overlays {
                 let o_type_tmp = format!("/{o_type}/");
                 if overlay.overlay_type().contains(&o_type_tmp) {
                     match overlay.language() {
@@ -448,12 +620,6 @@ mod tests {
         let oca_bundle = oca.generate_bundle();
         let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
         println!("{oca_bundle_json}");
-
-        let oca_bundle_2: OCABundle = serde_json::from_str(&oca_bundle_json).unwrap();
-        println!("{}", oca_bundle_2.overlays.len());
-
-        let oca_bundle_yaml = serde_yaml::to_string(&oca_bundle_2).unwrap();
-        println!("{oca_bundle_yaml}");
     }
 }
 

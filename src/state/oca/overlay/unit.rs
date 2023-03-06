@@ -1,7 +1,7 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::any::Any;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, Hash, PartialEq)]
 pub enum MeasurementSystem {
@@ -72,12 +72,12 @@ impl std::str::FromStr for MeasurementSystem {
     }
 }
 
-pub(crate) trait Unit {
-    fn add_attribute_unit(&mut self, attr_unit: AttributeUnit) -> ();
+pub trait Unit {
+    fn set_unit(&mut self, attr_unit: AttributeUnit) -> ();
 }
 
 impl Unit for Attribute {
-    fn add_attribute_unit(&mut self, attr_unit: AttributeUnit) -> () {
+    fn set_unit(&mut self, attr_unit: AttributeUnit) -> () {
         match self.units {
             Some(ref mut units) => {
                 units.insert(attr_unit.measurement_system, attr_unit.unit);
@@ -94,7 +94,6 @@ impl Unit for Attribute {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UnitOverlay {
     capture_base: String,
-    #[serde(rename = "digest")]
     said: String,
     #[serde(rename = "type")]
     overlay_type: String,
@@ -136,14 +135,14 @@ impl Overlay for UnitOverlay {
     }
 }
 impl UnitOverlay {
-    pub fn new(measurement_system: MeasurementSystem) -> Box<UnitOverlay> {
-        Box::new(UnitOverlay {
+    pub fn new(measurement_system: MeasurementSystem) -> UnitOverlay {
+        UnitOverlay {
             capture_base: String::new(),
             said: String::from("############################################"),
             overlay_type: "spec/overlays/unit/1.0".to_string(),
             measurement_system,
             attribute_units: HashMap::new(),
-        })
+        }
     }
 
     pub fn measurement_system(&self) -> Option<&MeasurementSystem> {
@@ -159,11 +158,11 @@ mod tests {
     use crate::state::oca::overlay::unit::MeasurementSystem;
 
     #[test]
-    fn test_add_attribute_unit() {
+    fn test_set_unit() {
         let attribute = cascade! {
             Attribute::new("test".to_string());
-            ..add_attribute_unit(AttributeUnit { measurement_system: MeasurementSystem::Metric, unit: MeasurementUnit::Metric(MetricUnit::Kilogram)});
-            ..add_attribute_unit(AttributeUnit { measurement_system: MeasurementSystem::Imperial, unit: MeasurementUnit::Imperial(ImperialUnit::Pound) });
+            ..set_unit(AttributeUnit { measurement_system: MeasurementSystem::Metric, unit: MeasurementUnit::Metric(MetricUnit::Kilogram)});
+            ..set_unit(AttributeUnit { measurement_system: MeasurementSystem::Imperial, unit: MeasurementUnit::Imperial(ImperialUnit::Pound) });
         };
 
         // assert eq units

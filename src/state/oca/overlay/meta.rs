@@ -10,7 +10,6 @@ use isolang::Language;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MetaOverlay {
     capture_base: String,
-    #[serde(rename = "digest")]
     said: String,
     #[serde(rename = "type")]
     overlay_type: String,
@@ -18,7 +17,6 @@ pub struct MetaOverlay {
     #[serde(flatten)]
     pub attr_pairs: HashMap<String, String>,
 }
-
 
 // TODO: why Overlay implements fn which are not relevant for MetaOverlay?
 impl Overlay for MetaOverlay {
@@ -49,15 +47,15 @@ impl Overlay for MetaOverlay {
 
     fn add(&mut self, _attribute: &Attribute) {}
 }
+
 impl MetaOverlay {
-    pub fn new(lang: Language, attr_pairs: HashMap<String, String>) -> Box<MetaOverlay> {
-        Box::new(MetaOverlay {
+    pub fn new(lang: Language, attr_pairs: HashMap<String, String>) -> Self {
+        Self {
             capture_base: String::new(),
             said: String::from("############################################"),
             overlay_type: "spec/overlays/meta/1.0".to_string(),
             language: lang,
-            attr_pairs: attr_pairs,
-
-        })
+            attr_pairs,
+        }
     }
 }

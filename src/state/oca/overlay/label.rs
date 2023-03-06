@@ -4,13 +4,13 @@ use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::HashMap;
 
-pub(crate) trait Labels {
-    fn add_attribute_label(&mut self, l: Language, label: String) -> ();
+pub trait Labels {
+    fn set_label(&mut self, l: Language, label: String) -> ();
     fn add_category_label(&mut self, l: Language, label: String) -> ();
 }
 
 impl Labels for Attribute {
-    fn add_attribute_label(&mut self, l: Language, label: String) -> () {
+    fn set_label(&mut self, l: Language, label: String) -> () {
         match self.labels {
             Some(ref mut labels) => {
                 labels.insert(l, label);
@@ -39,7 +39,6 @@ impl Labels for Attribute {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LabelOverlay {
     capture_base: String,
-    #[serde(rename = "digest")]
     said: String,
     #[serde(rename = "type")]
     overlay_type: String,
@@ -95,8 +94,8 @@ impl Overlay for LabelOverlay {
 }
 
 impl LabelOverlay {
-    pub fn new(lang: Language) -> Box<LabelOverlay> {
-        Box::new(LabelOverlay {
+    pub fn new(lang: Language) -> LabelOverlay {
+        LabelOverlay {
             capture_base: String::new(),
             said: String::from("############################################"),
             overlay_type: "spec/overlays/label/1.0".to_string(),
@@ -105,7 +104,7 @@ impl LabelOverlay {
             attribute_categories: vec![],
             category_labels: HashMap::new(),
             category_attributes: HashMap::new(),
-        })
+        }
     }
 
     fn add_to_category(&mut self, categories: Vec<&str>, attribute: &Attribute) {
@@ -165,8 +164,8 @@ mod tests {
         let mut overlay = LabelOverlay::new(Language::Eng);
         let attr = cascade! {
             Attribute::new("attr1".to_string());
-            ..add_attribute_label(Language::Pol, "Etykieta".to_string());
-            ..add_attribute_label(Language::Eng, "Label".to_string());
+            ..set_label(Language::Pol, "Etykieta".to_string());
+            ..set_label(Language::Eng, "Label".to_string());
             ..add_category_label(Language::Eng, "Category".to_string());
             ..add_category_label(Language::Pol, "Kategoria".to_string());
         };
@@ -183,13 +182,13 @@ mod tests {
         let mut overlay = LabelOverlay::new(Language::Eng);
         let attr = cascade! {
             Attribute::new("attr1".to_string());
-            ..add_attribute_label(Language::Pol, "Label 1".to_string());
+            ..set_label(Language::Pol, "Label 1".to_string());
             ..add_category_label(Language::Eng, "Cat 1".to_string());
         };
         overlay.add(&attr);
         let attr = cascade! {
             Attribute::new("attr2".to_string());
-            ..add_attribute_label(Language::Pol, "Label 2".to_string());
+            ..set_label(Language::Pol, "Label 2".to_string());
             ..add_category_label(Language::Eng, "Cat 2".to_string());
         };
         overlay.add(&attr);
