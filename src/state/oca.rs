@@ -2,7 +2,7 @@ use crate::state::oca::layout::credential::Layout;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, ser::SerializeStruct};
 use std::collections::HashMap;
 use linked_hash_map::LinkedHashMap;
-mod capture_base;
+pub mod capture_base;
 mod layout;
 pub mod overlay;
 use crate::state::{
@@ -278,7 +278,7 @@ impl OCABox {
     }
 }
 
-pub type DynOverlay = Box<dyn Overlay>;
+pub type DynOverlay = Box<dyn Overlay + Send>;
 
 impl<'de> Deserialize<'de> for DynOverlay {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
