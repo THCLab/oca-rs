@@ -638,6 +638,8 @@ impl AttributeLayoutValues {
 
 #[cfg(test)]
 mod tests {
+    use crate::state::attribute::AttributeType;
+
     use super::*;
 
     #[test]
@@ -645,9 +647,21 @@ mod tests {
         let mut oca = OCABox::new();
         oca.add_meta_attribute("name".to_string(), "test".to_string());
         oca.add_meta_attribute("description".to_string(), "test".to_string());
+        let mut attr = Attribute::new("first_name".to_string());
+        attr.set_attribute_type(AttributeType::Text);
+        oca.add_attribute(attr);
+
+        let mut attr = Attribute::new("last_name".to_string());
+        attr.set_attribute_type(AttributeType::Text);
+        oca.add_attribute(attr);
+        // oca.add_attribute(Attribute::new("last_name".to_string()));
         let oca_bundle = oca.generate_bundle();
-        let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
-        println!("{oca_bundle_json}");
+        let said = oca_bundle.said.clone();
+        let oca_bundle = oca.generate_bundle();
+        let said2 = oca_bundle.said.clone();
+        assert_eq!(said, said2);
+        // let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
+        // println!("{oca_bundle_json}");
     }
 }
 
