@@ -1,4 +1,5 @@
 use crate::state::oca::layout::credential::Layout;
+use said::derivation::SelfAddressing;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, ser::SerializeStruct};
 use std::collections::HashMap;
 use linked_hash_map::LinkedHashMap;
@@ -100,12 +101,16 @@ impl OCABox {
         let cb_said = capture_base.calculate_said();
         overlays.iter_mut().for_each(|x| x.sign(&cb_said));
 
-        OCABundle {
+        let mut oca_bundle = OCABundle {
             version: "OCAB10000023_".to_string(),
-            said: "######".to_string(),
+            said: "############################################".to_string(),
             capture_base,
             overlays,
-        }
+        };
+
+        oca_bundle.generate_said();
+        return oca_bundle;
+
     }
 
     fn generate_overlays(&mut self) -> Vec<DynOverlay> {
@@ -585,6 +590,29 @@ pub struct OCABundle {
     pub overlays: Vec<DynOverlay>,
 }
 
+
+impl OCABundle {
+
+    fn calculate_said(&self) -> String {
+        let self_json = serde_json::to_string(&self).unwrap();
+
+        format!(
+            "{}",
+            SelfAddressing::Blake3_256.derive(
+                self_json
+                    .replace(
+                        self.said.as_str(),
+                        "############################################"
+                    )
+                    .as_bytes()
+            )
+        )
+    }
+
+    pub fn generate_said(&mut self) {
+        self.said = self.calculate_said();
+    }
+}
 #[derive(Clone)]
 struct AttributeLayoutValues {
     pub reference_sai: Option<String>,
