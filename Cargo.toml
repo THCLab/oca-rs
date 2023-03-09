@@ -2,7 +2,7 @@
 license = "EUPL-1.2"
 description = "Rust implementation of Overlays Capture Architecture"
 name = "oca-rs"
-version = "0.2.29"
+version = "0.3.0"
 authors = ["Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>", "Robert Mitwicki <robert.mitwicki@opensoftware.pl>", "Michał Pietrus <michal.pietrus@opensoftware.pl>"]
 edition = "2018"
 
@@ -26,6 +26,7 @@ lazy_static = "1.4.0"
 cascade = "1.0.1"
 linked-hash-map = { version = "0.5.6", features = ["serde_impl"] }
 paste = "1.0.11"
+dyn-clonable = "0.9.0"
 
 [dependencies.isolang]
 # version = "2.2.0"

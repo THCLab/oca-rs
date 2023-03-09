@@ -1,7 +1,7 @@
 use crate::state::{
     attribute::Attribute, entries::EntriesElement, oca::Overlay,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeStruct};
 use std::any::Any;
 use std::collections::HashMap;
 use isolang::Language;
@@ -22,7 +22,25 @@ impl Entries for Attribute {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+impl Serialize for EntryOverlay {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use std::collections::BTreeMap;
+
+        let mut state = serializer.serialize_struct("EntryOverlay", 4)?;
+        state.serialize_field("said", &self.said)?;
+        state.serialize_field("language", &self.language)?;
+        state.serialize_field("type", &self.overlay_type)?;
+        state.serialize_field("capture_base", &self.capture_base)?;
+        let sorted_attribute_entries: BTreeMap<_, _> = self.attribute_entries.iter().collect();
+        state.serialize_field("attribute_entries", &sorted_attribute_entries)?;
+        state.end()
+    }
+}
+
+#[derive(Deserialize, Debug, Clone)]
 pub struct EntryOverlay {
     capture_base: String,
     said: String,

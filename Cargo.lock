@@ -142,6 +142,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "dyn-clonable"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4e9232f0e607a262ceb9bd5141a3dfb3e4db6994b31989bbfd845878cba59fd4"
+dependencies = [
+ "dyn-clonable-impl",
+ "dyn-clone",
+]
+
+[[package]]
+name = "dyn-clonable-impl"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "558e40ea573c374cf53507fd240b7ee2f5477df7cfebdb97323ec61c719399c5"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "dyn-clone"
+version = "1.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68b0cf012f1230e43cd00ebb729c6bb58707ecfa8ad08b52ef3a4ccd2697fc30"
+
+[[package]]
 name = "erased-serde"
 version = "0.3.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -250,9 +277,10 @@ dependencies = [
 
 [[package]]
 name = "oca-rs"
-version = "0.2.29"
+version = "0.3.0"
 dependencies = [
  "cascade",
+ "dyn-clonable",
  "erased-serde",
  "indexmap",
  "isolang",
