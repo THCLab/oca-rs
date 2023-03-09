@@ -1,25 +1,25 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct LayoutConfigCss {
     #[serde(skip_serializing_if = "Option::is_none")]
     style: Option<String>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct LayoutConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     css: Option<LayoutConfigCss>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct ElementConfigCss {
     #[serde(skip_serializing_if = "Option::is_none")]
     style: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     classes: Option<Vec<String>>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct ElementConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     css: Option<ElementConfigCss>,
@@ -27,7 +27,7 @@ struct ElementConfig {
     widget: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Part {
     name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -35,7 +35,7 @@ struct Part {
     #[serde(skip_serializing_if = "Option::is_none")]
     config: Option<ElementConfig>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Element {
     #[serde(rename = "type")]
     element_type: String,
@@ -48,7 +48,7 @@ struct Element {
     #[serde(skip_serializing_if = "Option::is_none")]
     parts: Option<Vec<Part>>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Layout {
     #[serde(skip_serializing_if = "Option::is_none")]
     config: Option<LayoutConfig>,

@@ -1,6 +1,6 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use isolang::Language;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeStruct};
 use std::any::Any;
 use std::collections::HashMap;
 
@@ -36,7 +36,30 @@ impl Labels for Attribute {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+impl Serialize for LabelOverlay {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use std::collections::BTreeMap;
+
+        let mut state = serializer.serialize_struct("LabelOverlay", 7)?;
+        state.serialize_field("said", &self.said)?;
+        state.serialize_field("language", &self.language)?;
+        state.serialize_field("type", &self.overlay_type)?;
+        state.serialize_field("capture_base", &self.capture_base)?;
+        let sorted_attribute_labels: BTreeMap<_, _> = self.attribute_labels.iter().collect();
+        state.serialize_field("attribute_labels", &sorted_attribute_labels)?;
+        let mut sorted_attribute_categories = self.attribute_categories.clone();
+        sorted_attribute_categories.sort();
+        state.serialize_field("attribute_categories", &sorted_attribute_categories)?;
+        let sorted_category_labels: BTreeMap<_, _> = self.category_labels.iter().collect();
+        state.serialize_field("category_labels", &sorted_category_labels)?;
+        state.end()
+    }
+}
+
+#[derive(Deserialize, Debug, Clone)]
 pub struct LabelOverlay {
     capture_base: String,
     said: String,

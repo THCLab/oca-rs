@@ -1,5 +1,5 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeStruct};
 use std::any::Any;
 use std::collections::HashMap;
 
@@ -14,6 +14,7 @@ pub struct AttributeUnit {
     pub unit: MeasurementUnit,
 }
 #[derive(Eq, Hash, PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum MeasurementUnit {
     Metric(MetricUnit),
     Imperial(ImperialUnit),
@@ -91,7 +92,25 @@ impl Unit for Attribute {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+impl Serialize for UnitOverlay {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use std::collections::BTreeMap;
+
+        let mut state = serializer.serialize_struct("UnitOverlay", 5)?;
+        state.serialize_field("said", &self.said)?;
+        state.serialize_field("type", &self.overlay_type)?;
+        state.serialize_field("capture_base", &self.capture_base)?;
+        state.serialize_field("measurement_system", &self.measurement_system)?;
+        let sorted_attribute_units: BTreeMap<_, _> = self.attribute_units.iter().collect();
+        state.serialize_field("attribute_units", &sorted_attribute_units)?;
+        state.end()
+    }
+}
+
+#[derive(Deserialize, Debug, Clone)]
 pub struct UnitOverlay {
     capture_base: String,
     said: String,

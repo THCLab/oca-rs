@@ -42,7 +42,10 @@ use std::any::Any;
 use isolang::Language;
 erased_serde::serialize_trait_object!(Overlay);
 
-pub trait Overlay: erased_serde::Serialize {
+use dyn_clonable::*;
+
+#[clonable]
+pub trait Overlay: erased_serde::Serialize + Clone {
     fn as_any(&self) -> &dyn Any;
     fn capture_base(&self) -> &String;
     fn capture_base_mut(&mut self) -> &mut String;
@@ -118,11 +121,13 @@ macro_rules! overlay {
                 where
                     S: serde::Serializer,
                 {
+                    use std::collections::BTreeMap;
                     let mut state = serializer.serialize_struct(stringify!([<$name Overlay>]), 4)?;
                     state.serialize_field("said", &self.said)?;
-                    state.serialize_field("capture_base", &self.capture_base)?;
                     state.serialize_field("type", &self.overlay_type)?;
-                    state.serialize_field(stringify!($field1), &self.$field1)?;
+                    state.serialize_field("capture_base", &self.capture_base)?;
+                    let sorted_attr: BTreeMap<_, _> = self.$field1.iter().collect();
+                    state.serialize_field(stringify!($field1), &sorted_attr)?;
                     state.end()
                 }
             }

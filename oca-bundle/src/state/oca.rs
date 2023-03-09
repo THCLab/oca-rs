@@ -1,11 +1,13 @@
-use crate::state::oca::layout::credential::Layout;
 use said::derivation::SelfAddressing;
+use crate::state::oca::layout::credential::Layout as CredentialLayout;
+use crate::state::oca::layout::form::Layout as FormLayout;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, ser::SerializeStruct};
 use std::collections::HashMap;
 use linked_hash_map::LinkedHashMap;
 pub mod capture_base;
 mod layout;
 pub mod overlay;
+use isolang::Language;
 use crate::state::{
     attribute::Attribute,
     oca::{capture_base::CaptureBase, overlay::Overlay},
@@ -32,9 +34,10 @@ use crate::state::{
 
 pub struct OCABox {
     pub attributes: HashMap<String, Attribute>,
-    pub layouts: Option<Vec<Layout>>,
+    pub credential_layouts: Option<Vec<CredentialLayout>>,
+    pub form_layouts: Option<Vec<FormLayout>>,
     pub mappings: Option<Vec<overlay::AttributeMapping>>,
-    pub meta: Option<HashMap<String, String>>,
+    pub meta: Option<HashMap<Language, HashMap<String, String>>>,
     pub classification: Option<String>,
 }
 
@@ -42,7 +45,8 @@ impl OCABox {
     pub fn new() -> Self {
         OCABox {
             attributes: HashMap::new(),
-            layouts: None,
+            credential_layouts: None,
+            form_layouts: None,
             mappings: None,
             meta: None,
             classification: None,
@@ -64,30 +68,11 @@ impl OCABox {
         self.attributes.get(name)
     }
 
-    pub fn add_layout(&mut self, layout: Layout) {
-        match self.layouts {
-            Some(ref mut layouts) => layouts.push(layout),
-            None => self.layouts = Some(vec![layout]),
-        }
-    }
     pub fn add_attribute_mapping(&mut self, mapping: overlay::AttributeMapping) {
         match self.mappings {
             Some(ref mut mappings) => mappings.push(mapping),
             None => self.mappings = Some(vec![mapping]),
         }
-    }
-    // TODO split meta on language specific and non language specific
-    pub fn add_meta_attribute(&mut self, key: String, value: String) {
-        match self.meta {
-            Some(ref mut meta) => {
-                meta.insert(key, value);
-            }
-            None => {
-                let mut meta = HashMap::new();
-                meta.insert(key, value);
-                self.meta = Some(meta);
-            }
-        };
     }
     pub fn add_classification(&mut self, classification: String) {
         self.classification = Some(classification);
@@ -120,20 +105,26 @@ impl OCABox {
                 overlays.push(Box::new(mapping.clone()));
             }
         }
-        if let Some(layouts) = &self.layouts {
-            for layout in layouts {
-                let layout_ov = overlay::CredentialLayout::new(
-                    serde_json::to_string(&layout).unwrap()
+        if let Some(meta) = &self.meta {
+            for (lang, attr_pairs) in meta {
+                let meta_ov = overlay::Meta::new(
+                    *lang,
+                    attr_pairs.clone()
                 );
-                overlays.push(layout_ov);
+                overlays.push(Box::new(meta_ov));
             }
         }
-        if let Some(meta) = &self.meta {
-            let meta_ov = overlay::Meta::new(
-                isolang::Language::from_639_1("en").unwrap(),
-                meta.clone()
-            );
-            overlays.push(Box::new(meta_ov));
+        if let Some(layouts) = &self.form_layouts {
+            for layout in layouts {
+                let layout_ov = overlay::FormLayout::new(layout.clone());
+                overlays.push(Box::new(layout_ov));
+            }
+        }
+        if let Some(layouts) = &self.credential_layouts {
+            for layout in layouts {
+                let layout_ov = overlay::CredentialLayout::new(layout.clone());
+                overlays.push(Box::new(layout_ov));
+            }
         }
 
         for attribute in self.attributes.values() {
@@ -462,13 +453,19 @@ impl Serialize for OCABundle {
         S: Serializer,
     {
         use serde_value::Value;
+        #[derive(Serialize)]
+        #[serde(untagged)]
+        enum OverlayValue {
+            Array(Vec<DynOverlay>),
+            Object(Box<dyn Overlay + Send>),
+        }
 
         let mut state = serializer.serialize_struct("OCABundle", 4)?;
         state.serialize_field("version", &self.version)?;
         state.serialize_field("said", &self.said)?;
         state.serialize_field("capture_base", &self.capture_base)?;
 
-        let mut overlays_map: LinkedHashMap<Value, Value> = LinkedHashMap::new();
+        let mut overlays_map: LinkedHashMap<Value, OverlayValue> = LinkedHashMap::new();
         let overlays_order = [
             "character_encoding",
             "format",
@@ -495,13 +492,13 @@ impl Serialize for OCABundle {
                 if overlay.overlay_type().contains(&o_type_tmp) {
                     match overlay.language() {
                         Some(_) => {
-                            if let Some(Value::Seq(ov)) = overlays_map.get_mut(&Value::String(o_type.to_string())) {
-                                ov.push(serde_value::to_value(overlay).unwrap());
+                            if let Some(OverlayValue::Array(ov)) = overlays_map.get_mut(&Value::String(o_type.to_string())) {
+                                ov.push(overlay.clone());
                             } else {
                                 overlays_map.insert(
                                     Value::String(o_type.to_string()),
-                                    Value::Seq(vec![
-                                        serde_value::to_value(overlay).unwrap()
+                                    OverlayValue::Array(vec![
+                                        overlay.clone()
                                     ])
                                 );
                             }
@@ -509,7 +506,7 @@ impl Serialize for OCABundle {
                         None => {
                             overlays_map.insert(
                                 Value::String(o_type.to_string()),
-                                serde_value::to_value(overlay).unwrap()
+                                OverlayValue::Object(overlay.clone())
                             );
                         }
                     }
@@ -518,19 +515,11 @@ impl Serialize for OCABundle {
         }
 
         for (_, v) in overlays_map.iter_mut() {
-            if let Value::Seq(ov) = v {
+            if let OverlayValue::Array(ov) = v {
                 ov.sort_by(|a, b| {
-                    if let Value::Map(o_b) = b {
-                        if let Value::Map(o_a) = a {
-                            o_a.get(
-                                &Value::String("language".to_string())
-                            )
-                            .unwrap()
-                            .cmp(
-                                o_b.get(
-                                    &Value::String("language".to_string())
-                                ).unwrap()
-                            )
+                    if let Some(a_lang) = a.language() {
+                        if let Some(b_lang) = b.language() {
+                            a_lang.cmp(b_lang)
                         } else {
                             std::cmp::Ordering::Equal
                         }
@@ -641,12 +630,13 @@ mod tests {
     use crate::state::attribute::AttributeType;
 
     use super::*;
+    use crate::state::oca::overlay::meta::Metas;
 
     #[test]
     fn build_oca_bundle() {
         let mut oca = OCABox::new();
-        oca.add_meta_attribute("name".to_string(), "test".to_string());
-        oca.add_meta_attribute("description".to_string(), "test".to_string());
+        oca.add_meta(Language::Eng, "name".to_string(), "test name".to_string());
+        oca.add_meta(Language::Eng, "description".to_string(), "test desc".to_string());
         let mut attr = Attribute::new("first_name".to_string());
         attr.set_attribute_type(AttributeType::Text);
         oca.add_attribute(attr);
@@ -659,9 +649,9 @@ mod tests {
         let said = oca_bundle.said.clone();
         let oca_bundle = oca.generate_bundle();
         let said2 = oca_bundle.said.clone();
-        assert_eq!(said, said2);
         // let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
         // println!("{oca_bundle_json}");
+        assert_eq!(said, said2);
     }
 }
 

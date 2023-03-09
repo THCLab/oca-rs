@@ -8,12 +8,17 @@ impl Serialize for CaptureBase {
     where
         S: Serializer,
     {
+        use std::collections::BTreeMap;
+
         let mut state = serializer.serialize_struct("CaptureBase", 5)?;
         state.serialize_field("said", &self.said)?;
         state.serialize_field("type", &self.schema_type)?;
         state.serialize_field("classification", &self.classification)?;
-        state.serialize_field("attributes", &self.attributes)?;
-        state.serialize_field("flagged_attributes", &self.flagged_attributes)?;
+        let sorted_attributes: BTreeMap<_, _> = self.attributes.iter().collect();
+        state.serialize_field("attributes", &sorted_attributes)?;
+        let mut sorted_flagged_attributes = self.flagged_attributes.clone();
+        sorted_flagged_attributes.sort();
+        state.serialize_field("flagged_attributes", &sorted_flagged_attributes)?;
         state.end()
     }
 }

@@ -62,12 +62,16 @@ impl Attribute {
         self.is_flagged = true;
     }
 
-    pub fn set_attribute_type(&mut self, attribute_type: AttributeType) -> () {
+    pub fn set_attribute_type(&mut self, attribute_type: AttributeType) {
         self.attribute_type = Some(attribute_type);
     }
 
+    pub fn set_sai(&mut self, sai: String) {
+        self.reference_sai = Some(sai);
+    }
+
     // Merge assumption is that if `other` is not None then it would overwrite `self` or would be concatenated with `self`
-    pub fn merge(&mut self, other: &Attribute) -> () {
+    pub fn merge(&mut self, other: &Attribute) {
         if self.name != other.name {
             panic!("Cannot merge attributes with different names");
         } else {
@@ -183,79 +187,13 @@ impl Attribute {
     //     self
     // }
 
-    // pub fn add_cardinality(mut self, cardinality: String) -> AttributeBuilder {
-    //     self.attribute.cardinality = Some(cardinality);
-    //     self
-    // }
-
-    // pub fn add_conformance(mut self, conformance: String) -> AttributeBuilder {
-    //     self.attribute.conformance = Some(conformance);
-    //     self
-    // }
-
-    // pub fn add_encoding(mut self, encoding: Encoding) -> AttributeBuilder {
-    //     self.attribute.encoding = Some(encoding);
-    //     self
-    // }
-
     // pub fn add_mapping(mut self, mapping: String) -> AttributeBuilder {
     //     self.attribute.mapping = Some(mapping);
     //     self
     // }
 
-    // pub fn add_sai(mut self, sai: String) -> AttributeBuilder {
-    //     self.attribute.sai = Some(sai);
-    //     self
-    // }
-
-    // pub fn add_format(mut self, format: String) -> AttributeBuilder {
-    //     self.attribute.format = Some(format);
-    //     self
-    // }
-
-    // pub fn add_entry_codes(mut self, entry_codes: EntryCodes) -> AttributeBuilder {
-    //     self.attribute.entry_codes = Some(entry_codes);
-    //     self
-    // }
-
     // pub fn add_entry_codes_mapping(mut self, mapping: Vec<String>) -> AttributeBuilder {
     //     self.attribute.entry_codes_mapping = Some(mapping);
-    //     self
-    // }
-
-    // pub fn add_entries(mut self, entries: Entries) -> AttributeBuilder {
-    //     match entries {
-    //         Entries::Sai(lang_sai) => {
-    //             for (lang, sai) in lang_sai.iter() {
-    //                 match self.attribute.translations.get_mut(lang) {
-    //                     Some(t) => {
-    //                         t.add_entries_sai(sai.to_string());
-    //                     }
-    //                     None => {
-    //                         let mut tr = AttributeTranslation::new();
-    //                         tr.add_entries_sai(sai.to_string());
-    //                         self.attribute.translations.insert(lang.clone(), tr);
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //         Entries::Object(entries_vec) => {
-    //             for entry in entries_vec.iter() {
-    //                 for (lang, en) in entry.translations.iter() {
-    //                     match self.attribute.translations.get_mut(lang) {
-    //                         Some(t) => {
-    //                             t.add_entry(entry.id.clone(), en.clone());
-    //                         }
-    //                         None => {
-    //                             let mut tr = AttributeTranslation::new();
-    //                             tr.add_entry(entry.id.clone(), en.clone());
-    //                             self.attribute.translations.insert(lang.clone(), tr);
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
     //     self
     // }
 }
@@ -272,11 +210,13 @@ impl Entry {
     }
 }
 
+/*
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Entries {
     Sai(HashMap<Language, String>),
     Object(Vec<Entry>),
 }
+*/
 
 #[wasm_bindgen]
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
