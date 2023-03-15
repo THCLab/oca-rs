@@ -1,5 +1,4 @@
 use super::*;
-use std::sync::Mutex;
 // Section: wire functions
 
 #[no_mangle]
@@ -8,22 +7,23 @@ pub extern "C" fn wire_new__static_method__OcaBox(port_: i64) {
 }
 
 #[no_mangle]
-pub extern "C" fn wire_add_meta_attr__method__OcaBox(
+pub extern "C" fn wire_add_meta__method__OcaBox(
     port_: i64,
     that: *mut wire_OcaBox,
+    lang: *mut wire_uint_8_list,
     name: *mut wire_uint_8_list,
     value: *mut wire_uint_8_list,
 ) {
-    wire_add_meta_attr__method__OcaBox_impl(port_, that, name, value)
+    wire_add_meta__method__OcaBox_impl(port_, that, lang, name, value)
 }
 
 #[no_mangle]
-pub extern "C" fn wire_add_attr__method__OcaBox(
+pub extern "C" fn wire_add_attribute__method__OcaBox(
     port_: i64,
     that: *mut wire_OcaBox,
     attr: *mut wire_OcaAttr,
 ) {
-    wire_add_attr__method__OcaBox_impl(port_, that, attr)
+    wire_add_attribute__method__OcaBox_impl(port_, that, attr)
 }
 
 #[no_mangle]
@@ -32,18 +32,49 @@ pub extern "C" fn wire_generate_bundle__method__OcaBox(port_: i64, that: *mut wi
 }
 
 #[no_mangle]
-pub extern "C" fn wire_new__static_method__OcaAttr(
+pub extern "C" fn wire_add_form_layout__method__OcaBox(
     port_: i64,
-    name: *mut wire_uint_8_list,
-    attr_type: i32,
-    encoding: i32,
+    that: *mut wire_OcaBox,
+    layout: *mut wire_uint_8_list,
 ) {
-    wire_new__static_method__OcaAttr_impl(port_, name, attr_type, encoding)
+    wire_add_form_layout__method__OcaBox_impl(port_, that, layout)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_add_credential_layout__method__OcaBox(
+    port_: i64,
+    that: *mut wire_OcaBox,
+    layout: *mut wire_uint_8_list,
+) {
+    wire_add_credential_layout__method__OcaBox_impl(port_, that, layout)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_new__static_method__OcaAttr(port_: i64, name: *mut wire_uint_8_list) {
+    wire_new__static_method__OcaAttr_impl(port_, name)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_set_attribute_type__method__OcaAttr(
+    port_: i64,
+    that: *mut wire_OcaAttr,
+    attr_type: i32,
+) {
+    wire_set_attribute_type__method__OcaAttr_impl(port_, that, attr_type)
 }
 
 #[no_mangle]
 pub extern "C" fn wire_set_flagged__method__OcaAttr(port_: i64, that: *mut wire_OcaAttr) {
     wire_set_flagged__method__OcaAttr_impl(port_, that)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_set_encoding__method__OcaAttr(
+    port_: i64,
+    that: *mut wire_OcaAttr,
+    encoding: i32,
+) {
+    wire_set_encoding__method__OcaAttr_impl(port_, that, encoding)
 }
 
 #[no_mangle]
@@ -65,13 +96,98 @@ pub extern "C" fn wire_set_conformance__method__OcaAttr(
 }
 
 #[no_mangle]
+pub extern "C" fn wire_set_label__method__OcaAttr(
+    port_: i64,
+    that: *mut wire_OcaAttr,
+    lang: *mut wire_uint_8_list,
+    label: *mut wire_uint_8_list,
+) {
+    wire_set_label__method__OcaAttr_impl(port_, that, lang, label)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_set_information__method__OcaAttr(
+    port_: i64,
+    that: *mut wire_OcaAttr,
+    lang: *mut wire_uint_8_list,
+    information: *mut wire_uint_8_list,
+) {
+    wire_set_information__method__OcaAttr_impl(port_, that, lang, information)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_set_entry_codes__method__OcaAttr(
+    port_: i64,
+    that: *mut wire_OcaAttr,
+    entry_codes: *mut wire_StringList,
+) {
+    wire_set_entry_codes__method__OcaAttr_impl(port_, that, entry_codes)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_set_entry_codes_sai__method__OcaAttr(
+    port_: i64,
+    that: *mut wire_OcaAttr,
+    sai: *mut wire_uint_8_list,
+) {
+    wire_set_entry_codes_sai__method__OcaAttr_impl(port_, that, sai)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_set_entry__method__OcaAttr(
+    port_: i64,
+    that: *mut wire_OcaAttr,
+    lang: *mut wire_uint_8_list,
+    entries: *mut wire_list_StringList,
+) {
+    wire_set_entry__method__OcaAttr_impl(port_, that, lang, entries)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_set_unit_metric__method__OcaAttr(
+    port_: i64,
+    that: *mut wire_OcaAttr,
+    unit: i32,
+) {
+    wire_set_unit_metric__method__OcaAttr_impl(port_, that, unit)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_set_unit_imperial__method__OcaAttr(
+    port_: i64,
+    that: *mut wire_OcaAttr,
+    unit: i32,
+) {
+    wire_set_unit_imperial__method__OcaAttr_impl(port_, that, unit)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_set_format__method__OcaAttr(
+    port_: i64,
+    that: *mut wire_OcaAttr,
+    format: *mut wire_uint_8_list,
+) {
+    wire_set_format__method__OcaAttr_impl(port_, that, format)
+}
+
+#[no_mangle]
 pub extern "C" fn wire_to_json__method__OcaBundle(port_: i64, that: *mut wire_OcaBundle) {
     wire_to_json__method__OcaBundle_impl(port_, that)
 }
 
 #[no_mangle]
+pub extern "C" fn wire_said__method__OcaBundle(port_: i64, that: *mut wire_OcaBundle) {
+    wire_said__method__OcaBundle_impl(port_, that)
+}
+
+#[no_mangle]
 pub extern "C" fn wire_capture_base__method__OcaBundle(port_: i64, that: *mut wire_OcaBundle) {
     wire_capture_base__method__OcaBundle_impl(port_, that)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_overlays__method__OcaBundle(port_: i64, that: *mut wire_OcaBundle) {
+    wire_overlays__method__OcaBundle_impl(port_, that)
 }
 
 #[no_mangle]
@@ -113,6 +229,15 @@ pub extern "C" fn new_MutexOcaCaptureBaseRaw() -> wire_MutexOcaCaptureBaseRaw {
 }
 
 #[no_mangle]
+pub extern "C" fn new_StringList_0(len: i32) -> *mut wire_StringList {
+    let wrap = wire_StringList {
+        ptr: support::new_leak_vec_ptr(<*mut wire_uint_8_list>::new_with_null_ptr(), len),
+        len,
+    };
+    support::new_leak_box_ptr(wrap)
+}
+
+#[no_mangle]
 pub extern "C" fn new_box_autoadd_oca_attr_0() -> *mut wire_OcaAttr {
     support::new_leak_box_ptr(wire_OcaAttr::new_with_null_ptr())
 }
@@ -133,6 +258,15 @@ pub extern "C" fn new_box_autoadd_oca_capture_base_0() -> *mut wire_OcaCaptureBa
 }
 
 #[no_mangle]
+pub extern "C" fn new_list_StringList_0(len: i32) -> *mut wire_list_StringList {
+    let wrap = wire_list_StringList {
+        ptr: support::new_leak_vec_ptr(<wire_StringList>::new_with_null_ptr(), len),
+        len,
+    };
+    support::new_leak_box_ptr(wrap)
+}
+
+#[no_mangle]
 pub extern "C" fn new_uint_8_list_0(len: i32) -> *mut wire_uint_8_list {
     let ans = wire_uint_8_list {
         ptr: support::new_leak_vec_ptr(Default::default(), len),
@@ -142,6 +276,21 @@ pub extern "C" fn new_uint_8_list_0(len: i32) -> *mut wire_uint_8_list {
 }
 
 // Section: related functions
+
+#[no_mangle]
+pub extern "C" fn drop_opaque_MutexBoxOcaOverlayRaw(ptr: *const c_void) {
+    unsafe {
+        Arc::<Mutex<Box<dyn OcaOverlayRaw>>>::decrement_strong_count(ptr as _);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn share_opaque_MutexBoxOcaOverlayRaw(ptr: *const c_void) -> *const c_void {
+    unsafe {
+        Arc::<Mutex<Box<dyn OcaOverlayRaw>>>::increment_strong_count(ptr as _);
+        ptr
+    }
+}
 
 #[no_mangle]
 pub extern "C" fn drop_opaque_MutexOcaAttrRaw(ptr: *const c_void) {
@@ -231,6 +380,15 @@ impl Wire2Api<String> for *mut wire_uint_8_list {
         String::from_utf8_lossy(&vec).into_owned()
     }
 }
+impl Wire2Api<Vec<String>> for *mut wire_StringList {
+    fn wire2api(self) -> Vec<String> {
+        let vec = unsafe {
+            let wrap = support::box_from_leak_ptr(self);
+            support::vec_from_leak_ptr(wrap.ptr, wrap.len)
+        };
+        vec.into_iter().map(Wire2Api::wire2api).collect()
+    }
+}
 impl Wire2Api<OcaAttr> for *mut wire_OcaAttr {
     fn wire2api(self) -> OcaAttr {
         let wrap = unsafe { support::box_from_leak_ptr(self) };
@@ -256,6 +414,15 @@ impl Wire2Api<OcaCaptureBase> for *mut wire_OcaCaptureBase {
     }
 }
 
+impl Wire2Api<Vec<Vec<String>>> for *mut wire_list_StringList {
+    fn wire2api(self) -> Vec<Vec<String>> {
+        let vec = unsafe {
+            let wrap = support::box_from_leak_ptr(self);
+            support::vec_from_leak_ptr(wrap.ptr, wrap.len)
+        };
+        vec.into_iter().map(Wire2Api::wire2api).collect()
+    }
+}
 impl Wire2Api<OcaAttr> for wire_OcaAttr {
     fn wire2api(self) -> OcaAttr {
         OcaAttr(self.field0.wire2api())
@@ -310,6 +477,20 @@ pub struct wire_MutexOcaBundleRaw {
 #[derive(Clone)]
 pub struct wire_MutexOcaCaptureBaseRaw {
     ptr: *const core::ffi::c_void,
+}
+
+#[repr(C)]
+#[derive(Clone)]
+pub struct wire_StringList {
+    ptr: *mut *mut wire_uint_8_list,
+    len: i32,
+}
+
+#[repr(C)]
+#[derive(Clone)]
+pub struct wire_list_StringList {
+    ptr: *mut wire_StringList,
+    len: i32,
 }
 
 #[repr(C)]

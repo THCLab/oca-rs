@@ -14,35 +14,52 @@ abstract class OcaDart {
 
   FlutterRustBridgeTaskConstMeta get kNewStaticMethodOcaBoxConstMeta;
 
-  Future<void> addMetaAttrMethodOcaBox(
+  Future<void> addMetaMethodOcaBox(
       {required OcaBox that,
+      required String lang,
       required String name,
       required String value,
       dynamic hint});
 
-  FlutterRustBridgeTaskConstMeta get kAddMetaAttrMethodOcaBoxConstMeta;
+  FlutterRustBridgeTaskConstMeta get kAddMetaMethodOcaBoxConstMeta;
 
-  Future<void> addAttrMethodOcaBox(
+  Future<void> addAttributeMethodOcaBox(
       {required OcaBox that, required OcaAttr attr, dynamic hint});
 
-  FlutterRustBridgeTaskConstMeta get kAddAttrMethodOcaBoxConstMeta;
+  FlutterRustBridgeTaskConstMeta get kAddAttributeMethodOcaBoxConstMeta;
 
   Future<OcaBundle> generateBundleMethodOcaBox(
       {required OcaBox that, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kGenerateBundleMethodOcaBoxConstMeta;
 
-  Future<OcaAttr> newStaticMethodOcaAttr(
-      {required String name,
-      required OcaAttrType attrType,
-      required OcaEncoding encoding,
-      dynamic hint});
+  Future<void> addFormLayoutMethodOcaBox(
+      {required OcaBox that, required String layout, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kAddFormLayoutMethodOcaBoxConstMeta;
+
+  Future<void> addCredentialLayoutMethodOcaBox(
+      {required OcaBox that, required String layout, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kAddCredentialLayoutMethodOcaBoxConstMeta;
+
+  Future<OcaAttr> newStaticMethodOcaAttr({required String name, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kNewStaticMethodOcaAttrConstMeta;
+
+  Future<void> setAttributeTypeMethodOcaAttr(
+      {required OcaAttr that, required OcaAttrType attrType, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetAttributeTypeMethodOcaAttrConstMeta;
 
   Future<void> setFlaggedMethodOcaAttr({required OcaAttr that, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kSetFlaggedMethodOcaAttrConstMeta;
+
+  Future<void> setEncodingMethodOcaAttr(
+      {required OcaAttr that, required OcaEncoding encoding, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetEncodingMethodOcaAttrConstMeta;
 
   Future<void> setCardinalityMethodOcaAttr(
       {required OcaAttr that, required String cardinality, dynamic hint});
@@ -54,14 +71,72 @@ abstract class OcaDart {
 
   FlutterRustBridgeTaskConstMeta get kSetConformanceMethodOcaAttrConstMeta;
 
+  Future<void> setLabelMethodOcaAttr(
+      {required OcaAttr that,
+      required String lang,
+      required String label,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetLabelMethodOcaAttrConstMeta;
+
+  Future<void> setInformationMethodOcaAttr(
+      {required OcaAttr that,
+      required String lang,
+      required String information,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetInformationMethodOcaAttrConstMeta;
+
+  Future<void> setEntryCodesMethodOcaAttr(
+      {required OcaAttr that, required List<String> entryCodes, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetEntryCodesMethodOcaAttrConstMeta;
+
+  Future<void> setEntryCodesSaiMethodOcaAttr(
+      {required OcaAttr that, required String sai, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetEntryCodesSaiMethodOcaAttrConstMeta;
+
+  Future<void> setEntryMethodOcaAttr(
+      {required OcaAttr that,
+      required String lang,
+      required List<List<String>> entries,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetEntryMethodOcaAttrConstMeta;
+
+  Future<void> setUnitMetricMethodOcaAttr(
+      {required OcaAttr that, required OcaMetricUnit unit, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetUnitMetricMethodOcaAttrConstMeta;
+
+  Future<void> setUnitImperialMethodOcaAttr(
+      {required OcaAttr that, required OcaImperialUnit unit, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetUnitImperialMethodOcaAttrConstMeta;
+
+  Future<void> setFormatMethodOcaAttr(
+      {required OcaAttr that, required String format, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSetFormatMethodOcaAttrConstMeta;
+
   Future<String> toJsonMethodOcaBundle({required OcaBundle that, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kToJsonMethodOcaBundleConstMeta;
+
+  Future<String> saidMethodOcaBundle({required OcaBundle that, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kSaidMethodOcaBundleConstMeta;
 
   Future<OcaCaptureBase> captureBaseMethodOcaBundle(
       {required OcaBundle that, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kCaptureBaseMethodOcaBundleConstMeta;
+
+  Future<List<OcaOverlay>> overlaysMethodOcaBundle(
+      {required OcaBundle that, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kOverlaysMethodOcaBundleConstMeta;
 
   Future<List<List<String>>> attributesMethodOcaCaptureBase(
       {required OcaCaptureBase that, dynamic hint});
@@ -73,6 +148,10 @@ abstract class OcaDart {
 
   FlutterRustBridgeTaskConstMeta
       get kFlaggedAttributesMethodOcaCaptureBaseConstMeta;
+
+  DropFnType get dropOpaqueMutexBoxOcaOverlayRaw;
+  ShareFnType get shareOpaqueMutexBoxOcaOverlayRaw;
+  OpaqueTypeFinalizer get MutexBoxOcaOverlayRawFinalizer;
 
   DropFnType get dropOpaqueMutexOcaAttrRaw;
   ShareFnType get shareOpaqueMutexOcaAttrRaw;
@@ -89,6 +168,22 @@ abstract class OcaDart {
   DropFnType get dropOpaqueMutexOcaCaptureBaseRaw;
   ShareFnType get shareOpaqueMutexOcaCaptureBaseRaw;
   OpaqueTypeFinalizer get MutexOcaCaptureBaseRawFinalizer;
+}
+
+@sealed
+class MutexBoxOcaOverlayRaw extends FrbOpaque {
+  final OcaDart bridge;
+  MutexBoxOcaOverlayRaw.fromRaw(int ptr, int size, this.bridge)
+      : super.unsafe(ptr, size);
+  @override
+  DropFnType get dropFn => bridge.dropOpaqueMutexBoxOcaOverlayRaw;
+
+  @override
+  ShareFnType get shareFn => bridge.shareOpaqueMutexBoxOcaOverlayRaw;
+
+  @override
+  OpaqueTypeFinalizer get staticFinalizer =>
+      bridge.MutexBoxOcaOverlayRawFinalizer;
 }
 
 @sealed
@@ -162,16 +257,24 @@ class OcaAttr {
   });
 
   static Future<OcaAttr> newOcaAttr(
-          {required OcaDart bridge,
-          required String name,
-          required OcaAttrType attrType,
-          required OcaEncoding encoding,
-          dynamic hint}) =>
-      bridge.newStaticMethodOcaAttr(
-          name: name, attrType: attrType, encoding: encoding, hint: hint);
+          {required OcaDart bridge, required String name, dynamic hint}) =>
+      bridge.newStaticMethodOcaAttr(name: name, hint: hint);
+
+  Future<void> setAttributeType(
+          {required OcaAttrType attrType, dynamic hint}) =>
+      bridge.setAttributeTypeMethodOcaAttr(
+        that: this,
+        attrType: attrType,
+      );
 
   Future<void> setFlagged({dynamic hint}) => bridge.setFlaggedMethodOcaAttr(
         that: this,
+      );
+
+  Future<void> setEncoding({required OcaEncoding encoding, dynamic hint}) =>
+      bridge.setEncodingMethodOcaAttr(
+        that: this,
+        encoding: encoding,
       );
 
   Future<void> setCardinality({required String cardinality, dynamic hint}) =>
@@ -184,6 +287,63 @@ class OcaAttr {
       bridge.setConformanceMethodOcaAttr(
         that: this,
         conformance: conformance,
+      );
+
+  Future<void> setLabel(
+          {required String lang, required String label, dynamic hint}) =>
+      bridge.setLabelMethodOcaAttr(
+        that: this,
+        lang: lang,
+        label: label,
+      );
+
+  Future<void> setInformation(
+          {required String lang, required String information, dynamic hint}) =>
+      bridge.setInformationMethodOcaAttr(
+        that: this,
+        lang: lang,
+        information: information,
+      );
+
+  Future<void> setEntryCodes(
+          {required List<String> entryCodes, dynamic hint}) =>
+      bridge.setEntryCodesMethodOcaAttr(
+        that: this,
+        entryCodes: entryCodes,
+      );
+
+  Future<void> setEntryCodesSai({required String sai, dynamic hint}) =>
+      bridge.setEntryCodesSaiMethodOcaAttr(
+        that: this,
+        sai: sai,
+      );
+
+  Future<void> setEntry(
+          {required String lang,
+          required List<List<String>> entries,
+          dynamic hint}) =>
+      bridge.setEntryMethodOcaAttr(
+        that: this,
+        lang: lang,
+        entries: entries,
+      );
+
+  Future<void> setUnitMetric({required OcaMetricUnit unit, dynamic hint}) =>
+      bridge.setUnitMetricMethodOcaAttr(
+        that: this,
+        unit: unit,
+      );
+
+  Future<void> setUnitImperial({required OcaImperialUnit unit, dynamic hint}) =>
+      bridge.setUnitImperialMethodOcaAttr(
+        that: this,
+        unit: unit,
+      );
+
+  Future<void> setFormat({required String format, dynamic hint}) =>
+      bridge.setFormatMethodOcaAttr(
+        that: this,
+        format: format,
       );
 }
 
@@ -214,16 +374,20 @@ class OcaBox {
   static Future<OcaBox> newOcaBox({required OcaDart bridge, dynamic hint}) =>
       bridge.newStaticMethodOcaBox(hint: hint);
 
-  Future<void> addMetaAttr(
-          {required String name, required String value, dynamic hint}) =>
-      bridge.addMetaAttrMethodOcaBox(
+  Future<void> addMeta(
+          {required String lang,
+          required String name,
+          required String value,
+          dynamic hint}) =>
+      bridge.addMetaMethodOcaBox(
         that: this,
+        lang: lang,
         name: name,
         value: value,
       );
 
-  Future<void> addAttr({required OcaAttr attr, dynamic hint}) =>
-      bridge.addAttrMethodOcaBox(
+  Future<void> addAttribute({required OcaAttr attr, dynamic hint}) =>
+      bridge.addAttributeMethodOcaBox(
         that: this,
         attr: attr,
       );
@@ -231,6 +395,18 @@ class OcaBox {
   Future<OcaBundle> generateBundle({dynamic hint}) =>
       bridge.generateBundleMethodOcaBox(
         that: this,
+      );
+
+  Future<void> addFormLayout({required String layout, dynamic hint}) =>
+      bridge.addFormLayoutMethodOcaBox(
+        that: this,
+        layout: layout,
+      );
+
+  Future<void> addCredentialLayout({required String layout, dynamic hint}) =>
+      bridge.addCredentialLayoutMethodOcaBox(
+        that: this,
+        layout: layout,
       );
 }
 
@@ -247,8 +423,17 @@ class OcaBundle {
         that: this,
       );
 
+  Future<String> said({dynamic hint}) => bridge.saidMethodOcaBundle(
+        that: this,
+      );
+
   Future<OcaCaptureBase> captureBase({dynamic hint}) =>
       bridge.captureBaseMethodOcaBundle(
+        that: this,
+      );
+
+  Future<List<OcaOverlay>> overlays({dynamic hint}) =>
+      bridge.overlaysMethodOcaBundle(
         that: this,
       );
 }
@@ -279,6 +464,53 @@ enum OcaEncoding {
   Iso8859_1,
 }
 
+enum OcaImperialUnit {
+  Pound,
+  Ounce,
+  Gallon,
+  Quart,
+  Pint,
+  FluidOunce,
+  Inch,
+  Foot,
+  Yard,
+  Mile,
+  Celsius,
+  Fahrenheit,
+  Kelvin,
+  Percent,
+  Count,
+  Other,
+}
+
+enum OcaMetricUnit {
+  Kilogram,
+  Gram,
+  Milligram,
+  Liter,
+  Milliliter,
+  Centimeter,
+  Millimeter,
+  Inch,
+  Foot,
+  Yard,
+  Mile,
+  Celsius,
+  Fahrenheit,
+  Kelvin,
+  Percent,
+  Count,
+  Other,
+}
+
+class OcaOverlay {
+  final MutexBoxOcaOverlayRaw field0;
+
+  OcaOverlay({
+    required this.field0,
+  });
+}
+
 class OcaDartImpl implements OcaDart {
   final OcaDartPlatform _platform;
   factory OcaDartImpl(ExternalLibrary dylib) =>
@@ -305,47 +537,49 @@ class OcaDartImpl implements OcaDart {
         argNames: [],
       );
 
-  Future<void> addMetaAttrMethodOcaBox(
+  Future<void> addMetaMethodOcaBox(
       {required OcaBox that,
+      required String lang,
       required String name,
       required String value,
       dynamic hint}) {
     var arg0 = _platform.api2wire_box_autoadd_oca_box(that);
-    var arg1 = _platform.api2wire_String(name);
-    var arg2 = _platform.api2wire_String(value);
+    var arg1 = _platform.api2wire_String(lang);
+    var arg2 = _platform.api2wire_String(name);
+    var arg3 = _platform.api2wire_String(value);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) => _platform.inner
-          .wire_add_meta_attr__method__OcaBox(port_, arg0, arg1, arg2),
+          .wire_add_meta__method__OcaBox(port_, arg0, arg1, arg2, arg3),
       parseSuccessData: _wire2api_unit,
-      constMeta: kAddMetaAttrMethodOcaBoxConstMeta,
-      argValues: [that, name, value],
+      constMeta: kAddMetaMethodOcaBoxConstMeta,
+      argValues: [that, lang, name, value],
       hint: hint,
     ));
   }
 
-  FlutterRustBridgeTaskConstMeta get kAddMetaAttrMethodOcaBoxConstMeta =>
+  FlutterRustBridgeTaskConstMeta get kAddMetaMethodOcaBoxConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
-        debugName: "add_meta_attr__method__OcaBox",
-        argNames: ["that", "name", "value"],
+        debugName: "add_meta__method__OcaBox",
+        argNames: ["that", "lang", "name", "value"],
       );
 
-  Future<void> addAttrMethodOcaBox(
+  Future<void> addAttributeMethodOcaBox(
       {required OcaBox that, required OcaAttr attr, dynamic hint}) {
     var arg0 = _platform.api2wire_box_autoadd_oca_box(that);
     var arg1 = _platform.api2wire_box_autoadd_oca_attr(attr);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) =>
-          _platform.inner.wire_add_attr__method__OcaBox(port_, arg0, arg1),
+          _platform.inner.wire_add_attribute__method__OcaBox(port_, arg0, arg1),
       parseSuccessData: _wire2api_unit,
-      constMeta: kAddAttrMethodOcaBoxConstMeta,
+      constMeta: kAddAttributeMethodOcaBoxConstMeta,
       argValues: [that, attr],
       hint: hint,
     ));
   }
 
-  FlutterRustBridgeTaskConstMeta get kAddAttrMethodOcaBoxConstMeta =>
+  FlutterRustBridgeTaskConstMeta get kAddAttributeMethodOcaBoxConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
-        debugName: "add_attr__method__OcaBox",
+        debugName: "add_attribute__method__OcaBox",
         argNames: ["that", "attr"],
       );
 
@@ -368,20 +602,55 @@ class OcaDartImpl implements OcaDart {
         argNames: ["that"],
       );
 
-  Future<OcaAttr> newStaticMethodOcaAttr(
-      {required String name,
-      required OcaAttrType attrType,
-      required OcaEncoding encoding,
-      dynamic hint}) {
-    var arg0 = _platform.api2wire_String(name);
-    var arg1 = api2wire_oca_attr_type(attrType);
-    var arg2 = api2wire_oca_encoding(encoding);
+  Future<void> addFormLayoutMethodOcaBox(
+      {required OcaBox that, required String layout, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_box(that);
+    var arg1 = _platform.api2wire_String(layout);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) => _platform.inner
-          .wire_new__static_method__OcaAttr(port_, arg0, arg1, arg2),
+          .wire_add_form_layout__method__OcaBox(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kAddFormLayoutMethodOcaBoxConstMeta,
+      argValues: [that, layout],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kAddFormLayoutMethodOcaBoxConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "add_form_layout__method__OcaBox",
+        argNames: ["that", "layout"],
+      );
+
+  Future<void> addCredentialLayoutMethodOcaBox(
+      {required OcaBox that, required String layout, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_box(that);
+    var arg1 = _platform.api2wire_String(layout);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_add_credential_layout__method__OcaBox(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kAddCredentialLayoutMethodOcaBoxConstMeta,
+      argValues: [that, layout],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta
+      get kAddCredentialLayoutMethodOcaBoxConstMeta =>
+          const FlutterRustBridgeTaskConstMeta(
+            debugName: "add_credential_layout__method__OcaBox",
+            argNames: ["that", "layout"],
+          );
+
+  Future<OcaAttr> newStaticMethodOcaAttr({required String name, dynamic hint}) {
+    var arg0 = _platform.api2wire_String(name);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_new__static_method__OcaAttr(port_, arg0),
       parseSuccessData: (d) => _wire2api_oca_attr(d),
       constMeta: kNewStaticMethodOcaAttrConstMeta,
-      argValues: [name, attrType, encoding],
+      argValues: [name],
       hint: hint,
     ));
   }
@@ -389,7 +658,27 @@ class OcaDartImpl implements OcaDart {
   FlutterRustBridgeTaskConstMeta get kNewStaticMethodOcaAttrConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "new__static_method__OcaAttr",
-        argNames: ["name", "attrType", "encoding"],
+        argNames: ["name"],
+      );
+
+  Future<void> setAttributeTypeMethodOcaAttr(
+      {required OcaAttr that, required OcaAttrType attrType, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    var arg1 = api2wire_oca_attr_type(attrType);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_set_attribute_type__method__OcaAttr(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetAttributeTypeMethodOcaAttrConstMeta,
+      argValues: [that, attrType],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetAttributeTypeMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_attribute_type__method__OcaAttr",
+        argNames: ["that", "attrType"],
       );
 
   Future<void> setFlaggedMethodOcaAttr({required OcaAttr that, dynamic hint}) {
@@ -408,6 +697,26 @@ class OcaDartImpl implements OcaDart {
       const FlutterRustBridgeTaskConstMeta(
         debugName: "set_flagged__method__OcaAttr",
         argNames: ["that"],
+      );
+
+  Future<void> setEncodingMethodOcaAttr(
+      {required OcaAttr that, required OcaEncoding encoding, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    var arg1 = api2wire_oca_encoding(encoding);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_set_encoding__method__OcaAttr(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetEncodingMethodOcaAttrConstMeta,
+      argValues: [that, encoding],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetEncodingMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_encoding__method__OcaAttr",
+        argNames: ["that", "encoding"],
       );
 
   Future<void> setCardinalityMethodOcaAttr(
@@ -450,6 +759,178 @@ class OcaDartImpl implements OcaDart {
         argNames: ["that", "conformance"],
       );
 
+  Future<void> setLabelMethodOcaAttr(
+      {required OcaAttr that,
+      required String lang,
+      required String label,
+      dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    var arg1 = _platform.api2wire_String(lang);
+    var arg2 = _platform.api2wire_String(label);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_set_label__method__OcaAttr(port_, arg0, arg1, arg2),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetLabelMethodOcaAttrConstMeta,
+      argValues: [that, lang, label],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetLabelMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_label__method__OcaAttr",
+        argNames: ["that", "lang", "label"],
+      );
+
+  Future<void> setInformationMethodOcaAttr(
+      {required OcaAttr that,
+      required String lang,
+      required String information,
+      dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    var arg1 = _platform.api2wire_String(lang);
+    var arg2 = _platform.api2wire_String(information);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_set_information__method__OcaAttr(port_, arg0, arg1, arg2),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetInformationMethodOcaAttrConstMeta,
+      argValues: [that, lang, information],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetInformationMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_information__method__OcaAttr",
+        argNames: ["that", "lang", "information"],
+      );
+
+  Future<void> setEntryCodesMethodOcaAttr(
+      {required OcaAttr that, required List<String> entryCodes, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    var arg1 = _platform.api2wire_StringList(entryCodes);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_set_entry_codes__method__OcaAttr(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetEntryCodesMethodOcaAttrConstMeta,
+      argValues: [that, entryCodes],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetEntryCodesMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_entry_codes__method__OcaAttr",
+        argNames: ["that", "entryCodes"],
+      );
+
+  Future<void> setEntryCodesSaiMethodOcaAttr(
+      {required OcaAttr that, required String sai, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    var arg1 = _platform.api2wire_String(sai);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_set_entry_codes_sai__method__OcaAttr(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetEntryCodesSaiMethodOcaAttrConstMeta,
+      argValues: [that, sai],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetEntryCodesSaiMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_entry_codes_sai__method__OcaAttr",
+        argNames: ["that", "sai"],
+      );
+
+  Future<void> setEntryMethodOcaAttr(
+      {required OcaAttr that,
+      required String lang,
+      required List<List<String>> entries,
+      dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    var arg1 = _platform.api2wire_String(lang);
+    var arg2 = _platform.api2wire_list_StringList(entries);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_set_entry__method__OcaAttr(port_, arg0, arg1, arg2),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetEntryMethodOcaAttrConstMeta,
+      argValues: [that, lang, entries],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetEntryMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_entry__method__OcaAttr",
+        argNames: ["that", "lang", "entries"],
+      );
+
+  Future<void> setUnitMetricMethodOcaAttr(
+      {required OcaAttr that, required OcaMetricUnit unit, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    var arg1 = api2wire_oca_metric_unit(unit);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_set_unit_metric__method__OcaAttr(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetUnitMetricMethodOcaAttrConstMeta,
+      argValues: [that, unit],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetUnitMetricMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_unit_metric__method__OcaAttr",
+        argNames: ["that", "unit"],
+      );
+
+  Future<void> setUnitImperialMethodOcaAttr(
+      {required OcaAttr that, required OcaImperialUnit unit, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    var arg1 = api2wire_oca_imperial_unit(unit);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner
+          .wire_set_unit_imperial__method__OcaAttr(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetUnitImperialMethodOcaAttrConstMeta,
+      argValues: [that, unit],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetUnitImperialMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_unit_imperial__method__OcaAttr",
+        argNames: ["that", "unit"],
+      );
+
+  Future<void> setFormatMethodOcaAttr(
+      {required OcaAttr that, required String format, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
+    var arg1 = _platform.api2wire_String(format);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_set_format__method__OcaAttr(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kSetFormatMethodOcaAttrConstMeta,
+      argValues: [that, format],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSetFormatMethodOcaAttrConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "set_format__method__OcaAttr",
+        argNames: ["that", "format"],
+      );
+
   Future<String> toJsonMethodOcaBundle(
       {required OcaBundle that, dynamic hint}) {
     var arg0 = _platform.api2wire_box_autoadd_oca_bundle(that);
@@ -469,6 +950,24 @@ class OcaDartImpl implements OcaDart {
         argNames: ["that"],
       );
 
+  Future<String> saidMethodOcaBundle({required OcaBundle that, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_bundle(that);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_said__method__OcaBundle(port_, arg0),
+      parseSuccessData: _wire2api_String,
+      constMeta: kSaidMethodOcaBundleConstMeta,
+      argValues: [that],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kSaidMethodOcaBundleConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "said__method__OcaBundle",
+        argNames: ["that"],
+      );
+
   Future<OcaCaptureBase> captureBaseMethodOcaBundle(
       {required OcaBundle that, dynamic hint}) {
     var arg0 = _platform.api2wire_box_autoadd_oca_bundle(that);
@@ -485,6 +984,25 @@ class OcaDartImpl implements OcaDart {
   FlutterRustBridgeTaskConstMeta get kCaptureBaseMethodOcaBundleConstMeta =>
       const FlutterRustBridgeTaskConstMeta(
         debugName: "capture_base__method__OcaBundle",
+        argNames: ["that"],
+      );
+
+  Future<List<OcaOverlay>> overlaysMethodOcaBundle(
+      {required OcaBundle that, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_bundle(that);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_overlays__method__OcaBundle(port_, arg0),
+      parseSuccessData: _wire2api_list_oca_overlay,
+      constMeta: kOverlaysMethodOcaBundleConstMeta,
+      argValues: [that],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kOverlaysMethodOcaBundleConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "overlays__method__OcaBundle",
         argNames: ["that"],
       );
 
@@ -527,6 +1045,13 @@ class OcaDartImpl implements OcaDart {
             argNames: ["that"],
           );
 
+  DropFnType get dropOpaqueMutexBoxOcaOverlayRaw =>
+      _platform.inner.drop_opaque_MutexBoxOcaOverlayRaw;
+  ShareFnType get shareOpaqueMutexBoxOcaOverlayRaw =>
+      _platform.inner.share_opaque_MutexBoxOcaOverlayRaw;
+  OpaqueTypeFinalizer get MutexBoxOcaOverlayRawFinalizer =>
+      _platform.MutexBoxOcaOverlayRawFinalizer;
+
   DropFnType get dropOpaqueMutexOcaAttrRaw =>
       _platform.inner.drop_opaque_MutexOcaAttrRaw;
   ShareFnType get shareOpaqueMutexOcaAttrRaw =>
@@ -560,6 +1085,10 @@ class OcaDartImpl implements OcaDart {
   }
 // Section: wire2api
 
+  MutexBoxOcaOverlayRaw _wire2api_MutexBoxOcaOverlayRaw(dynamic raw) {
+    return MutexBoxOcaOverlayRaw.fromRaw(raw[0], raw[1], this);
+  }
+
   MutexOcaAttrRaw _wire2api_MutexOcaAttrRaw(dynamic raw) {
     return MutexOcaAttrRaw.fromRaw(raw[0], raw[1], this);
   }
@@ -586,6 +1115,10 @@ class OcaDartImpl implements OcaDart {
 
   List<List<String>> _wire2api_list_StringList(dynamic raw) {
     return (raw as List<dynamic>).map(_wire2api_StringList).toList();
+  }
+
+  List<OcaOverlay> _wire2api_list_oca_overlay(dynamic raw) {
+    return (raw as List<dynamic>).map(_wire2api_oca_overlay).toList();
   }
 
   OcaAttr _wire2api_oca_attr(dynamic raw) {
@@ -628,6 +1161,15 @@ class OcaDartImpl implements OcaDart {
     );
   }
 
+  OcaOverlay _wire2api_oca_overlay(dynamic raw) {
+    final arr = raw as List<dynamic>;
+    if (arr.length != 1)
+      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
+    return OcaOverlay(
+      field0: _wire2api_MutexBoxOcaOverlayRaw(arr[0]),
+    );
+  }
+
   int _wire2api_u8(dynamic raw) {
     return raw as int;
   }
@@ -655,6 +1197,16 @@ int api2wire_oca_attr_type(OcaAttrType raw) {
 
 @protected
 int api2wire_oca_encoding(OcaEncoding raw) {
+  return api2wire_i32(raw.index);
+}
+
+@protected
+int api2wire_oca_imperial_unit(OcaImperialUnit raw) {
+  return api2wire_i32(raw.index);
+}
+
+@protected
+int api2wire_oca_metric_unit(OcaMetricUnit raw) {
   return api2wire_i32(raw.index);
 }
 
@@ -705,6 +1257,15 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
   }
 
   @protected
+  ffi.Pointer<wire_StringList> api2wire_StringList(List<String> raw) {
+    final ans = inner.new_StringList_0(raw.length);
+    for (var i = 0; i < raw.length; i++) {
+      ans.ref.ptr[i] = api2wire_String(raw[i]);
+    }
+    return ans;
+  }
+
+  @protected
   ffi.Pointer<wire_OcaAttr> api2wire_box_autoadd_oca_attr(OcaAttr raw) {
     final ptr = inner.new_box_autoadd_oca_attr_0();
     _api_fill_to_wire_oca_attr(raw, ptr.ref);
@@ -734,6 +1295,16 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
   }
 
   @protected
+  ffi.Pointer<wire_list_StringList> api2wire_list_StringList(
+      List<List<String>> raw) {
+    final ans = inner.new_list_StringList_0(raw.length);
+    for (var i = 0; i < raw.length; ++i) {
+      _api_fill_to_wire_StringList(raw[i], ans.ref.ptr[i]);
+    }
+    return ans;
+  }
+
+  @protected
   ffi.Pointer<wire_uint_8_list> api2wire_uint_8_list(Uint8List raw) {
     final ans = inner.new_uint_8_list_0(raw.length);
     ans.ref.ptr.asTypedList(raw.length).setAll(0, raw);
@@ -741,6 +1312,10 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
   }
 // Section: finalizer
 
+  late final OpaqueTypeFinalizer _MutexBoxOcaOverlayRawFinalizer =
+      OpaqueTypeFinalizer(inner._drop_opaque_MutexBoxOcaOverlayRawPtr);
+  OpaqueTypeFinalizer get MutexBoxOcaOverlayRawFinalizer =>
+      _MutexBoxOcaOverlayRawFinalizer;
   late final OpaqueTypeFinalizer _MutexOcaAttrRawFinalizer =
       OpaqueTypeFinalizer(inner._drop_opaque_MutexOcaAttrRawPtr);
   OpaqueTypeFinalizer get MutexOcaAttrRawFinalizer => _MutexOcaAttrRawFinalizer;
@@ -924,51 +1499,58 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
   late final _wire_new__static_method__OcaBox =
       _wire_new__static_method__OcaBoxPtr.asFunction<void Function(int)>();
 
-  void wire_add_meta_attr__method__OcaBox(
+  void wire_add_meta__method__OcaBox(
     int port_,
     ffi.Pointer<wire_OcaBox> that,
+    ffi.Pointer<wire_uint_8_list> lang,
     ffi.Pointer<wire_uint_8_list> name,
     ffi.Pointer<wire_uint_8_list> value,
   ) {
-    return _wire_add_meta_attr__method__OcaBox(
+    return _wire_add_meta__method__OcaBox(
       port_,
       that,
+      lang,
       name,
       value,
     );
   }
 
-  late final _wire_add_meta_attr__method__OcaBoxPtr = _lookup<
-          ffi.NativeFunction<
-              ffi.Void Function(
-                  ffi.Int64,
-                  ffi.Pointer<wire_OcaBox>,
-                  ffi.Pointer<wire_uint_8_list>,
-                  ffi.Pointer<wire_uint_8_list>)>>(
-      'wire_add_meta_attr__method__OcaBox');
-  late final _wire_add_meta_attr__method__OcaBox =
-      _wire_add_meta_attr__method__OcaBoxPtr.asFunction<
-          void Function(int, ffi.Pointer<wire_OcaBox>,
-              ffi.Pointer<wire_uint_8_list>, ffi.Pointer<wire_uint_8_list>)>();
+  late final _wire_add_meta__method__OcaBoxPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Int64,
+              ffi.Pointer<wire_OcaBox>,
+              ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<wire_uint_8_list>)>>('wire_add_meta__method__OcaBox');
+  late final _wire_add_meta__method__OcaBox =
+      _wire_add_meta__method__OcaBoxPtr.asFunction<
+          void Function(
+              int,
+              ffi.Pointer<wire_OcaBox>,
+              ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<wire_uint_8_list>)>();
 
-  void wire_add_attr__method__OcaBox(
+  void wire_add_attribute__method__OcaBox(
     int port_,
     ffi.Pointer<wire_OcaBox> that,
     ffi.Pointer<wire_OcaAttr> attr,
   ) {
-    return _wire_add_attr__method__OcaBox(
+    return _wire_add_attribute__method__OcaBox(
       port_,
       that,
       attr,
     );
   }
 
-  late final _wire_add_attr__method__OcaBoxPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaBox>,
-              ffi.Pointer<wire_OcaAttr>)>>('wire_add_attr__method__OcaBox');
-  late final _wire_add_attr__method__OcaBox =
-      _wire_add_attr__method__OcaBoxPtr.asFunction<
+  late final _wire_add_attribute__method__OcaBoxPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaBox>,
+                  ffi.Pointer<wire_OcaAttr>)>>(
+      'wire_add_attribute__method__OcaBox');
+  late final _wire_add_attribute__method__OcaBox =
+      _wire_add_attribute__method__OcaBoxPtr.asFunction<
           void Function(
               int, ffi.Pointer<wire_OcaBox>, ffi.Pointer<wire_OcaAttr>)>();
 
@@ -990,27 +1572,87 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
       _wire_generate_bundle__method__OcaBoxPtr
           .asFunction<void Function(int, ffi.Pointer<wire_OcaBox>)>();
 
+  void wire_add_form_layout__method__OcaBox(
+    int port_,
+    ffi.Pointer<wire_OcaBox> that,
+    ffi.Pointer<wire_uint_8_list> layout,
+  ) {
+    return _wire_add_form_layout__method__OcaBox(
+      port_,
+      that,
+      layout,
+    );
+  }
+
+  late final _wire_add_form_layout__method__OcaBoxPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaBox>,
+                  ffi.Pointer<wire_uint_8_list>)>>(
+      'wire_add_form_layout__method__OcaBox');
+  late final _wire_add_form_layout__method__OcaBox =
+      _wire_add_form_layout__method__OcaBoxPtr.asFunction<
+          void Function(
+              int, ffi.Pointer<wire_OcaBox>, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_add_credential_layout__method__OcaBox(
+    int port_,
+    ffi.Pointer<wire_OcaBox> that,
+    ffi.Pointer<wire_uint_8_list> layout,
+  ) {
+    return _wire_add_credential_layout__method__OcaBox(
+      port_,
+      that,
+      layout,
+    );
+  }
+
+  late final _wire_add_credential_layout__method__OcaBoxPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaBox>,
+                  ffi.Pointer<wire_uint_8_list>)>>(
+      'wire_add_credential_layout__method__OcaBox');
+  late final _wire_add_credential_layout__method__OcaBox =
+      _wire_add_credential_layout__method__OcaBoxPtr.asFunction<
+          void Function(
+              int, ffi.Pointer<wire_OcaBox>, ffi.Pointer<wire_uint_8_list>)>();
+
   void wire_new__static_method__OcaAttr(
     int port_,
     ffi.Pointer<wire_uint_8_list> name,
-    int attr_type,
-    int encoding,
   ) {
     return _wire_new__static_method__OcaAttr(
       port_,
       name,
-      attr_type,
-      encoding,
     );
   }
 
   late final _wire_new__static_method__OcaAttrPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_uint_8_list>, ffi.Int32,
-              ffi.Int32)>>('wire_new__static_method__OcaAttr');
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_uint_8_list>)>>(
+      'wire_new__static_method__OcaAttr');
   late final _wire_new__static_method__OcaAttr =
-      _wire_new__static_method__OcaAttrPtr.asFunction<
-          void Function(int, ffi.Pointer<wire_uint_8_list>, int, int)>();
+      _wire_new__static_method__OcaAttrPtr
+          .asFunction<void Function(int, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_set_attribute_type__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+    int attr_type,
+  ) {
+    return _wire_set_attribute_type__method__OcaAttr(
+      port_,
+      that,
+      attr_type,
+    );
+  }
+
+  late final _wire_set_attribute_type__method__OcaAttrPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaAttr>,
+              ffi.Int32)>>('wire_set_attribute_type__method__OcaAttr');
+  late final _wire_set_attribute_type__method__OcaAttr =
+      _wire_set_attribute_type__method__OcaAttrPtr
+          .asFunction<void Function(int, ffi.Pointer<wire_OcaAttr>, int)>();
 
   void wire_set_flagged__method__OcaAttr(
     int port_,
@@ -1029,6 +1671,26 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
   late final _wire_set_flagged__method__OcaAttr =
       _wire_set_flagged__method__OcaAttrPtr
           .asFunction<void Function(int, ffi.Pointer<wire_OcaAttr>)>();
+
+  void wire_set_encoding__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+    int encoding,
+  ) {
+    return _wire_set_encoding__method__OcaAttr(
+      port_,
+      that,
+      encoding,
+    );
+  }
+
+  late final _wire_set_encoding__method__OcaAttrPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaAttr>,
+              ffi.Int32)>>('wire_set_encoding__method__OcaAttr');
+  late final _wire_set_encoding__method__OcaAttr =
+      _wire_set_encoding__method__OcaAttrPtr
+          .asFunction<void Function(int, ffi.Pointer<wire_OcaAttr>, int)>();
 
   void wire_set_cardinality__method__OcaAttr(
     int port_,
@@ -1074,6 +1736,196 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
           void Function(
               int, ffi.Pointer<wire_OcaAttr>, ffi.Pointer<wire_uint_8_list>)>();
 
+  void wire_set_label__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+    ffi.Pointer<wire_uint_8_list> lang,
+    ffi.Pointer<wire_uint_8_list> label,
+  ) {
+    return _wire_set_label__method__OcaAttr(
+      port_,
+      that,
+      lang,
+      label,
+    );
+  }
+
+  late final _wire_set_label__method__OcaAttrPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(
+                  ffi.Int64,
+                  ffi.Pointer<wire_OcaAttr>,
+                  ffi.Pointer<wire_uint_8_list>,
+                  ffi.Pointer<wire_uint_8_list>)>>(
+      'wire_set_label__method__OcaAttr');
+  late final _wire_set_label__method__OcaAttr =
+      _wire_set_label__method__OcaAttrPtr.asFunction<
+          void Function(int, ffi.Pointer<wire_OcaAttr>,
+              ffi.Pointer<wire_uint_8_list>, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_set_information__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+    ffi.Pointer<wire_uint_8_list> lang,
+    ffi.Pointer<wire_uint_8_list> information,
+  ) {
+    return _wire_set_information__method__OcaAttr(
+      port_,
+      that,
+      lang,
+      information,
+    );
+  }
+
+  late final _wire_set_information__method__OcaAttrPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(
+                  ffi.Int64,
+                  ffi.Pointer<wire_OcaAttr>,
+                  ffi.Pointer<wire_uint_8_list>,
+                  ffi.Pointer<wire_uint_8_list>)>>(
+      'wire_set_information__method__OcaAttr');
+  late final _wire_set_information__method__OcaAttr =
+      _wire_set_information__method__OcaAttrPtr.asFunction<
+          void Function(int, ffi.Pointer<wire_OcaAttr>,
+              ffi.Pointer<wire_uint_8_list>, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_set_entry_codes__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+    ffi.Pointer<wire_StringList> entry_codes,
+  ) {
+    return _wire_set_entry_codes__method__OcaAttr(
+      port_,
+      that,
+      entry_codes,
+    );
+  }
+
+  late final _wire_set_entry_codes__method__OcaAttrPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaAttr>,
+                  ffi.Pointer<wire_StringList>)>>(
+      'wire_set_entry_codes__method__OcaAttr');
+  late final _wire_set_entry_codes__method__OcaAttr =
+      _wire_set_entry_codes__method__OcaAttrPtr.asFunction<
+          void Function(
+              int, ffi.Pointer<wire_OcaAttr>, ffi.Pointer<wire_StringList>)>();
+
+  void wire_set_entry_codes_sai__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+    ffi.Pointer<wire_uint_8_list> sai,
+  ) {
+    return _wire_set_entry_codes_sai__method__OcaAttr(
+      port_,
+      that,
+      sai,
+    );
+  }
+
+  late final _wire_set_entry_codes_sai__method__OcaAttrPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaAttr>,
+                  ffi.Pointer<wire_uint_8_list>)>>(
+      'wire_set_entry_codes_sai__method__OcaAttr');
+  late final _wire_set_entry_codes_sai__method__OcaAttr =
+      _wire_set_entry_codes_sai__method__OcaAttrPtr.asFunction<
+          void Function(
+              int, ffi.Pointer<wire_OcaAttr>, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_set_entry__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+    ffi.Pointer<wire_uint_8_list> lang,
+    ffi.Pointer<wire_list_StringList> entries,
+  ) {
+    return _wire_set_entry__method__OcaAttr(
+      port_,
+      that,
+      lang,
+      entries,
+    );
+  }
+
+  late final _wire_set_entry__method__OcaAttrPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(
+                  ffi.Int64,
+                  ffi.Pointer<wire_OcaAttr>,
+                  ffi.Pointer<wire_uint_8_list>,
+                  ffi.Pointer<wire_list_StringList>)>>(
+      'wire_set_entry__method__OcaAttr');
+  late final _wire_set_entry__method__OcaAttr =
+      _wire_set_entry__method__OcaAttrPtr.asFunction<
+          void Function(
+              int,
+              ffi.Pointer<wire_OcaAttr>,
+              ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<wire_list_StringList>)>();
+
+  void wire_set_unit_metric__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+    int unit,
+  ) {
+    return _wire_set_unit_metric__method__OcaAttr(
+      port_,
+      that,
+      unit,
+    );
+  }
+
+  late final _wire_set_unit_metric__method__OcaAttrPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaAttr>,
+              ffi.Int32)>>('wire_set_unit_metric__method__OcaAttr');
+  late final _wire_set_unit_metric__method__OcaAttr =
+      _wire_set_unit_metric__method__OcaAttrPtr
+          .asFunction<void Function(int, ffi.Pointer<wire_OcaAttr>, int)>();
+
+  void wire_set_unit_imperial__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+    int unit,
+  ) {
+    return _wire_set_unit_imperial__method__OcaAttr(
+      port_,
+      that,
+      unit,
+    );
+  }
+
+  late final _wire_set_unit_imperial__method__OcaAttrPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaAttr>,
+              ffi.Int32)>>('wire_set_unit_imperial__method__OcaAttr');
+  late final _wire_set_unit_imperial__method__OcaAttr =
+      _wire_set_unit_imperial__method__OcaAttrPtr
+          .asFunction<void Function(int, ffi.Pointer<wire_OcaAttr>, int)>();
+
+  void wire_set_format__method__OcaAttr(
+    int port_,
+    ffi.Pointer<wire_OcaAttr> that,
+    ffi.Pointer<wire_uint_8_list> format,
+  ) {
+    return _wire_set_format__method__OcaAttr(
+      port_,
+      that,
+      format,
+    );
+  }
+
+  late final _wire_set_format__method__OcaAttrPtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaAttr>,
+                  ffi.Pointer<wire_uint_8_list>)>>(
+      'wire_set_format__method__OcaAttr');
+  late final _wire_set_format__method__OcaAttr =
+      _wire_set_format__method__OcaAttrPtr.asFunction<
+          void Function(
+              int, ffi.Pointer<wire_OcaAttr>, ffi.Pointer<wire_uint_8_list>)>();
+
   void wire_to_json__method__OcaBundle(
     int port_,
     ffi.Pointer<wire_OcaBundle> that,
@@ -1092,6 +1944,23 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
       _wire_to_json__method__OcaBundlePtr
           .asFunction<void Function(int, ffi.Pointer<wire_OcaBundle>)>();
 
+  void wire_said__method__OcaBundle(
+    int port_,
+    ffi.Pointer<wire_OcaBundle> that,
+  ) {
+    return _wire_said__method__OcaBundle(
+      port_,
+      that,
+    );
+  }
+
+  late final _wire_said__method__OcaBundlePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64,
+              ffi.Pointer<wire_OcaBundle>)>>('wire_said__method__OcaBundle');
+  late final _wire_said__method__OcaBundle = _wire_said__method__OcaBundlePtr
+      .asFunction<void Function(int, ffi.Pointer<wire_OcaBundle>)>();
+
   void wire_capture_base__method__OcaBundle(
     int port_,
     ffi.Pointer<wire_OcaBundle> that,
@@ -1108,6 +1977,24 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
       'wire_capture_base__method__OcaBundle');
   late final _wire_capture_base__method__OcaBundle =
       _wire_capture_base__method__OcaBundlePtr
+          .asFunction<void Function(int, ffi.Pointer<wire_OcaBundle>)>();
+
+  void wire_overlays__method__OcaBundle(
+    int port_,
+    ffi.Pointer<wire_OcaBundle> that,
+  ) {
+    return _wire_overlays__method__OcaBundle(
+      port_,
+      that,
+    );
+  }
+
+  late final _wire_overlays__method__OcaBundlePtr = _lookup<
+          ffi.NativeFunction<
+              ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaBundle>)>>(
+      'wire_overlays__method__OcaBundle');
+  late final _wire_overlays__method__OcaBundle =
+      _wire_overlays__method__OcaBundlePtr
           .asFunction<void Function(int, ffi.Pointer<wire_OcaBundle>)>();
 
   void wire_attributes__method__OcaCaptureBase(
@@ -1186,6 +2073,20 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
   late final _new_MutexOcaCaptureBaseRaw = _new_MutexOcaCaptureBaseRawPtr
       .asFunction<wire_MutexOcaCaptureBaseRaw Function()>();
 
+  ffi.Pointer<wire_StringList> new_StringList_0(
+    int len,
+  ) {
+    return _new_StringList_0(
+      len,
+    );
+  }
+
+  late final _new_StringList_0Ptr = _lookup<
+          ffi.NativeFunction<ffi.Pointer<wire_StringList> Function(ffi.Int32)>>(
+      'new_StringList_0');
+  late final _new_StringList_0 = _new_StringList_0Ptr
+      .asFunction<ffi.Pointer<wire_StringList> Function(int)>();
+
   ffi.Pointer<wire_OcaAttr> new_box_autoadd_oca_attr_0() {
     return _new_box_autoadd_oca_attr_0();
   }
@@ -1227,6 +2128,21 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
       _new_box_autoadd_oca_capture_base_0Ptr
           .asFunction<ffi.Pointer<wire_OcaCaptureBase> Function()>();
 
+  ffi.Pointer<wire_list_StringList> new_list_StringList_0(
+    int len,
+  ) {
+    return _new_list_StringList_0(
+      len,
+    );
+  }
+
+  late final _new_list_StringList_0Ptr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<wire_list_StringList> Function(
+              ffi.Int32)>>('new_list_StringList_0');
+  late final _new_list_StringList_0 = _new_list_StringList_0Ptr
+      .asFunction<ffi.Pointer<wire_list_StringList> Function(int)>();
+
   ffi.Pointer<wire_uint_8_list> new_uint_8_list_0(
     int len,
   ) {
@@ -1241,6 +2157,37 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
               ffi.Int32)>>('new_uint_8_list_0');
   late final _new_uint_8_list_0 = _new_uint_8_list_0Ptr
       .asFunction<ffi.Pointer<wire_uint_8_list> Function(int)>();
+
+  void drop_opaque_MutexBoxOcaOverlayRaw(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _drop_opaque_MutexBoxOcaOverlayRaw(
+      ptr,
+    );
+  }
+
+  late final _drop_opaque_MutexBoxOcaOverlayRawPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'drop_opaque_MutexBoxOcaOverlayRaw');
+  late final _drop_opaque_MutexBoxOcaOverlayRaw =
+      _drop_opaque_MutexBoxOcaOverlayRawPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Void> share_opaque_MutexBoxOcaOverlayRaw(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _share_opaque_MutexBoxOcaOverlayRaw(
+      ptr,
+    );
+  }
+
+  late final _share_opaque_MutexBoxOcaOverlayRawPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Void> Function(
+              ffi.Pointer<ffi.Void>)>>('share_opaque_MutexBoxOcaOverlayRaw');
+  late final _share_opaque_MutexBoxOcaOverlayRaw =
+      _share_opaque_MutexBoxOcaOverlayRawPtr
+          .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
 
   void drop_opaque_MutexOcaAttrRaw(
     ffi.Pointer<ffi.Void> ptr,
@@ -1399,6 +2346,20 @@ class wire_MutexOcaAttrRaw extends ffi.Struct {
 
 class wire_OcaAttr extends ffi.Struct {
   external wire_MutexOcaAttrRaw field0;
+}
+
+class wire_StringList extends ffi.Struct {
+  external ffi.Pointer<ffi.Pointer<wire_uint_8_list>> ptr;
+
+  @ffi.Int32()
+  external int len;
+}
+
+class wire_list_StringList extends ffi.Struct {
+  external ffi.Pointer<wire_StringList> ptr;
+
+  @ffi.Int32()
+  external int len;
 }
 
 class wire_MutexOcaBundleRaw extends ffi.Struct {
