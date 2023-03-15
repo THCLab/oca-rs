@@ -1,11 +1,19 @@
-use std::sync::Mutex;
+pub use std::sync::Mutex;
 
+use anyhow::{bail, Context, Result};
 use flutter_rust_bridge::{frb, RustOpaque};
 pub use oca_rs::state::{
     attribute::{Attribute as OcaAttrRaw, AttributeType as OcaAttrType},
     encoding::Encoding as OcaEncoding,
+    entries::EntriesElement,
+    entry_codes::EntryCodes,
     oca::{
-        capture_base::CaptureBase as OcaCaptureBaseRaw, overlay::Overlay as OcaOverlayRaw,
+        capture_base::CaptureBase as OcaCaptureBaseRaw,
+        overlay::{
+            self,
+            unit::{ImperialUnit as OcaImperialUnit, MetricUnit as OcaMetricUnit},
+            Overlay as OcaOverlayRaw,
+        },
         OCABox as OcaBoxRaw, OCABundle as OcaBundleRaw,
     },
 };
@@ -17,12 +25,14 @@ impl OcaBox {
         OcaBox(RustOpaque::new(Mutex::new(OcaBoxRaw::new())))
     }
 
-    pub fn add_meta_attr(&self, name: String, value: String) {
+    pub fn add_meta(&self, lang: String, name: String, value: String) -> Result<()> {
         let mut oca_box = self.0.lock().unwrap();
-        oca_box.add_meta_attribute(name, value);
+        let lang = lang.parse().context("Invalid language")?;
+        overlay::meta::Metas::add_meta(&mut *oca_box, lang, name, value);
+        Ok(())
     }
 
-    pub fn add_attr(&self, attr: OcaAttr) {
+    pub fn add_attribute(&self, attr: OcaAttr) {
         let mut oca_box = self.0.lock().unwrap();
         oca_box.add_attribute(attr.0.lock().unwrap().clone());
     }
@@ -32,16 +42,29 @@ impl OcaBox {
         let oca_bundle = oca_box.generate_bundle();
         OcaBundle(RustOpaque::new(Mutex::new(oca_bundle)))
     }
+
+    pub fn add_form_layout(&self, layout: String) {
+        let mut oca_box = self.0.lock().unwrap();
+        overlay::form_layout::FormLayouts::add_form_layout(&mut *oca_box, layout);
+    }
+
+    pub fn add_credential_layout(&self, layout: String) {
+        let mut oca_box = self.0.lock().unwrap();
+        overlay::credential_layout::CredentialLayouts::add_credential_layout(&mut *oca_box, layout);
+    }
 }
 
 pub struct OcaAttr(pub RustOpaque<Mutex<OcaAttrRaw>>);
 
 impl OcaAttr {
-    pub fn new(name: String, attr_type: OcaAttrType, encoding: OcaEncoding) -> OcaAttr {
+    pub fn new(name: String) -> OcaAttr {
         let mut attr = OcaAttrRaw::new(name);
-        attr.set_attribute_type(attr_type);
-        // attr.set_encoding(encoding);
         OcaAttr(RustOpaque::new(Mutex::new(attr)))
+    }
+
+    pub fn set_attribute_type(&self, attr_type: OcaAttrType) {
+        let mut attr = self.0.lock().unwrap();
+        attr.set_attribute_type(attr_type);
     }
 
     pub fn set_flagged(&self) {
@@ -49,14 +72,90 @@ impl OcaAttr {
         attr.set_flagged();
     }
 
+    pub fn set_encoding(&self, encoding: OcaEncoding) {
+        let mut attr = self.0.lock().unwrap();
+        overlay::character_encoding::CharacterEncodings::set_encoding(&mut *attr, encoding);
+    }
+
     pub fn set_cardinality(&self, cardinality: String) {
         let mut attr = self.0.lock().unwrap();
-        // attr.set_cardinality(cardinality);
+        overlay::cardinality::Cardinalitys::set_cardinality(&mut *attr, cardinality);
     }
 
     pub fn set_conformance(&self, conformance: String) {
         let mut attr = self.0.lock().unwrap();
-        // attr.set_conformance(conformance);
+        overlay::conformance::Conformances::set_conformance(&mut *attr, conformance);
+    }
+
+    pub fn set_label(&self, lang: String, label: String) -> Result<()> {
+        let mut attr = self.0.lock().unwrap();
+        let lang = lang.parse().context("Invalid language")?;
+        overlay::label::Labels::set_label(&mut *attr, lang, label);
+        Ok(())
+    }
+
+    pub fn set_information(&self, lang: String, information: String) -> Result<()> {
+        let mut attr = self.0.lock().unwrap();
+        let lang = lang.parse().context("Invalid language")?;
+        overlay::information::Information::set_information(&mut *attr, lang, information);
+        Ok(())
+    }
+
+    pub fn set_entry_codes(&self, entry_codes: Vec<String>) {
+        let mut attr = self.0.lock().unwrap();
+        overlay::entry_code::EntryCodes::set_entry_codes(
+            &mut *attr,
+            EntryCodes::Array(entry_codes),
+        );
+    }
+
+    pub fn set_entry_codes_sai(&self, sai: String) {
+        let mut attr = self.0.lock().unwrap();
+        overlay::entry_code::EntryCodes::set_entry_codes(&mut *attr, EntryCodes::Sai(sai));
+    }
+
+    pub fn set_entry(&self, lang: String, entries: Vec<Vec<String>>) -> Result<()> {
+        let mut attr = self.0.lock().unwrap();
+        let lang = lang.parse().context("Invalid language")?;
+        let entries = entries
+            .into_iter()
+            .map(|entry| {
+                if let [key, value] = entry.as_slice() {
+                    Ok((key.clone(), value.clone()))
+                } else {
+                    bail!("Invalid entry")
+                }
+            })
+            .collect::<Result<_>>()?;
+        overlay::entry::Entries::set_entry(&mut *attr, lang, EntriesElement::Object(entries));
+        Ok(())
+    }
+
+    pub fn set_unit_metric(&self, unit: OcaMetricUnit) {
+        let mut attr = self.0.lock().unwrap();
+        overlay::unit::Unit::set_unit(
+            &mut *attr,
+            overlay::unit::AttributeUnit {
+                measurement_system: overlay::unit::MeasurementSystem::Metric,
+                unit: overlay::unit::MeasurementUnit::Metric(unit),
+            },
+        );
+    }
+
+    pub fn set_unit_imperial(&self, unit: OcaImperialUnit) {
+        let mut attr = self.0.lock().unwrap();
+        overlay::unit::Unit::set_unit(
+            &mut *attr,
+            overlay::unit::AttributeUnit {
+                measurement_system: overlay::unit::MeasurementSystem::Imperial,
+                unit: overlay::unit::MeasurementUnit::Imperial(unit),
+            },
+        );
+    }
+
+    pub fn set_format(&self, format: String) {
+        let mut attr = self.0.lock().unwrap();
+        overlay::format::Formats::set_format(&mut *attr, format);
     }
 }
 
@@ -83,6 +182,47 @@ pub enum _OcaEncoding {
     Iso8859_1,
 }
 
+#[frb(mirror(OcaMetricUnit))]
+pub enum _OcaMetricUnit {
+    Kilogram,
+    Gram,
+    Milligram,
+    Liter,
+    Milliliter,
+    Centimeter,
+    Millimeter,
+    Inch,
+    Foot,
+    Yard,
+    Mile,
+    Celsius,
+    Fahrenheit,
+    Kelvin,
+    Percent,
+    Count,
+    Other,
+}
+
+#[frb(mirror(OcaImperialUnit))]
+pub enum _OcaImperialUnit {
+    Pound,
+    Ounce,
+    Gallon,
+    Quart,
+    Pint,
+    FluidOunce,
+    Inch,
+    Foot,
+    Yard,
+    Mile,
+    Celsius,
+    Fahrenheit,
+    Kelvin,
+    Percent,
+    Count,
+    Other,
+}
+
 pub struct OcaBundle(pub RustOpaque<Mutex<OcaBundleRaw>>);
 
 impl OcaBundle {
@@ -91,9 +231,27 @@ impl OcaBundle {
         serde_json::to_string_pretty(&*oca_bundle).unwrap()
     }
 
+    pub fn said(&self) -> String {
+        let oca_bundle = self.0.lock().unwrap();
+        oca_bundle.said.clone()
+    }
+
     pub fn capture_base(&self) -> OcaCaptureBase {
         let oca_bundle = self.0.lock().unwrap();
         OcaCaptureBase(RustOpaque::new(Mutex::new(oca_bundle.capture_base.clone())))
+    }
+
+    pub fn overlays(&self) -> Vec<OcaOverlay> {
+        let oca_bundle = self.0.lock().unwrap();
+        oca_bundle
+            .overlays
+            .iter()
+            .map(|overlay| {
+                OcaOverlay(RustOpaque::new(Mutex::new(oca_rs::dyn_clone::clone_box(
+                    &**overlay,
+                ))))
+            })
+            .collect()
     }
 }
 
@@ -114,3 +272,5 @@ impl OcaCaptureBase {
         capture_base.flagged_attributes.clone()
     }
 }
+
+pub struct OcaOverlay(pub RustOpaque<Mutex<Box<dyn OcaOverlayRaw>>>);
