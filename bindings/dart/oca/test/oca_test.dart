@@ -34,10 +34,11 @@ void main() {
       ..setLabel(lang: "en", label: "Name")
       ..setInformation(lang: "en", information: "name information")
       ..setEntryCodes(entryCodes: ["a", "b"])
-      ..setEntry(lang: "en", entries: [
-        ["a", "Option A"],
-        ["b", "Option B"]
-      ])
+      ..setEntry(
+          lang: "en",
+          entries: await OcaMap.newOcaMap(bridge: api)
+            ..insert(key: "a", value: "Option A")
+            ..insert(key: "b", value: "Option B"))
       ..setUnitMetric(unit: OcaMetricUnit.Kilogram)
       ..setFormat(format: "^[a-zA-Z]*\$");
     await ocaBox.addAttribute(attr: attr1);
@@ -51,10 +52,11 @@ void main() {
       ..setLabel(lang: "en", label: "Age")
       ..setInformation(lang: "en", information: "age information")
       ..setEntryCodes(entryCodes: ["a", "b"])
-      ..setEntry(lang: "en", entries: [
-        ["a", "Option A"],
-        ["b", "Option B"]
-      ])
+      ..setEntry(
+          lang: "en",
+          entries: await OcaMap.newOcaMap(bridge: api)
+            ..insert(key: "a", value: "Option A")
+            ..insert(key: "b", value: "Option B"))
       ..setUnitMetric(unit: OcaMetricUnit.Kilogram)
       ..setFormat(format: "^[a-zA-Z]*\$");
     await ocaBox.addAttribute(attr: attr2);
@@ -64,8 +66,9 @@ void main() {
     print(await ocaBundle.toJson());
     print(await ocaBundle.said());
     final capBase = await ocaBundle.captureBase();
-    expect((await capBase.attributes()).length, 2);
+    final attrs = await capBase.attributes();
+    expect((await attrs.getKeys()).length, 2);
     expect((await capBase.flaggedAttributes()).length, 2);
-    expect((await capBase.overlays()).length, 12);
+    expect((await ocaBundle.overlays()).length, 12);
   });
 }

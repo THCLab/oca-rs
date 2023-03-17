@@ -307,7 +307,7 @@ fn wire_set_entry__method__OcaAttr_impl(
     port_: MessagePort,
     that: impl Wire2Api<OcaAttr> + UnwindSafe,
     lang: impl Wire2Api<String> + UnwindSafe,
-    entries: impl Wire2Api<Vec<Vec<String>>> + UnwindSafe,
+    entries: impl Wire2Api<OcaMap> + UnwindSafe,
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap(
         WrapInfo {
@@ -473,6 +473,88 @@ fn wire_flagged_attributes__method__OcaCaptureBase_impl(
         },
     )
 }
+fn wire_new__static_method__OcaMap_impl(port_: MessagePort) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "new__static_method__OcaMap",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || move |task_callback| Ok(OcaMap::new()),
+    )
+}
+fn wire_insert__method__OcaMap_impl(
+    port_: MessagePort,
+    that: impl Wire2Api<OcaMap> + UnwindSafe,
+    key: impl Wire2Api<String> + UnwindSafe,
+    value: impl Wire2Api<String> + UnwindSafe,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "insert__method__OcaMap",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_that = that.wire2api();
+            let api_key = key.wire2api();
+            let api_value = value.wire2api();
+            move |task_callback| Ok(OcaMap::insert(&api_that, api_key, api_value))
+        },
+    )
+}
+fn wire_get__method__OcaMap_impl(
+    port_: MessagePort,
+    that: impl Wire2Api<OcaMap> + UnwindSafe,
+    key: impl Wire2Api<String> + UnwindSafe,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "get__method__OcaMap",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_that = that.wire2api();
+            let api_key = key.wire2api();
+            move |task_callback| Ok(OcaMap::get(&api_that, api_key))
+        },
+    )
+}
+fn wire_remove__method__OcaMap_impl(
+    port_: MessagePort,
+    that: impl Wire2Api<OcaMap> + UnwindSafe,
+    key: impl Wire2Api<String> + UnwindSafe,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "remove__method__OcaMap",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_that = that.wire2api();
+            let api_key = key.wire2api();
+            move |task_callback| Ok(OcaMap::remove(&api_that, api_key))
+        },
+    )
+}
+fn wire_get_keys__method__OcaMap_impl(
+    port_: MessagePort,
+    that: impl Wire2Api<OcaMap> + UnwindSafe,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "get_keys__method__OcaMap",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_that = that.wire2api();
+            move |task_callback| Ok(OcaMap::get_keys(&api_that))
+        },
+    )
+}
 // Section: wrapper structs
 
 // Section: static checks
@@ -555,6 +637,7 @@ impl Wire2Api<OcaImperialUnit> for i32 {
         }
     }
 }
+
 impl Wire2Api<OcaMetricUnit> for i32 {
     fn wire2api(self) -> OcaMetricUnit {
         match self {
@@ -614,6 +697,13 @@ impl support::IntoDart for OcaCaptureBase {
     }
 }
 impl support::IntoDartExceptPrimitive for OcaCaptureBase {}
+
+impl support::IntoDart for OcaMap {
+    fn into_dart(self) -> support::DartAbi {
+        vec![self.0.into_dart()].into_dart()
+    }
+}
+impl support::IntoDartExceptPrimitive for OcaMap {}
 
 impl support::IntoDart for OcaOverlay {
     fn into_dart(self) -> support::DartAbi {

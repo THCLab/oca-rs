@@ -274,7 +274,7 @@ impl OCABox {
     }
 }
 
-pub type DynOverlay = Box<dyn Overlay + Send>;
+pub type DynOverlay = Box<dyn Overlay + Send + Sync + 'static>;
 
 impl<'de> Deserialize<'de> for DynOverlay {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

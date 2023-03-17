@@ -100,7 +100,7 @@ abstract class OcaDart {
   Future<void> setEntryMethodOcaAttr(
       {required OcaAttr that,
       required String lang,
-      required List<List<String>> entries,
+      required OcaMap entries,
       dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kSetEntryMethodOcaAttrConstMeta;
@@ -138,7 +138,7 @@ abstract class OcaDart {
 
   FlutterRustBridgeTaskConstMeta get kOverlaysMethodOcaBundleConstMeta;
 
-  Future<List<List<String>>> attributesMethodOcaCaptureBase(
+  Future<OcaMap> attributesMethodOcaCaptureBase(
       {required OcaCaptureBase that, dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kAttributesMethodOcaCaptureBaseConstMeta;
@@ -149,9 +149,36 @@ abstract class OcaDart {
   FlutterRustBridgeTaskConstMeta
       get kFlaggedAttributesMethodOcaCaptureBaseConstMeta;
 
-  DropFnType get dropOpaqueMutexBoxOcaOverlayRaw;
-  ShareFnType get shareOpaqueMutexBoxOcaOverlayRaw;
-  OpaqueTypeFinalizer get MutexBoxOcaOverlayRawFinalizer;
+  Future<OcaMap> newStaticMethodOcaMap({dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kNewStaticMethodOcaMapConstMeta;
+
+  Future<void> insertMethodOcaMap(
+      {required OcaMap that,
+      required String key,
+      required String value,
+      dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kInsertMethodOcaMapConstMeta;
+
+  Future<String?> getMethodOcaMap(
+      {required OcaMap that, required String key, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kGetMethodOcaMapConstMeta;
+
+  Future<void> removeMethodOcaMap(
+      {required OcaMap that, required String key, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kRemoveMethodOcaMapConstMeta;
+
+  Future<List<String>> getKeysMethodOcaMap(
+      {required OcaMap that, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kGetKeysMethodOcaMapConstMeta;
+
+  DropFnType get dropOpaqueMutexDynOverlay;
+  ShareFnType get shareOpaqueMutexDynOverlay;
+  OpaqueTypeFinalizer get MutexDynOverlayFinalizer;
 
   DropFnType get dropOpaqueMutexOcaAttrRaw;
   ShareFnType get shareOpaqueMutexOcaAttrRaw;
@@ -168,22 +195,25 @@ abstract class OcaDart {
   DropFnType get dropOpaqueMutexOcaCaptureBaseRaw;
   ShareFnType get shareOpaqueMutexOcaCaptureBaseRaw;
   OpaqueTypeFinalizer get MutexOcaCaptureBaseRawFinalizer;
+
+  DropFnType get dropOpaqueMutexStringMap;
+  ShareFnType get shareOpaqueMutexStringMap;
+  OpaqueTypeFinalizer get MutexStringMapFinalizer;
 }
 
 @sealed
-class MutexBoxOcaOverlayRaw extends FrbOpaque {
+class MutexDynOverlay extends FrbOpaque {
   final OcaDart bridge;
-  MutexBoxOcaOverlayRaw.fromRaw(int ptr, int size, this.bridge)
+  MutexDynOverlay.fromRaw(int ptr, int size, this.bridge)
       : super.unsafe(ptr, size);
   @override
-  DropFnType get dropFn => bridge.dropOpaqueMutexBoxOcaOverlayRaw;
+  DropFnType get dropFn => bridge.dropOpaqueMutexDynOverlay;
 
   @override
-  ShareFnType get shareFn => bridge.shareOpaqueMutexBoxOcaOverlayRaw;
+  ShareFnType get shareFn => bridge.shareOpaqueMutexDynOverlay;
 
   @override
-  OpaqueTypeFinalizer get staticFinalizer =>
-      bridge.MutexBoxOcaOverlayRawFinalizer;
+  OpaqueTypeFinalizer get staticFinalizer => bridge.MutexDynOverlayFinalizer;
 }
 
 @sealed
@@ -245,6 +275,21 @@ class MutexOcaCaptureBaseRaw extends FrbOpaque {
   @override
   OpaqueTypeFinalizer get staticFinalizer =>
       bridge.MutexOcaCaptureBaseRawFinalizer;
+}
+
+@sealed
+class MutexStringMap extends FrbOpaque {
+  final OcaDart bridge;
+  MutexStringMap.fromRaw(int ptr, int size, this.bridge)
+      : super.unsafe(ptr, size);
+  @override
+  DropFnType get dropFn => bridge.dropOpaqueMutexStringMap;
+
+  @override
+  ShareFnType get shareFn => bridge.shareOpaqueMutexStringMap;
+
+  @override
+  OpaqueTypeFinalizer get staticFinalizer => bridge.MutexStringMapFinalizer;
 }
 
 class OcaAttr {
@@ -319,9 +364,7 @@ class OcaAttr {
       );
 
   Future<void> setEntry(
-          {required String lang,
-          required List<List<String>> entries,
-          dynamic hint}) =>
+          {required String lang, required OcaMap entries, dynamic hint}) =>
       bridge.setEntryMethodOcaAttr(
         that: this,
         lang: lang,
@@ -447,7 +490,7 @@ class OcaCaptureBase {
     required this.field0,
   });
 
-  Future<List<List<String>>> attributes({dynamic hint}) =>
+  Future<OcaMap> attributes({dynamic hint}) =>
       bridge.attributesMethodOcaCaptureBase(
         that: this,
       );
@@ -483,6 +526,43 @@ enum OcaImperialUnit {
   Other,
 }
 
+class OcaMap {
+  final OcaDart bridge;
+  final MutexStringMap field0;
+
+  OcaMap({
+    required this.bridge,
+    required this.field0,
+  });
+
+  static Future<OcaMap> newOcaMap({required OcaDart bridge, dynamic hint}) =>
+      bridge.newStaticMethodOcaMap(hint: hint);
+
+  Future<void> insert(
+          {required String key, required String value, dynamic hint}) =>
+      bridge.insertMethodOcaMap(
+        that: this,
+        key: key,
+        value: value,
+      );
+
+  Future<String?> get({required String key, dynamic hint}) =>
+      bridge.getMethodOcaMap(
+        that: this,
+        key: key,
+      );
+
+  Future<void> remove({required String key, dynamic hint}) =>
+      bridge.removeMethodOcaMap(
+        that: this,
+        key: key,
+      );
+
+  Future<List<String>> getKeys({dynamic hint}) => bridge.getKeysMethodOcaMap(
+        that: this,
+      );
+}
+
 enum OcaMetricUnit {
   Kilogram,
   Gram,
@@ -504,7 +584,7 @@ enum OcaMetricUnit {
 }
 
 class OcaOverlay {
-  final MutexBoxOcaOverlayRaw field0;
+  final MutexDynOverlay field0;
 
   OcaOverlay({
     required this.field0,
@@ -850,11 +930,11 @@ class OcaDartImpl implements OcaDart {
   Future<void> setEntryMethodOcaAttr(
       {required OcaAttr that,
       required String lang,
-      required List<List<String>> entries,
+      required OcaMap entries,
       dynamic hint}) {
     var arg0 = _platform.api2wire_box_autoadd_oca_attr(that);
     var arg1 = _platform.api2wire_String(lang);
-    var arg2 = _platform.api2wire_list_StringList(entries);
+    var arg2 = _platform.api2wire_box_autoadd_oca_map(entries);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) => _platform.inner
           .wire_set_entry__method__OcaAttr(port_, arg0, arg1, arg2),
@@ -1006,13 +1086,13 @@ class OcaDartImpl implements OcaDart {
         argNames: ["that"],
       );
 
-  Future<List<List<String>>> attributesMethodOcaCaptureBase(
+  Future<OcaMap> attributesMethodOcaCaptureBase(
       {required OcaCaptureBase that, dynamic hint}) {
     var arg0 = _platform.api2wire_box_autoadd_oca_capture_base(that);
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) =>
           _platform.inner.wire_attributes__method__OcaCaptureBase(port_, arg0),
-      parseSuccessData: _wire2api_list_StringList,
+      parseSuccessData: (d) => _wire2api_oca_map(d),
       constMeta: kAttributesMethodOcaCaptureBaseConstMeta,
       argValues: [that],
       hint: hint,
@@ -1045,12 +1125,112 @@ class OcaDartImpl implements OcaDart {
             argNames: ["that"],
           );
 
-  DropFnType get dropOpaqueMutexBoxOcaOverlayRaw =>
-      _platform.inner.drop_opaque_MutexBoxOcaOverlayRaw;
-  ShareFnType get shareOpaqueMutexBoxOcaOverlayRaw =>
-      _platform.inner.share_opaque_MutexBoxOcaOverlayRaw;
-  OpaqueTypeFinalizer get MutexBoxOcaOverlayRawFinalizer =>
-      _platform.MutexBoxOcaOverlayRawFinalizer;
+  Future<OcaMap> newStaticMethodOcaMap({dynamic hint}) {
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_new__static_method__OcaMap(port_),
+      parseSuccessData: (d) => _wire2api_oca_map(d),
+      constMeta: kNewStaticMethodOcaMapConstMeta,
+      argValues: [],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kNewStaticMethodOcaMapConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "new__static_method__OcaMap",
+        argNames: [],
+      );
+
+  Future<void> insertMethodOcaMap(
+      {required OcaMap that,
+      required String key,
+      required String value,
+      dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_map(that);
+    var arg1 = _platform.api2wire_String(key);
+    var arg2 = _platform.api2wire_String(value);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_insert__method__OcaMap(port_, arg0, arg1, arg2),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kInsertMethodOcaMapConstMeta,
+      argValues: [that, key, value],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kInsertMethodOcaMapConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "insert__method__OcaMap",
+        argNames: ["that", "key", "value"],
+      );
+
+  Future<String?> getMethodOcaMap(
+      {required OcaMap that, required String key, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_map(that);
+    var arg1 = _platform.api2wire_String(key);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_get__method__OcaMap(port_, arg0, arg1),
+      parseSuccessData: _wire2api_opt_String,
+      constMeta: kGetMethodOcaMapConstMeta,
+      argValues: [that, key],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kGetMethodOcaMapConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "get__method__OcaMap",
+        argNames: ["that", "key"],
+      );
+
+  Future<void> removeMethodOcaMap(
+      {required OcaMap that, required String key, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_map(that);
+    var arg1 = _platform.api2wire_String(key);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_remove__method__OcaMap(port_, arg0, arg1),
+      parseSuccessData: _wire2api_unit,
+      constMeta: kRemoveMethodOcaMapConstMeta,
+      argValues: [that, key],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kRemoveMethodOcaMapConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "remove__method__OcaMap",
+        argNames: ["that", "key"],
+      );
+
+  Future<List<String>> getKeysMethodOcaMap(
+      {required OcaMap that, dynamic hint}) {
+    var arg0 = _platform.api2wire_box_autoadd_oca_map(that);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) =>
+          _platform.inner.wire_get_keys__method__OcaMap(port_, arg0),
+      parseSuccessData: _wire2api_StringList,
+      constMeta: kGetKeysMethodOcaMapConstMeta,
+      argValues: [that],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kGetKeysMethodOcaMapConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "get_keys__method__OcaMap",
+        argNames: ["that"],
+      );
+
+  DropFnType get dropOpaqueMutexDynOverlay =>
+      _platform.inner.drop_opaque_MutexDynOverlay;
+  ShareFnType get shareOpaqueMutexDynOverlay =>
+      _platform.inner.share_opaque_MutexDynOverlay;
+  OpaqueTypeFinalizer get MutexDynOverlayFinalizer =>
+      _platform.MutexDynOverlayFinalizer;
 
   DropFnType get dropOpaqueMutexOcaAttrRaw =>
       _platform.inner.drop_opaque_MutexOcaAttrRaw;
@@ -1080,13 +1260,20 @@ class OcaDartImpl implements OcaDart {
   OpaqueTypeFinalizer get MutexOcaCaptureBaseRawFinalizer =>
       _platform.MutexOcaCaptureBaseRawFinalizer;
 
+  DropFnType get dropOpaqueMutexStringMap =>
+      _platform.inner.drop_opaque_MutexStringMap;
+  ShareFnType get shareOpaqueMutexStringMap =>
+      _platform.inner.share_opaque_MutexStringMap;
+  OpaqueTypeFinalizer get MutexStringMapFinalizer =>
+      _platform.MutexStringMapFinalizer;
+
   void dispose() {
     _platform.dispose();
   }
 // Section: wire2api
 
-  MutexBoxOcaOverlayRaw _wire2api_MutexBoxOcaOverlayRaw(dynamic raw) {
-    return MutexBoxOcaOverlayRaw.fromRaw(raw[0], raw[1], this);
+  MutexDynOverlay _wire2api_MutexDynOverlay(dynamic raw) {
+    return MutexDynOverlay.fromRaw(raw[0], raw[1], this);
   }
 
   MutexOcaAttrRaw _wire2api_MutexOcaAttrRaw(dynamic raw) {
@@ -1105,16 +1292,16 @@ class OcaDartImpl implements OcaDart {
     return MutexOcaCaptureBaseRaw.fromRaw(raw[0], raw[1], this);
   }
 
+  MutexStringMap _wire2api_MutexStringMap(dynamic raw) {
+    return MutexStringMap.fromRaw(raw[0], raw[1], this);
+  }
+
   String _wire2api_String(dynamic raw) {
     return raw as String;
   }
 
   List<String> _wire2api_StringList(dynamic raw) {
     return (raw as List<dynamic>).cast<String>();
-  }
-
-  List<List<String>> _wire2api_list_StringList(dynamic raw) {
-    return (raw as List<dynamic>).map(_wire2api_StringList).toList();
   }
 
   List<OcaOverlay> _wire2api_list_oca_overlay(dynamic raw) {
@@ -1161,13 +1348,27 @@ class OcaDartImpl implements OcaDart {
     );
   }
 
+  OcaMap _wire2api_oca_map(dynamic raw) {
+    final arr = raw as List<dynamic>;
+    if (arr.length != 1)
+      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
+    return OcaMap(
+      bridge: this,
+      field0: _wire2api_MutexStringMap(arr[0]),
+    );
+  }
+
   OcaOverlay _wire2api_oca_overlay(dynamic raw) {
     final arr = raw as List<dynamic>;
     if (arr.length != 1)
       throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
     return OcaOverlay(
-      field0: _wire2api_MutexBoxOcaOverlayRaw(arr[0]),
+      field0: _wire2api_MutexDynOverlay(arr[0]),
     );
+  }
+
+  String? _wire2api_opt_String(dynamic raw) {
+    return raw == null ? null : _wire2api_String(raw);
   }
 
   int _wire2api_u8(dynamic raw) {
@@ -1252,6 +1453,13 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
   }
 
   @protected
+  wire_MutexStringMap api2wire_MutexStringMap(MutexStringMap raw) {
+    final ptr = inner.new_MutexStringMap();
+    _api_fill_to_wire_MutexStringMap(raw, ptr);
+    return ptr;
+  }
+
+  @protected
   ffi.Pointer<wire_uint_8_list> api2wire_String(String raw) {
     return api2wire_uint_8_list(utf8.encoder.convert(raw));
   }
@@ -1295,13 +1503,10 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
   }
 
   @protected
-  ffi.Pointer<wire_list_StringList> api2wire_list_StringList(
-      List<List<String>> raw) {
-    final ans = inner.new_list_StringList_0(raw.length);
-    for (var i = 0; i < raw.length; ++i) {
-      _api_fill_to_wire_StringList(raw[i], ans.ref.ptr[i]);
-    }
-    return ans;
+  ffi.Pointer<wire_OcaMap> api2wire_box_autoadd_oca_map(OcaMap raw) {
+    final ptr = inner.new_box_autoadd_oca_map_0();
+    _api_fill_to_wire_oca_map(raw, ptr.ref);
+    return ptr;
   }
 
   @protected
@@ -1312,10 +1517,9 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
   }
 // Section: finalizer
 
-  late final OpaqueTypeFinalizer _MutexBoxOcaOverlayRawFinalizer =
-      OpaqueTypeFinalizer(inner._drop_opaque_MutexBoxOcaOverlayRawPtr);
-  OpaqueTypeFinalizer get MutexBoxOcaOverlayRawFinalizer =>
-      _MutexBoxOcaOverlayRawFinalizer;
+  late final OpaqueTypeFinalizer _MutexDynOverlayFinalizer =
+      OpaqueTypeFinalizer(inner._drop_opaque_MutexDynOverlayPtr);
+  OpaqueTypeFinalizer get MutexDynOverlayFinalizer => _MutexDynOverlayFinalizer;
   late final OpaqueTypeFinalizer _MutexOcaAttrRawFinalizer =
       OpaqueTypeFinalizer(inner._drop_opaque_MutexOcaAttrRawPtr);
   OpaqueTypeFinalizer get MutexOcaAttrRawFinalizer => _MutexOcaAttrRawFinalizer;
@@ -1330,6 +1534,9 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
       OpaqueTypeFinalizer(inner._drop_opaque_MutexOcaCaptureBaseRawPtr);
   OpaqueTypeFinalizer get MutexOcaCaptureBaseRawFinalizer =>
       _MutexOcaCaptureBaseRawFinalizer;
+  late final OpaqueTypeFinalizer _MutexStringMapFinalizer =
+      OpaqueTypeFinalizer(inner._drop_opaque_MutexStringMapPtr);
+  OpaqueTypeFinalizer get MutexStringMapFinalizer => _MutexStringMapFinalizer;
 // Section: api_fill_to_wire
 
   void _api_fill_to_wire_MutexOcaAttrRaw(
@@ -1349,6 +1556,11 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
 
   void _api_fill_to_wire_MutexOcaCaptureBaseRaw(
       MutexOcaCaptureBaseRaw apiObj, wire_MutexOcaCaptureBaseRaw wireObj) {
+    wireObj.ptr = apiObj.shareOrMove();
+  }
+
+  void _api_fill_to_wire_MutexStringMap(
+      MutexStringMap apiObj, wire_MutexStringMap wireObj) {
     wireObj.ptr = apiObj.shareOrMove();
   }
 
@@ -1372,6 +1584,11 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
     _api_fill_to_wire_oca_capture_base(apiObj, wireObj.ref);
   }
 
+  void _api_fill_to_wire_box_autoadd_oca_map(
+      OcaMap apiObj, ffi.Pointer<wire_OcaMap> wireObj) {
+    _api_fill_to_wire_oca_map(apiObj, wireObj.ref);
+  }
+
   void _api_fill_to_wire_oca_attr(OcaAttr apiObj, wire_OcaAttr wireObj) {
     wireObj.field0 = api2wire_MutexOcaAttrRaw(apiObj.field0);
   }
@@ -1387,6 +1604,10 @@ class OcaDartPlatform extends FlutterRustBridgeBase<OcaDartWire> {
   void _api_fill_to_wire_oca_capture_base(
       OcaCaptureBase apiObj, wire_OcaCaptureBase wireObj) {
     wireObj.field0 = api2wire_MutexOcaCaptureBaseRaw(apiObj.field0);
+  }
+
+  void _api_fill_to_wire_oca_map(OcaMap apiObj, wire_OcaMap wireObj) {
+    wireObj.field0 = api2wire_MutexStringMap(apiObj.field0);
   }
 }
 
@@ -1838,7 +2059,7 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
     int port_,
     ffi.Pointer<wire_OcaAttr> that,
     ffi.Pointer<wire_uint_8_list> lang,
-    ffi.Pointer<wire_list_StringList> entries,
+    ffi.Pointer<wire_OcaMap> entries,
   ) {
     return _wire_set_entry__method__OcaAttr(
       port_,
@@ -1849,20 +2070,16 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
   }
 
   late final _wire_set_entry__method__OcaAttrPtr = _lookup<
-          ffi.NativeFunction<
-              ffi.Void Function(
-                  ffi.Int64,
-                  ffi.Pointer<wire_OcaAttr>,
-                  ffi.Pointer<wire_uint_8_list>,
-                  ffi.Pointer<wire_list_StringList>)>>(
-      'wire_set_entry__method__OcaAttr');
-  late final _wire_set_entry__method__OcaAttr =
-      _wire_set_entry__method__OcaAttrPtr.asFunction<
-          void Function(
-              int,
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Int64,
               ffi.Pointer<wire_OcaAttr>,
               ffi.Pointer<wire_uint_8_list>,
-              ffi.Pointer<wire_list_StringList>)>();
+              ffi.Pointer<wire_OcaMap>)>>('wire_set_entry__method__OcaAttr');
+  late final _wire_set_entry__method__OcaAttr =
+      _wire_set_entry__method__OcaAttrPtr.asFunction<
+          void Function(int, ffi.Pointer<wire_OcaAttr>,
+              ffi.Pointer<wire_uint_8_list>, ffi.Pointer<wire_OcaMap>)>();
 
   void wire_set_unit_metric__method__OcaAttr(
     int port_,
@@ -2033,6 +2250,105 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
       _wire_flagged_attributes__method__OcaCaptureBasePtr
           .asFunction<void Function(int, ffi.Pointer<wire_OcaCaptureBase>)>();
 
+  void wire_new__static_method__OcaMap(
+    int port_,
+  ) {
+    return _wire_new__static_method__OcaMap(
+      port_,
+    );
+  }
+
+  late final _wire_new__static_method__OcaMapPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>(
+          'wire_new__static_method__OcaMap');
+  late final _wire_new__static_method__OcaMap =
+      _wire_new__static_method__OcaMapPtr.asFunction<void Function(int)>();
+
+  void wire_insert__method__OcaMap(
+    int port_,
+    ffi.Pointer<wire_OcaMap> that,
+    ffi.Pointer<wire_uint_8_list> key,
+    ffi.Pointer<wire_uint_8_list> value,
+  ) {
+    return _wire_insert__method__OcaMap(
+      port_,
+      that,
+      key,
+      value,
+    );
+  }
+
+  late final _wire_insert__method__OcaMapPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Int64,
+              ffi.Pointer<wire_OcaMap>,
+              ffi.Pointer<wire_uint_8_list>,
+              ffi.Pointer<wire_uint_8_list>)>>('wire_insert__method__OcaMap');
+  late final _wire_insert__method__OcaMap =
+      _wire_insert__method__OcaMapPtr.asFunction<
+          void Function(int, ffi.Pointer<wire_OcaMap>,
+              ffi.Pointer<wire_uint_8_list>, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_get__method__OcaMap(
+    int port_,
+    ffi.Pointer<wire_OcaMap> that,
+    ffi.Pointer<wire_uint_8_list> key,
+  ) {
+    return _wire_get__method__OcaMap(
+      port_,
+      that,
+      key,
+    );
+  }
+
+  late final _wire_get__method__OcaMapPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaMap>,
+              ffi.Pointer<wire_uint_8_list>)>>('wire_get__method__OcaMap');
+  late final _wire_get__method__OcaMap =
+      _wire_get__method__OcaMapPtr.asFunction<
+          void Function(
+              int, ffi.Pointer<wire_OcaMap>, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_remove__method__OcaMap(
+    int port_,
+    ffi.Pointer<wire_OcaMap> that,
+    ffi.Pointer<wire_uint_8_list> key,
+  ) {
+    return _wire_remove__method__OcaMap(
+      port_,
+      that,
+      key,
+    );
+  }
+
+  late final _wire_remove__method__OcaMapPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64, ffi.Pointer<wire_OcaMap>,
+              ffi.Pointer<wire_uint_8_list>)>>('wire_remove__method__OcaMap');
+  late final _wire_remove__method__OcaMap =
+      _wire_remove__method__OcaMapPtr.asFunction<
+          void Function(
+              int, ffi.Pointer<wire_OcaMap>, ffi.Pointer<wire_uint_8_list>)>();
+
+  void wire_get_keys__method__OcaMap(
+    int port_,
+    ffi.Pointer<wire_OcaMap> that,
+  ) {
+    return _wire_get_keys__method__OcaMap(
+      port_,
+      that,
+    );
+  }
+
+  late final _wire_get_keys__method__OcaMapPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Int64,
+              ffi.Pointer<wire_OcaMap>)>>('wire_get_keys__method__OcaMap');
+  late final _wire_get_keys__method__OcaMap = _wire_get_keys__method__OcaMapPtr
+      .asFunction<void Function(int, ffi.Pointer<wire_OcaMap>)>();
+
   wire_MutexOcaAttrRaw new_MutexOcaAttrRaw() {
     return _new_MutexOcaAttrRaw();
   }
@@ -2072,6 +2388,16 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
           'new_MutexOcaCaptureBaseRaw');
   late final _new_MutexOcaCaptureBaseRaw = _new_MutexOcaCaptureBaseRawPtr
       .asFunction<wire_MutexOcaCaptureBaseRaw Function()>();
+
+  wire_MutexStringMap new_MutexStringMap() {
+    return _new_MutexStringMap();
+  }
+
+  late final _new_MutexStringMapPtr =
+      _lookup<ffi.NativeFunction<wire_MutexStringMap Function()>>(
+          'new_MutexStringMap');
+  late final _new_MutexStringMap =
+      _new_MutexStringMapPtr.asFunction<wire_MutexStringMap Function()>();
 
   ffi.Pointer<wire_StringList> new_StringList_0(
     int len,
@@ -2128,20 +2454,15 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
       _new_box_autoadd_oca_capture_base_0Ptr
           .asFunction<ffi.Pointer<wire_OcaCaptureBase> Function()>();
 
-  ffi.Pointer<wire_list_StringList> new_list_StringList_0(
-    int len,
-  ) {
-    return _new_list_StringList_0(
-      len,
-    );
+  ffi.Pointer<wire_OcaMap> new_box_autoadd_oca_map_0() {
+    return _new_box_autoadd_oca_map_0();
   }
 
-  late final _new_list_StringList_0Ptr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<wire_list_StringList> Function(
-              ffi.Int32)>>('new_list_StringList_0');
-  late final _new_list_StringList_0 = _new_list_StringList_0Ptr
-      .asFunction<ffi.Pointer<wire_list_StringList> Function(int)>();
+  late final _new_box_autoadd_oca_map_0Ptr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<wire_OcaMap> Function()>>(
+          'new_box_autoadd_oca_map_0');
+  late final _new_box_autoadd_oca_map_0 = _new_box_autoadd_oca_map_0Ptr
+      .asFunction<ffi.Pointer<wire_OcaMap> Function()>();
 
   ffi.Pointer<wire_uint_8_list> new_uint_8_list_0(
     int len,
@@ -2158,36 +2479,34 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
   late final _new_uint_8_list_0 = _new_uint_8_list_0Ptr
       .asFunction<ffi.Pointer<wire_uint_8_list> Function(int)>();
 
-  void drop_opaque_MutexBoxOcaOverlayRaw(
+  void drop_opaque_MutexDynOverlay(
     ffi.Pointer<ffi.Void> ptr,
   ) {
-    return _drop_opaque_MutexBoxOcaOverlayRaw(
+    return _drop_opaque_MutexDynOverlay(
       ptr,
     );
   }
 
-  late final _drop_opaque_MutexBoxOcaOverlayRawPtr =
+  late final _drop_opaque_MutexDynOverlayPtr =
       _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
-          'drop_opaque_MutexBoxOcaOverlayRaw');
-  late final _drop_opaque_MutexBoxOcaOverlayRaw =
-      _drop_opaque_MutexBoxOcaOverlayRawPtr
-          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+          'drop_opaque_MutexDynOverlay');
+  late final _drop_opaque_MutexDynOverlay = _drop_opaque_MutexDynOverlayPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 
-  ffi.Pointer<ffi.Void> share_opaque_MutexBoxOcaOverlayRaw(
+  ffi.Pointer<ffi.Void> share_opaque_MutexDynOverlay(
     ffi.Pointer<ffi.Void> ptr,
   ) {
-    return _share_opaque_MutexBoxOcaOverlayRaw(
+    return _share_opaque_MutexDynOverlay(
       ptr,
     );
   }
 
-  late final _share_opaque_MutexBoxOcaOverlayRawPtr = _lookup<
+  late final _share_opaque_MutexDynOverlayPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<ffi.Void> Function(
-              ffi.Pointer<ffi.Void>)>>('share_opaque_MutexBoxOcaOverlayRaw');
-  late final _share_opaque_MutexBoxOcaOverlayRaw =
-      _share_opaque_MutexBoxOcaOverlayRawPtr
-          .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
+              ffi.Pointer<ffi.Void>)>>('share_opaque_MutexDynOverlay');
+  late final _share_opaque_MutexDynOverlay = _share_opaque_MutexDynOverlayPtr
+      .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
 
   void drop_opaque_MutexOcaAttrRaw(
     ffi.Pointer<ffi.Void> ptr,
@@ -2308,6 +2627,35 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
       _share_opaque_MutexOcaCaptureBaseRawPtr
           .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
 
+  void drop_opaque_MutexStringMap(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _drop_opaque_MutexStringMap(
+      ptr,
+    );
+  }
+
+  late final _drop_opaque_MutexStringMapPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'drop_opaque_MutexStringMap');
+  late final _drop_opaque_MutexStringMap = _drop_opaque_MutexStringMapPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Void> share_opaque_MutexStringMap(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _share_opaque_MutexStringMap(
+      ptr,
+    );
+  }
+
+  late final _share_opaque_MutexStringMapPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Void> Function(
+              ffi.Pointer<ffi.Void>)>>('share_opaque_MutexStringMap');
+  late final _share_opaque_MutexStringMap = _share_opaque_MutexStringMapPtr
+      .asFunction<ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>();
+
   void free_WireSyncReturn(
     WireSyncReturn ptr,
   ) {
@@ -2355,11 +2703,12 @@ class wire_StringList extends ffi.Struct {
   external int len;
 }
 
-class wire_list_StringList extends ffi.Struct {
-  external ffi.Pointer<wire_StringList> ptr;
+class wire_MutexStringMap extends ffi.Struct {
+  external ffi.Pointer<ffi.Void> ptr;
+}
 
-  @ffi.Int32()
-  external int len;
+class wire_OcaMap extends ffi.Struct {
+  external wire_MutexStringMap field0;
 }
 
 class wire_MutexOcaBundleRaw extends ffi.Struct {
