@@ -1,8 +1,9 @@
-pub use std::sync::Mutex;
+pub(crate) use std::collections::HashMap;
+pub(crate) use std::sync::Mutex;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
 use flutter_rust_bridge::{frb, RustOpaque};
-pub use oca_rs::state::{
+pub(crate) use oca_rs::state::{
     attribute::{Attribute as OcaAttrRaw, AttributeType as OcaAttrType},
     encoding::Encoding as OcaEncoding,
     entries::EntriesElement,
@@ -12,9 +13,8 @@ pub use oca_rs::state::{
         overlay::{
             self,
             unit::{ImperialUnit as OcaImperialUnit, MetricUnit as OcaMetricUnit},
-            Overlay as OcaOverlayRaw,
         },
-        OCABox as OcaBoxRaw, OCABundle as OcaBundleRaw,
+        DynOverlay, OCABox as OcaBoxRaw, OCABundle as OcaBundleRaw,
     },
 };
 
@@ -58,7 +58,7 @@ pub struct OcaAttr(pub RustOpaque<Mutex<OcaAttrRaw>>);
 
 impl OcaAttr {
     pub fn new(name: String) -> OcaAttr {
-        let mut attr = OcaAttrRaw::new(name);
+        let attr = OcaAttrRaw::new(name);
         OcaAttr(RustOpaque::new(Mutex::new(attr)))
     }
 
@@ -114,19 +114,10 @@ impl OcaAttr {
         overlay::entry_code::EntryCodes::set_entry_codes(&mut *attr, EntryCodes::Sai(sai));
     }
 
-    pub fn set_entry(&self, lang: String, entries: Vec<Vec<String>>) -> Result<()> {
+    pub fn set_entry(&self, lang: String, entries: OcaMap) -> Result<()> {
         let mut attr = self.0.lock().unwrap();
         let lang = lang.parse().context("Invalid language")?;
-        let entries = entries
-            .into_iter()
-            .map(|entry| {
-                if let [key, value] = entry.as_slice() {
-                    Ok((key.clone(), value.clone()))
-                } else {
-                    bail!("Invalid entry")
-                }
-            })
-            .collect::<Result<_>>()?;
+        let entries = entries.0.lock().unwrap().0.clone();
         overlay::entry::Entries::set_entry(&mut *attr, lang, EntriesElement::Object(entries));
         Ok(())
     }
@@ -258,13 +249,11 @@ impl OcaBundle {
 pub struct OcaCaptureBase(pub RustOpaque<Mutex<OcaCaptureBaseRaw>>);
 
 impl OcaCaptureBase {
-    pub fn attributes(&self) -> Vec<Vec<String>> {
+    pub fn attributes(&self) -> OcaMap {
         let capture_base = self.0.lock().unwrap();
-        capture_base
-            .attributes
-            .iter()
-            .map(|(k, v)| vec![k.to_owned(), v.to_owned()])
-            .collect()
+        OcaMap(RustOpaque::new(Mutex::new(StringMap(
+            capture_base.attributes.clone(),
+        ))))
     }
 
     pub fn flagged_attributes(&self) -> Vec<String> {
@@ -273,4 +262,34 @@ impl OcaCaptureBase {
     }
 }
 
-pub struct OcaOverlay(pub RustOpaque<Mutex<Box<dyn OcaOverlayRaw>>>);
+pub struct OcaOverlay(pub RustOpaque<Mutex<DynOverlay>>);
+
+// TODO: use regular HashMap when FRB supports it
+pub struct OcaMap(pub RustOpaque<Mutex<StringMap>>);
+pub struct StringMap(HashMap<String, String>);
+
+impl OcaMap {
+    pub fn new() -> OcaMap {
+        OcaMap(RustOpaque::new(Mutex::new(StringMap(HashMap::new()))))
+    }
+
+    pub fn insert(&self, key: String, value: String) {
+        let mut map = self.0.lock().unwrap();
+        map.0.insert(key, value);
+    }
+
+    pub fn get(&self, key: String) -> Option<String> {
+        let map = self.0.lock().unwrap();
+        map.0.get(&key).map(|v| v.to_owned())
+    }
+
+    pub fn remove(&self, key: String) {
+        let mut map = self.0.lock().unwrap();
+        map.0.remove(&key);
+    }
+
+    pub fn get_keys(&self) -> Vec<String> {
+        let map = self.0.lock().unwrap();
+        map.0.keys().map(|k| k.to_owned()).collect()
+    }
+}

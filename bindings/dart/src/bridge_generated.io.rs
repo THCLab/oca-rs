@@ -138,7 +138,7 @@ pub extern "C" fn wire_set_entry__method__OcaAttr(
     port_: i64,
     that: *mut wire_OcaAttr,
     lang: *mut wire_uint_8_list,
-    entries: *mut wire_list_StringList,
+    entries: *mut wire_OcaMap,
 ) {
     wire_set_entry__method__OcaAttr_impl(port_, that, lang, entries)
 }
@@ -206,6 +206,44 @@ pub extern "C" fn wire_flagged_attributes__method__OcaCaptureBase(
     wire_flagged_attributes__method__OcaCaptureBase_impl(port_, that)
 }
 
+#[no_mangle]
+pub extern "C" fn wire_new__static_method__OcaMap(port_: i64) {
+    wire_new__static_method__OcaMap_impl(port_)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_insert__method__OcaMap(
+    port_: i64,
+    that: *mut wire_OcaMap,
+    key: *mut wire_uint_8_list,
+    value: *mut wire_uint_8_list,
+) {
+    wire_insert__method__OcaMap_impl(port_, that, key, value)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_get__method__OcaMap(
+    port_: i64,
+    that: *mut wire_OcaMap,
+    key: *mut wire_uint_8_list,
+) {
+    wire_get__method__OcaMap_impl(port_, that, key)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_remove__method__OcaMap(
+    port_: i64,
+    that: *mut wire_OcaMap,
+    key: *mut wire_uint_8_list,
+) {
+    wire_remove__method__OcaMap_impl(port_, that, key)
+}
+
+#[no_mangle]
+pub extern "C" fn wire_get_keys__method__OcaMap(port_: i64, that: *mut wire_OcaMap) {
+    wire_get_keys__method__OcaMap_impl(port_, that)
+}
+
 // Section: allocate functions
 
 #[no_mangle]
@@ -226,6 +264,11 @@ pub extern "C" fn new_MutexOcaBundleRaw() -> wire_MutexOcaBundleRaw {
 #[no_mangle]
 pub extern "C" fn new_MutexOcaCaptureBaseRaw() -> wire_MutexOcaCaptureBaseRaw {
     wire_MutexOcaCaptureBaseRaw::new_with_null_ptr()
+}
+
+#[no_mangle]
+pub extern "C" fn new_MutexStringMap() -> wire_MutexStringMap {
+    wire_MutexStringMap::new_with_null_ptr()
 }
 
 #[no_mangle]
@@ -258,12 +301,8 @@ pub extern "C" fn new_box_autoadd_oca_capture_base_0() -> *mut wire_OcaCaptureBa
 }
 
 #[no_mangle]
-pub extern "C" fn new_list_StringList_0(len: i32) -> *mut wire_list_StringList {
-    let wrap = wire_list_StringList {
-        ptr: support::new_leak_vec_ptr(<wire_StringList>::new_with_null_ptr(), len),
-        len,
-    };
-    support::new_leak_box_ptr(wrap)
+pub extern "C" fn new_box_autoadd_oca_map_0() -> *mut wire_OcaMap {
+    support::new_leak_box_ptr(wire_OcaMap::new_with_null_ptr())
 }
 
 #[no_mangle]
@@ -278,16 +317,16 @@ pub extern "C" fn new_uint_8_list_0(len: i32) -> *mut wire_uint_8_list {
 // Section: related functions
 
 #[no_mangle]
-pub extern "C" fn drop_opaque_MutexBoxOcaOverlayRaw(ptr: *const c_void) {
+pub extern "C" fn drop_opaque_MutexDynOverlay(ptr: *const c_void) {
     unsafe {
-        Arc::<Mutex<Box<dyn OcaOverlayRaw>>>::decrement_strong_count(ptr as _);
+        Arc::<Mutex<DynOverlay>>::decrement_strong_count(ptr as _);
     }
 }
 
 #[no_mangle]
-pub extern "C" fn share_opaque_MutexBoxOcaOverlayRaw(ptr: *const c_void) -> *const c_void {
+pub extern "C" fn share_opaque_MutexDynOverlay(ptr: *const c_void) -> *const c_void {
     unsafe {
-        Arc::<Mutex<Box<dyn OcaOverlayRaw>>>::increment_strong_count(ptr as _);
+        Arc::<Mutex<DynOverlay>>::increment_strong_count(ptr as _);
         ptr
     }
 }
@@ -352,6 +391,21 @@ pub extern "C" fn share_opaque_MutexOcaCaptureBaseRaw(ptr: *const c_void) -> *co
     }
 }
 
+#[no_mangle]
+pub extern "C" fn drop_opaque_MutexStringMap(ptr: *const c_void) {
+    unsafe {
+        Arc::<Mutex<StringMap>>::decrement_strong_count(ptr as _);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn share_opaque_MutexStringMap(ptr: *const c_void) -> *const c_void {
+    unsafe {
+        Arc::<Mutex<StringMap>>::increment_strong_count(ptr as _);
+        ptr
+    }
+}
+
 // Section: impl Wire2Api
 
 impl Wire2Api<RustOpaque<Mutex<OcaAttrRaw>>> for wire_MutexOcaAttrRaw {
@@ -371,6 +425,11 @@ impl Wire2Api<RustOpaque<Mutex<OcaBundleRaw>>> for wire_MutexOcaBundleRaw {
 }
 impl Wire2Api<RustOpaque<Mutex<OcaCaptureBaseRaw>>> for wire_MutexOcaCaptureBaseRaw {
     fn wire2api(self) -> RustOpaque<Mutex<OcaCaptureBaseRaw>> {
+        unsafe { support::opaque_from_dart(self.ptr as _) }
+    }
+}
+impl Wire2Api<RustOpaque<Mutex<StringMap>>> for wire_MutexStringMap {
+    fn wire2api(self) -> RustOpaque<Mutex<StringMap>> {
         unsafe { support::opaque_from_dart(self.ptr as _) }
     }
 }
@@ -413,16 +472,13 @@ impl Wire2Api<OcaCaptureBase> for *mut wire_OcaCaptureBase {
         Wire2Api::<OcaCaptureBase>::wire2api(*wrap).into()
     }
 }
-
-impl Wire2Api<Vec<Vec<String>>> for *mut wire_list_StringList {
-    fn wire2api(self) -> Vec<Vec<String>> {
-        let vec = unsafe {
-            let wrap = support::box_from_leak_ptr(self);
-            support::vec_from_leak_ptr(wrap.ptr, wrap.len)
-        };
-        vec.into_iter().map(Wire2Api::wire2api).collect()
+impl Wire2Api<OcaMap> for *mut wire_OcaMap {
+    fn wire2api(self) -> OcaMap {
+        let wrap = unsafe { support::box_from_leak_ptr(self) };
+        Wire2Api::<OcaMap>::wire2api(*wrap).into()
     }
 }
+
 impl Wire2Api<OcaAttr> for wire_OcaAttr {
     fn wire2api(self) -> OcaAttr {
         OcaAttr(self.field0.wire2api())
@@ -442,6 +498,12 @@ impl Wire2Api<OcaBundle> for wire_OcaBundle {
 impl Wire2Api<OcaCaptureBase> for wire_OcaCaptureBase {
     fn wire2api(self) -> OcaCaptureBase {
         OcaCaptureBase(self.field0.wire2api())
+    }
+}
+
+impl Wire2Api<OcaMap> for wire_OcaMap {
+    fn wire2api(self) -> OcaMap {
+        OcaMap(self.field0.wire2api())
     }
 }
 
@@ -481,15 +543,14 @@ pub struct wire_MutexOcaCaptureBaseRaw {
 
 #[repr(C)]
 #[derive(Clone)]
-pub struct wire_StringList {
-    ptr: *mut *mut wire_uint_8_list,
-    len: i32,
+pub struct wire_MutexStringMap {
+    ptr: *const core::ffi::c_void,
 }
 
 #[repr(C)]
 #[derive(Clone)]
-pub struct wire_list_StringList {
-    ptr: *mut wire_StringList,
+pub struct wire_StringList {
+    ptr: *mut *mut wire_uint_8_list,
     len: i32,
 }
 
@@ -515,6 +576,12 @@ pub struct wire_OcaBundle {
 #[derive(Clone)]
 pub struct wire_OcaCaptureBase {
     field0: wire_MutexOcaCaptureBaseRaw,
+}
+
+#[repr(C)]
+#[derive(Clone)]
+pub struct wire_OcaMap {
+    field0: wire_MutexStringMap,
 }
 
 #[repr(C)]
@@ -564,6 +631,13 @@ impl NewWithNullPtr for wire_MutexOcaCaptureBaseRaw {
         }
     }
 }
+impl NewWithNullPtr for wire_MutexStringMap {
+    fn new_with_null_ptr() -> Self {
+        Self {
+            ptr: core::ptr::null(),
+        }
+    }
+}
 
 impl NewWithNullPtr for wire_OcaAttr {
     fn new_with_null_ptr() -> Self {
@@ -593,6 +667,14 @@ impl NewWithNullPtr for wire_OcaCaptureBase {
     fn new_with_null_ptr() -> Self {
         Self {
             field0: wire_MutexOcaCaptureBaseRaw::new_with_null_ptr(),
+        }
+    }
+}
+
+impl NewWithNullPtr for wire_OcaMap {
+    fn new_with_null_ptr() -> Self {
+        Self {
+            field0: wire_MutexStringMap::new_with_null_ptr(),
         }
     }
 }
