@@ -13,6 +13,7 @@ opt-level = "z"
 lto = true
 
 [dependencies]
+anyhow = "1.0.69"
 flutter_rust_bridge = "1.63.1"
-oca-rs = { path = "../../../oca-rs" }
+oca-rs = { path = "../../../oca-rs", features = ["format_overlay"]}
 serde_json = "1.0.93"
