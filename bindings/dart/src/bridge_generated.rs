@@ -21,6 +21,19 @@ use std::sync::Arc;
 
 // Section: wire functions
 
+fn wire_load_oca_impl(port_: MessagePort, json: impl Wire2Api<String> + UnwindSafe) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap(
+        WrapInfo {
+            debug_name: "load_oca",
+            port: Some(port_),
+            mode: FfiCallMode::Normal,
+        },
+        move || {
+            let api_json = json.wire2api();
+            move |task_callback| load_oca(api_json)
+        },
+    )
+}
 fn wire_new__static_method__OcaBox_impl(port_: MessagePort) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap(
         WrapInfo {

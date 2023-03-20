@@ -63,12 +63,17 @@ void main() {
 
     final ocaBundle = await ocaBox.generateBundle();
 
-    print(await ocaBundle.toJson());
     print(await ocaBundle.said());
     final capBase = await ocaBundle.captureBase();
     final attrs = await capBase.attributes();
     expect((await attrs.getKeys()).length, 2);
     expect((await capBase.flaggedAttributes()).length, 2);
     expect((await ocaBundle.overlays()).length, 12);
+
+    final json = await ocaBundle.toJson();
+    print(json);
+    final ocaBundle2 = await api.loadOca(json: json);
+
+    expect((await ocaBundle2.overlays()).length, 12);
   });
 }

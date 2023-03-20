@@ -2,7 +2,7 @@ use std::io::Read;
 
 use crate::state::oca::OCABundle;
 
-pub type GenericError = Box<dyn std::error::Error + Sync + Send>;
+pub type GenericError = Box<dyn std::error::Error + Send + Sync + 'static>;
 pub type GenericResult<T> = Result<T, GenericError>;
 
 pub fn load_oca(source: &mut dyn Read) -> GenericResult<OCABundle> {
