@@ -614,7 +614,7 @@ dependencies = [
  "lazy_static",
  "maplit",
  "regex",
- "said 0.1.2",
+ "said",
  "serde",
  "serde-value",
  "serde_json",
@@ -636,7 +636,7 @@ dependencies = [
  "pest",
  "pest_derive",
  "pretty_assertions",
- "said 0.2.1",
+ "said",
  "serde",
  "serde_json",
  "sled",
@@ -829,21 +829,6 @@ name = "ryu"
 version = "1.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f91339c0467de62360649f8d3e185ca8de4224ff281f66000de5eb2a77a79041"
-
-[[package]]
-name = "said"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4830b4dcb5bd18d315d484af2f075bd7d7f0b5c73e83f351fbfc181fe4343cd"
-dependencies = [
- "base64",
- "blake2",
- "blake3",
- "serde",
- "sha2 0.9.9",
- "sha3",
- "thiserror",
-]
 
 [[package]]
 name = "said"

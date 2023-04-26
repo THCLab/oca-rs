@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-    "oca-bundle",
-    "oca-file",
-    "oca-ast",
+  "oca-bundle",
+  "oca-file",
+  "oca-ast",
 ]

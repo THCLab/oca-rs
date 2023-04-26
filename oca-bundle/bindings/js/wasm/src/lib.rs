@@ -1,4 +1,4 @@
-use oca_rs::state::{
+use oca_bundle::state::{
     attribute::{
         Attribute as AttributeRaw, AttributeBuilder as AttributeBuilderRaw, AttributeType,
         Entries as EntriesRaw, Entry as EntryRaw,

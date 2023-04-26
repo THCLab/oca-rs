@@ -1,3 +1,4 @@
-# oca.js
+## Building
 
-generated from oca-rs
+- `cargo install -f wasm-bindgen-cli`
+- `./build-pkg.sh`

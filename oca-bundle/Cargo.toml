@@ -12,7 +12,7 @@ edition = "2018"
 serde_json = "1.0"
 serde_yaml = "0.8"
 serde = { version = "1.0", features = ["derive"] }
-said = "0.1.2"
+said = "0.2.1"
 erased-serde = "0.3.16"
 wasm-bindgen = { version = "0.2.77" }
 serde-value = "0.7.0"
