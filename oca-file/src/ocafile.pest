@@ -1,0 +1,168 @@
+
+// BEGIN of GENERIC RULES
+
+// insignificant whitespace, not repeated
+ws = _{ " " | "\t" }
+
+comment = @{ "#" ~ (!NEWLINE ~ ANY)* }
+comment_line = _{ ws* ~ comment ~ NEWLINE? }
+empty_line = _{ ws* ~ NEWLINE }
+
+double_quoted_string  = @{ "\"" ~ inner ~ "\"" }
+inner   = @{ (!("\"" | "\\" | "\u{0000}" | "\u{001F}") ~ ANY)* ~ (escape ~ inner)? }
+escape  = @{ "\\" ~ ("b" | "t" | "n" | "f" | "r" | "\"" | "\\" | "'" | unicode | NEWLINE)? }
+unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} | "U" ~ ASCII_HEX_DIGIT{8} }
+
+single_quoted_string = @{ "'" ~ single_quoted_inner ~ "'" }
+single_quoted_inner  = @{ (!("'" | "\\" | "\u{0000}" | "\u{001F}") ~ ANY)* ~ (escape ~ single_quoted_inner)? }
+
+string = ${ single_quoted_string | double_quoted_string }
+
+// a line continuation, allowing an instruction to continue onto a new line
+line_continuation = _{ "\\" ~ ws* ~ NEWLINE }
+
+// whitespace that may appear between instruction arguments
+// this allows instructions to expand past a newline if escaped
+arg_ws = _{ (ws | line_continuation ~ (comment_line | empty_line)*)+ }
+
+// like arg_ws, but where whitespace is optional
+arg_ws_maybe = _{ (ws | line_continuation ~ (comment_line | empty_line)*)* }
+
+// continues consuming input beyond a newline, if the newline is preceeded by an
+// escape (\)
+// these tokens need to be preserved in the final tree so they can be handled
+// appropraitely; pest's ignore rules aren't sufficient for our needs
+any_content = @{
+  (
+    !NEWLINE ~
+    !line_continuation ~
+    ANY
+  )+
+}
+any_breakable = ${
+  (
+    // can be any comment string (no line continuation required)
+    comment_line ~ any_breakable?
+  ) | (
+    // ... OR some piece of content, requiring a continuation EXCEPT on the
+    // final line
+    any_content ~ (line_continuation ~ any_breakable)?
+  )
+}
+
+// consumes any character until the end of the line
+any_eol = _{ (!NEWLINE ~ ANY)* }
+
+// consumes all characters until the next whitespace
+until_whitespace = _{ (!(NEWLINE | EOI | arg_ws) ~ ANY)+ }
+
+// consumes identifier characters until the next whitespace
+identifier_whitespace = _{ (!ws ~ (ASCII_ALPHANUMERIC | "_" | "-"))+ }
+
+// consumes until whitespace or = (for key in key=value pairs)
+any_equals = _{ (!(NEWLINE | ws | "=") ~ ANY)+ }
+
+// END of GENERIC RULES
+
+commands = _{
+  (
+    from |
+    add |
+    modify |
+    remove
+  ) ~ NEWLINE?
+}
+
+
+from = { ^"from" ~ ws* ~ from_said}
+add = { ^"add" ~ arg_ws* ~ oca_object }
+modify = { ^"modify" ~ char+ }
+remove = { ^"remove" ~ arg_ws* ~ remove_oca_object }
+
+char = { ASCII_ALPHANUMERIC | "." | "-" | "_" | "/" }
+
+from_said = { ws* ~ char+ }
+
+oca_object = _{
+  (
+    meta |
+    label |
+    attribute |
+    classification |
+    information |
+    unit |
+    character_encoding |
+    character_encoding_props |
+    format |
+    flagged_attrs
+  )
+}
+
+remove_oca_object = _{
+  (
+    remove_meta |
+    remove_label |
+    remove_attribute |
+    classification |
+    information |
+    unit |
+    character_encoding |
+    character_encoding_props |
+    format |
+    flagged_attrs
+  )
+}
+
+attrs_key = _{ ^"attrs" ~ arg_ws}
+props_key = _{ ^"props" ~ arg_ws}
+label = { ^"label" ~ arg_ws ~ lang ~ arg_ws ~ attrs_key ~ attr_key_pairs }
+meta = { ^"meta" ~ arg_ws ~ lang ~  arg_ws ~ props_key ~ prop_key_pairs }
+information = {^"information" ~ arg_ws ~ lang ~ arg_ws ~ attrs_key ~ attr_key_pairs}
+character_encoding = {^"character_encoding" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
+character_encoding_props = {^"character_encoding" ~ arg_ws ~ props_key ~ prop_key_pairs}
+format = {^"format" ~ arg_ws ~ attrs_key? ~ attr_key_pairs}
+unit = {^"unit" ~ arg_ws ~ unit_system ~ arg_ws ~ attrs_key ~ attr_key_pairs}
+
+flagged_attrs = {^"flagged_attributes" ~ arg_ws ~ list_value}
+classification = { ^"classification" ~ arg_ws ~ classification_value}
+classification_value = { string | char+}
+
+//overlay_args = { ws* ~ ANY* }
+attribute = { ^"attribute" ~ attr_pairs+ }
+remove_attribute = { ^"attribute" ~ (arg_ws ~ attr_key)* }
+remove_meta = { ^"meta" ~ arg_ws ~ lang ~ (arg_ws ~ props_key ~ prop_key+)? }
+remove_label = { ^"label" ~ arg_ws ~ lang ~ (arg_ws ~ attrs_key ~ attr_key+)? }
+
+
+attr_key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
+prop_key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
+key_value = ${ string | char+}
+key_pair = @{ attr_key ~ "=" ~ key_value }
+attr_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
+prop_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
+
+list_value = ${ (arg_ws? ~ key_value ~ arg_ws?)+ }
+unit_system = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
+
+attr_type = ${ ("Text" |
+              "Numeric" |
+              "Reference" |
+              "Boolean" |
+              "Binary" |
+              "DateTime" |
+              "Array[Text]" |
+              "Array[Numeric]" |
+              "Array[Reference]" |
+              "Array[Boolean]" |
+              "Array[Binary]" |
+              "Array[DateTime]" )}
+attr_pair = @{attr_key ~ "=" ~ attr_type}
+attr_pairs = ${ (arg_ws ~ attr_pair)+}
+
+lang = ${ ASCII_ALPHA{2} ~ ("-" ~ ASCII_ALPHA{2})? }
+
+file = {
+  SOI ~
+  (empty_line | comment_line | commands)*
+  ~ EOI
+}

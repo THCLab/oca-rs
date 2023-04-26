@@ -1,0 +1,31 @@
+{
+    "commands": [
+        {
+            "type": "ADD",
+            "objectKind": "CaptureBase",
+            "properties": {},
+            "attributes": {}
+        },
+        {
+            "type": "REMOVE",
+            "objectKind": "CaptureBase",
+            "properties": [
+                "classification"
+            ],
+            "attributes": [
+                "name"
+            ]
+        },
+        {
+            "type": "ADD",
+            "objectKind": "CaptureBase",
+            "properties": {
+                "classification": "12345"
+            },
+            "attributes": {
+                "name": "Text",
+                "last_name": "Text"
+            }
+        }
+    ]
+}

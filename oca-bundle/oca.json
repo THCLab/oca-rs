@@ -1,0 +1,118 @@
+{
+  "capture_base": {
+    "attributes": {
+      "first_name": "Text",
+      "gender": "Text",
+      "last_name": "Text"
+    },
+    "classification": "",
+    "digest": "EMdMn4N-HPgAmy4L8YcIyqxmHU5m68LH956CllwZwbMA",
+    "flagged_attributes": [
+      "last_name"
+    ],
+    "type": "spec/capture_base/1.0"
+  },
+  "overlays": [
+    {
+      "attribute_character_encoding": {},
+      "capture_base": "EMdMn4N-HPgAmy4L8YcIyqxmHU5m68LH956CllwZwbMA",
+      "default_character_encoding": "utf-8",
+      "digest": "EIh9bRqpF845Pgs31K93mR9GsCDZ4A0nhVZ70MBLlpKE",
+      "type": "spec/overlays/character_encoding/1.0"
+    },
+    {
+      "attribute_categories": [],
+      "attribute_labels": {
+        "first_name": "Imię: ",
+        "gender": "Płeć: ",
+        "last_name": "Nazwisko: "
+      },
+      "capture_base": "EMdMn4N-HPgAmy4L8YcIyqxmHU5m68LH956CllwZwbMA",
+      "category_labels": {},
+      "digest": "EXj715PaoOuqm3fH4sN1zR-eAHkHttfBhE3_9FzcS22M",
+      "language": "pl_PL",
+      "type": "spec/overlays/label/1.0"
+    },
+    {
+      "attribute_categories": [],
+      "attribute_labels": {
+        "first_name": "First name: ",
+        "gender": "Gender: ",
+        "last_name": "Last name: "
+      },
+      "capture_base": "EMdMn4N-HPgAmy4L8YcIyqxmHU5m68LH956CllwZwbMA",
+      "category_labels": {},
+      "digest": "Ek8Gsi36FHbv2rfmF3HvSsFgC23k3j60Xx7AzMnb0J5M",
+      "language": "en_EN",
+      "type": "spec/overlays/label/1.0"
+    },
+    {
+      "attribute_entry_codes": {
+        "gender": [
+          "male",
+          "female"
+        ]
+      },
+      "capture_base": "EMdMn4N-HPgAmy4L8YcIyqxmHU5m68LH956CllwZwbMA",
+      "digest": "Erb9Our8NsVqYOWH9rY2O1xvgreER7B2D190__YywPbI",
+      "type": "spec/overlays/entry_code/1.0"
+    },
+    {
+      "attribute_entries": {
+        "gender": {
+          "female": "Female",
+          "male": "Male"
+        }
+      },
+      "capture_base": "EMdMn4N-HPgAmy4L8YcIyqxmHU5m68LH956CllwZwbMA",
+      "digest": "EiUCZGChxI41ZARmVGEYqJLhImeqVBt3YmjJ0A_wXYtU",
+      "language": "en_EN",
+      "type": "spec/overlays/entry/1.0"
+    },
+    {
+      "attribute_entries": {
+        "gender": {
+          "female": "Kobieta",
+          "male": "Mężczyzna"
+        }
+      },
+      "capture_base": "EMdMn4N-HPgAmy4L8YcIyqxmHU5m68LH956CllwZwbMA",
+      "digest": "E7iSzrUx9J2e8yRpMj0deJLnoyQHLmwsczOSA32YHB98",
+      "language": "pl_PL",
+      "type": "spec/overlays/entry/1.0"
+    },
+    {
+      "capture_base": "EMdMn4N-HPgAmy4L8YcIyqxmHU5m68LH956CllwZwbMA",
+      "description": "OCA reprezentująca prawo jazdy",
+      "digest": "EsgOFGG85PB3ZRRbhveoo6XfZ1JN0C1sJXR8gOa3ciaw",
+      "language": "pl_PL",
+      "name": "Prawo Jazdy",
+      "type": "spec/overlays/meta/1.0"
+    },
+    {
+      "capture_base": "EMdMn4N-HPgAmy4L8YcIyqxmHU5m68LH956CllwZwbMA",
+      "description": "OCA representing driving licence",
+      "digest": "EueYwaOJZLCaHWoDMmzss2blBPaqP8H5nrSAMCxr0OxM",
+      "language": "en_EN",
+      "name": "Driving Licence",
+      "type": "spec/overlays/meta/1.0"
+    },
+    {
+      "capture_base": "EMdMn4N-HPgAmy4L8YcIyqxmHU5m68LH956CllwZwbMA",
+      "digest": "E4g-VtHiJ_fN9LSU9TqlwqK02zi79ZijJUhxVopoKoSc",
+      "layout": {
+        "elements": [
+          {
+            "parts": [
+              {
+                "name": "name"
+              }
+            ],
+            "type": "meta"
+          }
+        ]
+      },
+      "type": "spec/overlays/form_layout/1.0"
+    }
+  ]
+}

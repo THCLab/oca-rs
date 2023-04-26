@@ -1,6 +1,9 @@
 use super::standard::Standard;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
+use std::{
+    collections::{BTreeMap, HashMap},
+    str::FromStr,
+};
 use wasm_bindgen::prelude::*;
 
 use crate::state::{
@@ -284,4 +287,45 @@ pub enum AttributeType {
     Reference,
     #[serde(rename = "Array[Reference]")]
     ArrayReference,
+}
+
+impl ToString for AttributeType {
+    fn to_string(&self) -> String {
+        match self {
+            AttributeType::Boolean => "Boolean".to_string(),
+            AttributeType::ArrayBoolean => "Array[Boolean]".to_string(),
+            AttributeType::Binary => "Binary".to_string(),
+            AttributeType::ArrayBinary => "Array[Binary]".to_string(),
+            AttributeType::Text => "Text".to_string(),
+            AttributeType::ArrayText => "Array[Text]".to_string(),
+            AttributeType::Numeric => "Numeric".to_string(),
+            AttributeType::ArrayNumeric => "Array[Numeric]".to_string(),
+            AttributeType::DateTime => "DateTime".to_string(),
+            AttributeType::ArrayDateTime => "Array[DateTime]".to_string(),
+            AttributeType::Reference => "Reference".to_string(),
+            AttributeType::ArrayReference => "Array[Reference]".to_string(),
+        }
+    }
+}
+
+impl FromStr for AttributeType {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Boolean" => Ok(AttributeType::Boolean),
+            "Array[Boolean]" => Ok(AttributeType::ArrayBoolean),
+            "Binary" => Ok(AttributeType::Binary),
+            "Array[Binary]" => Ok(AttributeType::ArrayBinary),
+            "Text" => Ok(AttributeType::Text),
+            "Array[Text]" => Ok(AttributeType::ArrayText),
+            "Numeric" => Ok(AttributeType::Numeric),
+            "Array[Numeric]" => Ok(AttributeType::ArrayNumeric),
+            "DateTime" => Ok(AttributeType::DateTime),
+            "Array[DateTime]" => Ok(AttributeType::ArrayDateTime),
+            "Reference" => Ok(AttributeType::Reference),
+            "Array[Reference]" => Ok(AttributeType::ArrayReference),
+            _ => Err(format!("{} is not a valid AttributeType", s)),
+        }
+    }
 }
