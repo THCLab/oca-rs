@@ -878,6 +878,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "oca-dag"
+version = "0.1.0"
+dependencies = [
+ "indexmap",
+ "oca-ast",
+ "oca-bundle",
+ "serde",
+ "serde_json",
+ "sled",
+]
+
+[[package]]
 name = "oca-file"
 version = "0.1.0"
 dependencies = [

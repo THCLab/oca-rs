@@ -1,0 +1,15 @@
+[package]
+name = "oca-dag"
+version = "0.1.0"
+edition = "2021"
+license = "EUPL-1.2"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sled = "0.34.7"
+oca-bundle = { path = "../oca-bundle" }
+oca-ast = { path = "../oca-ast" }
+indexmap = { version = "1.9.3", features = ["serde"]}
