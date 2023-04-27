@@ -1,35 +1,46 @@
 use crate::state::attribute::{Attribute, AttributeType};
-use said::derivation::SelfAddressing;
-use serde::{Deserialize, Serialize, Serializer, ser::SerializeStruct};
+use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap, ser::SerializeSeq};
 use std::collections::HashMap;
 
-impl Serialize for CaptureBase {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        use std::collections::BTreeMap;
+pub fn serialize_attributes<S>(attributes: &HashMap<String, String>, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    use std::collections::BTreeMap;
 
-        let mut state = serializer.serialize_struct("CaptureBase", 5)?;
-        state.serialize_field("said", &self.said)?;
-        state.serialize_field("type", &self.schema_type)?;
-        state.serialize_field("classification", &self.classification)?;
-        let sorted_attributes: BTreeMap<_, _> = self.attributes.iter().collect();
-        state.serialize_field("attributes", &sorted_attributes)?;
-        let mut sorted_flagged_attributes = self.flagged_attributes.clone();
-        sorted_flagged_attributes.sort();
-        state.serialize_field("flagged_attributes", &sorted_flagged_attributes)?;
-        state.end()
+    let mut ser = s.serialize_map(Some(attributes.len()))?;
+    let sorted_attributes: BTreeMap<_, _> = attributes.iter().collect();
+    for (k, v) in sorted_attributes {
+        ser.serialize_entry(k, v)?;
     }
+    ser.end()
 }
 
-#[derive(Deserialize, Debug, Clone)]
+pub fn serialize_flagged_attributes<S>(attributes: &Vec<String>, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let mut ser = s.serialize_seq(Some(attributes.len()))?;
+
+    let mut sorted_flagged_attributes = attributes.clone();
+    sorted_flagged_attributes.sort();
+    for attr in sorted_flagged_attributes {
+        ser.serialize_element(&attr)?;
+    }
+    ser.end()
+}
+
+#[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct CaptureBase {
+    #[said]
+    pub said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     pub schema_type: String,
-    pub said: String,
     pub classification: String,
+    #[serde(serialize_with = "serialize_attributes")]
     pub attributes: HashMap<String, String>,
+    #[serde(serialize_with = "serialize_flagged_attributes")]
     pub flagged_attributes: Vec<String>,
 }
 
@@ -43,11 +54,15 @@ impl CaptureBase {
     pub fn new() -> CaptureBase {
         CaptureBase {
             schema_type: String::from("spec/capture_base/1.0"),
-            said: String::from("############################################"),
+            said: None,
             classification: String::from(""),
             attributes: HashMap::new(),
             flagged_attributes: Vec::new(),
         }
+    }
+
+    pub fn set_classification(&mut self, classification: &str) {
+        self.classification = classification.to_string();
     }
 
     pub fn add(&mut self, attribute: &Attribute) {
@@ -71,23 +86,11 @@ impl CaptureBase {
         }
     }
 
-    pub fn calculate_said(&self) -> String {
-        let self_json = serde_json::to_string(&self).unwrap();
-
-        format!(
-            "{}",
-            SelfAddressing::Blake3_256.derive(
-                self_json
-                    .replace(
-                        self.said.as_str(),
-                        "############################################"
-                    )
-                    .as_bytes()
-            )
-        )
+    pub fn fill_said(&mut self) {
+        self.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
     }
 
     pub fn sign(&mut self) {
-        self.said = self.calculate_said();
+        self.fill_said();
     }
 }

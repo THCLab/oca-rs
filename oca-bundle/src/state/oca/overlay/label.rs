@@ -1,8 +1,9 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use isolang::Language;
-use serde::{Deserialize, Serialize, Serializer, ser::SerializeStruct};
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap, ser::SerializeSeq};
 use std::any::Any;
 use std::collections::HashMap;
+use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
 
 pub trait Labels {
     fn set_label(&mut self, l: Language, label: String) -> ();
@@ -36,38 +37,47 @@ impl Labels for Attribute {
     }
 }
 
-impl Serialize for LabelOverlay {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        use std::collections::BTreeMap;
+pub fn serialize_labels<S>(attributes: &HashMap<String, String>, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    use std::collections::BTreeMap;
 
-        let mut state = serializer.serialize_struct("LabelOverlay", 7)?;
-        state.serialize_field("said", &self.said)?;
-        state.serialize_field("language", &self.language)?;
-        state.serialize_field("type", &self.overlay_type)?;
-        state.serialize_field("capture_base", &self.capture_base)?;
-        let sorted_attribute_labels: BTreeMap<_, _> = self.attribute_labels.iter().collect();
-        state.serialize_field("attribute_labels", &sorted_attribute_labels)?;
-        let mut sorted_attribute_categories = self.attribute_categories.clone();
-        sorted_attribute_categories.sort();
-        state.serialize_field("attribute_categories", &sorted_attribute_categories)?;
-        let sorted_category_labels: BTreeMap<_, _> = self.category_labels.iter().collect();
-        state.serialize_field("category_labels", &sorted_category_labels)?;
-        state.end()
+    let mut ser = s.serialize_map(Some(attributes.len()))?;
+    let sorted_attributes: BTreeMap<_, _> = attributes.iter().collect();
+    for (k, v) in sorted_attributes {
+        ser.serialize_entry(k, v)?;
     }
+    ser.end()
 }
 
-#[derive(Deserialize, Debug, Clone)]
+pub fn serialize_categories<S>(attributes: &Vec<String>, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let mut ser = s.serialize_seq(Some(attributes.len()))?;
+
+    let mut sorted_flagged_attributes = attributes.clone();
+    sorted_flagged_attributes.sort();
+    for attr in sorted_flagged_attributes {
+        ser.serialize_element(&attr)?;
+    }
+    ser.end()
+}
+
+#[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct LabelOverlay {
-    capture_base: String,
-    said: String,
+    #[said]
+    said: Option<said::SelfAddressingIdentifier>,
+    language: Language,
     #[serde(rename = "type")]
     overlay_type: String,
-    language: Language,
+    capture_base: Option<said::SelfAddressingIdentifier>,
+    #[serde(serialize_with = "serialize_labels")]
     pub attribute_labels: HashMap<String, String>,
+    #[serde(serialize_with = "serialize_categories")]
     pub attribute_categories: Vec<String>, // TODO find out if we need duplicated structure to hold keys if we have hashmap with those keys
+    #[serde(serialize_with = "serialize_labels")]
     pub category_labels: HashMap<String, String>,
     #[serde(skip)]
     pub category_attributes: HashMap<String, Vec<String>>,
@@ -77,20 +87,17 @@ impl Overlay for LabelOverlay {
     fn as_any(&self) -> &dyn Any {
         self
     }
-    fn capture_base(&self) -> &String {
+    fn capture_base(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.capture_base
     }
-    fn capture_base_mut(&mut self) -> &mut String {
-        &mut self.capture_base
+    fn set_capture_base(&mut self, said: &said::SelfAddressingIdentifier) {
+        self.capture_base = Some(said.clone());
     }
     fn overlay_type(&self) -> &String {
         &self.overlay_type
     }
-    fn said(&self) -> &String {
+    fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.said
-    }
-    fn said_mut(&mut self) -> &mut String {
-        &mut self.said
     }
     fn language(&self) -> Option<&Language> {
         Some(&self.language)
@@ -119,8 +126,8 @@ impl Overlay for LabelOverlay {
 impl LabelOverlay {
     pub fn new(lang: Language) -> LabelOverlay {
         LabelOverlay {
-            capture_base: String::new(),
-            said: String::from("############################################"),
+            capture_base: None,
+            said: None,
             overlay_type: "spec/overlays/label/1.0".to_string(),
             language: lang,
             attribute_labels: HashMap::new(),

@@ -1,7 +1,7 @@
-use said::derivation::SelfAddressing;
+use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
 use crate::state::oca::layout::credential::Layout as CredentialLayout;
 use crate::state::oca::layout::form::Layout as FormLayout;
-use serde::{Deserialize, Deserializer, Serialize, Serializer, ser::SerializeStruct};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, ser::SerializeMap};
 use std::collections::HashMap;
 use linked_hash_map::LinkedHashMap;
 pub mod capture_base;
@@ -83,19 +83,19 @@ impl OCABox {
         let mut overlays = self.generate_overlays();
 
         capture_base.sign();
-        let cb_said = capture_base.calculate_said();
-        overlays.iter_mut().for_each(|x| x.sign(&cb_said));
+
+        let cb_said = capture_base.said.as_ref();
+        overlays.iter_mut().for_each(|x| x.sign(cb_said.unwrap()));
 
         let mut oca_bundle = OCABundle {
             version: "OCAB10000023_".to_string(),
-            said: "############################################".to_string(),
+            said: None,
             capture_base,
             overlays,
         };
 
-        oca_bundle.generate_said();
-        return oca_bundle;
-
+        oca_bundle.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+        oca_bundle
     }
 
     fn generate_overlays(&mut self) -> Vec<DynOverlay> {
@@ -264,6 +264,9 @@ impl OCABox {
     }
     fn generate_capture_base(&mut self) -> CaptureBase {
         let mut capture_base = CaptureBase::new();
+        if let Some(classification) = &self.classification {
+            capture_base.set_classification(classification);
+        }
         for attribute in self.attributes.values() {
             capture_base.add(attribute);
         }
@@ -447,91 +450,86 @@ impl<'de> Deserialize<'de> for DynOverlay {
     }
 }
 
-impl Serialize for OCABundle {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        use serde_value::Value;
-        #[derive(Serialize)]
-        #[serde(untagged)]
-        enum OverlayValue {
-            Array(Vec<DynOverlay>),
-            Object(Box<dyn Overlay + Send>),
-        }
+pub fn serialize_overlays<S>(overlays: &Vec<DynOverlay>, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    use serde_value::Value;
+    #[derive(Serialize)]
+    #[serde(untagged)]
+    enum OverlayValue {
+        Array(Vec<DynOverlay>),
+        Object(Box<dyn Overlay + Send>),
+    }
 
-        let mut state = serializer.serialize_struct("OCABundle", 4)?;
-        state.serialize_field("version", &self.version)?;
-        state.serialize_field("said", &self.said)?;
-        state.serialize_field("capture_base", &self.capture_base)?;
-
-        let mut overlays_map: LinkedHashMap<Value, OverlayValue> = LinkedHashMap::new();
-        let overlays_order = [
-            "character_encoding",
-            "format",
-            "meta",
-            "label",
-            "information",
-            "standard",
-            "conditional",
-            "conformance",
-            "entry_code",
-            "entry",
-            "cardinality",
-            "unit",
-            "attribute_mapping",
-            "entry_code_mapping",
-            "unit_mapping",
-            "subset",
-            "credential_layout",
-            "form_layout"
-        ];
-        for o_type in overlays_order {
-            for overlay in &self.overlays {
-                let o_type_tmp = format!("/{o_type}/");
-                if overlay.overlay_type().contains(&o_type_tmp) {
-                    match overlay.language() {
-                        Some(_) => {
-                            if let Some(OverlayValue::Array(ov)) = overlays_map.get_mut(&Value::String(o_type.to_string())) {
-                                ov.push(overlay.clone());
-                            } else {
-                                overlays_map.insert(
-                                    Value::String(o_type.to_string()),
-                                    OverlayValue::Array(vec![
-                                        overlay.clone()
-                                    ])
-                                );
-                            }
-                        },
-                        None => {
+    let mut overlays_map: LinkedHashMap<Value, OverlayValue> = LinkedHashMap::new();
+    let overlays_order = [
+        "character_encoding",
+        "format",
+        "meta",
+        "label",
+        "information",
+        "standard",
+        "conditional",
+        "conformance",
+        "entry_code",
+        "entry",
+        "cardinality",
+        "unit",
+        "attribute_mapping",
+        "entry_code_mapping",
+        "unit_mapping",
+        "subset",
+        "credential_layout",
+        "form_layout"
+    ];
+    for o_type in overlays_order {
+        for overlay in overlays {
+            let o_type_tmp = format!("/{o_type}/");
+            if overlay.overlay_type().contains(&o_type_tmp) {
+                match overlay.language() {
+                    Some(_) => {
+                        if let Some(OverlayValue::Array(ov)) = overlays_map.get_mut(&Value::String(o_type.to_string())) {
+                            ov.push(overlay.clone());
+                        } else {
                             overlays_map.insert(
                                 Value::String(o_type.to_string()),
-                                OverlayValue::Object(overlay.clone())
+                                OverlayValue::Array(vec![
+                                    overlay.clone()
+                                ])
                             );
                         }
+                    },
+                    None => {
+                        overlays_map.insert(
+                            Value::String(o_type.to_string()),
+                            OverlayValue::Object(overlay.clone())
+                        );
                     }
                 }
             }
         }
+    }
 
-        for (_, v) in overlays_map.iter_mut() {
-            if let OverlayValue::Array(ov) = v {
-                ov.sort_by(|a, b| {
-                    if let Some(a_lang) = a.language() {
-                        if let Some(b_lang) = b.language() {
-                            a_lang.cmp(b_lang)
-                        } else {
-                            std::cmp::Ordering::Equal
-                        }
+    let mut ser = s.serialize_map(Some(overlays_map.len()))?;
+    for (ov_type, v) in overlays_map.iter_mut() {
+        if let OverlayValue::Array(ov) = v {
+            ov.sort_by(|a, b| {
+                if let Some(a_lang) = a.language() {
+                    if let Some(b_lang) = b.language() {
+                        a_lang.cmp(b_lang)
                     } else {
                         std::cmp::Ordering::Equal
                     }
-                });
-            }
+                } else {
+                    std::cmp::Ordering::Equal
+                }
+            });
         }
-        state.serialize_field("overlays", &overlays_map)?;
-        state.end()
+
+        ser.serialize_entry(ov_type, v)?;
     }
+    ser.end()
 }
 
 fn deserialize_overlays<'de, D>(deserializer: D) -> Result<Vec<DynOverlay>, D::Error>
@@ -570,36 +568,26 @@ where
     deserializer.deserialize_any(OverlaysVisitor)
 }
 
-#[derive(Deserialize)]
+impl std::fmt::Debug for DynOverlay {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "DynOverlay {{ overlay_type: {}, attributes: {:?} }}", self.overlay_type(), self.attributes())
+    }
+}
+
+#[derive(SAD, Serialize, Debug, Deserialize, Clone)]
 pub struct OCABundle {
     pub version: String,
-    pub said: String,
+    #[said]
+    pub said: Option<said::SelfAddressingIdentifier>,
     pub capture_base: CaptureBase,
-    #[serde(deserialize_with = "deserialize_overlays")]
+    #[serde(serialize_with = "serialize_overlays", deserialize_with = "deserialize_overlays")]
     pub overlays: Vec<DynOverlay>,
 }
 
 
 impl OCABundle {
-
-    fn calculate_said(&self) -> String {
-        let self_json = serde_json::to_string(&self).unwrap();
-
-        format!(
-            "{}",
-            SelfAddressing::Blake3_256.derive(
-                self_json
-                    .replace(
-                        self.said.as_str(),
-                        "############################################"
-                    )
-                    .as_bytes()
-            )
-        )
-    }
-
-    pub fn generate_said(&mut self) {
-        self.said = self.calculate_said();
+    pub fn fill_said(&mut self) {
+        self.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
     }
 }
 #[derive(Clone)]
@@ -635,6 +623,7 @@ mod tests {
     #[test]
     fn build_oca_bundle() {
         let mut oca = OCABox::new();
+        oca.add_classification("test".to_string());
         oca.add_meta(Language::Eng, "name".to_string(), "test name".to_string());
         oca.add_meta(Language::Eng, "description".to_string(), "test desc".to_string());
         let mut attr = Attribute::new("first_name".to_string());
@@ -646,11 +635,12 @@ mod tests {
         oca.add_attribute(attr);
         // oca.add_attribute(Attribute::new("last_name".to_string()));
         let oca_bundle = oca.generate_bundle();
+        let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
+        println!("{}", oca_bundle_json);
         let said = oca_bundle.said.clone();
         let oca_bundle = oca.generate_bundle();
         let said2 = oca_bundle.said.clone();
-        // let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
-        // println!("{oca_bundle_json}");
+        let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
         assert_eq!(said, said2);
     }
 }

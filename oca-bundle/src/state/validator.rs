@@ -1,6 +1,6 @@
 use crate::state::oca::overlay::Overlay;
 use crate::state::oca::DynOverlay;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use isolang::Language;
 
 use super::oca::{OCABundle, overlay};
@@ -70,15 +70,26 @@ impl Validator {
         /* let oca_bundle: OCABundle = serde_json::from_str(oca_str.as_str())
             .map_err(|e| vec![Error::Custom(e.to_string())])?;
  */
-        let capture_base = &oca_bundle.capture_base;
-        let sai = capture_base.said.clone();
+        let mut recalculated_oca_bundle = oca_bundle.clone();
+        recalculated_oca_bundle.fill_said();
 
-        if capture_base.said.ne(&capture_base.calculate_said()) {
+        if oca_bundle.said.ne(&recalculated_oca_bundle.said) {
+            errors.push(Error::Custom("OCA Bundle: Malformed SAID".to_string()));
+        }
+
+        let capture_base = &oca_bundle.capture_base;
+
+        let mut recalculated_capture_base = capture_base.clone();
+        recalculated_capture_base.sign();
+
+        if capture_base.said.ne(&recalculated_capture_base.said) {
             errors.push(Error::Custom("capture_base: Malformed SAID".to_string()));
         }
 
         for o in &oca_bundle.overlays {
-            if o.said().ne(&o.calculate_said()) {
+            let mut recalculated_overlay = o.clone();
+            recalculated_overlay.fill_said();
+            if o.said().ne(recalculated_overlay.said()) {
                 let msg = match o.language() {
                     Some(lang) => format!("{} ({}): Malformed SAID", o.overlay_type(), lang),
                     None => format!("{}: Malformed SAID", o.overlay_type()),
@@ -86,7 +97,7 @@ impl Validator {
                 errors.push(Error::Custom(msg));
             }
 
-            if o.capture_base().ne(&sai) {
+            if o.capture_base().ne(&capture_base.said) {
                 let msg = match o.language() {
                     Some(lang) => {
                         format!("{} ({}): Mismatch capture_base SAI", o.overlay_type(), lang)
@@ -237,7 +248,7 @@ impl Validator {
 
         let missing_translations: HashSet<&_> = enforced_langs.difference(&overlay_langs).collect();
         for m in missing_translations {
-            errors.push(Error::MissingTranslations(Language::from(**m))); // why we have && here?
+            errors.push(Error::MissingTranslations(**m)); // why we have && here?
         }
 
         let all_attributes: HashSet<&String> =
@@ -366,10 +377,10 @@ mod tests {
         let data = r#"
 {
     "version": "OCAB10000023_",
-    "said": "",
+    "said": "EBQMQm_tXSC8tnNICl7paGUeGg0SyF1tceHhTUutn1PN",
     "capture_base": {
         "type": "spec/capture_base/1.0",
-        "said": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LK",
+        "said": "EBQMQm_tXSC8tnNICl7paGUeGg0SyF1tceHhTUutn1PN",
         "classification": "",
         "attributes": {
             "n1": "Text",
@@ -380,8 +391,8 @@ mod tests {
     },
     "overlays": {
         "character_encoding": {
-            "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
-            "said": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "capture_base": "EDRt2wL8yVWVSJdF8aMFtU9VQ6aWzXZTgWj3WqsIKLqm",
+            "said": "EBQMQm_tXSC8tnNICl7paGUeGg0SyF1tceHhTUutn1PN",
             "type": "spec/overlays/character_encoding/1.0",
             "default_character_encoding": "utf-8",
             "attribute_character_encoding": {}
@@ -389,13 +400,13 @@ mod tests {
     }
 }
         "#;
-        let oca_bundle = load_oca(&mut data.as_bytes()).unwrap();
+        let oca_bundle = load_oca(&mut data.as_bytes());
 
-        let result = validator.validate(&oca_bundle);
+        let result = validator.validate(&oca_bundle.unwrap());
 
         assert!(result.is_err());
         if let Err(errors) = result {
-            assert_eq!(errors.len(), 3);
+            assert_eq!(errors.len(), 4);
         }
     }
 }

@@ -1,7 +1,8 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
-use serde::{Deserialize, Serialize, Serializer, ser::SerializeStruct};
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
 use std::any::Any;
 use std::collections::HashMap;
+use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, Hash, PartialEq)]
 pub enum MeasurementSystem {
@@ -92,31 +93,29 @@ impl Unit for Attribute {
     }
 }
 
-impl Serialize for UnitOverlay {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        use std::collections::BTreeMap;
+pub fn serialize_attributes<S>(attributes: &HashMap<String, MeasurementUnit>, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    use std::collections::BTreeMap;
 
-        let mut state = serializer.serialize_struct("UnitOverlay", 5)?;
-        state.serialize_field("said", &self.said)?;
-        state.serialize_field("type", &self.overlay_type)?;
-        state.serialize_field("capture_base", &self.capture_base)?;
-        state.serialize_field("measurement_system", &self.measurement_system)?;
-        let sorted_attribute_units: BTreeMap<_, _> = self.attribute_units.iter().collect();
-        state.serialize_field("attribute_units", &sorted_attribute_units)?;
-        state.end()
+    let mut ser = s.serialize_map(Some(attributes.len()))?;
+    let sorted_attributes: BTreeMap<_, _> = attributes.iter().collect();
+    for (k, v) in sorted_attributes {
+        ser.serialize_entry(k, v)?;
     }
+    ser.end()
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct UnitOverlay {
-    capture_base: String,
-    said: String,
+    #[said]
+    said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     overlay_type: String,
+    capture_base: Option<said::SelfAddressingIdentifier>,
     pub measurement_system: MeasurementSystem,
+    #[serde(serialize_with = "serialize_attributes")]
     pub attribute_units: HashMap<String, MeasurementUnit>,
 }
 
@@ -124,17 +123,14 @@ impl Overlay for UnitOverlay {
     fn as_any(&self) -> &dyn Any {
         self
     }
-    fn capture_base(&self) -> &String {
+    fn capture_base(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.capture_base
     }
-    fn capture_base_mut(&mut self) -> &mut String {
-        &mut self.capture_base
+    fn set_capture_base(&mut self, said: &said::SelfAddressingIdentifier) {
+        self.capture_base = Some(said.clone());
     }
-    fn said(&self) -> &String {
+    fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.said
-    }
-    fn said_mut(&mut self) -> &mut String {
-        &mut self.said
     }
     fn overlay_type(&self) -> &String {
         &self.overlay_type
@@ -156,8 +152,8 @@ impl Overlay for UnitOverlay {
 impl UnitOverlay {
     pub fn new(measurement_system: MeasurementSystem) -> UnitOverlay {
         UnitOverlay {
-            capture_base: String::new(),
-            said: String::from("############################################"),
+            capture_base: None,
+            said: None,
             overlay_type: "spec/overlays/unit/1.0".to_string(),
             measurement_system,
             attribute_units: HashMap::new(),

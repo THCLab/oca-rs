@@ -36,8 +36,8 @@ pub use self::standard::StandardOverlay as Standard;
 pub use self::subset::SubsetOverlay as Subset;
 use self::unit::MeasurementSystem;
 pub use self::unit::UnitOverlay as Unit;
-use crate::state::{attribute::Attribute};
-use said::derivation::SelfAddressing;
+use crate::state::attribute::Attribute;
+use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
 use std::any::Any;
 use isolang::Language;
 erased_serde::serialize_trait_object!(Overlay);
@@ -45,12 +45,11 @@ erased_serde::serialize_trait_object!(Overlay);
 use dyn_clonable::*;
 
 #[clonable]
-pub trait Overlay: erased_serde::Serialize + Clone {
+pub trait Overlay: erased_serde::Serialize + Clone + SAD {
     fn as_any(&self) -> &dyn Any;
-    fn capture_base(&self) -> &String;
-    fn capture_base_mut(&mut self) -> &mut String;
-    fn said(&self) -> &String;
-    fn said_mut(&mut self) -> &mut String;
+    fn capture_base(&self) -> &Option<said::SelfAddressingIdentifier>;
+    fn set_capture_base(&mut self, said: &said::SelfAddressingIdentifier);
+    fn said(&self) -> &Option<said::SelfAddressingIdentifier>;
     fn overlay_type(&self) -> &String;
     fn language(&self) -> Option<&Language> {
         None
@@ -60,46 +59,13 @@ pub trait Overlay: erased_serde::Serialize + Clone {
 
     fn add(&mut self, attribute: &Attribute);
 
-    fn calculate_said(&self) -> String {
-        let mut buf = vec![];
-        {
-            let json_serializer = &mut serde_json::Serializer::new(&mut buf);
-            let mut erased_serializer: Box<dyn erased_serde::Serializer> =
-                Box::new(<dyn erased_serde::Serializer>::erase(json_serializer));
-            self.erased_serialize(erased_serializer.as_mut()).unwrap();
-        }
-        let self_json = std::str::from_utf8(buf.as_slice()).unwrap().to_string();
-
-        format!(
-            "{}",
-            SelfAddressing::Blake3_256.derive(
-                self_json
-                    .replace(self.said(), "############################################")
-                    .as_bytes()
-            )
-        )
+    fn fill_said(&mut self) {
+        self.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
     }
 
-    fn sign(&mut self, capture_base_sai: &str) {
-        self.capture_base_mut().clear();
-        self.capture_base_mut().push_str(capture_base_sai);
-        self.said_mut().clear();
-        self.said_mut()
-            .push_str("############################################");
-
-        let mut buf = vec![];
-        {
-            let json_serializer = &mut serde_json::Serializer::new(&mut buf);
-            let mut erased_serializer: Box<dyn erased_serde::Serializer> =
-                Box::new(<dyn erased_serde::Serializer>::erase(json_serializer));
-            self.erased_serialize(erased_serializer.as_mut()).unwrap();
-        }
-        let self_json = std::str::from_utf8(buf.as_slice()).unwrap().to_string();
-        self.said_mut().clear();
-        self.said_mut().push_str(&format!(
-            "{}",
-            SelfAddressing::Blake3_256.derive(self_json.as_bytes())
-        ))
+    fn sign(&mut self, capture_base_sai: &said::SelfAddressingIdentifier) {
+        self.set_capture_base(capture_base_sai);
+        self.fill_said();
     }
 }
 
@@ -116,28 +82,28 @@ macro_rules! overlay {
                 }
             }
 
-            impl serde::Serialize for [<$name Overlay>] {
-                fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-                where
-                    S: serde::Serializer,
-                {
-                    use std::collections::BTreeMap;
-                    let mut state = serializer.serialize_struct(stringify!([<$name Overlay>]), 4)?;
-                    state.serialize_field("said", &self.said)?;
-                    state.serialize_field("type", &self.overlay_type)?;
-                    state.serialize_field("capture_base", &self.capture_base)?;
-                    let sorted_attr: BTreeMap<_, _> = self.$field1.iter().collect();
-                    state.serialize_field(stringify!($field1), &sorted_attr)?;
-                    state.end()
+            pub fn serialize_attributes<S>(attributes: &std::collections::HashMap<String, $field2_type>, s: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                use std::collections::BTreeMap;
+
+                let mut ser = s.serialize_map(Some(attributes.len()))?;
+                let sorted_attributes: BTreeMap<_, _> = attributes.iter().collect();
+                for (k, v) in sorted_attributes {
+                    ser.serialize_entry(k, v)?;
                 }
+                ser.end()
             }
 
-            #[derive(serde::Deserialize, Debug, Clone)]
+            #[derive(serde::Deserialize, serde::Serialize, SAD, Debug, Clone)]
             pub struct [<$name Overlay>] {
-                capture_base: String,
-                said: String,
+                #[said]
+                said: Option<said::SelfAddressingIdentifier>,
                 #[serde(rename = "type")]
                 overlay_type: String,
+                capture_base: Option<said::SelfAddressingIdentifier>,
+                #[serde(serialize_with = "serialize_attributes")]
                 pub $field1: std::collections::HashMap<String, $field2_type>
             }
 
@@ -148,17 +114,14 @@ macro_rules! overlay {
                 fn overlay_type(&self) -> &String {
                     &self.overlay_type
                 }
-                fn capture_base(&self) -> &String {
+                fn capture_base(&self) -> &Option<said::SelfAddressingIdentifier> {
                     &self.capture_base
                 }
-                fn capture_base_mut(&mut self) -> &mut String {
-                    &mut self.capture_base
+                fn set_capture_base(&mut self, said: &said::SelfAddressingIdentifier) {
+                    self.capture_base = Some(said.clone());
                 }
-                fn said(&self) -> &String {
+                fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
                     &self.said
-                }
-                fn said_mut(&mut self) -> &mut String {
-                    &mut self.said
                 }
                 fn attributes(&self) -> Vec<&String> {
                     self.$field1.keys().collect::<Vec<&String>>()
@@ -180,8 +143,8 @@ macro_rules! overlay {
             impl [<$name Overlay>] {
                 pub fn new() -> Self {
                     Self {
-                        capture_base: String::new(),
-                        said: String::from("############################################"),
+                        capture_base: None,
+                        said: None,
                         overlay_type: format!("spec/overlays/{}/1.0", stringify!([<$name:snake:lower>])),
                         $field1: std::collections::HashMap::new(),
 

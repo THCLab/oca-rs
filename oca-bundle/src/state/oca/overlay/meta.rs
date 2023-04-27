@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
 use std::any::Any;
 use std::collections::HashMap;
 use isolang::Language;
+use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
 
 pub trait Metas {
     fn add_meta(&mut self, language: Language, key: String, value: String);
@@ -36,37 +37,29 @@ impl Metas for OCABox {
     }
 }
 
-impl Serialize for MetaOverlay {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        use std::collections::BTreeMap;
+pub fn serialize_attributes<S>(attributes: &HashMap<String, String>, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    use std::collections::BTreeMap;
 
-        let mut state = serializer.serialize_map(Some(4 + self.attr_pairs.len()))?;
-
-        state.serialize_entry("said", &self.said)?;
-        state.serialize_entry("language", &self.language)?;
-        state.serialize_entry("type", &self.overlay_type)?;
-        state.serialize_entry("capture_base", &self.capture_base)?;
-
-        let sorted_attr_pairs: BTreeMap<_, _> = self.attr_pairs.iter().collect();
-        for (k, v) in sorted_attr_pairs.iter() {
-            state.serialize_entry(k, v)?;
-        }
-
-        state.end()
+    let mut ser = s.serialize_map(Some(attributes.len()))?;
+    let sorted_attributes: BTreeMap<_, _> = attributes.iter().collect();
+    for (k, v) in sorted_attributes {
+        ser.serialize_entry(k, v)?;
     }
+    ser.end()
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct MetaOverlay {
-    capture_base: String,
-    said: String,
+    #[said]
+    said: Option<said::SelfAddressingIdentifier>,
+    language: Language,
     #[serde(rename = "type")]
     overlay_type: String,
-    language: Language,
-    #[serde(flatten)]
+    capture_base: Option<said::SelfAddressingIdentifier>,
+    #[serde(flatten, serialize_with = "serialize_attributes")]
     pub attr_pairs: HashMap<String, String>,
 }
 
@@ -75,17 +68,14 @@ impl Overlay for MetaOverlay {
     fn as_any(&self) -> &dyn Any {
         self
     }
-    fn capture_base(&self) -> &String {
+    fn capture_base(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.capture_base
     }
-    fn capture_base_mut(&mut self) -> &mut String {
-        &mut self.capture_base
+    fn set_capture_base(&mut self, said: &said::SelfAddressingIdentifier) {
+        self.capture_base = Some(said.clone());
     }
-    fn said(&self) -> &String {
+    fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.said
-    }
-    fn said_mut(&mut self) -> &mut String {
-        &mut self.said
     }
     fn overlay_type(&self) -> &String {
         &self.overlay_type
@@ -103,8 +93,8 @@ impl Overlay for MetaOverlay {
 impl MetaOverlay {
     pub fn new(lang: Language, attr_pairs: HashMap<String, String>) -> Self {
         Self {
-            capture_base: String::new(),
-            said: String::from("############################################"),
+            capture_base: None,
+            said: None,
             overlay_type: "spec/overlays/meta/1.0".to_string(),
             language: lang,
             attr_pairs,
