@@ -1,0 +1,33 @@
+[package]
+name = "oca-file"
+version = "0.1.0"
+edition = "2021"
+authors = ["Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>", "Robert Mitwicki <robert.mitwicki@opensoftware.pl>", "Michał Pietrus <michal.pietrus@opensoftware.pl>"]
+license = "EUPL-1.2"
+readme = "README.md"
+description = "Rust implementation of OCAFile"
+
+
+[lib]
+name = "ocafile"
+path = "src/lib.rs"
+
+[[bin]]
+name = "oca-tool"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.0.29", features = ["derive"] }
+pest = "2.5.1"
+pest_derive = "2.5.1"
+pretty_assertions = "1.3.0"
+thiserror = "1.0.38"
+oca-bundle = { path = "../oca-bundle/" }
+oca-ast = { path = "../oca-ast" }
+said = "0.2.1"
+log = "0.4.0"
+env_logger = "0.10.0"
+serde_json = { version = "1.0", features = ["preserve_order"] }
+sled = "0.34.7"
+serde = { version = "1.0", features = ["derive"] }
+indexmap = { version = "1.9.3", features = ["serde"]}
