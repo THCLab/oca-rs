@@ -86,9 +86,14 @@ impl OCABox {
 
         let cb_said = capture_base.said.as_ref();
         overlays.iter_mut().for_each(|x| x.sign(cb_said.unwrap()));
+        let version = version::serialization_info::SerializationInfo::new(
+          "OCAB".to_string(),
+          version::serialization_info::SerializationFormats::JSON,
+          100
+        );
 
         let mut oca_bundle = OCABundle {
-            version: "OCAB10000023_".to_string(),
+            version: version.to_str(),
             said: None,
             capture_base,
             overlays,
