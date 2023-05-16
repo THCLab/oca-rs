@@ -1,12 +1,26 @@
+use oca_bundle::state::oca::overlay::entry::Entries;
+use oca_bundle::state::oca::overlay::entry_code::EntryCodes;
+use oca_bundle::state::oca::overlay::information::Information;
+use oca_bundle::state::oca::overlay::format::Formats;
+use oca_bundle::state::oca::overlay::conformance::Conformances;
+use oca_bundle::state::oca::overlay::cardinality::Cardinalitys;
+use oca_bundle::state::oca::overlay::character_encoding::CharacterEncodings;
+use oca_bundle::state::oca::overlay::label::Labels;
+use oca_bundle::state::oca::overlay::meta::Metas;
+use oca_bundle::state::oca::overlay::credential_layout::CredentialLayouts;
+use oca_bundle::state::oca::overlay::form_layout::FormLayouts;
+use isolang::Language;
 use oca_bundle::state::{
     attribute::{
-        Attribute as AttributeRaw, AttributeBuilder as AttributeBuilderRaw, AttributeType,
-        Entries as EntriesRaw, Entry as EntryRaw,
+        Attribute as AttributeRaw, AttributeType,
+        // Entries as EntriesRaw,
+        Entry as EntryRaw,
     },
     encoding::Encoding,
     entry_codes::EntryCodes as EntryCodesRaw,
-    language::Language,
-    oca::{OCABuilder as OCABuilderRaw, OCA as OCARaw},
+    entries::EntriesElement as EntriesElementRaw,
+    // language::Language,
+    oca::{OCABundle as OCABundleRaw, OCABox as OCABoxRaw},
     validator,
 };
 use serde::{Deserialize, Serialize};
@@ -15,20 +29,20 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 extern "C" {
-    #[wasm_bindgen(typescript_type = "OCA")]
-    pub type OCA;
-    #[wasm_bindgen(typescript_type = "Attribute")]
-    pub type Attribute;
+    #[wasm_bindgen(typescript_type = "OCABundle")]
+    pub type OCABundle;
+    // #[wasm_bindgen(typescript_type = "Attribute")]
+    // pub type Attribute;
     #[wasm_bindgen(typescript_type = "'O' | 'M'")]
     pub type ConformanceOptions;
-    #[wasm_bindgen(typescript_type = "ITranslations")]
-    pub type ITranslations;
+    #[wasm_bindgen(typescript_type = "{ [language: string]: string }")]
+    pub type Translations;
     #[wasm_bindgen(typescript_type = "IEntry")]
     pub type IEntry;
-    #[wasm_bindgen(typescript_type = "{ [language: string]: string } | IEntry[]")]
-    pub type Entries;
-    #[wasm_bindgen(typescript_type = "string | string[]")]
-    pub type EntryCodes;
+    #[wasm_bindgen(typescript_type = "{ [code: string]: { [language: string]: string } }")]
+    pub type EntriesTranslations;
+    // #[wasm_bindgen(typescript_type = "string | string[]")]
+    // pub type EntryCodes;
     #[wasm_bindgen(typescript_type = "string[]")]
     pub type EntryCodesMapping;
     #[wasm_bindgen(typescript_type = "string[]")]
@@ -45,7 +59,7 @@ pub struct Entry {
 #[wasm_bindgen]
 impl Entry {
     #[wasm_bindgen(constructor)]
-    pub fn constructor(code: String, translations: ITranslations) -> Entry {
+    pub fn constructor(code: String, translations: Translations) -> Entry {
         let translations_str: HashMap<String, String> =
             serde_wasm_bindgen::from_value(JsValue::from(translations)).unwrap();
 
@@ -61,49 +75,56 @@ impl Entry {
 }
 
 #[wasm_bindgen]
-pub struct OCABuilder {
-    raw: OCABuilderRaw,
+pub struct OCABox {
+    raw: OCABoxRaw,
+}
+
+impl Default for OCABox {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[wasm_bindgen]
-impl OCABuilder {
+impl OCABox {
     #[wasm_bindgen(constructor)]
-    pub fn new(encoding: Encoding) -> OCABuilder {
-        OCABuilder {
-            raw: OCABuilderRaw::new(encoding),
+    pub fn new() -> Self {
+        Self {
+            raw: OCABoxRaw::new(),
         }
     }
 
     #[wasm_bindgen(js_name = "addClassification")]
-    pub fn add_classification(mut self, classification: String) -> OCABuilder {
-        self.raw = self.raw.add_classification(classification);
+    pub fn add_classification(mut self, classification: String) -> Self {
+        self.raw.add_classification(classification);
         self
     }
 
-    #[wasm_bindgen(js_name = "addDefaultFormLayout")]
-    pub fn add_default_form_layout(mut self) -> OCABuilder {
-        self.raw = self.raw.add_default_form_layout();
-        self
-    }
+    // #[wasm_bindgen(js_name = "addDefaultFormLayout")]
+    // pub fn add_default_form_layout(mut self) -> OCABuilder {
+    //     self.raw = self.raw.add_default_form_layout();
+    //     self
+    // }
 
     #[wasm_bindgen(js_name = "addFormLayout")]
-    pub fn add_form_layout(mut self, layout: String) -> OCABuilder {
-        self.raw = self.raw.add_form_layout(layout);
+    pub fn add_form_layout(mut self, layout: String) -> Self {
+        self.raw.add_form_layout(layout);
         self
     }
 
-    #[wasm_bindgen(js_name = "addDefaultCredentialLayout")]
-    pub fn add_default_credential_layout(mut self) -> OCABuilder {
-        self.raw = self.raw.add_default_credential_layout();
-        self
-    }
+    // #[wasm_bindgen(js_name = "addDefaultCredentialLayout")]
+    // pub fn add_default_credential_layout(mut self) -> OCABuilder {
+    //     self.raw = self.raw.add_default_credential_layout();
+    //     self
+    // }
 
     #[wasm_bindgen(js_name = "addCredentialLayout")]
-    pub fn add_credential_layout(mut self, layout: String) -> OCABuilder {
-        self.raw = self.raw.add_credential_layout(layout);
+    pub fn add_credential_layout(mut self, layout: String) -> Self {
+        self.raw.add_credential_layout(layout);
         self
     }
 
+    /*
     #[wasm_bindgen(js_name = "addName")]
     pub fn add_name(mut self, names: ITranslations) -> OCABuilder {
         let names_str: HashMap<String, String> =
@@ -131,23 +152,23 @@ impl OCABuilder {
         self.raw = self.raw.add_description(descriptions_raw);
         self
     }
+    */
 
     #[wasm_bindgen(js_name = "addMeta")]
-    pub fn add_meta(mut self, name: String, values: ITranslations) -> OCABuilder {
-        let values_str: HashMap<String, String> =
+    pub fn add_meta(mut self, name: String, values: Translations) -> Self {
+        let lang_values: HashMap<String, String> =
             serde_wasm_bindgen::from_value(JsValue::from(values)).unwrap();
 
-        let mut values_raw: HashMap<Language, String> = HashMap::new();
-        for (lang, value) in values_str.iter() {
-            values_raw.insert(lang.to_string(), value.clone());
+        for (lang, value) in lang_values.iter() {
+            let language_raw = Language::from_639_3(lang).unwrap();
+            self.raw.add_meta(language_raw, name.clone(), value.clone());
         }
-
-        self.raw = self.raw.add_meta(name, values_raw);
         self
     }
 
     #[wasm_bindgen(js_name = "addAttribute")]
-    pub fn add_attribute(mut self, attr: Attribute) -> Result<OCABuilder, String> {
+    pub fn add_attribute(mut self, attr: Attribute) -> Self {
+        /*
         let attr_raw: AttributeRaw = attr.into_serde().map_err(|e| {
             e.to_string()
                 .split(" at line")
@@ -155,13 +176,15 @@ impl OCABuilder {
                 .get(0)
                 .unwrap()
                 .to_string()
-        })?;
-        self.raw = self.raw.add_attribute(attr_raw);
-        Ok(self)
+        }).unwrap();
+        */
+        self.raw.add_attribute(attr.raw);
+        self
     }
 
-    pub fn finalize(self) -> OCA {
-        OCA::from(JsValue::from_serde(&self.raw.finalize()).unwrap_or(JsValue::NULL))
+    #[wasm_bindgen(js_name = "generateBundle")]
+    pub fn generate_bundle(mut self) -> OCABundle {
+        OCABundle::from(JsValue::from_serde(&self.raw.generate_bundle()).unwrap_or(JsValue::NULL))
     }
 }
 
@@ -186,23 +209,28 @@ impl Validator {
     }
 
     #[wasm_bindgen(js_name = "enforceTranslations")]
-    pub fn enforce_translations(mut self, languages: JsValue) -> Validator {
-        let languages_raw: Vec<String> = serde_wasm_bindgen::from_value(languages).unwrap();
+    pub fn enforce_translations(mut self, languages: JsValue) -> Self {
+        let languages_str: Vec<String> = serde_wasm_bindgen::from_value(languages).unwrap();
 
-        self.raw = self.raw.enforce_translations(languages_raw);
+        let langs: Vec<Language> = languages_str
+            .iter()
+            .map(|lang| Language::from_639_3(lang).unwrap())
+            .collect();
+
+        self.raw = self.raw.enforce_translations(langs);
         self
     }
 
-    pub fn validate(self, oca: OCA) -> JsValue {
+    pub fn validate(self, oca_bundle: OCABundle) -> JsValue {
         #[derive(Serialize)]
         struct ReturnResult {
             success: bool,
             errors: Vec<String>,
         }
         let return_result: ReturnResult;
-        match oca.into_serde::<OCARaw>() {
-            Ok(oca_raw) => {
-                let result = self.raw.validate(&oca_raw);
+        match oca_bundle.into_serde::<OCABundleRaw>() {
+            Ok(oca_bundle_raw) => {
+                let result = self.raw.validate(&oca_bundle_raw);
                 match result {
                     Ok(()) => {
                         return_result = ReturnResult {
@@ -241,104 +269,98 @@ impl Validator {
 }
 
 #[wasm_bindgen]
-pub struct AttributeBuilder {
-    raw: AttributeBuilderRaw,
+pub struct Attribute {
+    raw: AttributeRaw,
 }
 
 #[wasm_bindgen]
-impl AttributeBuilder {
+impl Attribute {
     #[wasm_bindgen(constructor)]
-    pub fn new(name: String, attribute_type: AttributeType) -> AttributeBuilder {
-        AttributeBuilder {
-            raw: AttributeBuilderRaw::new(name, attribute_type),
+    pub fn new(name: String) -> Self {
+        Self {
+            raw: AttributeRaw::new(name),
         }
     }
 
+    #[wasm_bindgen(js_name = "setAttributeType")]
+    pub fn set_attribute_type(mut self, attr_type: AttributeType) -> Self {
+        self.raw.set_attribute_type(attr_type);
+        self
+    }
+
     #[wasm_bindgen(js_name = "setFlagged")]
-    pub fn set_flagged(mut self) -> AttributeBuilder {
-        self.raw = self.raw.set_flagged();
+    pub fn set_flagged(mut self) -> Self {
+        self.raw.set_flagged();
         self
     }
 
-    #[wasm_bindgen(js_name = "addSai")]
-    pub fn add_sai(mut self, sai: String) -> AttributeBuilder {
-        self.raw = self.raw.add_sai(sai);
+    #[wasm_bindgen(js_name = "setSai")]
+    pub fn set_sai(mut self, sai: String) -> Self {
+        self.raw.set_sai(sai);
         self
     }
 
-    #[wasm_bindgen(js_name = "addCondition")]
-    pub fn add_condition(
-        mut self,
-        condition: String,
-        dependencies: Dependencies,
-    ) -> AttributeBuilder {
-        let dependencies_value = JsValue::from(dependencies);
-        self.raw = self.raw.add_condition(
-            condition,
-            serde_wasm_bindgen::from_value(dependencies_value).unwrap(),
-        );
+    #[wasm_bindgen(js_name = "merge")]
+    pub fn merge(mut self, attr: Attribute) -> Self {
+        self.raw.merge(&attr.raw);
         self
     }
 
-    #[wasm_bindgen(js_name = "addCardinality")]
-    pub fn add_cardinality(mut self, cardinality: String) -> AttributeBuilder {
-        self.raw = self.raw.add_cardinality(cardinality);
+    #[wasm_bindgen(js_name = "setEncoding")]
+    pub fn set_encoding(mut self, encoding: Encoding) -> Self {
+        self.raw.set_encoding(encoding);
         self
     }
 
-    #[wasm_bindgen(js_name = "addConformance")]
-    pub fn add_conformance(mut self, conformance: ConformanceOptions) -> AttributeBuilder {
-        let conformance_value = JsValue::from(conformance);
-        self.raw = self
-            .raw
-            .add_conformance(serde_wasm_bindgen::from_value(conformance_value).unwrap());
+    #[wasm_bindgen(js_name = "setCardinality")]
+    pub fn set_cardinality(mut self, cardinality: String) -> Self {
+        self.raw.set_cardinality(cardinality);
         self
     }
 
-    #[wasm_bindgen(js_name = "addEncoding")]
-    pub fn add_encoding(mut self, encoding: Encoding) -> AttributeBuilder {
-        self.raw = self.raw.add_encoding(encoding);
+    #[wasm_bindgen(js_name = "setConformance")]
+    pub fn set_conformance(mut self, conformance: ConformanceOptions) -> Self {
+        let conformance_raw: String = conformance.into_serde().unwrap();
+        self.raw.set_conformance(conformance_raw);
         self
     }
 
-    #[wasm_bindgen(js_name = "addFormat")]
-    pub fn add_format(mut self, format: String) -> AttributeBuilder {
-        self.raw = self.raw.add_format(format);
+    #[wasm_bindgen(js_name = "setFormat")]
+    pub fn set_format(mut self, format: String) -> Self {
+        self.raw.set_format(format);
         self
     }
 
-    #[wasm_bindgen(js_name = "addStandard")]
-    pub fn add_standard(mut self, standard: String) -> AttributeBuilder {
-        self.raw = self.raw.add_standard(standard);
+    #[wasm_bindgen(js_name = "setLabel")]
+    pub fn set_label(mut self, labels: Translations) -> Self {
+        let lang_labels: HashMap<String, String> =
+            serde_wasm_bindgen::from_value(JsValue::from(labels)).unwrap();
+
+        for (lang, label) in lang_labels.iter() {
+            let language_raw = Language::from_639_3(lang).unwrap();
+            self.raw.set_label(language_raw, label.clone());
+        }
         self
     }
 
-    #[wasm_bindgen(js_name = "addMapping")]
-    pub fn add_mapping(mut self, mapping: String) -> AttributeBuilder {
-        self.raw = self.raw.add_mapping(mapping);
+    #[wasm_bindgen(js_name = "setInformation")]
+    pub fn set_information(mut self, information: Translations) -> Self {
+        let lang_information: HashMap<String, String> =
+            serde_wasm_bindgen::from_value(JsValue::from(information)).unwrap();
+
+        for (lang, information) in lang_information.iter() {
+            let language_raw = Language::from_639_3(lang).unwrap();
+            self.raw.set_information(language_raw, information.clone());
+        }
         self
     }
 
+    /*
     #[wasm_bindgen(js_name = "addUnit")]
     pub fn add_unit(mut self, metric_system: String, unit: String) -> AttributeBuilder {
         self.raw = self.raw.add_unit(metric_system, unit);
         self
     }
-
-    #[wasm_bindgen(js_name = "addLabel")]
-    pub fn add_label(mut self, labels: ITranslations) -> AttributeBuilder {
-        let labels_str: HashMap<String, String> =
-            serde_wasm_bindgen::from_value(JsValue::from(labels)).unwrap();
-
-        let mut labels_raw: HashMap<Language, String> = HashMap::new();
-        for (lang, label) in labels_str.iter() {
-            labels_raw.insert(lang.to_string(), label.clone());
-        }
-
-        self.raw = self.raw.add_label(labels_raw);
-        self
-    }
-
     #[wasm_bindgen(js_name = "addEntryCodes")]
     pub fn add_entry_codes(mut self, entry_codes: EntryCodes) -> AttributeBuilder {
         let entry_codes_value = JsValue::from(entry_codes);
@@ -363,8 +385,10 @@ impl AttributeBuilder {
         self
     }
 
-    #[wasm_bindgen(js_name = "addEntries")]
-    pub fn add_entries(mut self, entries: Entries) -> AttributeBuilder {
+    */
+    #[wasm_bindgen(js_name = "setEntries")]
+    pub fn set_entries(mut self, entries: EntriesTranslations) -> Self {
+      /*
         let entries_value = JsValue::from(entries);
         let entries_raw = match js_sys::Array::is_array(&entries_value) {
             true => {
@@ -386,46 +410,104 @@ impl AttributeBuilder {
                 EntriesRaw::Sai(entries_sai)
             }
         };
+        */
 
-        self.raw = self.raw.add_entries(entries_raw);
-        self
-    }
+        let entry_translations: HashMap<String, HashMap<String, String>> =
+            serde_wasm_bindgen::from_value(JsValue::from(entries)).unwrap();
 
-    #[wasm_bindgen(js_name = "addInformation")]
-    pub fn add_information(mut self, information: ITranslations) -> AttributeBuilder {
-        let information_str: HashMap<String, String> =
-            serde_wasm_bindgen::from_value(JsValue::from(information)).unwrap();
+        let mut codes: Vec<String> = vec![];
+        let mut lang_entries: HashMap<Language, HashMap<String, String>> = HashMap::new();
 
-        let mut information_raw: HashMap<Language, String> = HashMap::new();
-        for (lang, info) in information_str.iter() {
-            information_raw.insert(lang.to_string(), info.clone());
+        for (entry_code, translations) in entry_translations.iter() {
+          codes.push(entry_code.clone());
+          for (lang, entry) in translations.iter() {
+            let language_raw = Language::from_639_3(lang).unwrap();
+            if let Some(entry_tr) = lang_entries.get_mut(&language_raw) {
+              entry_tr.insert(entry_code.clone(), entry.clone());
+            } else {
+              let mut entry_tr: HashMap<String, String> = HashMap::new();
+              entry_tr.insert(entry_code.clone(), entry.clone());
+              lang_entries.insert(language_raw, entry_tr);
+            }
+          }
         }
 
-        self.raw = self.raw.add_information(information_raw);
+        self.raw.set_entry_codes(EntryCodesRaw::Array(codes));
+        for (lang, translations) in lang_entries.iter() {
+          self.raw.set_entry(*lang, EntriesElementRaw::Object(translations.clone()));
+        }
+
+        // self.raw = self.raw.add_entries(entries_raw);
         self
     }
 
-    pub fn build(self) -> Attribute {
-        Attribute::from(JsValue::from_serde(&self.raw.build()).unwrap_or(JsValue::NULL))
+    /*
+    #[wasm_bindgen(js_name = "addCondition")]
+    pub fn add_condition(
+        mut self,
+        condition: String,
+        dependencies: Dependencies,
+    ) -> AttributeBuilder {
+        let dependencies_value = JsValue::from(dependencies);
+        self.raw = self.raw.add_condition(
+            condition,
+            serde_wasm_bindgen::from_value(dependencies_value).unwrap(),
+        );
+        self
     }
+
+    #[wasm_bindgen(js_name = "addStandard")]
+    pub fn add_standard(mut self, standard: String) -> AttributeBuilder {
+        self.raw = self.raw.add_standard(standard);
+        self
+    }
+
+    #[wasm_bindgen(js_name = "addMapping")]
+    pub fn add_mapping(mut self, mapping: String) -> AttributeBuilder {
+        self.raw = self.raw.add_mapping(mapping);
+        self
+    }
+    */
 }
 
 #[wasm_bindgen(typescript_custom_section)]
 const OCA_TYPE: &'static str = r#"
-type OCA = {
+type OCABundle = {
+  version: string,
+  said: string,
   capture_base: CaptureBase,
-  overlays: Overlay[],
+  overlays: Overlays,
   references?: {
-    [capture_base_sai: string]: OCA
+    [capture_base_sai: string]: OCABundle
   }
 }
 
 type CaptureBase = {
   type: string,
-  digest: string,
+  said: string,
   classification: string,
   attributes: { [attribute_name: string]: string },
   flagged_attributes: string[]
+}
+
+type Overlays = {
+  cardinality?: CardinalityOverlay,
+  character_encoding?: CharacterEncodingOverlay,
+  conditional?: ConditionalOverlay,
+  conformance?: ConformanceOverlay,
+  entry?: EntryOverlay[],
+  entry_code?: EntryCodeOverlay,
+  entry_code_mapping?: EntryCodeMappingOverlay,
+  format?: FormatOverlay,
+  information?: InformationOverlay[],
+  label?: LabelOverlay[],
+  mapping?: MappingOverlay,
+  meta?: MetaOverlay[],
+  unit?: UnitOverlay[],
+  standard?: StandardOverlay,
+  subset?: SubsetOverlay,
+  form_layout?: FormLayoutOverlay,
+  credential_layout?: CredentialLayoutOverlay
 }
 
 type Overlay =
@@ -449,14 +531,14 @@ type Overlay =
 
 type CardinalityOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   attribute_cardinality: { [attribute_name: string]: string }
 }
 
 type CharacterEncodingOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   default_character_encoding: string,
   attribute_character_encoding: { [attribute_name: string]: string }
@@ -464,7 +546,7 @@ type CharacterEncodingOverlay = {
 
 type ConditionalOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   attribute_conditions: { [attribute_name: string]: string },
   attribute_dependencies: { [attribute_name: string]: string[] }
@@ -472,14 +554,14 @@ type ConditionalOverlay = {
 
 type ConformanceOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   attribute_conformance: { [attribute_name: string]: 'O' | 'M' }
 }
 
 type CredentialLayoutOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   layout: {
     version: string,
@@ -527,7 +609,7 @@ type CredentialLayoutOverlay = {
 
 type EntryOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   language: string,
   attribute_entries: { [attribute_name: string]: { [entry_code: string]: string } }
@@ -535,21 +617,21 @@ type EntryOverlay = {
 
 type EntryCodeOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   attribute_entry_codes: { [attribute_name: string]: string[] }
 }
 
 type EntryCodeMappingOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   attribute_entry_codes_mapping: { [attribute_name: string]: string[] }
 }
 
 type FormLayoutOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   layout: {
     config?: {
@@ -586,14 +668,14 @@ type FormLayoutOverlay = {
 
 type FormatOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   attribute_formats: { [attribute_name: string]: string }
 }
 
 type InformationOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   language: string,
   attribute_information: { [attribute_name: string]: string }
@@ -601,7 +683,7 @@ type InformationOverlay = {
 
 type LabelOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   language: string,
   attribute_labels: { [attribute_name: string]: string }
@@ -612,14 +694,14 @@ type LabelOverlay = {
 
 type MappingOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   attribute_mapping: { [attribute_name: string]: string }
 }
 
 type MetaOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   language: string,
   name: string,
@@ -628,7 +710,7 @@ type MetaOverlay = {
 
 type UnitOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   metric_system: string,
   attribute_units: { [attribute_name: string]: string }
@@ -636,19 +718,20 @@ type UnitOverlay = {
 
 type StandardOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   attribute_standards: { [attribute_name: string]: string }
 }
 
 type SubsetOverlay = {
   capture_base: string,
-  digest: string,
+  said: string,
   type: string,
   attributes: string[]
 }
 "#;
 
+/*
 #[wasm_bindgen(typescript_custom_section)]
 const ATTRIBUTE_TYPE: &'static str = r#"
 type AttributeTranslation = {
@@ -689,3 +772,4 @@ interface IEntry {
   translations: ITranslations
 }
 "#;
+*/

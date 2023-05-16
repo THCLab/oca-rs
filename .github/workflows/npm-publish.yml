@@ -23,7 +23,7 @@ jobs:
           command: check
 
       - name: Install wasm-bindgen-cli
-        run: cargo install wasm-bindgen-cli --version 0.2.79
+        run: cargo install wasm-bindgen-cli --version 0.2.85
       - name: Build wasm
         working-directory: ./bindings/js/wasm
         run: bash build-pkg.sh

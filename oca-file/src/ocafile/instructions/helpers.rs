@@ -21,7 +21,8 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, String)> 
             Rule::attr_type => match AttributeType::from_str(item.as_span().as_str()) {
                 Ok(attr_type) => {
                     debug!("Attribute type: {:?}", attr_type);
-                    value = attr_type.to_string();
+                    // value = attr_type.to_string();
+                    value = serde_json::to_string(&attr_type).unwrap();
                 }
                 Err(e) => {
                     panic!("Invalid attribute type {:?}", e);

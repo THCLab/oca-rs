@@ -1,18 +1,24 @@
 [package]
 name = "oca-js"
-version = "0.2.29"
+version = "0.3.0"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+crate-type = ["cdylib"]
+
 [dependencies]
 serde = "1.0.130"
-wasm-bindgen = { version = "0.2.77", features = ["serde-serialize"] }
-oca-bundle = { path = "../../../." }
+wasm-bindgen = { version = "0.2.85", features = ["serde-serialize"] }
+oca-bundle = { path = "../../../../oca-bundle", features = ["format_overlay"] }
 serde-wasm-bindgen = "0.3.1"
 js-sys = "0.3.54"
 
-[lib]
-crate-type = ["cdylib"]
+[dependencies.isolang]
+# version = "2.2.0"
+# needs to be loaded from source util the PR #35 is released
+git = "https://github.com/humenda/isolang-rs"
+features = ["serde"]
 
 [workspace]

@@ -4,4 +4,5 @@ members = [
   "oca-bundle",
   "oca-file",
   "oca-ast",
+  # "oca-bundle/bindings/js/wasm"
 ]
