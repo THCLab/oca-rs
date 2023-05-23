@@ -40,6 +40,7 @@ where
 #[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct EntryOverlay {
     #[said]
+    #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
     language: Language,
     #[serde(rename = "type")]

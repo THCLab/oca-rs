@@ -27,6 +27,7 @@ impl FormLayouts for OCABox {
 #[derive(SAD, Serialize, Deserialize, Clone, Debug)]
 pub struct FormLayoutOverlay {
     #[said]
+    #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     overlay_type: String,

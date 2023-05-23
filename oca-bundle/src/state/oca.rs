@@ -1,4 +1,6 @@
-use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
+// use said::{sad::SAD, version::SerializationInfo};
+use said::version::SerializationInfo;
+use said::sad::{SerializationFormats, SAD};
 use crate::state::oca::layout::credential::Layout as CredentialLayout;
 use crate::state::oca::layout::form::Layout as FormLayout;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, ser::SerializeMap};
@@ -86,20 +88,14 @@ impl OCABox {
 
         let cb_said = capture_base.said.as_ref();
         overlays.iter_mut().for_each(|x| x.sign(cb_said.unwrap()));
-        let version = version::serialization_info::SerializationInfo::new(
-          "OCAB".to_string(),
-          version::serialization_info::SerializationFormats::JSON,
-          100
-        );
 
         let mut oca_bundle = OCABundle {
-            version: version.to_str(),
             said: None,
             capture_base,
             overlays,
         };
 
-        oca_bundle.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+        oca_bundle.compute_digest();
         oca_bundle
     }
 
@@ -580,9 +576,11 @@ impl std::fmt::Debug for DynOverlay {
 }
 
 #[derive(SAD, Serialize, Debug, Deserialize, Clone)]
+#[version(protocol = "OCAB", major = 1, minor = 0)]
+// #[said(format = "JSON")]
 pub struct OCABundle {
-    pub version: String,
     #[said]
+    #[serde(rename = "d")]
     pub said: Option<said::SelfAddressingIdentifier>,
     pub capture_base: CaptureBase,
     #[serde(serialize_with = "serialize_overlays", deserialize_with = "deserialize_overlays")]
@@ -592,7 +590,7 @@ pub struct OCABundle {
 
 impl OCABundle {
     pub fn fill_said(&mut self) {
-        self.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+        self.compute_digest();
     }
 }
 #[derive(Clone)]
@@ -640,7 +638,8 @@ mod tests {
         oca.add_attribute(attr);
         // oca.add_attribute(Attribute::new("last_name".to_string()));
         let oca_bundle = oca.generate_bundle();
-        let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
+        let oca_bundle_encoded = oca_bundle.encode().unwrap();
+        let oca_bundle_json = String::from_utf8(oca_bundle_encoded).unwrap();
         println!("{}", oca_bundle_json);
         let said = oca_bundle.said.clone();
         let oca_bundle = oca.generate_bundle();

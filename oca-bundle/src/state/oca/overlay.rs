@@ -60,7 +60,7 @@ pub trait Overlay: erased_serde::Serialize + Clone + SAD {
     fn add(&mut self, attribute: &Attribute);
 
     fn fill_said(&mut self) {
-        self.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+        self.compute_digest();//HashFunctionCode::Blake3_256, SerializationFormats::JSON);
     }
 
     fn sign(&mut self, capture_base_sai: &said::SelfAddressingIdentifier) {
@@ -99,6 +99,7 @@ macro_rules! overlay {
             #[derive(serde::Deserialize, serde::Serialize, SAD, Debug, Clone)]
             pub struct [<$name Overlay>] {
                 #[said]
+                #[serde(rename = "d")]
                 said: Option<said::SelfAddressingIdentifier>,
                 #[serde(rename = "type")]
                 overlay_type: String,

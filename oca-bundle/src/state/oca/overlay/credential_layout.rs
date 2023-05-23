@@ -27,6 +27,7 @@ impl CredentialLayouts for OCABox {
 #[derive(SAD, Serialize, Deserialize, Clone, Debug)]
 pub struct CredentialLayoutOverlay {
     #[said]
+    #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     overlay_type: String,

@@ -18,7 +18,7 @@ serde_yaml = "0.9"
 serde = { version = "1.0", features = ["derive"] }
 # said = "0.2.1"
 said = { path = "../../cesrox/said", features = ["macros"] }
-version = { path = "../../cesrox/version" }
+# version = { path = "../../cesrox/version" }
 erased-serde = "0.3.16"
 wasm-bindgen = { version = "0.2.77" }
 serde-value = "0.7.0"

@@ -110,6 +110,7 @@ where
 #[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct UnitOverlay {
     #[said]
+    #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     overlay_type: String,

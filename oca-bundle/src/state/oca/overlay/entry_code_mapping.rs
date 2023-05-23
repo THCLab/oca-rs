@@ -8,6 +8,7 @@ use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
 pub struct EntryCodeMappingOverlay {
     capture_base: Option<said::SelfAddressingIdentifier>,
     #[said]
+    #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     overlay_type: String,

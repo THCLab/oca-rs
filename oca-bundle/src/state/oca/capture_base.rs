@@ -34,6 +34,7 @@ where
 #[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct CaptureBase {
     #[said]
+    #[serde(rename = "d")]
     pub said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     pub schema_type: String,
@@ -87,7 +88,7 @@ impl CaptureBase {
     }
 
     pub fn fill_said(&mut self) {
-        self.compute_digest(HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+        self.compute_digest(); //HashFunctionCode::Blake3_256, SerializationFormats::JSON);
     }
 
     pub fn sign(&mut self) {
