@@ -1,4 +1,4 @@
-// use said::{sad::SAD, version::SerializationInfo};
+use std::str::FromStr;
 use said::version::SerializationInfo;
 use said::sad::{SerializationFormats, SAD};
 use crate::state::oca::layout::credential::Layout as CredentialLayout;
@@ -11,7 +11,7 @@ mod layout;
 pub mod overlay;
 use isolang::Language;
 use crate::state::{
-    attribute::Attribute,
+    attribute::{Attribute, AttributeType},
     oca::{capture_base::CaptureBase, overlay::Overlay},
 };
 /// Internal representation of OCA objects in split between non-attributes values and attributes.
@@ -587,6 +587,27 @@ pub struct OCABundle {
     pub overlays: Vec<DynOverlay>,
 }
 
+impl From<OCABundle> for OCABox {
+    fn from(oca_bundle: OCABundle) -> Self {
+        let mut attributes: HashMap<String, Attribute> = HashMap::new();
+        for (attr_name, attr_type) in oca_bundle.capture_base.attributes {
+            let attr = Attribute {
+                name: attr_name.clone(),
+                attribute_type: Some(AttributeType::from_str(&attr_type).unwrap()),
+                ..Default::default()
+            };
+            attributes.insert(attr_name.clone(), attr);
+        }
+        OCABox {
+            attributes,
+            credential_layouts: None,
+            form_layouts: None,
+            mappings: None,
+            meta: None,
+            classification: Some(oca_bundle.capture_base.classification),
+        }
+    }
+}
 
 impl OCABundle {
     pub fn fill_said(&mut self) {

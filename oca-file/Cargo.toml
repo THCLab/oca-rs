@@ -1,6 +1,6 @@
 [package]
 name = "oca-file"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>", "Robert Mitwicki <robert.mitwicki@opensoftware.pl>", "Michał Pietrus <michal.pietrus@opensoftware.pl>"]
 license = "EUPL-1.2"
@@ -9,7 +9,7 @@ description = "Rust implementation of OCAFile"
 
 
 [lib]
-name = "ocafile"
+name = "oca_file"
 path = "src/lib.rs"
 
 [[bin]]

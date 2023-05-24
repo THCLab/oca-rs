@@ -7,7 +7,6 @@ pub struct AddInstruction {}
 
 impl AddInstruction {
     pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Command, Error> {
-        // let mut nested_object = None;
         let mut object_kind = None;
         let kind = CommandType::Add;
         let mut content = None;
@@ -34,7 +33,7 @@ impl AddInstruction {
                                         debug!("Parsed attribute: {:?} = {:?}", key, value);
 
                                         // TODO find out how to parse nested objects
-                                        attributes.insert(key, NestedValue::Value(value));
+                                        attributes.insert(key, value);
                                     } else {
                                         debug!("Skipping attribute");
                                     }
@@ -91,6 +90,22 @@ impl AddInstruction {
                 }
                 Rule::format => {
                     object_kind = Some(ObjectKind::Overlay(OverlayType::Format));
+                    helpers::extract_content(object)
+                }
+                Rule::conformance => {
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Conformance));
+                    helpers::extract_content(object)
+                }
+                Rule::cardinality => {
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Cardinality));
+                    helpers::extract_content(object)
+                }
+                Rule::entry_code => {
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::EntryCode));
+                    helpers::extract_content(object)
+                }
+                Rule::entry => {
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Entry));
                     helpers::extract_content(object)
                 }
                 Rule::flagged_attrs => {

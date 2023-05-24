@@ -8,12 +8,12 @@ comment = @{ "#" ~ (!NEWLINE ~ ANY)* }
 comment_line = _{ ws* ~ comment ~ NEWLINE? }
 empty_line = _{ ws* ~ NEWLINE }
 
-double_quoted_string  = @{ "\"" ~ inner ~ "\"" }
+double_quoted_string  = _{ "\"" ~ inner ~ "\"" }
 inner   = @{ (!("\"" | "\\" | "\u{0000}" | "\u{001F}") ~ ANY)* ~ (escape ~ inner)? }
 escape  = @{ "\\" ~ ("b" | "t" | "n" | "f" | "r" | "\"" | "\\" | "'" | unicode | NEWLINE)? }
 unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} | "U" ~ ASCII_HEX_DIGIT{8} }
 
-single_quoted_string = @{ "'" ~ single_quoted_inner ~ "'" }
+single_quoted_string = _{ "'" ~ single_quoted_inner ~ "'" }
 single_quoted_inner  = @{ (!("'" | "\\" | "\u{0000}" | "\u{001F}") ~ ANY)* ~ (escape ~ single_quoted_inner)? }
 
 string = ${ single_quoted_string | double_quoted_string }
@@ -94,6 +94,10 @@ oca_object = _{
     character_encoding |
     character_encoding_props |
     format |
+    conformance |
+    cardinality |
+    entry_code |
+    entry |
     flagged_attrs
   )
 }
@@ -109,6 +113,10 @@ remove_oca_object = _{
     character_encoding |
     character_encoding_props |
     format |
+    conformance |
+    cardinality |
+    entry_code |
+    entry |
     flagged_attrs
   )
 }
@@ -121,6 +129,10 @@ information = {^"information" ~ arg_ws ~ lang ~ arg_ws ~ attrs_key ~ attr_key_pa
 character_encoding = {^"character_encoding" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
 character_encoding_props = {^"character_encoding" ~ arg_ws ~ props_key ~ prop_key_pairs}
 format = {^"format" ~ arg_ws ~ attrs_key? ~ attr_key_pairs}
+conformance = {^"conformance" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
+cardinality = {^"cardinality" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
+entry_code = {^"entry_code" ~ arg_ws ~ attrs_key ~ attr_entry_code_key_pairs}
+entry = {^"entry" ~ arg_ws ~ lang ~ arg_ws ~ attrs_key ~ attr_entry_key_pairs}
 unit = {^"unit" ~ arg_ws ~ unit_system ~ arg_ws ~ attrs_key ~ attr_key_pairs}
 
 flagged_attrs = {^"flagged_attributes" ~ arg_ws ~ list_value}
@@ -133,13 +145,25 @@ remove_attribute = { ^"attribute" ~ (arg_ws ~ attr_key)* }
 remove_meta = { ^"meta" ~ arg_ws ~ lang ~ (arg_ws ~ props_key ~ prop_key+)? }
 remove_label = { ^"label" ~ arg_ws ~ lang ~ (arg_ws ~ attrs_key ~ attr_key+)? }
 
-
 attr_key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 prop_key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 key_value = ${ string | char+}
 key_pair = @{ attr_key ~ "=" ~ key_value }
 attr_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
 prop_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
+
+entry_code_list = { "[" ~ "]" | "[" ~ string ~ ("," ~ " "* ~ string)* ~ "]" }
+entry_code_key_value = { key_value |  entry_code_list }
+entry_code_key_pair = ${ attr_key ~ "=" ~ entry_code_key_value }
+attr_entry_code_key_pairs = ${ (arg_ws? ~ entry_code_key_pair ~ arg_ws?)+ }
+
+entry_value = ${ string }
+entry_key = ${ string }
+entry_object = { "{" ~ "}" | "{" ~ " "* ~ entry_key_value_pair ~ ("," ~ " "* ~ entry_key_value_pair)* ~ " "* ~ "}" }
+entry_key_value = { key_value | entry_object }
+entry_key_value_pair = { entry_key ~ ":" ~ " "* ~ entry_value }
+entry_key_pair = ${ attr_key ~ "=" ~ entry_key_value }
+attr_entry_key_pairs = ${ (arg_ws? ~ entry_key_pair ~ arg_ws?)+ }
 
 list_value = ${ (arg_ws? ~ key_value ~ arg_ws?)+ }
 unit_system = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }

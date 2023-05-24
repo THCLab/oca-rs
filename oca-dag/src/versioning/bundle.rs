@@ -1,21 +1,39 @@
-use oca_bundle::state::oca::OCA;
+use oca_bundle::state::oca::OCABundle;
 
-pub fn to_digests(oca: &OCA) -> Vec<u8> {
-    let mut digests: Vec<u8> = Vec::new();
-    digests.push(oca.capture_base.said.as_bytes().len().try_into().unwrap());
-    digests.extend(oca.capture_base.said.as_bytes());
+struct OCABundleDTO {
+    bundle: OCABundle
+}
 
-    oca.overlays.iter().for_each(|overlay| {
-        if let Some(overlay_type) = OverlayType::from_str(overlay.overlay_type()) {
-            digests.push(overlay.said().as_bytes().len().try_into().unwrap());
-            digests.push(overlay_type as u8);
-            digests.extend(overlay.said().as_bytes());
-        } else {
-            panic!("Unknown overlay type: {}", overlay.overlay_type());
+impl OCABundleDTO {
+    fn new(bundle: OCABundle) -> Self {
+        Self {
+            bundle
         }
-    });
+    }
+}
 
-    digests
+impl Into<Vec<u8>> for OCABundleDTO {
+    fn into(self) -> Vec<u8> {
+        let mut digests: Vec<u8> = Vec::new();
+        if let Some(ref said) = self.bundle.capture_base.said {
+            digests.push(said.to_string().as_bytes().len().try_into().unwrap());
+            digests.extend(said.to_string().as_bytes());
+        }
+
+        self.bundle.overlays.iter().for_each(|overlay| {
+            if let Some(overlay_type) = OverlayType::from_str(overlay.overlay_type()) {
+                if let Some(ref said) = overlay.said() {
+                    digests.push(said.to_string().as_bytes().len().try_into().unwrap());
+                    digests.push(overlay_type as u8);
+                    digests.extend(said.to_string().as_bytes());
+                }
+            } else {
+                panic!("Unknown overlay type: {}", overlay.overlay_type());
+            }
+        });
+
+        digests
+    }
 }
 
 enum OverlayType {
@@ -73,28 +91,22 @@ mod tests {
     fn test_to_digests() {
         let oca_str = r#"
 {
+  "version": "OCAB10000023_",
+  "said": "EOGGSNS6CMlMfj3rW5ltFOv0RQux9-W7sND8SIMqsAiC",
   "capture_base": {
+    "said": "EIJGJmS_P9jwZDamB6cTG9MoXKRu21myjXsMi7GYddDy",
     "type": "spec/capture_base/1.0",
-    "digest": "ExwipB2OhUo0NK_2Qfr1XDTE8hpK8fq4m2bbZeWHT3sU",
     "classification": "",
     "attributes": {
       "passed": "Boolean"
     },
     "flagged_attributes": []
   },
-  "overlays": [
-    {
-      "capture_base": "ExwipB2OhUo0NK_2Qfr1XDTE8hpK8fq4m2bbZeWHT3sU",
-      "digest": "EXw4pzkwssVAjL-Hl2sAbBk5DPWYPPDK6SfPDeIHUks8",
-      "type": "spec/overlays/character_encoding/1.0",
-      "default_character_encoding": "utf-8",
-      "attribute_character_encoding": {}
-    }
-  ]
+  "overlays": {}
 }
 "#;
-        let oca = oca_bundle::controller::load_oca(&mut oca_str.as_bytes()).unwrap().finalize();
-        let digests = to_digests(&oca);
-        assert_eq!(digests, vec![44, 69, 122, 67, 72, 88, 77, 86, 70, 120, 75, 83, 122, 81, 57, 49, 85, 68, 86, 65, 121, 56, 68, 45, 67, 57, 49, 73, 111, 99, 117, 101, 79, 100, 54, 70, 53, 97, 75, 101, 115, 122, 53, 95, 77, 44, 0, 69, 83, 53, 100, 102, 102, 79, 74, 55, 45, 114, 106, 87, 112, 66, 113, 104, 87, 105, 66, 82, 101, 51, 113, 100, 110, 111, 89, 54, 70, 69, 107, 105, 119, 105, 67, 100, 80, 104, 117, 74, 112, 69, 52])
+        let oca = oca_bundle::controller::load_oca(&mut oca_str.as_bytes()).unwrap();
+        let digests: Vec<u8> = OCABundleDTO::new(oca).into();
+        assert_eq!(digests, vec![44, 69, 73, 74, 71, 74, 109, 83, 95, 80, 57, 106, 119, 90, 68, 97, 109, 66, 54, 99, 84, 71, 57, 77, 111, 88, 75, 82, 117, 50, 49, 109, 121, 106, 88, 115, 77, 105, 55, 71, 89, 100, 100, 68, 121])
     }
 }

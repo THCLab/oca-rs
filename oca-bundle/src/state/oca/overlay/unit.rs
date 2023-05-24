@@ -28,6 +28,7 @@ pub enum MetricUnit {
     Milligram,
     Liter,
     Milliliter,
+    Meter,
     Centimeter,
     Millimeter,
     Inch,
@@ -62,13 +63,99 @@ pub enum ImperialUnit {
     Other,
 }
 
+impl std::str::FromStr for MetricUnit {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "kilogram" => Ok(MetricUnit::Kilogram),
+            "kg" => Ok(MetricUnit::Kilogram),
+            "gram" => Ok(MetricUnit::Gram),
+            "g" => Ok(MetricUnit::Gram),
+            "milligram" => Ok(MetricUnit::Milligram),
+            "mg" => Ok(MetricUnit::Milligram),
+            "liter" => Ok(MetricUnit::Liter),
+            "l" => Ok(MetricUnit::Liter),
+            "meter" => Ok(MetricUnit::Meter),
+            "m" => Ok(MetricUnit::Meter),
+            "milliliter" => Ok(MetricUnit::Milliliter),
+            "ml" => Ok(MetricUnit::Milliliter),
+            "centimeter" => Ok(MetricUnit::Centimeter),
+            "cm" => Ok(MetricUnit::Centimeter),
+            "millimeter" => Ok(MetricUnit::Millimeter),
+            "mm" => Ok(MetricUnit::Millimeter),
+            "inch" => Ok(MetricUnit::Inch),
+            "in" => Ok(MetricUnit::Inch),
+            "foot" => Ok(MetricUnit::Foot),
+            "ft" => Ok(MetricUnit::Foot),
+            "yard" => Ok(MetricUnit::Yard),
+            "yd" => Ok(MetricUnit::Yard),
+            "mile" => Ok(MetricUnit::Mile),
+            "mi" => Ok(MetricUnit::Mile),
+            "celsius" => Ok(MetricUnit::Celsius),
+            "c" => Ok(MetricUnit::Celsius),
+            "fahrenheit" => Ok(MetricUnit::Fahrenheit),
+            "f" => Ok(MetricUnit::Fahrenheit),
+            "kelvin" => Ok(MetricUnit::Kelvin),
+            "k" => Ok(MetricUnit::Kelvin),
+            "percent" => Ok(MetricUnit::Percent),
+            "%" => Ok(MetricUnit::Percent),
+            "count" => Ok(MetricUnit::Count),
+            "other" => Ok(MetricUnit::Other),
+            _ => Err(()),
+        }
+    }
+}
+
+impl std::str::FromStr for ImperialUnit {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "pound" => Ok(ImperialUnit::Pound),
+            "lb" => Ok(ImperialUnit::Pound),
+            "ounce" => Ok(ImperialUnit::Ounce),
+            "oz" => Ok(ImperialUnit::Ounce),
+            "gallon" => Ok(ImperialUnit::Gallon),
+            "gal" => Ok(ImperialUnit::Gallon),
+            "quart" => Ok(ImperialUnit::Quart),
+            "qt" => Ok(ImperialUnit::Quart),
+            "pint" => Ok(ImperialUnit::Pint),
+            "pt" => Ok(ImperialUnit::Pint),
+            "fluid ounce" => Ok(ImperialUnit::FluidOunce),
+            "fl oz" => Ok(ImperialUnit::FluidOunce),
+            "inch" => Ok(ImperialUnit::Inch),
+            "in" => Ok(ImperialUnit::Inch),
+            "foot" => Ok(ImperialUnit::Foot),
+            "ft" => Ok(ImperialUnit::Foot),
+            "yard" => Ok(ImperialUnit::Yard),
+            "yd" => Ok(ImperialUnit::Yard),
+            "mile" => Ok(ImperialUnit::Mile),
+            "mi" => Ok(ImperialUnit::Mile),
+            "celsius" => Ok(ImperialUnit::Celsius),
+            "c" => Ok(ImperialUnit::Celsius),
+            "fahrenheit" => Ok(ImperialUnit::Fahrenheit),
+            "f" => Ok(ImperialUnit::Fahrenheit),
+            "kelvin" => Ok(ImperialUnit::Kelvin),
+            "k" => Ok(ImperialUnit::Kelvin),
+            "percent" => Ok(ImperialUnit::Percent),
+            "%" => Ok(ImperialUnit::Percent),
+            "count" => Ok(ImperialUnit::Count),
+            "other" => Ok(ImperialUnit::Other),
+            _ => Err(()),
+        }
+    }
+}
+
 impl std::str::FromStr for MeasurementSystem {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "metric" => Ok(MeasurementSystem::Metric),
+            "si" => Ok(MeasurementSystem::Metric),
             "imperial" => Ok(MeasurementSystem::Imperial),
+            "iu" => Ok(MeasurementSystem::Imperial),
             _ => Err(()),
         }
     }

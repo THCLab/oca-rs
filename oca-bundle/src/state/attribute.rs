@@ -32,6 +32,12 @@ pub struct Attribute {
     pub standards: Option<Vec<Standard>>,
 }
 
+impl Default for Attribute {
+    fn default() -> Self {
+        Self::new("".to_string())
+    }
+}
+
 impl Attribute {
     pub fn new(name: String) -> Attribute {
         Attribute {

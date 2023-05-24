@@ -2,7 +2,7 @@ use std::fs;
 
 use clap::Parser as ClapParser;
 use clap::Subcommand;
-use ocafile::ocafile::parse_from_string;
+use oca_file::ocafile::parse_from_string;
 
 #[macro_use]
 extern crate log;
