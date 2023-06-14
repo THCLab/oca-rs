@@ -647,11 +647,23 @@ impl NewWithNullPtr for wire_OcaAttr {
     }
 }
 
+impl Default for wire_OcaAttr {
+    fn default() -> Self {
+        Self::new_with_null_ptr()
+    }
+}
+
 impl NewWithNullPtr for wire_OcaBox {
     fn new_with_null_ptr() -> Self {
         Self {
             field0: wire_MutexOcaBoxRaw::new_with_null_ptr(),
         }
+    }
+}
+
+impl Default for wire_OcaBox {
+    fn default() -> Self {
+        Self::new_with_null_ptr()
     }
 }
 
@@ -663,6 +675,12 @@ impl NewWithNullPtr for wire_OcaBundle {
     }
 }
 
+impl Default for wire_OcaBundle {
+    fn default() -> Self {
+        Self::new_with_null_ptr()
+    }
+}
+
 impl NewWithNullPtr for wire_OcaCaptureBase {
     fn new_with_null_ptr() -> Self {
         Self {
@@ -671,11 +689,23 @@ impl NewWithNullPtr for wire_OcaCaptureBase {
     }
 }
 
+impl Default for wire_OcaCaptureBase {
+    fn default() -> Self {
+        Self::new_with_null_ptr()
+    }
+}
+
 impl NewWithNullPtr for wire_OcaMap {
     fn new_with_null_ptr() -> Self {
         Self {
             field0: wire_MutexStringMap::new_with_null_ptr(),
         }
+    }
+}
+
+impl Default for wire_OcaMap {
+    fn default() -> Self {
+        Self::new_with_null_ptr()
     }
 }
 

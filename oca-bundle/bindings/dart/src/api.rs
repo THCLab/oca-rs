@@ -3,7 +3,7 @@ pub(crate) use std::sync::Mutex;
 
 use anyhow::{Context, Result};
 use flutter_rust_bridge::{frb, RustOpaque};
-pub(crate) use oca_rs::state::{
+pub(crate) use oca_bundle::state::{
     attribute::{Attribute as OcaAttrRaw, AttributeType as OcaAttrType},
     encoding::Encoding as OcaEncoding,
     entries::EntriesElement,
@@ -224,7 +224,7 @@ impl OcaBundle {
 
     pub fn said(&self) -> String {
         let oca_bundle = self.0.lock().unwrap();
-        oca_bundle.said.clone()
+        oca_bundle.said.clone().unwrap().to_string()
     }
 
     pub fn capture_base(&self) -> OcaCaptureBase {
@@ -238,7 +238,7 @@ impl OcaBundle {
             .overlays
             .iter()
             .map(|overlay| {
-                OcaOverlay(RustOpaque::new(Mutex::new(oca_rs::dyn_clone::clone_box(
+                OcaOverlay(RustOpaque::new(Mutex::new(oca_bundle::dyn_clone::clone_box(
                     &**overlay,
                 ))))
             })

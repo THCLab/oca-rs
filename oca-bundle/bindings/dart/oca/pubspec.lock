@@ -61,10 +61,10 @@ packages:
     dependency: transitive
     description:
       name: cli_util
-      sha256: "66f86e916d285c1a93d3b79587d94bd71984a66aac4ff74e524cfa7877f1395c"
+      sha256: b8db3080e59b2503ca9e7922c3df2072cf13992354d5e944074ffa836fba43b7
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.5"
+    version: "0.4.0"
   collection:
     dependency: transitive
     description:
@@ -117,10 +117,10 @@ packages:
     dependency: "direct dev"
     description:
       name: ffigen
-      sha256: ae0f7937cce0b818525ac9f395e18461ce3b4b3d9c6407e3cfbc3d91921f2ce8
+      sha256: d3e76c2ad48a4e7f93a29a162006f00eba46ce7c08194a77bb5c5e97d1b5ff0a
       url: "https://pub.dev"
     source: hosted
-    version: "7.2.5"
+    version: "8.0.2"
   file:
     dependency: transitive
     description:
@@ -133,10 +133,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_rust_bridge
-      sha256: f8f96059ffea18260c4009c3bc476f6300cf19fc180c89c7caf095bb8e30b4b7
+      sha256: c039cb7b21d11665591557c1bf1d558f8db549a260cc69d455f30443a883f95c
       url: "https://pub.dev"
     source: hosted
-    version: "1.63.1"
+    version: "1.77.1"
   frontend_server_client:
     dependency: transitive
     description:
@@ -490,4 +490,4 @@ packages:
     source: hosted
     version: "2.0.3"
 sdks:
-  dart: ">=2.19.2 <3.0.0"
+  dart: ">=3.0.0 <4.0.0"
