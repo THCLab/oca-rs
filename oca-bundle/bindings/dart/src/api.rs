@@ -1,7 +1,7 @@
 pub(crate) use std::collections::HashMap;
 pub(crate) use std::sync::Mutex;
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use flutter_rust_bridge::{frb, RustOpaque};
 pub(crate) use oca_bundle::state::{
     attribute::{Attribute as OcaAttrRaw, AttributeType as OcaAttrType},
@@ -292,4 +292,9 @@ impl OcaMap {
         let map = self.0.lock().unwrap();
         map.0.keys().map(|k| k.to_owned()).collect()
     }
+}
+
+pub fn load_oca(json: String) -> Result<OcaBundle> {
+    let bundle = oca_bundle::controller::load_oca(&mut json.as_bytes()).map_err(|err| anyhow!(err))?;
+    Ok(OcaBundle(RustOpaque::new(Mutex::new(bundle))))
 }

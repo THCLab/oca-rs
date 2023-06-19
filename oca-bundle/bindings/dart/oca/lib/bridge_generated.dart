@@ -11,6 +11,10 @@ import 'package:uuid/uuid.dart';
 import 'dart:ffi' as ffi;
 
 abstract class OcaDart {
+  Future<OcaBundle> loadOca({required String json, dynamic hint});
+
+  FlutterRustBridgeTaskConstMeta get kLoadOcaConstMeta;
+
   Future<OcaBox> newStaticMethodOcaBox({dynamic hint});
 
   FlutterRustBridgeTaskConstMeta get kNewStaticMethodOcaBoxConstMeta;
@@ -601,6 +605,23 @@ class OcaDartImpl implements OcaDart {
   factory OcaDartImpl.wasm(FutureOr<WasmModule> module) =>
       OcaDartImpl(module as ExternalLibrary);
   OcaDartImpl.raw(this._platform);
+  Future<OcaBundle> loadOca({required String json, dynamic hint}) {
+    var arg0 = _platform.api2wire_String(json);
+    return _platform.executeNormal(FlutterRustBridgeTask(
+      callFfi: (port_) => _platform.inner.wire_load_oca(port_, arg0),
+      parseSuccessData: (d) => _wire2api_oca_bundle(d),
+      constMeta: kLoadOcaConstMeta,
+      argValues: [json],
+      hint: hint,
+    ));
+  }
+
+  FlutterRustBridgeTaskConstMeta get kLoadOcaConstMeta =>
+      const FlutterRustBridgeTaskConstMeta(
+        debugName: "load_oca",
+        argNames: ["json"],
+      );
+
   Future<OcaBox> newStaticMethodOcaBox({dynamic hint}) {
     return _platform.executeNormal(FlutterRustBridgeTask(
       callFfi: (port_) =>
@@ -1708,6 +1729,23 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
   late final _init_frb_dart_api_dl = _init_frb_dart_api_dlPtr
       .asFunction<int Function(ffi.Pointer<ffi.Void>)>();
 
+  void wire_load_oca(
+    int port_,
+    ffi.Pointer<wire_uint_8_list> json,
+  ) {
+    return _wire_load_oca(
+      port_,
+      json,
+    );
+  }
+
+  late final _wire_load_ocaPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Int64, ffi.Pointer<wire_uint_8_list>)>>('wire_load_oca');
+  late final _wire_load_oca = _wire_load_ocaPtr
+      .asFunction<void Function(int, ffi.Pointer<wire_uint_8_list>)>();
+
   void wire_new__static_method__OcaBox(
     int port_,
   ) {
@@ -2675,19 +2713,19 @@ class OcaDartWire implements FlutterRustBridgeWireBase {
 
 final class _Dart_Handle extends ffi.Opaque {}
 
+final class wire_uint_8_list extends ffi.Struct {
+  external ffi.Pointer<ffi.Uint8> ptr;
+
+  @ffi.Int32()
+  external int len;
+}
+
 final class wire_MutexOcaBoxRaw extends ffi.Struct {
   external ffi.Pointer<ffi.Void> ptr;
 }
 
 final class wire_OcaBox extends ffi.Struct {
   external wire_MutexOcaBoxRaw field0;
-}
-
-final class wire_uint_8_list extends ffi.Struct {
-  external ffi.Pointer<ffi.Uint8> ptr;
-
-  @ffi.Int32()
-  external int len;
 }
 
 final class wire_MutexOcaAttrRaw extends ffi.Struct {

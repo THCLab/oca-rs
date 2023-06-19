@@ -2,6 +2,11 @@ use super::*;
 // Section: wire functions
 
 #[no_mangle]
+pub extern "C" fn wire_load_oca(port_: i64, json: *mut wire_uint_8_list) {
+    wire_load_oca_impl(port_, json)
+}
+
+#[no_mangle]
 pub extern "C" fn wire_new__static_method__OcaBox(port_: i64) {
     wire_new__static_method__OcaBox_impl(port_)
 }
