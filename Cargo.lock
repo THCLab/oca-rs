@@ -776,6 +776,7 @@ dependencies = [
  "isolang",
  "oca-ast",
  "oca-bundle",
+ "said",
  "serde",
  "serde_json",
  "sled",
