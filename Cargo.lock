@@ -810,6 +810,7 @@ dependencies = [
 name = "oca-dag"
 version = "0.1.0"
 dependencies = [
+ "dyn-clonable",
  "indexmap",
  "isolang",
  "oca-ast",

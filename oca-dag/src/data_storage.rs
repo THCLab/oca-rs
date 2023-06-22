@@ -1,4 +1,7 @@
-pub trait DataStorage {
+use dyn_clonable::*;
+
+#[clonable]
+pub trait DataStorage: Clone {
     fn get(&self, key: &str) -> Result<Option<Vec<u8>>, String>;
     fn insert(&self, key: &str, value: &[u8]) -> Result<(), String>;
     fn open(path: &str) -> Self
@@ -6,6 +9,7 @@ pub trait DataStorage {
         Self: Sized;
 }
 
+#[derive(Clone)]
 pub struct SledDataStorage {
     db: Option<sled::Db>,
 }
