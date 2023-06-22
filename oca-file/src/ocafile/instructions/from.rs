@@ -2,19 +2,18 @@ use crate::ocafile::{error::Error, Pair, Rule};
 use indexmap::IndexMap;
 use log::debug;
 use ocaast::ast::{Command, CommandType, Content, NestedValue, ObjectKind};
-use said::prefix::SelfAddressingPrefix;
-use std::str::FromStr;
+use said::SelfAddressingIdentifier;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct FromInstruction {}
 
 impl FromInstruction {
     pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Command, Error> {
-        let mut said_str = None;
+        let mut said_pair = None;
 
         for field in record.into_inner() {
             match field.as_rule() {
-                Rule::from_said => said_str = Some(field),
+                Rule::from_said => said_pair = Some(field),
                 Rule::comment => continue,
                 _ => {
                     return Err(Error::UnexpectedToken(format!(
@@ -25,7 +24,9 @@ impl FromInstruction {
             };
         }
 
-        let said = SelfAddressingPrefix::from_str(said_str.unwrap().as_str()).unwrap();
+        let said_str = said_pair.unwrap().as_str();
+        let said: SelfAddressingIdentifier = said_str.parse()
+            .map_err(|_| Error::Parser(format!("Invalid said: {said_str}")))?;
         debug!("Using oca bundle from: {:?}", said);
         let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
         properties.insert("said".to_string(), NestedValue::Value(said.to_string()));
@@ -44,6 +45,7 @@ impl FromInstruction {
 mod tests {
     use crate::ocafile::{error::Error, OCAfileParser, Pair, Rule};
     use pest::Parser;
+    use std::str::FromStr;
 
     pub fn parse_direct<T, F>(input: &str, rule: Rule, func: F) -> Result<T, Error>
     where
@@ -60,7 +62,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[ignore]
     fn test_from_instruction() -> Result<(), Error> {
         // test vector with example instruction and boolean if they should be valid or not
         let instructions = vec![
@@ -79,11 +80,21 @@ mod tests {
             });
 
             match result {
-                Ok(_) => {
-                    let said = SelfAddressingPrefix::from_str(instruction).unwrap();
-
+                Ok(command) => {
+                    let content = command.content.unwrap();
+                    let properties = content.properties.unwrap();
+                    let said_value = properties.get("said").unwrap();
+                    match said_value {
+                        NestedValue::Value(said_str) => {
+                            SelfAddressingIdentifier::from_str(said_str).unwrap();
+                            assert!(is_valid, "Instruction should be valid");
+                        }
+                        _ => {
+                            panic!("said should be a value");
+                        }
+                    }
                 }
-                Err(e) => {
+                Err(_e) => {
                     assert!(!is_valid, "Instruction should be invalid")
                 }
             }
