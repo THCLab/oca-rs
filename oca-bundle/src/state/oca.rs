@@ -1,3 +1,13 @@
+use crate::state::oca::overlay::information::Information;
+use crate::state::oca::overlay::entry::Entries;
+use crate::state::oca::overlay::entry_code::EntryCodes;
+use crate::state::oca::overlay::unit::{Unit, AttributeUnit};
+use crate::state::oca::overlay::format::Formats;
+use crate::state::oca::overlay::cardinality::Cardinalitys;
+use crate::state::oca::overlay::conformance::Conformances;
+use crate::state::oca::overlay::meta::Metas;
+use crate::state::oca::overlay::character_encoding::CharacterEncodings;
+use crate::state::oca::overlay::label::Labels;
 use std::str::FromStr;
 use said::version::SerializationInfo;
 use said::sad::{SerializationFormats, SAD};
@@ -34,6 +44,7 @@ use crate::state::{
 /// TODO:
 /// How to add multiple overlays like mapping or layout (how to identify them?)
 
+#[derive(Clone)]
 pub struct OCABox {
     pub attributes: HashMap<String, Attribute>,
     pub credential_layouts: Option<Vec<CredentialLayout>>,
@@ -589,6 +600,9 @@ pub struct OCABundle {
 
 impl From<OCABundle> for OCABox {
     fn from(oca_bundle: OCABundle) -> Self {
+        let mut oca_box = OCABox::new();
+        oca_box.add_classification(oca_bundle.capture_base.classification);
+
         let mut attributes: HashMap<String, Attribute> = HashMap::new();
         for (attr_name, attr_type) in oca_bundle.capture_base.attributes {
             let attr = Attribute {
@@ -598,14 +612,155 @@ impl From<OCABundle> for OCABox {
             };
             attributes.insert(attr_name.clone(), attr);
         }
-        OCABox {
-            attributes,
-            credential_layouts: None,
-            form_layouts: None,
-            mappings: None,
-            meta: None,
-            classification: Some(oca_bundle.capture_base.classification),
+        for attr_name in oca_bundle.capture_base.flagged_attributes {
+            attributes.get_mut(&attr_name).unwrap().set_flagged();
         }
+
+        let meta_overlays = oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| x.as_any().downcast_ref::<overlay::Meta>())
+            .collect::<Vec<_>>();
+        for overlay in meta_overlays {
+            for (meta_name, meta_value) in overlay.attr_pairs.iter() {
+                oca_box.add_meta(*overlay.language().unwrap(), meta_name.clone(), meta_value.clone());
+            }
+        }
+
+        let character_encoding_overlays = oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| x.as_any().downcast_ref::<overlay::CharacterEncoding>())
+            .collect::<Vec<_>>();
+        for overlay in character_encoding_overlays {
+            for (attr_name, encoding) in overlay.attribute_character_encoding.iter() {
+                attributes
+                    .get_mut(attr_name)
+                    .unwrap()
+                    .set_encoding(*encoding);
+            }
+        }
+
+        let conformance_overlays = oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| x.as_any().downcast_ref::<overlay::Conformance>())
+            .collect::<Vec<_>>();
+        for overlay in conformance_overlays {
+            for (attr_name, conformance) in overlay.attribute_conformance.iter() {
+                attributes
+                    .get_mut(attr_name)
+                    .unwrap()
+                    .set_conformance(conformance.clone());
+            }
+        }
+
+        let cardinality_overlays = oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| x.as_any().downcast_ref::<overlay::Cardinality>())
+            .collect::<Vec<_>>();
+        for overlay in cardinality_overlays {
+            for (attr_name, cardinality) in overlay.attribute_cardinality.iter() {
+                attributes
+                    .get_mut(attr_name)
+                    .unwrap()
+                    .set_cardinality(cardinality.clone());
+            }
+        }
+
+        #[cfg(feature = "format_overlay")]
+        {
+            let format_overlays = oca_bundle
+                .overlays
+                .iter()
+                .filter_map(|x| x.as_any().downcast_ref::<overlay::Format>())
+                .collect::<Vec<_>>();
+            for overlay in format_overlays {
+                for (attr_name, format) in overlay.attribute_formats.iter() {
+                    attributes
+                        .get_mut(attr_name)
+                        .unwrap()
+                        .set_format(format.clone());
+                }
+            }
+        }
+
+        let unit_overlays = oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| x.as_any().downcast_ref::<overlay::Unit>())
+            .collect::<Vec<_>>();
+        for overlay in unit_overlays {
+            for (attr_name, unit) in overlay.attribute_units.iter() {
+                attributes.get_mut(attr_name).unwrap().set_unit(AttributeUnit {
+                    measurement_system: overlay.measurement_system().unwrap().clone(),
+                    unit: unit.clone(),
+                });
+            }
+        }
+
+        let entry_code_overlays = oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| x.as_any().downcast_ref::<overlay::EntryCode>())
+            .collect::<Vec<_>>();
+        for overlay in entry_code_overlays {
+            for (attr_name, entry_code) in overlay.attribute_entry_codes.iter() {
+                attributes
+                    .get_mut(attr_name)
+                    .unwrap()
+                    .set_entry_codes(entry_code.clone());
+            }
+        }
+
+        let entry_overlays = oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| x.as_any().downcast_ref::<overlay::Entry>())
+            .collect::<Vec<_>>();
+        for overlay in entry_overlays {
+            for (attr_name, entries) in overlay.attribute_entries.iter() {
+                attributes
+                    .get_mut(attr_name)
+                    .unwrap()
+                    .set_entry(*overlay.language().unwrap(), entries.clone());
+            }
+        }
+
+        let label_overlays = oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| x.as_any().downcast_ref::<overlay::Label>())
+            .collect::<Vec<_>>();
+        for overlay in label_overlays {
+            for (attr_name, label) in overlay.attribute_labels.iter() {
+                attributes
+                    .get_mut(attr_name)
+                    .unwrap()
+                    .set_label(*overlay.language().unwrap(), label.clone());
+            }
+        }
+
+        let information_overlays = oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| x.as_any().downcast_ref::<overlay::Information>())
+            .collect::<Vec<_>>();
+        for overlay in information_overlays {
+            for (attr_name, information) in overlay.attribute_information.iter() {
+                attributes
+                    .get_mut(attr_name)
+                    .unwrap()
+                    .set_information(*overlay.language().unwrap(), information.clone());
+            }
+        }
+
+        for (_, attribute) in attributes {
+            oca_box.add_attribute(attribute);
+        }
+
+        oca_box
     }
 }
 
