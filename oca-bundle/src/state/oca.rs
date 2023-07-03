@@ -2,6 +2,7 @@ use crate::state::oca::overlay::information::Information;
 use crate::state::oca::overlay::entry::Entries;
 use crate::state::oca::overlay::entry_code::EntryCodes;
 use crate::state::oca::overlay::unit::{Unit, AttributeUnit};
+#[cfg(feature = "format_overlay")]
 use crate::state::oca::overlay::format::Formats;
 use crate::state::oca::overlay::cardinality::Cardinalitys;
 use crate::state::oca::overlay::conformance::Conformances;
