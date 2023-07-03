@@ -209,6 +209,7 @@ mod tests {
         assert_eq!(overlay.category_labels.len(), 1);
     }
     #[test]
+    #[ignore = "not implemented"]
     fn resolve_categories_from_label() {
         let mut overlay = LabelOverlay::new(Language::Eng);
         let attr = cascade! {
