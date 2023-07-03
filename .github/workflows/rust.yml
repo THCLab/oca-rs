@@ -9,6 +9,10 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+defaults:
+  run:
+    working-directory: oca-bundle
+
 jobs:
   check:
     name: Check
@@ -20,9 +24,9 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
+      # - uses: actions-rs/cargo@v1
+      #   with:
+      #     command: check
 
   test:
     name: Test Suite

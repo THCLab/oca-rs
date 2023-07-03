@@ -18,14 +18,14 @@ jobs:
           toolchain: stable
           override: true
           target: wasm32-unknown-unknown
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
+      # - uses: actions-rs/cargo@v1
+      #   with:
+      #     command: check
 
       - name: Install wasm-bindgen-cli
         run: cargo install wasm-bindgen-cli --version 0.2.85
       - name: Build wasm
-        working-directory: ./bindings/js/wasm
+        working-directory: oca-bundle/bindings/js/wasm
         run: bash build-pkg.sh
 
       - uses: actions/setup-node@v2
@@ -33,14 +33,14 @@ jobs:
           node-version: '12.x'
           registry-url: 'https://registry.npmjs.org'
 
-      - working-directory: ./bindings/js/example
+      - working-directory: oca-bundle/bindings/js/example
         run: yarn install
-      - working-directory: ./bindings/js/example
+      - working-directory: oca-bundle/bindings/js/example
         run: yarn test
 
-      - working-directory: ./bindings/js/wasm/pkg
+      - working-directory: oca-bundle/bindings/js/wasm/pkg
         run: yarn install
-      - working-directory: ./bindings/js/wasm/pkg
+      - working-directory: oca-bundle/bindings/js/wasm/pkg
         run: yarn publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
