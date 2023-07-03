@@ -1,0 +1,8 @@
+shared-version=true
+publish=false
+tag-name = "v{{version}}"
+pre-release-replacements = [
+  {file="../oca-bundle/bindings/js/wasm/Cargo.toml", search="\nversion = \"[a-z0-9\\.-]+\"", replace="\nversion = \"{{version}}\"", exactly=1},
+  {file="../oca-bundle/Cargo.toml", search="\nversion = \"[a-z0-9\\.-]+\"", replace="\nversion = \"{{version}}\"", exactly=1},
+  {file="../oca-bundle/README.md", search="oca-bundle = .*", replace="oca-bundle = \"{{version}}\""},
+]
