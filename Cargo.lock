@@ -611,6 +611,16 @@ dependencies = [
 [[package]]
 name = "isolang"
 version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f80f221db1bc708b71128757b9396727c04de86968081e18e89b0575e03be071"
+dependencies = [
+ "phf",
+ "serde",
+]
+
+[[package]]
+name = "isolang"
+version = "2.3.0"
 source = "git+https://github.com/humenda/isolang-rs#d34fae4da36c46d16e328c690099d77dcda8f334"
 dependencies = [
  "phf",
@@ -752,7 +762,7 @@ dependencies = [
  "dyn-clonable",
  "erased-serde",
  "indexmap",
- "isolang",
+ "isolang 2.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static",
  "linked-hash-map",
  "maplit",
@@ -773,7 +783,7 @@ version = "0.1.0"
 dependencies = [
  "dyn-clonable",
  "indexmap",
- "isolang",
+ "isolang 2.3.0 (git+https://github.com/humenda/isolang-rs)",
  "oca-ast",
  "oca-bundle",
  "said",
