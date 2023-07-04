@@ -1,9 +1,9 @@
-name: Crates.io
+name: Publish oca-bundle to crates.io
 
 on:
   push:
     tags:
-      - "v*"
+      - "oca-bundle-v*"
 env:
   CARGO_TERM_COLOR: always
 
@@ -28,4 +28,5 @@ jobs:
         run: cargo test --verbose
       - uses: katyo/publish-crates@v1
         with:
+            path: './oca-bundle'
             registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}

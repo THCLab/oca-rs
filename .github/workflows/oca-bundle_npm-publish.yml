@@ -1,9 +1,9 @@
-name: npmjs.com
+name: Publish oca-bundle to npmjs.com
 
 on:
   push:
     tags:
-      - "v*"
+      - "oca-bundle-v*"
   workflow_dispatch:
 
 jobs:
