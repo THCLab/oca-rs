@@ -19,7 +19,7 @@ format_overlay = []
 serde_json = { version = "1.0", features = ["preserve_order"] }
 serde_yaml = "0.9"
 serde = { version = "1.0", features = ["derive"] }
-said = { git = "https://github.com/THCLab/cesrox", branch = "macros", features = ["macros"] }
+said = { version = "0.3.0", features = ["macros"] }
 erased-serde = "0.3.16"
 wasm-bindgen = { version = "0.2.77" }
 serde-value = "0.7.0"
