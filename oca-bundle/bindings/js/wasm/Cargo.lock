@@ -127,8 +127,9 @@ checksum = "50d30906286121d95be3d479533b458f87493b30a4b5f79a607db8f5d11aa91f"
 
 [[package]]
 name = "cesrox"
-version = "0.1.3"
-source = "git+https://github.com/THCLab/cesrox?branch=macros#679ca9b1c80f4525f9bfdfd2fe6208ff8e374d56"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "85521bf1c8081199db779589496bdfe65aa09ae283a20b53df7bd78cba591282"
 dependencies = [
  "base64",
  "chrono",
@@ -389,7 +390,8 @@ dependencies = [
 [[package]]
 name = "isolang"
 version = "2.3.0"
-source = "git+https://github.com/humenda/isolang-rs#d34fae4da36c46d16e328c690099d77dcda8f334"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f80f221db1bc708b71128757b9396727c04de86968081e18e89b0575e03be071"
 dependencies = [
  "phf",
  "serde",
@@ -501,7 +503,7 @@ dependencies = [
 
 [[package]]
 name = "oca-bundle"
-version = "0.2.29"
+version = "0.3.0-rc.1"
 dependencies = [
  "cascade",
  "dyn-clonable",
@@ -523,7 +525,7 @@ dependencies = [
 
 [[package]]
 name = "oca-js"
-version = "0.2.29"
+version = "0.3.0-rc.1"
 dependencies = [
  "isolang",
  "js-sys",
@@ -661,7 +663,8 @@ checksum = "f91339c0467de62360649f8d3e185ca8de4224ff281f66000de5eb2a77a79041"
 [[package]]
 name = "sad_macros"
 version = "0.1.0"
-source = "git+https://github.com/THCLab/cesrox?branch=macros#679ca9b1c80f4525f9bfdfd2fe6208ff8e374d56"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6614340171cdb3eb6dca3a9ce208a7564b96b852ee1bd8537ee931e81b1df633"
 dependencies = [
  "quote",
  "syn 2.0.15",
@@ -669,8 +672,9 @@ dependencies = [
 
 [[package]]
 name = "said"
-version = "0.1.0"
-source = "git+https://github.com/THCLab/cesrox?branch=macros#679ca9b1c80f4525f9bfdfd2fe6208ff8e374d56"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9327fb6fb60f0eb3d480fa80023e6214426d2c533ea0946d98389b8cd51df432"
 dependencies = [
  "base64",
  "blake2",

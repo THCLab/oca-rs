@@ -14,11 +14,6 @@ wasm-bindgen = { version = "0.2.85", features = ["serde-serialize"] }
 oca-bundle = { path = "../../../../oca-bundle", features = ["format_overlay"] }
 serde-wasm-bindgen = "0.3.1"
 js-sys = "0.3.54"
-
-[dependencies.isolang]
-# version = "2.2.0"
-# needs to be loaded from source util the PR #35 is released
-git = "https://github.com/humenda/isolang-rs"
-features = ["serde"]
+isolang = { version = "2.3.0", features = ["serde"] }
 
 [workspace]
