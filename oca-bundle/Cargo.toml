@@ -2,7 +2,7 @@
 license = "EUPL-1.2"
 description = "Rust implementation of Overlays Capture Architecture bundle"
 name = "oca-bundle"
-version = "0.3.0-rc.2"
+version = "0.3.0-rc.3"
 authors = ["Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>", "Robert Mitwicki <robert.mitwicki@opensoftware.pl>", "Michał Pietrus <michal.pietrus@opensoftware.pl>"]
 edition = "2018"
 
