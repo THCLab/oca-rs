@@ -3,7 +3,7 @@ mod instructions;
 
 use self::instructions::{add::AddInstruction, from::FromInstruction, remove::RemoveInstruction};
 use crate::ocafile::error::Error;
-use ocaast::{
+use oca_ast::{
     ast::{Command, OCAAst},
     validator::{OCAValidator, Validator},
 };

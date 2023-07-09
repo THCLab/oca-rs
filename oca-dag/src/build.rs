@@ -10,7 +10,7 @@ use oca_bundle::state::oca::overlay::meta::Metas;
 use oca_bundle::state::oca::overlay::label::Labels;
 use std::str::FromStr;
 use std::collections::HashMap;
-use ocaast::ast;
+use oca_ast::ast;
 use oca_bundle::state::{oca::OCABox, oca::OCABundle, encoding::Encoding, attribute::{Attribute, AttributeType}, entry_codes::EntryCodes as EntryCodesValue, entries::EntriesElement};
 
 pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> OCABox {

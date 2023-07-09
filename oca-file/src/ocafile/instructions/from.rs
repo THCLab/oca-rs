@@ -1,7 +1,7 @@
 use crate::ocafile::{error::Error, Pair, Rule};
 use indexmap::IndexMap;
 use log::debug;
-use ocaast::ast::{Command, CommandType, Content, NestedValue, ObjectKind};
+use oca_ast::ast::{Command, CommandType, Content, NestedValue, ObjectKind};
 use said::SelfAddressingIdentifier;
 
 #[derive(Debug, PartialEq, Eq, Clone)]

@@ -1,7 +1,7 @@
 use crate::ocafile::{error::Error, instructions::helpers, Pair, Rule};
 use indexmap::IndexMap;
 use log::{debug, info};
-use ocaast::ast::{Command, CommandType, Content, NestedValue, ObjectKind, OverlayType};
+use oca_ast::ast::{Command, CommandType, Content, NestedValue, ObjectKind, OverlayType};
 
 pub struct AddInstruction {}
 
@@ -15,7 +15,7 @@ impl AddInstruction {
         for object in record.into_inner() {
             content = match object.as_rule() {
                 Rule::meta => {
-                    object_kind = Some(ObjectKind::Overlay(ocaast::ast::OverlayType::Meta));
+                    object_kind = Some(ObjectKind::Overlay(oca_ast::ast::OverlayType::Meta));
                     helpers::extract_content(object)
                 }
                 Rule::attribute => {
