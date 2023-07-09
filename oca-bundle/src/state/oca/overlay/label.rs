@@ -3,15 +3,15 @@ use isolang::Language;
 use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap, ser::SerializeSeq};
 use std::any::Any;
 use std::collections::HashMap;
-use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
+use said::{sad::SAD, sad::SerializationFormats};
 
 pub trait Labels {
-    fn set_label(&mut self, l: Language, label: String) -> ();
-    fn add_category_label(&mut self, l: Language, label: String) -> ();
+    fn set_label(&mut self, l: Language, label: String);
+    fn add_category_label(&mut self, l: Language, label: String);
 }
 
 impl Labels for Attribute {
-    fn set_label(&mut self, l: Language, label: String) -> () {
+    fn set_label(&mut self, l: Language, label: String) {
         match self.labels {
             Some(ref mut labels) => {
                 labels.insert(l, label);
@@ -23,7 +23,7 @@ impl Labels for Attribute {
             }
         }
     }
-    fn add_category_label(&mut self, l: Language, label: String) -> () {
+    fn add_category_label(&mut self, l: Language, label: String) {
         match self.category_labels {
             Some(ref mut category_labels) => {
                 category_labels.insert(l, label);
@@ -81,7 +81,7 @@ pub struct LabelOverlay {
     #[serde(serialize_with = "serialize_labels")]
     pub category_labels: HashMap<String, String>,
     #[serde(skip)]
-    pub category_attributes: HashMap<String, Vec<String>>,
+    pub _category_attributes: HashMap<String, Vec<String>>,
 }
 
 impl Overlay for LabelOverlay {
@@ -134,11 +134,11 @@ impl LabelOverlay {
             attribute_labels: HashMap::new(),
             attribute_categories: vec![],
             category_labels: HashMap::new(),
-            category_attributes: HashMap::new(),
+            _category_attributes: HashMap::new(),
         }
     }
 
-    fn add_to_category(&mut self, categories: Vec<&str>, attribute: &Attribute) {
+    fn _add_to_category(&mut self, categories: Vec<&str>, attribute: &Attribute) {
         let mut supercats: Vec<i32> = vec![];
         for (i, category) in categories.iter().enumerate() {
             let supercats_str: Vec<String> = supercats.iter().map(|c| c.to_string()).collect();
@@ -172,12 +172,12 @@ impl LabelOverlay {
                 self.category_labels
                     .insert(acctual_cat_id.clone(), category.to_string());
                 self.attribute_categories.push(acctual_cat_id.clone());
-                self.category_attributes
+                self._category_attributes
                     .insert(acctual_cat_id.clone(), vec![]);
             }
 
             if i + 1 == categories.len() {
-                self.category_attributes
+                self._category_attributes
                     .get_mut(acctual_cat_id.as_str())
                     .unwrap()
                     .push(attribute.name.clone());
@@ -249,18 +249,18 @@ mod tests {
         }
 
         assert!(overlay
-            .category_attributes
+            ._category_attributes
             .get(&"_cat-1_".to_string())
             .is_some());
-        if let Some(cat1_attrs) = overlay.category_attributes.get(&"_cat-1_".to_string()) {
+        if let Some(cat1_attrs) = overlay._category_attributes.get(&"_cat-1_".to_string()) {
             assert_eq!(cat1_attrs.len(), 1);
             assert!(cat1_attrs.contains(&"attr1".to_string()));
         }
         assert!(overlay
-            .category_attributes
+            ._category_attributes
             .get(&"_cat-2_".to_string())
             .is_some());
-        if let Some(cat2_attrs) = overlay.category_attributes.get(&"_cat-2_".to_string()) {
+        if let Some(cat2_attrs) = overlay._category_attributes.get(&"_cat-2_".to_string()) {
             assert_eq!(cat2_attrs.len(), 1);
             assert!(cat2_attrs.contains(&"attr2".to_string()));
         }

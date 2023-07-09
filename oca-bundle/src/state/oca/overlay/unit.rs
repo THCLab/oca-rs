@@ -2,7 +2,7 @@ use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
 use std::any::Any;
 use std::collections::HashMap;
-use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
+use said::{sad::SAD, sad::SerializationFormats};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, Hash, PartialEq)]
 pub enum MeasurementSystem {
@@ -162,11 +162,11 @@ impl std::str::FromStr for MeasurementSystem {
 }
 
 pub trait Unit {
-    fn set_unit(&mut self, attr_unit: AttributeUnit) -> ();
+    fn set_unit(&mut self, attr_unit: AttributeUnit);
 }
 
 impl Unit for Attribute {
-    fn set_unit(&mut self, attr_unit: AttributeUnit) -> () {
+    fn set_unit(&mut self, attr_unit: AttributeUnit) {
         match self.units {
             Some(ref mut units) => {
                 units.insert(attr_unit.measurement_system, attr_unit.unit);

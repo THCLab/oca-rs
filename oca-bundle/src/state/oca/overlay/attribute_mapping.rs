@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::BTreeMap;
 
-use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
+use said::{sad::SAD, sad::SerializationFormats};
 
 #[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct AttributeMappingOverlay {
@@ -36,7 +36,7 @@ impl Overlay for AttributeMappingOverlay {
         self.attribute_mapping.keys().collect::<Vec<&String>>()
     }
 
-    fn add(&mut self, attribute: &Attribute) {
+    fn add(&mut self, _attribute: &Attribute) {
         // if attribute.mapping.is_some() {
         //     self.attribute_mapping.insert(
         //         attribute.name.clone(),

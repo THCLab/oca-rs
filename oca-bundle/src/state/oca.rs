@@ -56,6 +56,12 @@ pub struct OCABox {
     pub classification: Option<String>,
 }
 
+impl Default for OCABox {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl OCABox {
     pub fn new() -> Self {
         OCABox {
@@ -74,7 +80,6 @@ impl OCABox {
     pub fn add_attribute(&mut self, attribute: Attribute) {
         if let Some(attr) = self.get_attribute_mut(&attribute.name) {
             attr.merge(&attribute);
-            return;
         } else {
             self.attributes.insert(attribute.name.clone(), attribute);
         }
@@ -781,6 +786,7 @@ impl OCABundle {
         base.unwrap().generate_bundle()
     }
 }
+/*
 #[derive(Clone)]
 struct AttributeLayoutValues {
     pub reference_sai: Option<String>,
@@ -803,6 +809,7 @@ impl AttributeLayoutValues {
         self.has_unit = true;
     }
 }
+*/
 
 #[cfg(test)]
 mod tests {

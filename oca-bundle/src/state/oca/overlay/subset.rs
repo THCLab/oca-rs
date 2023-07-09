@@ -1,7 +1,7 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::any::Any;
-use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
+use said::{sad::SAD, sad::SerializationFormats};
 
 #[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct SubsetOverlay {

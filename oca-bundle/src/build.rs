@@ -137,7 +137,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> OCABox {
                             }
                         },
                         ast::OverlayType::Format => {
-                            #[cfg(feature = "format")]
+                            #[cfg(feature = "format_overlay")]
                             {
                             if let Some(ref content) = op.content {
                                 if let Some(ref attributes) = content.attributes {
@@ -168,15 +168,14 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> OCABox {
                                             let mut attribute = oca.attributes.get(attr_name).unwrap().clone();
                                             if let ast::NestedValue::Value(attr_unit) = attr_type_value {
 
-                                                let mut unit = None;
-                                                match unit_system {
-                                                    MeasurementSystem::Metric => {
-                                                        unit = Some(MeasurementUnit::Metric(MetricUnit::from_str(attr_unit).unwrap_or_else(|_| panic!("Invalid metric unit: {attr_unit}"))))
-                                                    },
-                                                    MeasurementSystem::Imperial => {
-                                                        unit = Some(MeasurementUnit::Imperial(ImperialUnit::from_str(attr_unit).unwrap_or_else(|_| panic!("Invalid imperial unit: {attr_unit}"))))
-                                                    }
-                                                }
+                                                let unit = match unit_system {
+                                                        MeasurementSystem::Metric => {
+                                                            Some(MeasurementUnit::Metric(MetricUnit::from_str(attr_unit).unwrap_or_else(|_| panic!("{}", "Invalid metric unit: {attr_unit}"))))
+                                                        },
+                                                        MeasurementSystem::Imperial => {
+                                                            Some(MeasurementUnit::Imperial(ImperialUnit::from_str(attr_unit).unwrap_or_else(|_| panic!("{}", "Invalid imperial unit: {attr_unit}"))))
+                                                        }
+                                                    };
                                                 attribute.set_unit(
                                                     AttributeUnit {
                                                         measurement_system: unit_system.clone(),

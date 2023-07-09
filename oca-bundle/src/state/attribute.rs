@@ -82,7 +82,7 @@ impl Attribute {
             panic!("Cannot merge attributes with different names");
         } else {
             if other.attribute_type.is_some() {
-                self.attribute_type = other.attribute_type.clone();
+                self.attribute_type = other.attribute_type;
             }
 
             self.merge_labels(other);
@@ -94,7 +94,7 @@ impl Attribute {
             }
 
             if other.encoding.is_some() {
-                self.encoding = other.encoding.clone();
+                self.encoding = other.encoding;
             }
 
             #[cfg(feature = "format_overlay")]
@@ -141,45 +141,39 @@ impl Attribute {
         }
     }
 
-    fn merge_category_labels(&mut self, other: &Attribute) -> () {
+    fn merge_category_labels(&mut self, other: &Attribute) {
         if self.category_labels.is_none() {
             self.category_labels = other.category_labels.clone();
-        } else {
-            if let Some(category_labels) = &other.category_labels {
-                for (lang, category_label) in category_labels {
-                    self.category_labels
-                        .as_mut()
-                        .unwrap()
-                        .insert(lang.clone(), category_label.clone());
-                }
+        } else if let Some(category_labels) = &other.category_labels {
+            for (lang, category_label) in category_labels {
+                self.category_labels
+                    .as_mut()
+                    .unwrap()
+                    .insert(*lang, category_label.clone());
             }
         }
     }
-    fn merge_information(&mut self, other: &Attribute) -> () {
+    fn merge_information(&mut self, other: &Attribute) {
         if self.informations.is_none() {
             self.informations = other.informations.clone();
-        } else {
-            if let Some(informations) = &other.informations {
-                for (lang, information) in informations {
-                    self.informations
-                        .as_mut()
-                        .unwrap()
-                        .insert(lang.clone(), information.clone());
-                }
+        } else if let Some(informations) = &other.informations {
+            for (lang, information) in informations {
+                self.informations
+                    .as_mut()
+                    .unwrap()
+                    .insert(*lang, information.clone());
             }
         }
     }
-    fn merge_labels(&mut self, other: &Attribute) -> () {
+    fn merge_labels(&mut self, other: &Attribute) {
         if self.labels.is_none() {
             self.labels = other.labels.clone();
-        } else {
-            if let Some(labels) = &other.labels {
-                for (lang, label) in labels {
-                    self.labels
-                        .as_mut()
-                        .unwrap()
-                        .insert(lang.clone(), label.clone());
-                }
+        } else if let Some(labels) = &other.labels {
+            for (lang, label) in labels {
+                self.labels
+                    .as_mut()
+                    .unwrap()
+                    .insert(*lang, label.clone());
             }
         }
     }

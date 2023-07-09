@@ -1,5 +1,5 @@
 use crate::state::attribute::{Attribute, AttributeType};
-use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
+use said::{sad::SAD, sad::SerializationFormats};
 use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap, ser::SerializeSeq};
 use std::collections::HashMap;
 

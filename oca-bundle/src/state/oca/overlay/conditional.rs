@@ -2,7 +2,7 @@ use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::BTreeMap;
-use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
+use said::{sad::SAD, sad::SerializationFormats};
 
 #[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct ConditionalOverlay {

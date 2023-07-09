@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
 use std::any::Any;
 use std::collections::HashMap;
 use isolang::Language;
-use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
+use said::{sad::SAD, sad::SerializationFormats};
 
 pub trait Metas {
     fn add_meta(&mut self, language: Language, key: String, value: String);

@@ -3,10 +3,10 @@ use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::HashMap;
-use said::{sad::SAD, sad::SerializationFormats, derivation::HashFunctionCode};
+use said::{sad::SAD, sad::SerializationFormats};
 
 pub(crate) trait StandardAttribute {
-    fn add_standard(&mut self, standard: Standard) -> ();
+    fn add_standard(&mut self, standard: Standard);
 }
 
 impl StandardAttribute for Attribute {
