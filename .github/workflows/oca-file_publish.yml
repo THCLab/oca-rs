@@ -1,11 +1,15 @@
-name: Crates.io
+name: Publish oca-file to crates.io
 
 on:
   push:
     tags:
-      - "v*"
+      - "oca-file-v*"
 env:
   CARGO_TERM_COLOR: always
+
+defaults:
+  run:
+    working-directory: oca-file
 
 jobs:
   build:
@@ -24,4 +28,5 @@ jobs:
         run: cargo test --verbose
       - uses: katyo/publish-crates@v1
         with:
+            path: './oca-file'
             registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}

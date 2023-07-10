@@ -1,0 +1,27 @@
+[package]
+name = "oca-dag"
+version = "0.1.0"
+edition = "2021"
+license = "EUPL-1.2"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "oca_dag"
+path = "src/lib.rs"
+
+[dependencies]
+dyn-clonable = "0.9.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sled = "0.34.7"
+said = { git = "https://github.com/THCLab/cesrox", branch = "macros", features = ["macros"] }
+oca-bundle = { path = "../oca-bundle", features = ["format_overlay"] }
+oca-ast = { path = "../oca-ast" }
+indexmap = { version = "1.9.3", features = ["serde"]}
+
+[dependencies.isolang]
+# version = "2.2.0"
+# needs to be loaded from source util the PR #35 is released
+git = "https://github.com/humenda/isolang-rs"
+features = ["serde"]

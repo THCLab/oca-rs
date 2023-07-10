@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct LayoutConfigCss {
     #[serde(skip_serializing_if = "Option::is_none")]
     width: Option<String>,
@@ -10,12 +10,12 @@ struct LayoutConfigCss {
     #[serde(skip_serializing_if = "Option::is_none")]
     style: Option<String>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct LayoutConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     css: Option<LayoutConfigCss>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct PageConfigCss {
     #[serde(skip_serializing_if = "Option::is_none")]
     style: Option<String>,
@@ -24,25 +24,25 @@ struct PageConfigCss {
     #[serde(skip_serializing_if = "Option::is_none")]
     background_image: Option<String>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct PageConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     css: Option<PageConfigCss>,
     name: String,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct ElementConfigCss {
     #[serde(skip_serializing_if = "Option::is_none")]
     style: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     classes: Option<Vec<String>>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct ElementConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     css: Option<ElementConfigCss>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Element {
     #[serde(rename = "type")]
     element_type: String,
@@ -59,12 +59,12 @@ struct Element {
     #[serde(skip_serializing_if = "Option::is_none")]
     elements: Option<Vec<Element>>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Page {
     config: PageConfig,
     elements: Vec<Element>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Layout {
     version: String,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -1,202 +1,201 @@
-use super::standard::Standard;
-use serde::{Deserialize, Serialize};
-use std::{
-    collections::{BTreeMap, HashMap},
-    str::FromStr,
+use super::{
+    oca::overlay::unit::{MeasurementSystem, MeasurementUnit},
+    standard::Standard,
 };
+use isolang::Language;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, str::FromStr};
 use wasm_bindgen::prelude::*;
 
-use crate::state::{
-    encoding::Encoding, entries::EntriesElement, entry_codes::EntryCodes, language::Language,
-};
-
-#[derive(Serialize, Deserialize)]
+use crate::state::{encoding::Encoding, entry_codes::EntryCodes, entries::EntriesElement};
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Attribute {
     pub name: String,
-    pub attribute_type: AttributeType,
+    pub attribute_type: Option<AttributeType>,
     pub is_flagged: bool,
-    pub translations: HashMap<Language, AttributeTranslation>,
+    pub labels: Option<HashMap<Language, String>>,
+    pub category_labels: Option<HashMap<Language, String>>,
+    pub informations: Option<HashMap<Language, String>>,
+    pub entry_codes: Option<EntryCodes>,
+    pub entries: Option<HashMap<Language, EntriesElement>>,
     pub mapping: Option<String>,
     pub encoding: Option<Encoding>,
+    #[cfg(feature = "format_overlay")]
     pub format: Option<String>,
-    pub metric_system: Option<String>,
-    pub unit: Option<String>,
-    pub entry_codes: Option<EntryCodes>,
+    pub units: Option<HashMap<MeasurementSystem, MeasurementUnit>>,
     pub entry_codes_mapping: Option<Vec<String>>,
-    pub sai: Option<String>,
+    pub reference_sai: Option<String>, // replace with SAI and move to RefAttribute
     pub condition: Option<String>,
     pub dependencies: Option<Vec<String>>,
     pub cardinality: Option<String>,
     pub conformance: Option<String>,
-    pub standard: Option<Standard>,
+    pub standards: Option<Vec<Standard>>,
 }
 
-pub struct AttributeBuilder {
-    pub attribute: Attribute,
+impl Default for Attribute {
+    fn default() -> Self {
+        Self::new("".to_string())
+    }
 }
 
-impl AttributeBuilder {
-    pub fn new(name: String, attribute_type: AttributeType) -> AttributeBuilder {
-        AttributeBuilder {
-            attribute: Attribute {
-                name,
-                attribute_type,
-                is_flagged: false,
-                translations: HashMap::new(),
-                mapping: None,
-                encoding: None,
-                format: None,
-                metric_system: None,
-                unit: None,
-                entry_codes: None,
-                entry_codes_mapping: None,
-                sai: None,
-                condition: None,
-                dependencies: None,
-                cardinality: None,
-                conformance: None,
-                standard: None,
-            },
+impl Attribute {
+    pub fn new(name: String) -> Attribute {
+        Attribute {
+            name,
+            labels: None,
+            informations: None,
+            category_labels: None,
+            attribute_type: None,
+            is_flagged: false,
+            mapping: None,
+            encoding: None,
+            #[cfg(feature = "format_overlay")]
+            format: None,
+            units: None,
+            entry_codes: None,
+            entries: None,
+            entry_codes_mapping: None,
+            reference_sai: None, // TODO: replace with RefAttribute which consist only with reference to another object
+            condition: None,
+            dependencies: None,
+            cardinality: None,
+            conformance: None,
+            standards: None,
         }
     }
 
-    pub fn set_flagged(mut self) -> AttributeBuilder {
-        self.attribute.is_flagged = true;
-        self
+    pub fn set_flagged(&mut self) {
+        self.is_flagged = true;
     }
 
-    pub fn add_condition(
-        mut self,
-        condition: String,
-        dependencies: Vec<String>,
-    ) -> AttributeBuilder {
-        self.attribute.condition = Some(condition);
-        self.attribute.dependencies = Some(dependencies);
-        self
+    pub fn set_attribute_type(&mut self, attribute_type: AttributeType) {
+        self.attribute_type = Some(attribute_type);
     }
 
-    pub fn add_cardinality(mut self, cardinality: String) -> AttributeBuilder {
-        self.attribute.cardinality = Some(cardinality);
-        self
+    pub fn set_sai(&mut self, sai: String) {
+        self.reference_sai = Some(sai);
     }
 
-    pub fn add_conformance(mut self, conformance: String) -> AttributeBuilder {
-        self.attribute.conformance = Some(conformance);
-        self
+    // Merge assumption is that if `other` is not None then it would overwrite `self` or would be concatenated with `self`
+    pub fn merge(&mut self, other: &Attribute) {
+        if self.name != other.name {
+            panic!("Cannot merge attributes with different names");
+        } else {
+            if other.attribute_type.is_some() {
+                self.attribute_type = other.attribute_type;
+            }
+
+            self.merge_labels(other);
+            self.merge_information(other);
+            self.merge_category_labels(other);
+
+            if other.mapping.is_some() {
+                self.mapping = other.mapping.clone();
+            }
+
+            if other.encoding.is_some() {
+                self.encoding = other.encoding;
+            }
+
+            #[cfg(feature = "format_overlay")]
+            if other.format.is_some() {
+                self.format = other.format.clone();
+            }
+
+            if self.units.is_none() {
+                self.units = other.units.clone();
+            }
+
+            if self.entry_codes.is_none() {
+                self.entry_codes = other.entry_codes.clone();
+            }
+
+            if self.entries.is_none() {
+                self.entries = other.entries.clone();
+            }
+
+            if self.entry_codes_mapping.is_none() {
+                self.entry_codes_mapping = other.entry_codes_mapping.clone();
+            }
+
+            if other.reference_sai.is_some() {
+                self.reference_sai = other.reference_sai.clone();
+            }
+
+            if other.condition.is_some() {
+                self.condition = other.condition.clone();
+            }
+
+            if other.cardinality.is_some() {
+                self.cardinality = other.cardinality.clone();
+            }
+
+            if other.conformance.is_some() {
+                self.conformance = other.conformance.clone();
+            }
+
+            if other.standards.is_some() {
+                self.standards = other.standards.clone();
+            }
+
+        }
     }
 
-    pub fn add_encoding(mut self, encoding: Encoding) -> AttributeBuilder {
-        self.attribute.encoding = Some(encoding);
-        self
-    }
-
-    pub fn add_mapping(mut self, mapping: String) -> AttributeBuilder {
-        self.attribute.mapping = Some(mapping);
-        self
-    }
-
-    pub fn add_sai(mut self, sai: String) -> AttributeBuilder {
-        self.attribute.sai = Some(sai);
-        self
-    }
-
-    pub fn add_format(mut self, format: String) -> AttributeBuilder {
-        self.attribute.format = Some(format);
-        self
-    }
-
-    pub fn add_standard(mut self, standard: String) -> AttributeBuilder {
-        self.attribute.standard = Some(Standard::new(standard));
-        self
-    }
-
-    pub fn add_unit(mut self, metric_system: String, unit: String) -> AttributeBuilder {
-        self.attribute.metric_system = Some(metric_system);
-        self.attribute.unit = Some(unit);
-        self
-    }
-
-    pub fn add_label(mut self, labels: HashMap<Language, String>) -> AttributeBuilder {
-        for (lang, label) in labels.iter() {
-            match self.attribute.translations.get_mut(lang) {
-                Some(t) => {
-                    t.add_label(label.clone());
-                }
-                None => {
-                    let mut tr = AttributeTranslation::new();
-                    tr.add_label(label.clone());
-                    self.attribute.translations.insert(lang.clone(), tr);
-                }
+    fn merge_category_labels(&mut self, other: &Attribute) {
+        if self.category_labels.is_none() {
+            self.category_labels = other.category_labels.clone();
+        } else if let Some(category_labels) = &other.category_labels {
+            for (lang, category_label) in category_labels {
+                self.category_labels
+                    .as_mut()
+                    .unwrap()
+                    .insert(*lang, category_label.clone());
             }
         }
-        self
     }
-
-    pub fn add_entry_codes(mut self, entry_codes: EntryCodes) -> AttributeBuilder {
-        self.attribute.entry_codes = Some(entry_codes);
-        self
-    }
-
-    pub fn add_entry_codes_mapping(mut self, mapping: Vec<String>) -> AttributeBuilder {
-        self.attribute.entry_codes_mapping = Some(mapping);
-        self
-    }
-
-    pub fn add_entries(mut self, entries: Entries) -> AttributeBuilder {
-        match entries {
-            Entries::Sai(lang_sai) => {
-                for (lang, sai) in lang_sai.iter() {
-                    match self.attribute.translations.get_mut(lang) {
-                        Some(t) => {
-                            t.add_entries_sai(sai.to_string());
-                        }
-                        None => {
-                            let mut tr = AttributeTranslation::new();
-                            tr.add_entries_sai(sai.to_string());
-                            self.attribute.translations.insert(lang.clone(), tr);
-                        }
-                    }
-                }
-            }
-            Entries::Object(entries_vec) => {
-                for entry in entries_vec.iter() {
-                    for (lang, en) in entry.translations.iter() {
-                        match self.attribute.translations.get_mut(lang) {
-                            Some(t) => {
-                                t.add_entry(entry.id.clone(), en.clone());
-                            }
-                            None => {
-                                let mut tr = AttributeTranslation::new();
-                                tr.add_entry(entry.id.clone(), en.clone());
-                                self.attribute.translations.insert(lang.clone(), tr);
-                            }
-                        }
-                    }
-                }
+    fn merge_information(&mut self, other: &Attribute) {
+        if self.informations.is_none() {
+            self.informations = other.informations.clone();
+        } else if let Some(informations) = &other.informations {
+            for (lang, information) in informations {
+                self.informations
+                    .as_mut()
+                    .unwrap()
+                    .insert(*lang, information.clone());
             }
         }
-        self
     }
-
-    pub fn add_information(mut self, information: HashMap<Language, String>) -> AttributeBuilder {
-        for (lang, info) in information.iter() {
-            match self.attribute.translations.get_mut(lang) {
-                Some(t) => {
-                    t.add_information(info.clone());
-                }
-                None => {
-                    let mut tr = AttributeTranslation::new();
-                    tr.add_information(info.clone());
-                    self.attribute.translations.insert(lang.clone(), tr);
-                }
+    fn merge_labels(&mut self, other: &Attribute) {
+        if self.labels.is_none() {
+            self.labels = other.labels.clone();
+        } else if let Some(labels) = &other.labels {
+            for (lang, label) in labels {
+                self.labels
+                    .as_mut()
+                    .unwrap()
+                    .insert(*lang, label.clone());
             }
         }
-        self
     }
+    // pub fn add_condition(
+    //     mut self,
+    //     condition: String,
+    //     dependencies: Vec<String>,
+    // ) -> AttributeBuilder {
+    //     self.attribute.condition = Some(condition);
+    //     self.attribute.dependencies = Some(dependencies);
+    //     self
+    // }
 
-    pub fn build(self) -> Attribute {
-        self.attribute
-    }
+    // pub fn add_mapping(mut self, mapping: String) -> AttributeBuilder {
+    //     self.attribute.mapping = Some(mapping);
+    //     self
+    // }
+
+    // pub fn add_entry_codes_mapping(mut self, mapping: Vec<String>) -> AttributeBuilder {
+    //     self.attribute.entry_codes_mapping = Some(mapping);
+    //     self
+    // }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -211,60 +210,13 @@ impl Entry {
     }
 }
 
+/*
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Entries {
     Sai(HashMap<Language, String>),
     Object(Vec<Entry>),
 }
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct AttributeTranslation {
-    pub label: Option<String>,
-    pub entries: Option<EntriesElement>,
-    pub information: Option<String>,
-}
-
-impl Default for AttributeTranslation {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl AttributeTranslation {
-    pub fn new() -> AttributeTranslation {
-        AttributeTranslation {
-            label: None,
-            entries: None,
-            information: None,
-        }
-    }
-
-    pub fn add_label(&mut self, label: String) -> &mut AttributeTranslation {
-        self.label = Some(label);
-        self
-    }
-
-    pub fn add_entries_sai(&mut self, sai: String) -> &mut AttributeTranslation {
-        self.entries = Some(EntriesElement::Sai(sai));
-        self
-    }
-
-    pub fn add_entry(&mut self, id: String, tr: String) -> &mut AttributeTranslation {
-        if self.entries.is_none() {
-            self.entries = Some(EntriesElement::Object(BTreeMap::new()));
-        }
-        if let Some(EntriesElement::Object(mut entries)) = self.entries.clone() {
-            entries.insert(id, tr);
-            self.entries = Some(EntriesElement::Object(entries));
-        }
-        self
-    }
-
-    pub fn add_information(&mut self, information: String) -> &mut AttributeTranslation {
-        self.information = Some(information);
-        self
-    }
-}
+*/
 
 #[wasm_bindgen]
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
@@ -289,27 +241,8 @@ pub enum AttributeType {
     ArrayReference,
 }
 
-impl ToString for AttributeType {
-    fn to_string(&self) -> String {
-        match self {
-            AttributeType::Boolean => "Boolean".to_string(),
-            AttributeType::ArrayBoolean => "Array[Boolean]".to_string(),
-            AttributeType::Binary => "Binary".to_string(),
-            AttributeType::ArrayBinary => "Array[Binary]".to_string(),
-            AttributeType::Text => "Text".to_string(),
-            AttributeType::ArrayText => "Array[Text]".to_string(),
-            AttributeType::Numeric => "Numeric".to_string(),
-            AttributeType::ArrayNumeric => "Array[Numeric]".to_string(),
-            AttributeType::DateTime => "DateTime".to_string(),
-            AttributeType::ArrayDateTime => "Array[DateTime]".to_string(),
-            AttributeType::Reference => "Reference".to_string(),
-            AttributeType::ArrayReference => "Array[Reference]".to_string(),
-        }
-    }
-}
-
 impl FromStr for AttributeType {
-    type Err = String;
+    type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -325,7 +258,7 @@ impl FromStr for AttributeType {
             "Array[DateTime]" => Ok(AttributeType::ArrayDateTime),
             "Reference" => Ok(AttributeType::Reference),
             "Array[Reference]" => Ok(AttributeType::ArrayReference),
-            _ => Err(format!("{} is not a valid AttributeType", s)),
+            _ => Err(()),
         }
     }
 }

@@ -9,7 +9,7 @@ description = "Library for handling Abstract Syntax Tree of OCA bundle"
 
 
 [lib]
-name = "ocaast"
+name = "oca_ast"
 path = "src/lib.rs"
 
 

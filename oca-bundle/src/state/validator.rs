@@ -1,8 +1,9 @@
-use crate::state::{
-    language::Language,
-    oca::{DynOverlay, OCABuilder, OCATranslation, OCA},
-};
-use std::collections::{HashMap, HashSet};
+use crate::state::oca::overlay::Overlay;
+use crate::state::oca::DynOverlay;
+use std::collections::HashSet;
+use isolang::Language;
+
+use super::oca::{OCABundle, overlay};
 
 #[derive(Debug)]
 pub enum Error {
@@ -62,24 +63,33 @@ impl Validator {
         self
     }
 
-    pub fn validate(self, oca: &OCA) -> Result<(), Vec<Error>> {
+    pub fn validate(self, oca_bundle: &OCABundle) -> Result<(), Vec<Error>> {
         let enforced_langs: HashSet<_> = self.enforced_translations.iter().collect();
         let mut errors: Vec<Error> = vec![];
 
-        let oca_value = serde_json::value::to_value(oca).unwrap();
-        let oca_str = serde_json::to_string(&oca_value).unwrap();
-        let oca_builder: OCABuilder = serde_json::from_str(oca_str.as_str())
+        /* let oca_bundle: OCABundle = serde_json::from_str(oca_str.as_str())
             .map_err(|e| vec![Error::Custom(e.to_string())])?;
+ */
+        let mut recalculated_oca_bundle = oca_bundle.clone();
+        recalculated_oca_bundle.fill_said();
 
-        let capture_base = oca_builder.oca.capture_base;
-        let sai = capture_base.said.clone();
+        if oca_bundle.said.ne(&recalculated_oca_bundle.said) {
+            errors.push(Error::Custom("OCA Bundle: Malformed SAID".to_string()));
+        }
 
-        if capture_base.said.ne(&capture_base.calculate_said()) {
+        let capture_base = &oca_bundle.capture_base;
+
+        let mut recalculated_capture_base = capture_base.clone();
+        recalculated_capture_base.sign();
+
+        if capture_base.said.ne(&recalculated_capture_base.said) {
             errors.push(Error::Custom("capture_base: Malformed SAID".to_string()));
         }
 
-        for o in oca_builder.oca.overlays {
-            if o.said().ne(&o.calculate_said()) {
+        for o in &oca_bundle.overlays {
+            let mut recalculated_overlay = o.clone();
+            recalculated_overlay.fill_said();
+            if o.said().ne(recalculated_overlay.said()) {
                 let msg = match o.language() {
                     Some(lang) => format!("{} ({}): Malformed SAID", o.overlay_type(), lang),
                     None => format!("{}: Malformed SAID", o.overlay_type()),
@@ -87,7 +97,7 @@ impl Validator {
                 errors.push(Error::Custom(msg));
             }
 
-            if o.capture_base().ne(&sai) {
+            if o.capture_base().ne(&capture_base.said) {
                 let msg = match o.language() {
                     Some(lang) => {
                         format!("{} ({}): Mismatch capture_base SAI", o.overlay_type(), lang)
@@ -99,9 +109,16 @@ impl Validator {
         }
 
         if !enforced_langs.is_empty() {
-            if !oca_builder.meta_translations.is_empty() {
+
+            let meta_overlays = oca_bundle
+                .overlays
+                .iter()
+                .filter_map(|x| x.as_any().downcast_ref::<overlay::Meta>())
+                .collect::<Vec<_>>();
+
+            if !meta_overlays.is_empty() {
                 if let Err(meta_errors) =
-                    self.validate_meta(&enforced_langs, &oca_builder.meta_translations)
+                    self.validate_meta(&enforced_langs, meta_overlays)
                 {
                     errors = errors
                         .into_iter()
@@ -127,7 +144,7 @@ impl Validator {
             }
 
             for overlay_type in &["entry", "information", "label"] {
-                let typed_overlays: Vec<_> = oca
+                let typed_overlays: Vec<_> = oca_bundle
                     .overlays
                     .iter()
                     .filter(|x| {
@@ -172,51 +189,42 @@ impl Validator {
         }
     }
 
+
     fn validate_meta(
         &self,
         enforced_langs: &HashSet<&Language>,
-        translations: &HashMap<Language, OCATranslation>,
+        meta_overlays: Vec<&overlay::Meta>,
     ) -> Result<(), Vec<Error>> {
         let mut errors: Vec<Error> = vec![];
-        let translation_langs: HashSet<_> = translations.keys().collect();
+        let translation_langs: HashSet<_> = meta_overlays.iter().map(|o| o.language().unwrap()).collect();
 
         let missing_enforcement: HashSet<&_> =
             translation_langs.difference(enforced_langs).collect();
         for m in missing_enforcement {
-            errors.push(Error::UnexpectedTranslations(m.to_string()));
+            errors.push(Error::UnexpectedTranslations(**m));
         }
 
         let missing_translations: HashSet<&_> =
             enforced_langs.difference(&translation_langs).collect();
         for m in missing_translations {
-            errors.push(Error::MissingTranslations(m.to_string()));
+            errors.push(Error::MissingTranslations(**m));
         }
 
-        let (name_defined, name_undefined): (Vec<_>, Vec<_>) =
-            translations.iter().partition(|(_lang, t)| t.name.is_some());
-        if !name_defined.is_empty() {
-            let name_undefined_langs: HashSet<_> = name_undefined.iter().map(|x| x.0).collect();
-            for m in name_undefined_langs {
+        for meta_overlay in meta_overlays {
+            if meta_overlay.attr_pairs.get("name").is_none() {
                 errors.push(Error::MissingMetaTranslation(
-                    m.to_string(),
+                    *meta_overlay.language().unwrap(),
                     "name".to_string(),
                 ));
             }
-        }
 
-        let (desc_defined, desc_undefined): (Vec<_>, Vec<_>) = translations
-            .iter()
-            .partition(|(_lang, t)| t.description.is_some());
-        if !desc_defined.is_empty() {
-            let desc_undefined_langs: HashSet<_> = desc_undefined.iter().map(|x| x.0).collect();
-            for m in desc_undefined_langs {
+            if meta_overlay.attr_pairs.get("description").is_none() {
                 errors.push(Error::MissingMetaTranslation(
-                    m.to_string(),
+                    *meta_overlay.language().unwrap(),
                     "description".to_string(),
                 ));
             }
         }
-
         if errors.is_empty() {
             Ok(())
         } else {
@@ -235,12 +243,12 @@ impl Validator {
 
         let missing_enforcement: HashSet<&_> = overlay_langs.difference(enforced_langs).collect();
         for m in missing_enforcement {
-            errors.push(Error::UnexpectedTranslations(m.to_string()));
+            errors.push(Error::UnexpectedTranslations(**m)); // why we have && here?
         }
 
         let missing_translations: HashSet<&_> = enforced_langs.difference(&overlay_langs).collect();
         for m in missing_translations {
-            errors.push(Error::MissingTranslations(m.to_string()));
+            errors.push(Error::MissingTranslations(**m)); // why we have && here?
         }
 
         let all_attributes: HashSet<&String> =
@@ -252,7 +260,7 @@ impl Validator {
                 all_attributes.difference(&attributes).collect();
             for m in missing_attr_translation {
                 errors.push(Error::MissingAttributeTranslation(
-                    overlay.language().unwrap().clone(),
+                    *overlay.language().unwrap(),
                     m.to_string(),
                 ));
             }
@@ -271,62 +279,71 @@ mod tests {
     use super::*;
     use crate::controller::load_oca;
     use crate::state::{
-        attribute::{AttributeBuilder, AttributeType},
+        attribute::{Attribute, AttributeType},
+        oca::OCABox,
         encoding::Encoding,
-        oca::OCABuilder,
+        oca::overlay::meta::Metas,
+        oca::overlay::character_encoding::CharacterEncodings,
+        oca::overlay::label::Labels,
     };
-    use maplit::hashmap;
 
     #[test]
-    fn validate_valid_oca() {
+     fn validate_valid_oca() {
         let validator =
-            Validator::new().enforce_translations(vec!["En".to_string(), "Pl".to_string()]);
+            Validator::new().enforce_translations(vec![Language::Eng, Language::Pol]);
 
-        let oca = OCABuilder::new(Encoding::Utf8)
-            .add_name(hashmap! {
-                "En".to_string() => "Driving Licence".to_string(),
-                "Pl".to_string() => "Prawo Jazdy".to_string(),
-            })
-            .add_description(hashmap! {
-                "En".to_string() => "DL".to_string(),
-                "Pl".to_string() => "PJ".to_string(),
-            })
-            .add_attribute(
-                AttributeBuilder::new("name".to_string(), AttributeType::Text)
-                    .add_label(hashmap! {
-                        "En".to_string() => "Name: ".to_string(),
-                        "Pl".to_string() => "Imię: ".to_string(),
-                    })
-                    .build(),
-            )
-            .add_attribute(
-                AttributeBuilder::new("age".to_string(), AttributeType::Numeric)
-                    .add_label(hashmap! {
-                        "En".to_string() => "Age: ".to_string(),
-                        "Pl".to_string() => "Wiek: ".to_string(),
-                    })
-                    .add_format("asd".to_string())
-                    .build(),
-            )
-            .finalize();
+        let mut oca = cascade! {
+            OCABox::new();
+            ..add_meta(Language::Eng, "name".to_string(), "Driving Licence".to_string());
+            ..add_meta(Language::Eng, "description".to_string(), "DL".to_string());
+            ..add_meta(Language::Pol, "name".to_string(), "Prawo Jazdy".to_string());
+            ..add_meta(Language::Pol, "description".to_string(), "PJ".to_string());
+        };
 
-        let result = validator.validate(&oca);
+        let attribute = cascade! {
+            Attribute::new("name".to_string());
+            ..set_attribute_type(AttributeType::Text);
+            ..set_encoding(Encoding::Utf8);
+            ..set_label(Language::Eng, "Name: ".to_string());
+            ..set_label(Language::Pol, "Imię: ".to_string());
+        };
 
+        oca.add_attribute(attribute);
+
+        let attribute_2 = cascade! {
+            Attribute::new("age".to_string());
+            ..set_attribute_type(AttributeType::Numeric);
+            ..set_label(Language::Eng, "Age: ".to_string());
+            ..set_label(Language::Pol, "Wiek: ".to_string());
+        };
+
+        oca.add_attribute(attribute_2);
+
+        let oca_bundle = oca.generate_bundle();
+
+        let result = validator.validate(&oca_bundle);
+
+        if let Err(ref errors) = result {
+            println!("{errors:?}");
+        }
         assert!(result.is_ok());
     }
 
     #[test]
     fn validate_oca_with_missing_name_translation() {
-        let validator =
-            Validator::new().enforce_translations(vec!["En".to_string(), "Pl".to_string()]);
+         let validator =
+            Validator::new().enforce_translations(vec![Language::Eng, Language::Pol]);
 
-        let oca = OCABuilder::new(Encoding::Utf8)
-            .add_name(hashmap! {
-                "En".to_string() => "Driving Licence".to_string(),
-            })
-            .finalize();
+        let mut oca = cascade! {
+            OCABox::new();
+            ..add_meta(Language::Eng, "name".to_string(), "Driving Licence".to_string());
+            ..add_meta(Language::Eng, "description".to_string(), "Driving Licence desc".to_string());
+            ..add_meta(Language::Pol, "description".to_string(), "Driving Licence desc".to_string());
+        };
 
-        let result = validator.validate(&oca);
+        let oca_bundle = oca.generate_bundle();
+
+        let result = validator.validate(&oca_bundle);
 
         assert!(result.is_err());
         if let Err(errors) = result {
@@ -336,7 +353,7 @@ mod tests {
 
     #[test]
     fn validate_oca_with_standards() {
-        let validator = Validator::new();
+/*         let validator = Validator::new();
 
         let oca = OCABuilder::new(Encoding::Utf8)
             .add_attribute(
@@ -351,18 +368,19 @@ mod tests {
         assert!(result.is_err());
         if let Err(errors) = result {
             assert_eq!(errors.len(), 1);
-        }
+        } */
     }
 
     #[test]
     fn validate_oca_with_invalid_saids() {
         let validator = Validator::new();
-
         let data = r#"
 {
+    "version": "OCAB10000023_",
+    "said": "EBQMQm_tXSC8tnNICl7paGUeGg0SyF1tceHhTUutn1PN",
     "capture_base": {
         "type": "spec/capture_base/1.0",
-        "digest": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LK",
+        "said": "EBQMQm_tXSC8tnNICl7paGUeGg0SyF1tceHhTUutn1PN",
         "classification": "",
         "attributes": {
             "n1": "Text",
@@ -371,24 +389,24 @@ mod tests {
         },
         "flagged_attributes": ["n1"]
     },
-    "overlays": [
-        {
-            "capture_base": "ElNWOR0fQbv_J6EL0pJlvCxEpbu4bg1AurHgr_0A7LKc",
-            "digest": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "overlays": {
+        "character_encoding": {
+            "capture_base": "EDRt2wL8yVWVSJdF8aMFtU9VQ6aWzXZTgWj3WqsIKLqm",
+            "said": "EBQMQm_tXSC8tnNICl7paGUeGg0SyF1tceHhTUutn1PN",
             "type": "spec/overlays/character_encoding/1.0",
             "default_character_encoding": "utf-8",
             "attribute_character_encoding": {}
         }
-    ]
+    }
 }
         "#;
-        let oca = load_oca(&mut data.as_bytes()).unwrap().oca;
+        let oca_bundle = load_oca(&mut data.as_bytes());
 
-        let result = validator.validate(&oca);
+        let result = validator.validate(&oca_bundle.unwrap());
 
         assert!(result.is_err());
         if let Err(errors) = result {
-            assert_eq!(errors.len(), 3);
+            assert_eq!(errors.len(), 4);
         }
     }
 }

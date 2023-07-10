@@ -1,7 +1,7 @@
 use crate::ocafile::{error::Error, Pair, Rule};
 use indexmap::IndexMap;
 use log::debug;
-use ocaast::ast::{Command, CommandType, Content, NestedValue, ObjectKind, OverlayType};
+use oca_ast::ast::{Command, CommandType, Content, NestedValue, ObjectKind, OverlayType};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct RemoveInstruction {}
