@@ -2,8 +2,7 @@ use std::str::FromStr;
 
 use indexmap::IndexMap;
 use log::debug;
-use oca_bundle::state::attribute::AttributeType;
-use oca_ast::ast::{Content, NestedValue};
+use oca_ast::ast::{Content, NestedValue, AttributeType};
 use crate::ocafile::{Pair, Rule};
 
 /// Extract attributes key pairs for ADD and MODIFY command
