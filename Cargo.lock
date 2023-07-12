@@ -744,6 +744,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "thiserror",
+ "wasm-bindgen",
 ]
 
 [[package]]

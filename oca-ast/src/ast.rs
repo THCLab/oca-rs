@@ -1,6 +1,8 @@
 use indexmap::IndexMap;
-use serde::{Serialize, Serializer};
+use serde::{Serialize, Deserialize, Serializer};
 use strum_macros::Display;
+use std::str::FromStr;
+use wasm_bindgen::prelude::*;
 
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -33,7 +35,8 @@ pub enum ObjectKind {
     Overlay(OverlayType),
 }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[wasm_bindgen]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Copy)]
 pub enum AttributeType {
     Boolean,
     #[serde(rename = "Array[Boolean]")]
@@ -53,6 +56,28 @@ pub enum AttributeType {
     Reference,
     #[serde(rename = "Array[Reference]")]
     ArrayReference,
+}
+
+impl FromStr for AttributeType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Boolean" => Ok(AttributeType::Boolean),
+            "Array[Boolean]" => Ok(AttributeType::ArrayBoolean),
+            "Binary" => Ok(AttributeType::Binary),
+            "Array[Binary]" => Ok(AttributeType::ArrayBinary),
+            "Text" => Ok(AttributeType::Text),
+            "Array[Text]" => Ok(AttributeType::ArrayText),
+            "Numeric" => Ok(AttributeType::Numeric),
+            "Array[Numeric]" => Ok(AttributeType::ArrayNumeric),
+            "DateTime" => Ok(AttributeType::DateTime),
+            "Array[DateTime]" => Ok(AttributeType::ArrayDateTime),
+            "Reference" => Ok(AttributeType::Reference),
+            "Array[Reference]" => Ok(AttributeType::ArrayReference),
+            _ => Err(()),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize, Display, Clone)]
