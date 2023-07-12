@@ -772,30 +772,6 @@ dependencies = [
 [[package]]
 name = "oca-bundle"
 version = "0.3.0-rc.3"
-dependencies = [
- "cascade",
- "dyn-clonable",
- "erased-serde",
- "indexmap 1.9.3",
- "isolang",
- "lazy_static",
- "linked-hash-map",
- "maplit",
- "oca-ast 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "paste",
- "regex",
- "said",
- "serde",
- "serde-value",
- "serde_json",
- "serde_yaml",
- "urn",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "oca-bundle"
-version = "0.3.0-rc.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7648677ddfc459ef5393e031ec5272ed40151c07ce97dc1a1676cc6cdd285227"
 dependencies = [
@@ -819,6 +795,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "oca-bundle"
+version = "0.3.0-rc.4"
+dependencies = [
+ "cascade",
+ "dyn-clonable",
+ "erased-serde",
+ "indexmap 1.9.3",
+ "isolang",
+ "lazy_static",
+ "linked-hash-map",
+ "maplit",
+ "oca-ast 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "paste",
+ "regex",
+ "said",
+ "serde",
+ "serde-value",
+ "serde_json",
+ "serde_yaml",
+ "urn",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "oca-dag"
 version = "0.1.0"
 dependencies = [
@@ -826,7 +826,7 @@ dependencies = [
  "indexmap 1.9.3",
  "isolang",
  "oca-ast 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "oca-bundle 0.3.0-rc.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-bundle 0.3.0-rc.3",
  "said",
  "serde",
  "serde_json",
