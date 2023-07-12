@@ -4,8 +4,8 @@ use super::{
 };
 use isolang::Language;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, str::FromStr};
-use wasm_bindgen::prelude::*;
+use std::collections::HashMap;
+pub use oca_ast::ast::AttributeType;
 
 use crate::state::{encoding::Encoding, entry_codes::EntryCodes, entries::EntriesElement};
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -217,48 +217,3 @@ pub enum Entries {
     Object(Vec<Entry>),
 }
 */
-
-#[wasm_bindgen]
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum AttributeType {
-    Boolean,
-    #[serde(rename = "Array[Boolean]")]
-    ArrayBoolean,
-    Binary,
-    #[serde(rename = "Array[Binary]")]
-    ArrayBinary,
-    Text,
-    #[serde(rename = "Array[Text]")]
-    ArrayText,
-    Numeric,
-    #[serde(rename = "Array[Numeric]")]
-    ArrayNumeric,
-    DateTime,
-    #[serde(rename = "Array[DateTime]")]
-    ArrayDateTime,
-    Reference,
-    #[serde(rename = "Array[Reference]")]
-    ArrayReference,
-}
-
-impl FromStr for AttributeType {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "Boolean" => Ok(AttributeType::Boolean),
-            "Array[Boolean]" => Ok(AttributeType::ArrayBoolean),
-            "Binary" => Ok(AttributeType::Binary),
-            "Array[Binary]" => Ok(AttributeType::ArrayBinary),
-            "Text" => Ok(AttributeType::Text),
-            "Array[Text]" => Ok(AttributeType::ArrayText),
-            "Numeric" => Ok(AttributeType::Numeric),
-            "Array[Numeric]" => Ok(AttributeType::ArrayNumeric),
-            "DateTime" => Ok(AttributeType::DateTime),
-            "Array[DateTime]" => Ok(AttributeType::ArrayDateTime),
-            "Reference" => Ok(AttributeType::Reference),
-            "Array[Reference]" => Ok(AttributeType::ArrayReference),
-            _ => Err(()),
-        }
-    }
-}

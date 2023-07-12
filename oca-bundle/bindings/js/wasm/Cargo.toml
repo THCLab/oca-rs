@@ -12,6 +12,7 @@ crate-type = ["cdylib"]
 serde = "1.0.130"
 wasm-bindgen = { version = "0.2.85", features = ["serde-serialize"] }
 oca-bundle = { path = "../../../../oca-bundle", features = ["format_overlay"] }
+oca-ast = { path = "../../../../oca-ast" }
 serde-wasm-bindgen = "0.3.1"
 js-sys = "0.3.54"
 isolang = { version = "2.3.0", features = ["serde"] }
