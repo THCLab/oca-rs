@@ -33,9 +33,9 @@ impl TryFromPair for Command {
     }
 }
 
-pub fn parse_from_string(unparsed_file: String) -> OCAAst {
+pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, String> {
     let file = OCAfileParser::parse(Rule::file, &unparsed_file)
-        .expect("unsuccessful parse")
+        .map_err(|e| e.to_string())?
         .next()
         .unwrap();
 
@@ -60,13 +60,13 @@ pub fn parse_from_string(unparsed_file: String) -> OCAAst {
                     oca_ast.commands.push(command);
                 }
                 Err(e) => {
-                    panic!("Error validating instruction: {}", e);
+                    return Err(format!("Error validating instruction: {}", e));
                 }
             },
             Err(e) => {
-                panic!("Error parsing instruction: {}", e);
+                return Err(format!("Error parsing instruction: {}", e));
             }
         };
     }
-    oca_ast
+    Ok(oca_ast)
 }
