@@ -25,7 +25,6 @@ use crate::state::{
     attribute::{Attribute, AttributeType},
     oca::{capture_base::CaptureBase, overlay::Overlay},
 };
-use oca_ast::ast;
 /// Internal representation of OCA objects in split between non-attributes values and attributes.
 /// It is used to build dynamically objects without knowing yet whole structure of the object.
 /// Used mainly as a container to hold information while parsing OCAfile.
@@ -775,16 +774,6 @@ impl OCABundle {
     pub fn fill_said(&mut self) {
         self.compute_digest();
     }
-
-    pub fn from_ast(oca_ast: ast::OCAAst) -> Self {
-        let mut base: Option<OCABox> = None;
-        for command in oca_ast.commands {
-            base = Some(
-                crate::build::apply_command(base.clone(), command.clone())
-            );
-        }
-        base.unwrap().generate_bundle()
-    }
 }
 /*
 #[derive(Clone)]
@@ -817,7 +806,6 @@ mod tests {
 
     use super::*;
     use crate::state::oca::overlay::meta::Metas;
-    use indexmap::IndexMap;
 
     #[test]
     fn build_oca_bundle() {
@@ -837,120 +825,11 @@ mod tests {
         let oca_bundle_encoded = oca_bundle.encode().unwrap();
         let oca_bundle_json = String::from_utf8(oca_bundle_encoded).unwrap();
         println!("{}", oca_bundle_json);
-        let said = oca_bundle.said.clone();
+        let said = oca_bundle.said;
         let oca_bundle = oca.generate_bundle();
-        let said2 = oca_bundle.said.clone();
-        let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
+        let said2 = oca_bundle.said;
+        // let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
         assert_eq!(said, said2);
-    }
-
-    #[test]
-    fn build_from_ast() {
-        let mut commands = vec![];
-
-        let mut attributes = IndexMap::new();
-        attributes.insert("d".to_string(), ast::NestedValue::Value("Text".to_string()));
-        attributes.insert("i".to_string(), ast::NestedValue::Value("Text".to_string()));
-        attributes.insert("passed".to_string(), ast::NestedValue::Value("Boolean".to_string()));
-        commands.push(
-            ast::Command {
-                kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::CaptureBase,
-                content: Some(ast::Content {
-                    attributes: Some(attributes),
-                    properties: None,
-                }),
-            }
-        );
-
-        let mut properties = IndexMap::new();
-        properties.insert("lang".to_string(), ast::NestedValue::Value("en".to_string()));
-        properties.insert("name".to_string(), ast::NestedValue::Value("Entrance credential".to_string()));
-        properties.insert("description".to_string(), ast::NestedValue::Value("Entrance credential".to_string()));
-        commands.push(
-            ast::Command {
-                kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Meta),
-                content: Some(ast::Content {
-                    attributes: None,
-                    properties: Some(properties),
-                }),
-            }
-        );
-
-        let mut attributes = IndexMap::new();
-        attributes.insert("d".to_string(), ast::NestedValue::Value("Schema digest".to_string()));
-        attributes.insert("i".to_string(), ast::NestedValue::Value("Credential Issuee".to_string()));
-        attributes.insert("passed".to_string(), ast::NestedValue::Value("Passed".to_string()));
-        let mut properties = IndexMap::new();
-        properties.insert("lang".to_string(), ast::NestedValue::Value("en".to_string()));
-        commands.push(
-            ast::Command {
-                kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Label),
-                content: Some(ast::Content {
-                    attributes: Some(attributes),
-                    properties: Some(properties),
-                }),
-            }
-        );
-
-        let mut attributes = IndexMap::new();
-        attributes.insert("d".to_string(), ast::NestedValue::Value("Schema digest".to_string()));
-        attributes.insert("i".to_string(), ast::NestedValue::Value("Credential Issuee".to_string()));
-        attributes.insert("passed".to_string(), ast::NestedValue::Value("Enables or disables passing".to_string()));
-        let mut properties = IndexMap::new();
-        properties.insert("lang".to_string(), ast::NestedValue::Value("en".to_string()));
-        commands.push(
-            ast::Command {
-                kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Information),
-                content: Some(ast::Content {
-                    attributes: Some(attributes),
-                    properties: Some(properties),
-                }),
-            }
-        );
-
-        let mut attributes = IndexMap::new();
-        attributes.insert("d".to_string(), ast::NestedValue::Value("utf-8".to_string()));
-        attributes.insert("i".to_string(), ast::NestedValue::Value("utf-8".to_string()));
-        attributes.insert("passed".to_string(), ast::NestedValue::Value("utf-8".to_string()));
-        commands.push(
-            ast::Command {
-                kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::CharacterEncoding),
-                content: Some(ast::Content {
-                    attributes: Some(attributes),
-                    properties: None,
-                }),
-            }
-        );
-
-        let mut attributes = IndexMap::new();
-        attributes.insert("d".to_string(), ast::NestedValue::Value("M".to_string()));
-        attributes.insert("i".to_string(), ast::NestedValue::Value("M".to_string()));
-        attributes.insert("passed".to_string(), ast::NestedValue::Value("M".to_string()));
-        commands.push(
-            ast::Command {
-                kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Conformance),
-                content: Some(ast::Content {
-                    attributes: Some(attributes),
-                    properties: None,
-                }),
-            }
-        );
-
-        let oca_ast = ast::OCAAst {
-            version: "1.0".to_string(),
-            commands,
-        };
-
-        let oca_bundle = OCABundle::from_ast(oca_ast);
-        let oca_bundle_encoded = oca_bundle.encode().unwrap();
-        let oca_bundle_json = String::from_utf8(oca_bundle_encoded).unwrap();
-        println!("{}", oca_bundle_json);
     }
 }
 

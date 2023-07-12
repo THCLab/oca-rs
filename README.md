@@ -8,8 +8,8 @@ Collection of libraries and tools related with Overlays Capture Architecture (OC
 
 Used dependencies:
 ```toml
-oca-file = "0.1.1"
-oca-bundle = "0.3.0-rc.3"
+oca-file = "0.1.2"
+oca-bundle = "0.3.0-rc.4"
 ```
 
 ```rust
@@ -24,9 +24,10 @@ ADD LABEL en ATTRS d="Schema digest" i="Credential Issuee" passed="Passed"
 ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables or disables passing"
 "#;
 
-let ast = oca_file::ocafile::parse_from_string(ocafile.to_string());
+let ast = oca_file::ocafile::parse_from_string(ocafile.to_string())?;
 
-let bundle = oca_bundle::state::oca::OCABundle::from_ast(ast);
+let build = oca_bundle::build::from_ast(ast)?;
+build.oca_bundle
 ```
 
 ## Workspaces
