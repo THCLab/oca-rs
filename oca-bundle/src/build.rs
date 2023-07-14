@@ -45,15 +45,19 @@ pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCA
             Ok(oca_box) => {
                 let mut oca_box_mut = oca_box.clone();
                 let oca_bundle = oca_box_mut.generate_bundle();
-                steps.push(
-                    OCABuildStep {
-                        parent_said: parent_said.clone(),
-                        command: command.clone(),
-                        result: oca_bundle.clone(),
-                    }
-                );
-                parent_said = oca_bundle.said.clone();
-                base = Some(oca_box);
+                if oca_bundle.said == parent_said {
+                    errors.push(format!("Error at step {}: Applying command failed", line));
+                } else {
+                    steps.push(
+                        OCABuildStep {
+                            parent_said: parent_said.clone(),
+                            command: command.clone(),
+                            result: oca_bundle.clone(),
+                        }
+                    );
+                    parent_said = oca_bundle.said.clone();
+                    base = Some(oca_box);
+                }
             }
             Err(mut err) => {
                 errors.extend(err.iter_mut().map(|e|
