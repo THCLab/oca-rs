@@ -310,6 +310,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7144d30dcf0fafbce74250a3963025d8d52177934239851c917d29f1df280c2"
 
 [[package]]
+name = "convert_case"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec182b0ca2f35d8fc196cf3404988fd8b8c739a4d270ff118a398feb0cbec1ca"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "core-foundation-sys"
 version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -771,31 +780,6 @@ dependencies = [
 
 [[package]]
 name = "oca-bundle"
-version = "0.3.0-rc.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a62330f23b48501d1d393f6854e47a3d9579c008e753f599ef28d4b214f69c8f"
-dependencies = [
- "cascade",
- "dyn-clonable",
- "erased-serde",
- "indexmap 1.9.3",
- "isolang",
- "lazy_static",
- "linked-hash-map",
- "oca-ast 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "paste",
- "regex",
- "said",
- "serde",
- "serde-value",
- "serde_json",
- "serde_yaml",
- "urn",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "oca-bundle"
 version = "0.3.0-rc.6"
 dependencies = [
  "cascade",
@@ -819,6 +803,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "oca-bundle"
+version = "0.3.0-rc.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53ebf212bbeb6b2b9b17047c25c7832a7e1003d6ee801cdb141b307bd639a0f2"
+dependencies = [
+ "cascade",
+ "dyn-clonable",
+ "erased-serde",
+ "indexmap 1.9.3",
+ "isolang",
+ "lazy_static",
+ "linked-hash-map",
+ "oca-ast 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "paste",
+ "regex",
+ "said",
+ "serde",
+ "serde-value",
+ "serde_json",
+ "serde_yaml",
+ "urn",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "oca-dag"
 version = "0.1.0"
 dependencies = [
@@ -826,7 +835,7 @@ dependencies = [
  "indexmap 1.9.3",
  "isolang",
  "oca-ast 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "oca-bundle 0.3.0-rc.5",
+ "oca-bundle 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "said",
  "serde",
  "serde_json",
@@ -877,9 +886,10 @@ dependencies = [
 name = "oca-rs"
 version = "0.3.0-rc.6"
 dependencies = [
+ "convert_case",
  "dyn-clonable",
  "oca-ast 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "oca-bundle 0.3.0-rc.5",
+ "oca-bundle 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "oca-file 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
  "serde_json",
@@ -1414,6 +1424,12 @@ name = "unicode-ident"
 version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "22049a19f4a68748a168c0fc439f9516686aa045927ff767eca0a85101fb6e73"
+
+[[package]]
+name = "unicode-segmentation"
+version = "1.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1dd624098567895118886609431a7c3b8f516e41d30e0643f03d94592a147e36"
 
 [[package]]
 name = "unsafe-libyaml"
