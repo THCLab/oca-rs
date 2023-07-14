@@ -36,6 +36,10 @@ impl Facade {
 
         loop {
             let (parent_said, command) = extract_operation(&self.db, &said)?;
+            if parent_said == said {
+                dbg!("Malformed history for said: {}", said);
+                return Err(vec![format!("Malformed history")]);
+            }
             history.push(
                 OCABuildStep {
                     parent_said: parent_said.clone().parse().ok(),
