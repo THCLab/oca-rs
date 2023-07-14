@@ -740,6 +740,8 @@ dependencies = [
 [[package]]
 name = "oca-ast"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f001a9dd2fdaa678601deea0179cae17964f1197dc212ca138be2e7c3457a071"
 dependencies = [
  "env_logger",
  "indexmap 1.9.3",
@@ -754,9 +756,7 @@ dependencies = [
 
 [[package]]
 name = "oca-ast"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f001a9dd2fdaa678601deea0179cae17964f1197dc212ca138be2e7c3457a071"
+version = "0.3.0-rc.5"
 dependencies = [
  "env_logger",
  "indexmap 1.9.3",
@@ -782,7 +782,7 @@ dependencies = [
  "isolang",
  "lazy_static",
  "linked-hash-map",
- "oca-ast 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.1.1",
  "paste",
  "regex",
  "said",
@@ -806,7 +806,7 @@ dependencies = [
  "lazy_static",
  "linked-hash-map",
  "maplit",
- "oca-ast 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.1.1",
  "paste",
  "regex",
  "said",
@@ -825,7 +825,7 @@ dependencies = [
  "dyn-clonable",
  "indexmap 1.9.3",
  "isolang",
- "oca-ast 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.1.1",
  "oca-bundle 0.3.0-rc.3",
  "said",
  "serde",
@@ -841,7 +841,7 @@ dependencies = [
  "env_logger",
  "indexmap 1.9.3",
  "log",
- "oca-ast 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.1.1",
  "pest",
  "pest_derive",
  "pretty_assertions",
