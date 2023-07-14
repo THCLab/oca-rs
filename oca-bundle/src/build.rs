@@ -31,9 +31,16 @@ pub struct OCABuildStep {
 pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCABuild, Vec<String>> {
     let mut errors = vec![];
     let mut steps = vec![];
-    let mut base: Option<OCABox> = from_oca.map(OCABox::from);
-    let mut parent_said: Option<said::SelfAddressingIdentifier> = None;
-    for (line, command) in oca_ast.commands.iter().enumerate() {
+    let mut parent_said: Option<said::SelfAddressingIdentifier> = match &from_oca {
+        Some(oca_bundle) => oca_bundle.said.clone(),
+        None => None
+    };
+    let mut base: Option<OCABox> = from_oca.clone().map(OCABox::from);
+    for (i, command) in oca_ast.commands.iter().enumerate() {
+        let line = match &from_oca {
+            Some(_) => i + 2,
+            None => i + 1,
+        };
         match apply_command(base.clone(), command.clone()) {
             Ok(oca_box) => {
                 let mut oca_box_mut = oca_box.clone();
@@ -50,7 +57,7 @@ pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCA
             }
             Err(mut err) => {
                 errors.extend(err.iter_mut().map(|e|
-                    format!("Error at step {}: {}", line + 1, e)
+                    format!("Error at step {}: {}", line, e)
                 ));
             }
         }
