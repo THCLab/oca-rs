@@ -770,6 +770,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "oca-ast"
+version = "0.3.0-rc.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9888a3983fcee4da7f3262f398840fc399254e8c69ee829fff2e38cf68775936"
+dependencies = [
+ "env_logger",
+ "indexmap 1.9.3",
+ "log",
+ "serde",
+ "serde_json",
+ "strum",
+ "strum_macros",
+ "thiserror",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "oca-bundle"
 version = "0.3.0-rc.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -841,7 +858,7 @@ dependencies = [
  "env_logger",
  "indexmap 1.9.3",
  "log",
- "oca-ast 0.1.1",
+ "oca-ast 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "pest",
  "pest_derive",
  "pretty_assertions",

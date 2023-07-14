@@ -22,7 +22,7 @@ pest = "2.5.1"
 pest_derive = "2.5.1"
 pretty_assertions = "1.3.0"
 thiserror = "1.0.38"
-oca-ast = { version = "0.1.1" }
+oca-ast = "0.3.0-rc.5"
 said = { version = "0.3.0", features = ["macros"] }
 log = "0.4.0"
 env_logger = "0.10.0"
