@@ -28,10 +28,10 @@ pub struct OCABuildStep {
     pub result: OCABundle,
 }
 
-pub fn from_ast(oca_ast: ast::OCAAst) -> Result<OCABuild, Vec<String>> {
+pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCABuild, Vec<String>> {
     let mut errors = vec![];
     let mut steps = vec![];
-    let mut base: Option<OCABox> = None;
+    let mut base: Option<OCABox> = from_oca.map(OCABox::from);
     let mut parent_said: Option<said::SelfAddressingIdentifier> = None;
     for (line, command) in oca_ast.commands.iter().enumerate() {
         match apply_command(base.clone(), command.clone()) {
@@ -75,7 +75,9 @@ fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, Vec<S
     };
 
     match op.kind {
-        ast::CommandType::From => (),
+        ast::CommandType::From => {
+            errors.push("Unsupported FROM command".to_string());
+        },
         ast::CommandType::Add => {
             match op.object_kind {
                 ast::ObjectKind::CaptureBase => {
@@ -607,7 +609,7 @@ mod tests {
             commands,
         };
 
-        let build_result = from_ast(oca_ast);
+        let build_result = from_ast(None, oca_ast);
         match build_result {
             Ok(oca_build) => {
                 let oca_bundle_encoded = oca_build.oca_bundle.encode().unwrap();

@@ -8,3 +8,4 @@ pub mod build;
 pub mod state;
 
 pub use dyn_clonable::dyn_clone;
+pub use said::version::Encode;

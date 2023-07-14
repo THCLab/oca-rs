@@ -823,7 +823,7 @@ dependencies = [
  "lazy_static",
  "linked-hash-map",
  "maplit",
- "oca-ast 0.1.1",
+ "oca-ast 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "paste",
  "regex",
  "said",
