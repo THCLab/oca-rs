@@ -8,8 +8,7 @@ Collection of libraries and tools related with Overlays Capture Architecture (OC
 
 Used dependencies:
 ```toml
-oca-file = "0.3.0-rc.5"
-oca-bundle = "0.3.0-rc.5"
+oca-rs = "0.3.0-rc.5"
 ```
 
 ```rust
@@ -24,10 +23,13 @@ ADD LABEL en ATTRS d="Schema digest" i="Credential Issuee" passed="Passed"
 ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables or disables passing"
 "#;
 
-let ast = oca_file::ocafile::parse_from_string(ocafile.to_string())?;
+let db = oca_rs::data_storage::SledDataStorage::open("db_test");
+let oca_facade = oca_rs::Facade::new(Box::new(db));
 
-let build = oca_bundle::build::from_ast(None, ast)?;
-build.oca_bundle
+let oca_bundle = oca_facade.build_from_ocafile(ocafile)?;
+
+oca_facade.get_oca_bundle("OCA Bundle SAID".to_string())?;
+oca_facade.get_oca_bundle_steps("OCA Bundle SAID".to_string())?;
 ```
 
 ## Workspaces

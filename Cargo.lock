@@ -853,6 +853,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "oca-file"
+version = "0.3.0-rc.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bab3349e1a9e7cb40a755b213e52275be21fd1588794c54791f6a9b071153939"
+dependencies = [
+ "clap 4.3.11",
+ "env_logger",
+ "indexmap 1.9.3",
+ "log",
+ "oca-ast 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pest",
+ "pest_derive",
+ "pretty_assertions",
+ "said",
+ "serde",
+ "serde_json",
+ "sled",
+ "thiserror",
+]
+
+[[package]]
+name = "oca-rs"
+version = "0.3.0-rc.5"
+dependencies = [
+ "dyn-clonable",
+ "oca-ast 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-bundle 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-file 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde",
+ "serde_json",
+ "sled",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

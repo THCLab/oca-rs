@@ -7,4 +7,5 @@ members = [
   "oca-file",
   "oca-ast",
   "oca-dag",
+  "oca",
 ]
