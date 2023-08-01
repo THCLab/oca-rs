@@ -1,6 +1,6 @@
 [package]
 name = "oca-ast"
-version = "0.3.0-rc.5"
+version = "0.3.0-rc.6"
 edition = "2021"
 authors = ["Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>", "Robert Mitwicki <robert.mitwicki@opensoftware.pl>", "Michał Pietrus <michal.pietrus@opensoftware.pl>"]
 license = "EUPL-1.2"
