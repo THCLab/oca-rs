@@ -803,8 +803,54 @@ dependencies = [
 ]
 
 [[package]]
+name = "oca-bundle"
+version = "0.3.0-rc.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53ebf212bbeb6b2b9b17047c25c7832a7e1003d6ee801cdb141b307bd639a0f2"
+dependencies = [
+ "cascade",
+ "dyn-clonable",
+ "erased-serde",
+ "indexmap 1.9.3",
+ "isolang",
+ "lazy_static",
+ "linked-hash-map",
+ "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "paste",
+ "regex",
+ "said",
+ "serde",
+ "serde-value",
+ "serde_json",
+ "serde_yaml",
+ "urn",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "oca-file"
 version = "0.3.0-rc.5"
+dependencies = [
+ "clap 4.3.11",
+ "env_logger",
+ "indexmap 1.9.3",
+ "log",
+ "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pest",
+ "pest_derive",
+ "pretty_assertions",
+ "said",
+ "serde",
+ "serde_json",
+ "sled",
+ "thiserror",
+]
+
+[[package]]
+name = "oca-file"
+version = "0.3.0-rc.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bab3349e1a9e7cb40a755b213e52275be21fd1588794c54791f6a9b071153939"
 dependencies = [
  "clap 4.3.11",
  "env_logger",
@@ -827,9 +873,9 @@ version = "0.3.0-rc.7"
 dependencies = [
  "convert_case",
  "dyn-clonable",
- "oca-ast 0.3.0-rc.6",
- "oca-bundle",
- "oca-file",
+ "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-bundle 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-file 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
  "serde_json",
  "sled",

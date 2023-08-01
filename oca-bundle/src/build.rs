@@ -36,17 +36,19 @@ pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCA
         None => None
     };
     let mut base: Option<OCABox> = from_oca.clone().map(OCABox::from);
+    let default_command_meta = ast::CommandMeta { line_number: 0, raw_line: "unknown".to_string() };
     for (i, command) in oca_ast.commands.iter().enumerate() {
-        let line = match &from_oca {
-            Some(_) => i + 2,
-            None => i + 1,
+        let command_index = match &from_oca {
+            Some(_) => i + 1,
+            None => i,
         };
+        let command_meta = oca_ast.commands_meta.get(&command_index).unwrap_or(&default_command_meta);
         match apply_command(base.clone(), command.clone()) {
             Ok(oca_box) => {
                 let mut oca_box_mut = oca_box.clone();
                 let oca_bundle = oca_box_mut.generate_bundle();
                 if oca_bundle.said == parent_said {
-                    errors.push(format!("Error at step {}: Applying command failed", line));
+                    errors.push(format!("Error at line {} ({}): Applying command failed", command_meta.line_number, command_meta.raw_line));
                 } else {
                     steps.push(
                         OCABuildStep {
@@ -61,7 +63,7 @@ pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCA
             }
             Err(mut err) => {
                 errors.extend(err.iter_mut().map(|e|
-                    format!("Error at step {}: {}", line, e)
+                    format!("Error at line {} ({}): {}", command_meta.line_number, command_meta.raw_line, e)
                 ));
             }
         }
@@ -618,6 +620,7 @@ mod tests {
         let oca_ast = ast::OCAAst {
             version: "1.0".to_string(),
             commands,
+            commands_meta: IndexMap::new(),
         };
 
         let build_result = from_ast(None, oca_ast);
