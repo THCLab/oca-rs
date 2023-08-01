@@ -748,9 +748,7 @@ dependencies = [
 
 [[package]]
 name = "oca-ast"
-version = "0.3.0-rc.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9888a3983fcee4da7f3262f398840fc399254e8c69ee829fff2e38cf68775936"
+version = "0.3.0-rc.6"
 dependencies = [
  "env_logger",
  "indexmap 1.9.3",
@@ -766,6 +764,8 @@ dependencies = [
 [[package]]
 name = "oca-ast"
 version = "0.3.0-rc.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12a114e03cd91a2a0994ee8f6b3c7166f6ca1d437b38028c1f8389107a6b1075"
 dependencies = [
  "env_logger",
  "indexmap 1.9.3",
@@ -790,7 +790,7 @@ dependencies = [
  "lazy_static",
  "linked-hash-map",
  "maplit",
- "oca-ast 0.3.0-rc.5",
+ "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "paste",
  "regex",
  "said",
@@ -803,46 +803,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oca-bundle"
-version = "0.3.0-rc.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53ebf212bbeb6b2b9b17047c25c7832a7e1003d6ee801cdb141b307bd639a0f2"
-dependencies = [
- "cascade",
- "dyn-clonable",
- "erased-serde",
- "indexmap 1.9.3",
- "isolang",
- "lazy_static",
- "linked-hash-map",
- "oca-ast 0.3.0-rc.5",
- "paste",
- "regex",
- "said",
- "serde",
- "serde-value",
- "serde_json",
- "serde_yaml",
- "urn",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "oca-dag"
-version = "0.1.0"
-dependencies = [
- "dyn-clonable",
- "indexmap 1.9.3",
- "isolang",
- "oca-ast 0.3.0-rc.5",
- "oca-bundle 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "said",
- "serde",
- "serde_json",
- "sled",
-]
-
-[[package]]
 name = "oca-file"
 version = "0.3.0-rc.5"
 dependencies = [
@@ -850,28 +810,7 @@ dependencies = [
  "env_logger",
  "indexmap 1.9.3",
  "log",
- "oca-ast 0.3.0-rc.5",
- "pest",
- "pest_derive",
- "pretty_assertions",
- "said",
- "serde",
- "serde_json",
- "sled",
- "thiserror",
-]
-
-[[package]]
-name = "oca-file"
-version = "0.3.0-rc.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bab3349e1a9e7cb40a755b213e52275be21fd1588794c54791f6a9b071153939"
-dependencies = [
- "clap 4.3.11",
- "env_logger",
- "indexmap 1.9.3",
- "log",
- "oca-ast 0.3.0-rc.5",
+ "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "pest",
  "pest_derive",
  "pretty_assertions",
@@ -888,9 +827,9 @@ version = "0.3.0-rc.7"
 dependencies = [
  "convert_case",
  "dyn-clonable",
- "oca-ast 0.3.0-rc.5",
- "oca-bundle 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "oca-file 0.3.0-rc.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.3.0-rc.6",
+ "oca-bundle",
+ "oca-file",
  "serde",
  "serde_json",
  "sled",

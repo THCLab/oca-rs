@@ -6,6 +6,6 @@ members = [
   # "oca-bundle/bindings/dart",
   "oca-file",
   "oca-ast",
-  "oca-dag",
+  # "oca-dag",
   "oca",
 ]

@@ -6,7 +6,7 @@ ws = _{ " " | "\t" }
 
 comment = @{ "#" ~ (!NEWLINE ~ ANY)* }
 comment_line = _{ ws* ~ comment ~ NEWLINE? }
-empty_line = _{ ws* ~ NEWLINE }
+empty_line = @{ ws* ~ NEWLINE }
 
 double_quoted_string  = _{ "\"" ~ inner ~ "\"" }
 inner   = @{ (!("\"" | "\\" | "\u{0000}" | "\u{001F}") ~ ANY)* ~ (escape ~ inner)? }
