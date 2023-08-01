@@ -20,8 +20,10 @@ impl Facade {
                                     base = Some(oca_bundle);
                                 },
                                 Err(e) => {
+                                    let default_command_meta = oca_ast::ast::CommandMeta { line_number: 0, raw_line: "unknown".to_string() };
+                                    let command_meta = oca_ast.commands_meta.get(&0).unwrap_or(&default_command_meta);
                                     e.iter().for_each(|e| errors.push(
-                                        format!("Error at FROM step: {}", e)
+                                        format!("Error at line {} ({}): {}", command_meta.line_number, command_meta.raw_line, e)
                                     ));
                                 }
                             }
