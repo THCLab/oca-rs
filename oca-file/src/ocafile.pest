@@ -79,7 +79,7 @@ add = { ^"add" ~ arg_ws* ~ oca_object }
 modify = { ^"modify" ~ char+ }
 remove = { ^"remove" ~ arg_ws* ~ remove_oca_object }
 
-char = { ASCII_ALPHANUMERIC | "." | "-" | "_" | "/" }
+char = { ASCII_ALPHANUMERIC | "." | "-" | "_" | "/" | ":" }
 
 from_said = { ws* ~ char+ }
 
