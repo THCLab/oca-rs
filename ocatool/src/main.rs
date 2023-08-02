@@ -2,7 +2,11 @@ use std::fs;
 
 use clap::Parser as ClapParser;
 use clap::Subcommand;
-use oca_file::ocafile::parse_from_string;
+use oca_rs::Facade;
+
+use oca_rs::data_storage::SledDataStorage;
+use oca_rs::data_storage::DataStorage;
+
 
 #[macro_use]
 extern crate log;
@@ -31,8 +35,6 @@ enum Commands {
 
 }
 
-/// TODO extract OCAFILE lib to seperate crate
-
 fn main() {
     env_logger::init();
 
@@ -48,16 +50,15 @@ fn main() {
                 None => fs::read_to_string("OCAfile").expect("Can't read file"),
             };
 
-            let oca = parse_from_string(unparsed_file);
-            //println!("{:#?}", oca);
-            let serialzied_ast = serde_json::to_string_pretty(&oca).unwrap();
-            //let oca_bundle = oca.generate_bundle();
-            //let serialized_oca = serde_json::to_string_pretty(&oca_bundle).unwrap();
-
-            //let said = oca_bundle.said.to_string();
-            //save to file
-            fs::write("output".to_string() + ".ocabundle", serialzied_ast).expect("Unable to write file");
-
+            let db = SledDataStorage::open("db_test");
+            let facade = Facade::new(Box::new(db));
+            let result = facade.build_from_ocafile(unparsed_file);
+        
+            println!("{:?}", result);
+            if let Ok(oca_bundle) = result {
+                let serialized_bundle = serde_json::to_string_pretty(&oca_bundle).unwrap();
+                fs::write("output".to_string() + ".ocabundle", serialized_bundle).expect("Unable to write file");
+            }
         }
         Some(Commands::Publish { repository: _ }) => {
             info!("Publish OCA bundle to repository")
@@ -67,8 +68,6 @@ fn main() {
         }
         None => {}
     }
-
-    println!("DONE");
 }
 
 // ocafile build -i OCAfile
