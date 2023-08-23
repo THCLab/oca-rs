@@ -4,7 +4,7 @@ use std::collections::HashMap;
 #[clonable]
 pub trait DataStorage: Clone {
     fn get(&self, key: &str) -> Result<Option<Vec<u8>>, String>;
-    fn insert(&self, key: &str, value: &[u8]) -> Result<(), String>;
+    fn insert(&mut self, key: &str, value: &[u8]) -> Result<(), String>;
     fn new() -> Self
     where
         Self: Sized;
@@ -86,7 +86,7 @@ impl DataStorage for SledDataStorage {
         }
     }
 
-    fn insert(&self, key: &str, value: &[u8]) -> Result<(), String> {
+    fn insert(&mut self, key: &str, value: &[u8]) -> Result<(), String> {
         if let Some(ref db) = self.db {
             match db.insert(key.as_bytes(), value) {
                 Ok(_) => Ok(()),
@@ -95,5 +95,33 @@ impl DataStorage for SledDataStorage {
         } else {
             Err("Data Storage must be opened first".to_string())
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct InMemoryDataStorage {
+    db: HashMap<String, Vec<u8>>,
+}
+
+impl DataStorage for InMemoryDataStorage {
+    fn new() -> Self {
+        Self { db: HashMap::new() }
+    }
+
+    fn config(&self, _config: HashMap<String, String>) -> Self {
+        self.clone()
+    }
+
+    fn get(&self, key: &str) -> Result<Option<Vec<u8>>, String> {
+        match self.db.get(key) {
+            Some(value) => Ok(Some(value.to_vec())),
+            None => Ok(None),
+        }
+    }
+
+    fn insert(&mut self, key: &str, value: &[u8]) -> Result<(), String> {
+        self.db.insert(key.to_string(), value.to_vec());
+
+        Ok(())
     }
 }

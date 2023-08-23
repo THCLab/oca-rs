@@ -3,7 +3,7 @@ use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
 
 impl Facade {
-    pub fn build_from_ocafile(&self, ocafile: String) -> Result<OCABundle, Vec<String>> {
+    pub fn build_from_ocafile(&mut self, ocafile: String) -> Result<OCABundle, Vec<String>> {
         let mut errors = vec![];
         let mut oca_ast = oca_file::ocafile::parse_from_string(ocafile)
             .map_err(|e| vec![format!("Failed to parse ocafile: {}", e)])

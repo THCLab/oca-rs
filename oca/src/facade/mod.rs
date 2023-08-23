@@ -16,15 +16,11 @@ impl Facade {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::data_storage::{SledDataStorage, SledDataStorageConfig};
+    use crate::data_storage::InMemoryDataStorage;
 
     #[test]
     fn facade_build_from_ocafile_from_base() -> Result<(), Vec<String>> {
-        let db = SledDataStorage::new().config(
-            SledDataStorageConfig::build()
-                .path("db_test".to_string())
-                .unwrap(),
-        );
+        let db = InMemoryDataStorage::new();
         let ocafile = r#"
 ADD ATTRIBUTE d=Text i=Text passed=Boolean
 ADD META en PROPS name="Entrance credential" description="Entrance credential"
@@ -33,7 +29,7 @@ ADD CONFORMANCE ATTRS d=M i=M passed=M
 ADD LABEL en ATTRS d="Schema digest" i="Credential Issuee" passed="Passed"
 ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables or disables passing"
 "#.to_string();
-        let facade = Facade::new(Box::new(db));
+        let mut facade = Facade::new(Box::new(db));
 
         let result = facade.build_from_ocafile(ocafile)?;
 
