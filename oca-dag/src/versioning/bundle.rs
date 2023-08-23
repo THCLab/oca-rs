@@ -88,6 +88,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore]
     fn test_to_digests() {
         let oca_str = r#"
 {

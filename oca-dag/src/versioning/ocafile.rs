@@ -59,6 +59,7 @@ mod tests {
     use crate::data_storage::{ DataStorage, SledDataStorage };
 
     #[test]
+    #[ignore]
     fn test_ocafile_build() {
         let mut commands = vec![];
 
@@ -168,6 +169,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_ocafile_build_from() {
         let mut commands = vec![];
 

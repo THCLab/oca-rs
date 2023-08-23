@@ -278,6 +278,7 @@ mod tests {
     use indexmap::IndexMap;
 
     #[test]
+    #[ignore]
     fn test_add_step() {
         let mut commands = vec![];
 

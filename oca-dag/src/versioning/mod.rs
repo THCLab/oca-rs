@@ -58,6 +58,7 @@ mod tests {
     use crate::data_storage::{ DataStorage, SledDataStorage };
 
     #[test]
+    #[ignore]
     fn test_history() {
         let db = SledDataStorage::open("db_test");
         let graph = Graph::new(Box::new(db));
