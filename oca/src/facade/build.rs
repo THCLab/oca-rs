@@ -2,6 +2,8 @@ use super::Facade;
 use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
 
+use oca_dag::build_core_db_model;
+
 impl Facade {
     pub fn build_from_ocafile(&mut self, ocafile: String) -> Result<OCABundle, Vec<String>> {
         let mut errors = vec![];
@@ -64,6 +66,148 @@ impl Facade {
                 &format!("oca.{}", result_bundle.said.clone().unwrap()),
                 &result_bundle.encode().unwrap(),
             ).unwrap();
+        });
+
+        let result_models = build_core_db_model(&oca_build);
+        result_models.iter().for_each(|model| {
+            if let Some(command_model) = &model.command {
+                self.db
+                    .insert(
+                        &format!("core_model.{}", command_model.digest),
+                        &command_model.json.clone().into_bytes(),
+                    )
+                    .unwrap();
+            }
+
+            if let Some(capture_base_model) = &model.capture_base {
+                let mut input: Vec<u8> = vec![];
+                match &capture_base_model.parent {
+                    Some(said) => {
+                        input.push(
+                            said.to_string()
+                                .as_bytes()
+                                .len()
+                                .try_into()
+                                .unwrap(),
+                        );
+                        input.extend(said.to_string().as_bytes());
+                    }
+                    None => {
+                        input.push(0);
+                    }
+                }
+
+                input.push(
+                    capture_base_model
+                        .command_digest
+                        .to_string()
+                        .as_bytes()
+                        .len()
+                        .try_into()
+                        .unwrap(),
+                );
+                input.extend(
+                    capture_base_model.command_digest.to_string().as_bytes(),
+                );
+
+                self.db
+                    .insert(
+                        &format!(
+                            "core_model.{}",
+                            capture_base_model.capture_base_said
+                        ),
+                        &input,
+                    )
+                    .unwrap();
+            }
+
+            if let Some(overlay_model) = &model.overlay {
+                let mut input: Vec<u8> = vec![];
+                match &overlay_model.parent {
+                    Some(said) => {
+                        input.push(
+                            said.to_string()
+                                .as_bytes()
+                                .len()
+                                .try_into()
+                                .unwrap(),
+                        );
+                        input.extend(said.to_string().as_bytes());
+                    }
+                    None => {
+                        input.push(0);
+                    }
+                }
+
+                input.push(
+                    overlay_model
+                        .command_digest
+                        .to_string()
+                        .as_bytes()
+                        .len()
+                        .try_into()
+                        .unwrap(),
+                );
+                input.extend(
+                    overlay_model.command_digest.to_string().as_bytes(),
+                );
+
+                self.db
+                    .insert(
+                        &format!("core_model.{}", overlay_model.overlay_said),
+                        &input,
+                    )
+                    .unwrap();
+            }
+
+            if let Some(oca_bundle_model) = &model.oca_bundle {
+                let mut input: Vec<u8> = vec![];
+                match &oca_bundle_model.parent {
+                    Some(said) => {
+                        input.push(
+                            said.to_string()
+                                .as_bytes()
+                                .len()
+                                .try_into()
+                                .unwrap(),
+                        );
+                        input.extend(said.to_string().as_bytes());
+                    }
+                    None => {
+                        input.push(0);
+                    }
+                }
+
+                input.push(
+                    oca_bundle_model
+                        .capture_base_said
+                        .to_string()
+                        .as_bytes()
+                        .len()
+                        .try_into()
+                        .unwrap(),
+                );
+                input.extend(
+                    oca_bundle_model.capture_base_said.to_string().as_bytes(),
+                );
+
+                for said in &oca_bundle_model.overlays_said {
+                    input.push(
+                        said.to_string().as_bytes().len().try_into().unwrap(),
+                    );
+                    input.extend(said.to_string().as_bytes());
+                }
+
+                self.db
+                    .insert(
+                        &format!(
+                            "core_model.{}",
+                            oca_bundle_model.oca_bundle_said
+                        ),
+                        &input,
+                    )
+                    .unwrap();
+            }
         });
 
         Ok(oca_build.oca_bundle)
