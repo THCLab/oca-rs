@@ -4,7 +4,7 @@ mod build;
 mod fetch;
 
 pub struct Facade {
-    db: Box<dyn DataStorage>
+    db: Box<dyn DataStorage>,
 }
 
 impl Facade {
@@ -16,11 +16,15 @@ impl Facade {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::data_storage::SledDataStorage;
+    use crate::data_storage::{SledDataStorage, SledDataStorageConfig};
 
     #[test]
-    fn facade_build_from_ocafile_from_base() {
-        let db = SledDataStorage::open("db_test");
+    fn facade_build_from_ocafile_from_base() -> Result<(), Vec<String>> {
+        let db = SledDataStorage::new().config(
+            SledDataStorageConfig::build()
+                .path("db_test".to_string())
+                .unwrap(),
+        );
         let ocafile = r#"
 ADD ATTRIBUTE d=Text i=Text passed=Boolean
 ADD META en PROPS name="Entrance credential" description="Entrance credential"
@@ -30,10 +34,13 @@ ADD LABEL en ATTRS d="Schema digest" i="Credential Issuee" passed="Passed"
 ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables or disables passing"
 "#.to_string();
         let facade = Facade::new(Box::new(db));
-        let result = facade.build_from_ocafile(ocafile);
-        assert!(result.is_ok());
-        if let Ok(oca_bundle) = result {
-            assert_eq!(oca_bundle.said.unwrap().to_string(), "EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs");
-        }
+
+        let result = facade.build_from_ocafile(ocafile)?;
+
+        assert_eq!(
+            result.said.unwrap().to_string(),
+            "EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs"
+        );
+        Ok(())
     }
 }
