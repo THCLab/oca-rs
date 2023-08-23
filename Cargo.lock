@@ -831,6 +831,7 @@ dependencies = [
 name = "oca-dag"
 version = "0.1.0"
 dependencies = [
+ "convert_case",
  "dyn-clonable",
  "indexmap 1.9.3",
  "isolang",
