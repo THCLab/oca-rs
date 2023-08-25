@@ -56,7 +56,7 @@ pub struct MetaOverlay {
     #[said]
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
-    language: Language,
+    pub language: Language,
     #[serde(rename = "type")]
     overlay_type: String,
     capture_base: Option<said::SelfAddressingIdentifier>,
