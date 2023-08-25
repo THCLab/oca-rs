@@ -1,11 +1,22 @@
 use super::Facade;
-use crate::data_storage::DataStorage;
+use crate::{data_storage::DataStorage, repositories::OCABundleReadModelRepo};
 use oca_bundle::state::oca::OCABundle;
 use oca_bundle::build::OCABuildStep;
+
+use std::rc::Rc;
 
 use convert_case::{Case, Casing};
 
 impl Facade {
+    pub fn search_oca_bundle(
+        &self,
+        query: String,
+    ) -> Vec<crate::repositories::SearchResult> {
+        let oca_bundle_read_model_repo =
+            OCABundleReadModelRepo::new(Rc::clone(&self.connection));
+        oca_bundle_read_model_repo.search(query)
+    }
+
     pub fn get_oca_bundle(&self, said: String) -> Result<OCABundle, Vec<String>> {
         let r = self.db.get(&format!("oca.{}", said)).map_err(|e| vec![format!("{}", e)])?;
         let oca_bundle_str = String::from_utf8(

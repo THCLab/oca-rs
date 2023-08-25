@@ -1,8 +1,10 @@
 use super::Facade;
 use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
-
 use oca_dag::build_core_db_model;
+use crate::repositories::{OCABundleReadModelRepo, OCABundleReadModel};
+
+use std::rc::Rc;
 
 impl Facade {
     pub fn build_from_ocafile(&mut self, ocafile: String) -> Result<OCABundle, Vec<String>> {
@@ -41,6 +43,38 @@ impl Facade {
         }
 
         let oca_build = oca_bundle::build::from_ast(base, oca_ast)?;
+
+        let meta_overlays = oca_build
+            .oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| {
+                x.as_any()
+                    .downcast_ref::<oca_bundle::state::oca::overlay::Meta>()
+            })
+            .collect::<Vec<_>>();
+        if !meta_overlays.is_empty() {
+            let oca_bundle_read_model_repo =
+                OCABundleReadModelRepo::new(Rc::clone(&self.connection));
+            for meta_overlay in meta_overlays {
+                let oca_bundle_read_model = OCABundleReadModel::new(
+                    oca_build.oca_bundle.said.clone().unwrap().to_string(),
+                    meta_overlay
+                        .attr_pairs
+                        .get(&"name".to_string())
+                        .unwrap_or(&"".to_string())
+                        .clone(),
+                    meta_overlay
+                        .attr_pairs
+                        .get(&"description".to_string())
+                        .unwrap_or(&"".to_string())
+                        .clone(),
+                    meta_overlay.language,
+                );
+
+                oca_bundle_read_model_repo.insert(oca_bundle_read_model);
+            }
+        }
 
         oca_build.steps.iter().for_each(|step| {
             let mut input: Vec<u8> = vec![];
