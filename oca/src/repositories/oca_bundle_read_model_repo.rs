@@ -50,8 +50,14 @@ impl OCABundleReadModelRepo {
     pub fn insert(&self, model: OCABundleReadModel) {
         let query = r#"
         INSERT INTO oca_bundle_read_model
-        (name, description, language_code, oca_bundle_said)
-        VALUES (?1, ?2, ?3, ?4)"#;
+        (rowid, name, description, language_code, oca_bundle_said)
+        VALUES (
+            (
+                SELECT rowid FROM oca_bundle_read_model
+                WHERE oca_bundle_said = ?4 AND language_code = ?3
+                LIMIT 1
+            ), ?1, ?2, ?3, ?4
+        )"#;
         let _ = self.connection.execute(
             query,
             [
