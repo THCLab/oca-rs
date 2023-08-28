@@ -23,13 +23,19 @@ ADD LABEL en ATTRS d="Schema digest" i="Credential Issuee" passed="Passed"
 ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables or disables passing"
 "#;
 
-let db = oca_rs::data_storage::SledDataStorage::open("db_test");
-let oca_facade = oca_rs::Facade::new(Box::new(db));
+let db = oca_rs::data_storage::InMemoryDataStorage::new():
+let search_storage_config = oca_rs::repositories::SQLiteConfig::build()
+    .path(":memory:".to_string())
+    .unwrap();
+let mut oca_facade = oca_rs::Facade::new(Box::new(db), search_storage_config);
 
 let oca_bundle = oca_facade.build_from_ocafile(ocafile)?;
 
-oca_facade.get_oca_bundle("OCA Bundle SAID".to_string())?;
-oca_facade.get_oca_bundle_steps("OCA Bundle SAID".to_string())?;
+oca_facade.search_oca_bundle("Ent".to_string());
+
+oca_facade.get_oca_bundle(oca_bundle.said.unwrap().to_string())?;
+oca_facade.get_oca_bundle_steps(oca_bundle.said.unwrap().to_string())?;
+oca_facade.get_oca_bundle_ocafile(oca_bundle.said.unwrap().to_string())?;
 ```
 
 ## Workspaces
