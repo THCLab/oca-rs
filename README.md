@@ -8,7 +8,7 @@ Collection of libraries and tools related with Overlays Capture Architecture (OC
 
 Used dependencies:
 ```toml
-oca-rs = "0.3.0-rc.5"
+oca-rs = "0.3.0-rc.11"
 ```
 
 ```rust
@@ -30,12 +30,13 @@ let search_storage_config = oca_rs::repositories::SQLiteConfig::build()
 let mut oca_facade = oca_rs::Facade::new(Box::new(db), search_storage_config);
 
 let oca_bundle = oca_facade.build_from_ocafile(ocafile)?;
+let oca_bundle_said = oca_bundle.said.clone().unwrap().to_string();
 
-oca_facade.search_oca_bundle("Ent".to_string());
+oca_facade.search_oca_bundle("Ent".to_string(), 10);
 
-oca_facade.get_oca_bundle(oca_bundle.said.unwrap().to_string())?;
-oca_facade.get_oca_bundle_steps(oca_bundle.said.unwrap().to_string())?;
-oca_facade.get_oca_bundle_ocafile(oca_bundle.said.unwrap().to_string())?;
+oca_facade.get_oca_bundle(oca_bundle_said.clone())?;
+oca_facade.get_oca_bundle_steps(oca_bundle_said.clone())?;
+oca_facade.get_oca_bundle_ocafile(oca_bundle_said)?;
 ```
 
 ## Workspaces

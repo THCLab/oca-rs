@@ -87,7 +87,7 @@ impl OCABundleReadModelRepo {
         results
     }
 
-    pub fn search(&self, query: String) -> Vec<SearchResult> {
+    pub fn search(&self, query: String, limit: usize) -> Vec<SearchResult> {
         let sql_query = r#"
         SELECT *,
             highlight(oca_bundle_read_model, 0, '<mark>', '</mark>'),
@@ -95,9 +95,11 @@ impl OCABundleReadModelRepo {
             rank
         FROM oca_bundle_read_model
         WHERE oca_bundle_read_model MATCH ?1
-        ORDER BY rank"#;
+        ORDER BY rank
+        LIMIT ?2"#;
         let mut statement = self.connection.prepare(sql_query).unwrap();
-        let mut rows = statement.query([query.clone()]).unwrap();
+        let mut rows =
+            statement.query([query.clone(), limit.to_string()]).unwrap();
         let mut results = vec![];
         while let Ok(Some(row)) = rows.next() {
             results.push(SearchResult {
