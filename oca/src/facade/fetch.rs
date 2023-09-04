@@ -12,10 +12,11 @@ impl Facade {
         &self,
         query: String,
         limit: usize,
-    ) -> Vec<crate::repositories::SearchResult> {
+        page: usize,
+    ) -> crate::repositories::SearchResult {
         let oca_bundle_read_model_repo =
             OCABundleReadModelRepo::new(Rc::clone(&self.connection));
-        oca_bundle_read_model_repo.search(query, limit)
+        oca_bundle_read_model_repo.search(query, limit, page)
     }
 
     pub fn get_oca_bundle(&self, said: String) -> Result<OCABundle, Vec<String>> {

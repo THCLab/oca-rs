@@ -87,51 +87,139 @@ impl OCABundleReadModelRepo {
         results
     }
 
-    pub fn search(&self, query: String, limit: usize) -> Vec<SearchResult> {
+    pub fn search(
+        &self,
+        query: String,
+        limit: usize,
+        page: usize,
+    ) -> SearchResult {
+        let offset = (page - 1) * limit;
         let sql_query = r#"
-        SELECT *,
-            highlight(oca_bundle_read_model, 0, '<mark>', '</mark>'),
-            highlight(oca_bundle_read_model, 1, '<mark>', '</mark>'),
-            rank
-        FROM oca_bundle_read_model
-        WHERE oca_bundle_read_model MATCH ?1
+        SELECT results.*, count.total
+        FROM
+        (
+            SELECT COUNT(*) OVER() AS total
+            FROM (
+                SELECT *, rank
+                FROM oca_bundle_read_model
+                WHERE oca_bundle_read_model MATCH ?1
+            ) AS inner_query
+            GROUP BY oca_bundle_said
+        ) AS count
+        LEFT JOIN
+        (
+            SELECT *, COUNT(*) OVER()
+            FROM (
+                SELECT *,
+                    highlight(oca_bundle_read_model, 0, '<mark>', '</mark>'),
+                    highlight(oca_bundle_read_model, 1, '<mark>', '</mark>'),
+                    rank
+                FROM oca_bundle_read_model
+                WHERE oca_bundle_read_model MATCH ?1
+                ORDER BY rank
+            ) AS subquery
+            GROUP BY oca_bundle_said
+            ORDER BY rank
+            LIMIT ?2 OFFSET ?3
+        ) AS results
+        ON true
+        GROUP BY oca_bundle_said
         ORDER BY rank
-        LIMIT ?2"#;
+        "#;
+
+        struct Record {
+            pub name: Option<String>,
+            pub description: Option<String>,
+            pub language_code: Option<String>,
+            pub oca_bundle_said: Option<String>,
+            pub highlights_name: Option<String>,
+            pub highlights_description: Option<String>,
+            pub rank: Option<f32>,
+            pub total: i32,
+        }
+
         let mut statement = self.connection.prepare(sql_query).unwrap();
-        let mut rows =
-            statement.query([query.clone(), limit.to_string()]).unwrap();
-        let mut results = vec![];
-        while let Ok(Some(row)) = rows.next() {
-            results.push(SearchResult {
-                oca_bundle_said: row.get(3).unwrap(),
-                name: row.get(0).unwrap(),
-                description: row.get(1).unwrap(),
-                language_code: row.get(2).unwrap(),
-                highlights: SearchResultHighlights {
-                    name: row.get(4).unwrap(),
-                    description: row.get(5).unwrap(),
+
+        let rows = statement
+            .query_map(
+                [query.clone(), limit.to_string(), offset.to_string()],
+                |row| {
+                    Ok(Record {
+                        name: row.get(0).unwrap(),
+                        description: row.get(1).unwrap(),
+                        language_code: row.get(2).unwrap(),
+                        oca_bundle_said: row.get(3).unwrap(),
+                        highlights_name: row.get(4).unwrap(),
+                        highlights_description: row.get(5).unwrap(),
+                        rank: row.get(6).unwrap(),
+                        total: row.get(8).unwrap(),
+                    })
                 },
-                score: row.get(6).unwrap(),
+            )
+            .unwrap();
+
+        let mut records = vec![];
+        let mut total: usize = 0;
+
+        for row in rows {
+            let record = row.unwrap();
+            if total == 0 {
+                total = record.total as usize;
+            }
+            if record.oca_bundle_said.is_none() {
+                continue;
+            }
+            records.push(SearchRecord {
+                oca_bundle_said: record.oca_bundle_said.unwrap(),
+                name: record.name.unwrap(),
+                description: record.description.unwrap(),
+                language_code: record.language_code.unwrap(),
+                highlights: SearchRecordHighlights {
+                    name: record.highlights_name.unwrap(),
+                    description: record.highlights_description.unwrap(),
+                },
+                score: record.rank.unwrap().abs(),
             });
         }
-        results
+
+        SearchResult {
+            records,
+            metadata: SearchMetadata {
+                total,
+                page,
+            },
+        }
     }
 }
 
 #[derive(Debug, Serialize)]
-pub struct SearchResultHighlights {
+pub struct SearchRecordHighlights {
     pub name: String,
     pub description: String,
 }
 
 #[derive(Debug, Serialize)]
 pub struct SearchResult {
+    #[serde(rename = "r")]
+    pub records: Vec<SearchRecord>,
+    #[serde(rename = "m")]
+    pub metadata: SearchMetadata,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchRecord {
     pub oca_bundle_said: String,
     pub name: String,
     pub description: String,
     pub language_code: String,
-    pub highlights: SearchResultHighlights,
-    pub score: f64,
+    pub highlights: SearchRecordHighlights,
+    pub score: f32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchMetadata {
+    pub total: usize,
+    pub page: usize,
 }
 
 #[derive(Clone)]
