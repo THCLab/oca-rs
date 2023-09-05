@@ -10,13 +10,14 @@ use convert_case::{Case, Casing};
 impl Facade {
     pub fn search_oca_bundle(
         &self,
+        language: Option<isolang::Language>,
         query: String,
         limit: usize,
         page: usize,
     ) -> crate::repositories::SearchResult {
         let oca_bundle_read_model_repo =
             OCABundleReadModelRepo::new(Rc::clone(&self.connection));
-        oca_bundle_read_model_repo.search(query, limit, page)
+        oca_bundle_read_model_repo.search(language, query, limit, page)
     }
 
     pub fn get_oca_bundle(&self, said: String) -> Result<OCABundle, Vec<String>> {

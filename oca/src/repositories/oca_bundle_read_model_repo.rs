@@ -36,7 +36,7 @@ impl OCABundleReadModelRepo {
         USING FTS5(
             name,
             description,
-            language_code UNINDEXED,
+            language_code,
             oca_bundle_said UNINDEXED,
             tokenize="trigram"
         )"#;
@@ -89,18 +89,27 @@ impl OCABundleReadModelRepo {
 
     pub fn search(
         &self,
-        query: String,
+        language: Option<isolang::Language>,
+        meta_query: String,
         limit: usize,
         page: usize,
     ) -> SearchResult {
         let offset = (page - 1) * limit;
+        let query = match language {
+            Some(lang) => {
+                let lang_code = isolang::Language::to_639_3(&lang).to_string();
+                format!("({{name description}}:{meta_query:} AND language_code:{lang_code:}) OR ({{name description}}:{meta_query:} NOT language_code:{lang_code:})")
+            }
+            None => format!("{{name description}}:{meta_query:}"),
+        };
+
         let sql_query = r#"
         SELECT results.*, count.total
         FROM
         (
             SELECT COUNT(*) OVER() AS total
             FROM (
-                SELECT *, rank
+                SELECT *
                 FROM oca_bundle_read_model
                 WHERE oca_bundle_read_model MATCH ?1
             ) AS inner_query
@@ -113,7 +122,7 @@ impl OCABundleReadModelRepo {
                 SELECT *,
                     highlight(oca_bundle_read_model, 0, '<mark>', '</mark>'),
                     highlight(oca_bundle_read_model, 1, '<mark>', '</mark>'),
-                    rank
+                    bm25(oca_bundle_read_model, 1.0, 1.0, 100.0) as rank
                 FROM oca_bundle_read_model
                 WHERE oca_bundle_read_model MATCH ?1
                 ORDER BY rank
@@ -184,10 +193,7 @@ impl OCABundleReadModelRepo {
 
         SearchResult {
             records,
-            metadata: SearchMetadata {
-                total,
-                page,
-            },
+            metadata: SearchMetadata { total, page },
         }
     }
 }
