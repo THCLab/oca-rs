@@ -120,9 +120,8 @@ impl OCABundleReadModelRepo {
             SELECT *, COUNT(*) OVER()
             FROM (
                 SELECT *,
-                    highlight(oca_bundle_read_model, 0, '<mark>', '</mark>'),
-                    highlight(oca_bundle_read_model, 1, '<mark>', '</mark>'),
-                    bm25(oca_bundle_read_model, 1.0, 1.0, 100.0) as rank
+                    bm25(oca_bundle_read_model, 1.0, 1.0, 100.0) as rank,
+                    snippet(oca_bundle_read_model, -1, '<mark>', '</mark>', '...', 64)
                 FROM oca_bundle_read_model
                 WHERE oca_bundle_read_model MATCH ?1
                 ORDER BY rank
@@ -139,12 +138,52 @@ impl OCABundleReadModelRepo {
         struct Record {
             pub name: Option<String>,
             pub description: Option<String>,
-            pub language_code: Option<String>,
             pub oca_bundle_said: Option<String>,
-            pub highlights_name: Option<String>,
-            pub highlights_description: Option<String>,
             pub rank: Option<f32>,
             pub total: i32,
+            pub snippet: Option<String>,
+        }
+
+        impl Record {
+            fn get_scope(&self) -> String {
+                let mut snippet_regex = self.snippet.clone().unwrap();
+                snippet_regex = snippet_regex.replace("<mark>", "");
+                snippet_regex = snippet_regex.replace("</mark>", "");
+                let mut v: Vec<String> =
+                    snippet_regex.split("...").map(|x| x.to_string()).collect();
+                if v.first().unwrap().is_empty() {
+                    v.remove(0);
+                    if let Some(x) = v.first_mut() {
+                        *x = format!(".*{}", x);
+                    }
+                }
+                if v.last().unwrap().is_empty() {
+                    v.pop();
+                    if let Some(x) = v.last_mut() {
+                        *x = format!("{}.*", x);
+                    }
+                }
+                snippet_regex = v.join("...");
+                let re = regex::Regex::new(&format!(
+                    "(?m)^([^:]+):{snippet_regex:}$"
+                ))
+                .unwrap();
+                let hay = format!(
+                    "\
+meta_overlay:{}
+meta_overlay:{}
+",
+                    self.name.clone().unwrap(),
+                    self.description.clone().unwrap()
+                );
+                let mut scope = String::new();
+                if let Some((_, [s])) =
+                    re.captures_iter(&hay).map(|c| c.extract()).next()
+                {
+                    scope = s.to_string();
+                }
+                scope
+            }
         }
 
         let mut statement = self.connection.prepare(sql_query).unwrap();
@@ -156,12 +195,10 @@ impl OCABundleReadModelRepo {
                     Ok(Record {
                         name: row.get(0).unwrap(),
                         description: row.get(1).unwrap(),
-                        language_code: row.get(2).unwrap(),
                         oca_bundle_said: row.get(3).unwrap(),
-                        highlights_name: row.get(4).unwrap(),
-                        highlights_description: row.get(5).unwrap(),
-                        rank: row.get(6).unwrap(),
-                        total: row.get(8).unwrap(),
+                        rank: row.get(4).unwrap(),
+                        total: row.get(7).unwrap(),
+                        snippet: row.get(5).unwrap(),
                     })
                 },
             )
@@ -178,16 +215,15 @@ impl OCABundleReadModelRepo {
             if record.oca_bundle_said.is_none() {
                 continue;
             }
+            let metdata = SearchRecordMetadata {
+                phrase: record.snippet.clone().unwrap(),
+                scope: record.get_scope().clone(),
+                score: record.rank.unwrap().abs(),
+            };
+
             records.push(SearchRecord {
                 oca_bundle_said: record.oca_bundle_said.unwrap(),
-                name: record.name.unwrap(),
-                description: record.description.unwrap(),
-                language_code: record.language_code.unwrap(),
-                highlights: SearchRecordHighlights {
-                    name: record.highlights_name.unwrap(),
-                    description: record.highlights_description.unwrap(),
-                },
-                score: record.rank.unwrap().abs(),
+                metadata: metdata,
             });
         }
 
@@ -196,12 +232,6 @@ impl OCABundleReadModelRepo {
             metadata: SearchMetadata { total, page },
         }
     }
-}
-
-#[derive(Debug, Serialize)]
-pub struct SearchRecordHighlights {
-    pub name: String,
-    pub description: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -215,10 +245,13 @@ pub struct SearchResult {
 #[derive(Debug, Serialize)]
 pub struct SearchRecord {
     pub oca_bundle_said: String,
-    pub name: String,
-    pub description: String,
-    pub language_code: String,
-    pub highlights: SearchRecordHighlights,
+    pub metadata: SearchRecordMetadata,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchRecordMetadata {
+    pub phrase: String,
+    pub scope: String,
     pub score: f32,
 }
 
