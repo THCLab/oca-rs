@@ -6,6 +6,34 @@ use oca_bundle::build::OCABuildStep;
 use std::rc::Rc;
 
 use convert_case::{Case, Casing};
+use serde::Serialize;
+
+#[derive(Debug, Serialize)]
+pub struct SearchResult {
+    #[serde(rename = "r")]
+    pub records: Vec<SearchRecord>,
+    #[serde(rename = "m")]
+    pub metadata: SearchMetadata,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchRecord {
+    pub oca_bundle: OCABundle,
+    pub metadata: SearchRecordMetadata,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchRecordMetadata {
+    pub phrase: String,
+    pub scope: String,
+    pub score: f32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchMetadata {
+    pub total: usize,
+    pub page: usize,
+}
 
 impl Facade {
     pub fn search_oca_bundle(
@@ -14,10 +42,32 @@ impl Facade {
         query: String,
         limit: usize,
         page: usize,
-    ) -> crate::repositories::SearchResult {
+    ) -> SearchResult {
         let oca_bundle_read_model_repo =
             OCABundleReadModelRepo::new(Rc::clone(&self.connection));
-        oca_bundle_read_model_repo.search(language, query, limit, page)
+        let search_result =
+            oca_bundle_read_model_repo.search(language, query, limit, page);
+        let records = search_result
+            .records
+            .iter()
+            .map(|record| SearchRecord {
+                oca_bundle: self
+                    .get_oca_bundle(record.oca_bundle_said.clone())
+                    .unwrap(),
+                metadata: SearchRecordMetadata {
+                    phrase: record.metadata.phrase.clone(),
+                    scope: record.metadata.scope.clone(),
+                    score: record.metadata.score,
+                },
+            })
+            .collect();
+        SearchResult {
+            records,
+            metadata: SearchMetadata {
+                total: search_result.metadata.total,
+                page: search_result.metadata.page,
+            },
+        }
     }
 
     pub fn get_oca_bundle(&self, said: String) -> Result<OCABundle, Vec<String>> {

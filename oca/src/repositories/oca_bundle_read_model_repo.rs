@@ -1,4 +1,3 @@
-use serde::Serialize;
 use std::rc::Rc;
 
 #[derive(Debug)]
@@ -234,28 +233,26 @@ meta_overlay:{}
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct SearchResult {
-    #[serde(rename = "r")]
     pub records: Vec<SearchRecord>,
-    #[serde(rename = "m")]
     pub metadata: SearchMetadata,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct SearchRecord {
     pub oca_bundle_said: String,
     pub metadata: SearchRecordMetadata,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct SearchRecordMetadata {
     pub phrase: String,
     pub scope: String,
     pub score: f32,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct SearchMetadata {
     pub total: usize,
     pub page: usize,
