@@ -1,5 +1,5 @@
 use dyn_clonable::*;
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 #[clonable]
 pub trait DataStorage: Clone {
@@ -36,11 +36,11 @@ impl SledDataStorageConfig {
 }
 
 pub struct SledDataStorageConfigBuilder {
-    path: Option<String>,
+    path: Option<PathBuf>,
 }
 
 impl SledDataStorageConfigBuilder {
-    pub fn path(mut self, path: String) -> Self {
+    pub fn path(mut self, path: PathBuf) -> Self {
         self.path = Some(path);
         self
     }
@@ -49,7 +49,13 @@ impl SledDataStorageConfigBuilder {
         let mut config = HashMap::new();
 
         match &self.path {
-            Some(path) => config.insert("path".to_string(), path.to_string()),
+            Some(path) => config.insert(
+                "path".to_string(),
+                path.clone()
+                    .into_os_string()
+                    .into_string()
+                    .map_err(|e| e.into_string().unwrap())?,
+            ),
             None => return Err("path is required".to_string()),
         };
 
