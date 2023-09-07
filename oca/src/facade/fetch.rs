@@ -2,6 +2,7 @@ use super::Facade;
 use crate::{data_storage::DataStorage, repositories::OCABundleReadModelRepo};
 use oca_bundle::state::oca::OCABundle;
 use oca_bundle::build::OCABuildStep;
+use crate::data_storage::Namespace;
 
 use std::rc::Rc;
 
@@ -71,7 +72,7 @@ impl Facade {
     }
 
     pub fn get_oca_bundle(&self, said: String) -> Result<OCABundle, Vec<String>> {
-        let r = self.db.get(&format!("oca.{}", said)).map_err(|e| vec![format!("{}", e)])?;
+        let r = self.db.get(Namespace::OCAJsonCache, &format!("oca.{}", said)).map_err(|e| vec![format!("{}", e)])?;
         let oca_bundle_str = String::from_utf8(
             r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?
         ).unwrap();
@@ -83,7 +84,7 @@ impl Facade {
         let mut said = said;
         #[allow(clippy::borrowed_box)]
         fn extract_operation(db: &Box<dyn DataStorage>, said: &String) -> Result<(String, oca_ast::ast::Command), Vec<String>> {
-            let r = db.get(&format!("oca.{}.operation", said))
+            let r = db.get(Namespace::OCA, &format!("oca.{}.operation", said))
                 .map_err(|e| vec![format!("{}", e)])?
                 .ok_or_else(|| vec![format!("No history found for said: {}", said)])?;
 

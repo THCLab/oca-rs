@@ -3,6 +3,7 @@ use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
 use oca_dag::build_core_db_model;
 use crate::repositories::{OCABundleReadModelRepo, OCABundleReadModel};
+use crate::data_storage::Namespace;
 
 use std::rc::Rc;
 
@@ -93,10 +94,12 @@ impl Facade {
             input.extend(command_str.as_bytes());
             let result_bundle = step.result.clone();
             self.db.insert(
+                Namespace::OCA,
                 &format!("oca.{}.operation", result_bundle.said.clone().unwrap()),
                 &input,
             ).unwrap();
             self.db.insert(
+                Namespace::OCAJsonCache,
                 &format!("oca.{}", result_bundle.said.clone().unwrap()),
                 &result_bundle.encode().unwrap(),
             ).unwrap();
@@ -107,6 +110,7 @@ impl Facade {
             if let Some(command_model) = &model.command {
                 self.db
                     .insert(
+                        Namespace::CoreModel,
                         &format!("core_model.{}", command_model.digest),
                         &command_model.json.clone().into_bytes(),
                     )
@@ -146,6 +150,7 @@ impl Facade {
 
                 self.db
                     .insert(
+                        Namespace::CoreModel,
                         &format!(
                             "core_model.{}",
                             capture_base_model.capture_base_said
@@ -188,6 +193,7 @@ impl Facade {
 
                 self.db
                     .insert(
+                        Namespace::CoreModel,
                         &format!("core_model.{}", overlay_model.overlay_said),
                         &input,
                     )
@@ -234,6 +240,7 @@ impl Facade {
 
                 self.db
                     .insert(
+                        Namespace::CoreModel,
                         &format!(
                             "core_model.{}",
                             oca_bundle_model.oca_bundle_said

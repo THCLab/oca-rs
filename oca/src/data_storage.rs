@@ -1,10 +1,35 @@
 use dyn_clonable::*;
 use std::{collections::HashMap, path::PathBuf};
 
+pub enum Namespace {
+    OCA,
+    OCAJsonCache,
+    CoreModel,
+}
+
+impl Namespace {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::OCA => "oca",
+            Self::OCAJsonCache => "oca_json_cache",
+            Self::CoreModel => "core_model",
+        }
+    }
+}
+
 #[clonable]
 pub trait DataStorage: Clone {
-    fn get(&self, key: &str) -> Result<Option<Vec<u8>>, String>;
-    fn insert(&mut self, key: &str, value: &[u8]) -> Result<(), String>;
+    fn get(
+        &self,
+        namespace: Namespace,
+        key: &str,
+    ) -> Result<Option<Vec<u8>>, String>;
+    fn insert(
+        &mut self,
+        namespace: Namespace,
+        key: &str,
+        value: &[u8],
+    ) -> Result<(), String>;
     fn new() -> Self
     where
         Self: Sized;
@@ -81,9 +106,14 @@ impl DataStorage for SledDataStorage {
         self.clone()
     }
 
-    fn get(&self, key: &str) -> Result<Option<Vec<u8>>, String> {
+    fn get(
+        &self,
+        namespace: Namespace,
+        key: &str,
+    ) -> Result<Option<Vec<u8>>, String> {
         if let Some(ref db) = self.db {
-            match db.get(key.as_bytes()).unwrap() {
+            let tree = db.open_tree(namespace.as_str().as_bytes()).unwrap();
+            match tree.get(key.as_bytes()).unwrap() {
                 Some(value) => Ok(Some(value.to_vec())),
                 None => Ok(None),
             }
@@ -92,9 +122,15 @@ impl DataStorage for SledDataStorage {
         }
     }
 
-    fn insert(&mut self, key: &str, value: &[u8]) -> Result<(), String> {
+    fn insert(
+        &mut self,
+        namespace: Namespace,
+        key: &str,
+        value: &[u8],
+    ) -> Result<(), String> {
         if let Some(ref db) = self.db {
-            match db.insert(key.as_bytes(), value) {
+            let tree = db.open_tree(namespace.as_str().as_bytes()).unwrap();
+            match tree.insert(key.as_bytes(), value) {
                 Ok(_) => Ok(()),
                 Err(e) => Err(e.to_string()),
             }
@@ -106,7 +142,7 @@ impl DataStorage for SledDataStorage {
 
 #[derive(Clone)]
 pub struct InMemoryDataStorage {
-    db: HashMap<String, Vec<u8>>,
+    db: HashMap<String, HashMap<String, Vec<u8>>>,
 }
 
 impl DataStorage for InMemoryDataStorage {
@@ -118,15 +154,34 @@ impl DataStorage for InMemoryDataStorage {
         self.clone()
     }
 
-    fn get(&self, key: &str) -> Result<Option<Vec<u8>>, String> {
-        match self.db.get(key) {
+    fn get(
+        &self,
+        namespace: Namespace,
+        key: &str,
+    ) -> Result<Option<Vec<u8>>, String> {
+        let namespace_storage = match self.db.get(namespace.as_str()) {
+            Some(namespace_storage) => namespace_storage,
+            None => return Ok(None),
+        };
+        match namespace_storage.get(key) {
             Some(value) => Ok(Some(value.to_vec())),
             None => Ok(None),
         }
     }
 
-    fn insert(&mut self, key: &str, value: &[u8]) -> Result<(), String> {
-        self.db.insert(key.to_string(), value.to_vec());
+    fn insert(
+        &mut self,
+        namespace: Namespace,
+        key: &str,
+        value: &[u8],
+    ) -> Result<(), String> {
+        let mut namespace_storage = match self.db.get(namespace.as_str()) {
+            Some(namespace_storage) => namespace_storage.clone(),
+            None => HashMap::new(),
+        };
+        namespace_storage.insert(key.to_string(), value.to_vec());
+        self.db
+            .insert(namespace.as_str().to_string(), namespace_storage);
 
         Ok(())
     }
