@@ -1,3 +1,5 @@
+pub mod capture_base_cache_repo;
+pub use capture_base_cache_repo::*;
 pub mod oca_bundle_fts_repo;
 pub use oca_bundle_fts_repo::*;
 pub mod oca_bundle_cache_repo;
