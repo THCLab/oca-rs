@@ -1,5 +1,5 @@
 use super::Facade;
-use crate::{data_storage::DataStorage, repositories::OCABundleReadModelRepo};
+use crate::{data_storage::DataStorage, repositories::OCABundleFTSRepo};
 use oca_bundle::state::oca::OCABundle;
 use oca_bundle::build::OCABuildStep;
 use crate::data_storage::Namespace;
@@ -44,10 +44,10 @@ impl Facade {
         limit: usize,
         page: usize,
     ) -> SearchResult {
-        let oca_bundle_read_model_repo =
-            OCABundleReadModelRepo::new(Rc::clone(&self.connection));
+        let oca_bundle_fts_repo =
+            OCABundleFTSRepo::new(Rc::clone(&self.connection));
         let search_result =
-            oca_bundle_read_model_repo.search(language, query, limit, page);
+            oca_bundle_fts_repo.search(language, query, limit, page);
         let records = search_result
             .records
             .iter()

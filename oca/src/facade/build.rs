@@ -2,7 +2,7 @@ use super::Facade;
 use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
 use oca_dag::build_core_db_model;
-use crate::repositories::{OCABundleReadModelRepo, OCABundleReadModel};
+use crate::repositories::{OCABundleFTSRecord, OCABundleFTSRepo};
 use crate::data_storage::Namespace;
 
 use std::rc::Rc;
@@ -55,10 +55,10 @@ impl Facade {
             })
             .collect::<Vec<_>>();
         if !meta_overlays.is_empty() {
-            let oca_bundle_read_model_repo =
-                OCABundleReadModelRepo::new(Rc::clone(&self.connection));
+            let oca_bundle_fts_repo =
+                OCABundleFTSRepo::new(Rc::clone(&self.connection));
             for meta_overlay in meta_overlays {
-                let oca_bundle_read_model = OCABundleReadModel::new(
+                let oca_bundle_fts_record = OCABundleFTSRecord::new(
                     oca_build.oca_bundle.said.clone().unwrap().to_string(),
                     meta_overlay
                         .attr_pairs
@@ -73,7 +73,7 @@ impl Facade {
                     meta_overlay.language,
                 );
 
-                oca_bundle_read_model_repo.insert(oca_bundle_read_model);
+                oca_bundle_fts_repo.insert(oca_bundle_fts_record);
             }
         }
 

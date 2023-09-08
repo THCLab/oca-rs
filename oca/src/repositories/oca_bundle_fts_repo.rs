@@ -1,14 +1,14 @@
 use std::rc::Rc;
 
 #[derive(Debug)]
-pub struct OCABundleReadModel {
+pub struct OCABundleFTSRecord {
     pub name: String,
     pub description: String,
     pub language_code: String,
     pub oca_bundle_said: String,
 }
 
-impl OCABundleReadModel {
+impl OCABundleFTSRecord {
     pub fn new(
         oca_bundle_said: String,
         name: String,
@@ -24,14 +24,14 @@ impl OCABundleReadModel {
     }
 }
 
-pub struct OCABundleReadModelRepo {
+pub struct OCABundleFTSRepo {
     connection: Rc<rusqlite::Connection>,
 }
 
-impl OCABundleReadModelRepo {
+impl OCABundleFTSRepo {
     pub fn new(connection: Rc<rusqlite::Connection>) -> Self {
         let create_table_query = r#"
-        CREATE VIRTUAL TABLE IF NOT EXISTS oca_bundle_read_model
+        CREATE VIRTUAL TABLE IF NOT EXISTS oca_bundle_fts
         USING FTS5(
             name,
             description,
@@ -46,13 +46,13 @@ impl OCABundleReadModelRepo {
         }
     }
 
-    pub fn insert(&self, model: OCABundleReadModel) {
+    pub fn insert(&self, model: OCABundleFTSRecord) {
         let query = r#"
-        INSERT INTO oca_bundle_read_model
+        INSERT INTO oca_bundle_fts
         (rowid, name, description, language_code, oca_bundle_said)
         VALUES (
             (
-                SELECT rowid FROM oca_bundle_read_model
+                SELECT rowid FROM oca_bundle_fts
                 WHERE oca_bundle_said = ?4 AND language_code = ?3
                 LIMIT 1
             ), ?1, ?2, ?3, ?4
@@ -68,13 +68,13 @@ impl OCABundleReadModelRepo {
         );
     }
 
-    pub fn find_all(&self) -> Vec<OCABundleReadModel> {
+    pub fn find_all(&self) -> Vec<OCABundleFTSRecord> {
         let mut results = vec![];
-        let query = "SELECT * FROM oca_bundle_read_model";
+        let query = "SELECT * FROM oca_bundle_fts";
         let mut statement = self.connection.prepare(query).unwrap();
         let models = statement
             .query_map((), |row| {
-                Ok(OCABundleReadModel {
+                Ok(OCABundleFTSRecord {
                     name: row.get(0).unwrap(),
                     description: row.get(1).unwrap(),
                     language_code: row.get(2).unwrap(),
@@ -109,8 +109,8 @@ impl OCABundleReadModelRepo {
             SELECT COUNT(*) OVER() AS total
             FROM (
                 SELECT *
-                FROM oca_bundle_read_model
-                WHERE oca_bundle_read_model MATCH ?1
+                FROM oca_bundle_fts
+                WHERE oca_bundle_fts MATCH ?1
             ) AS inner_query
             GROUP BY oca_bundle_said
         ) AS count
@@ -119,10 +119,10 @@ impl OCABundleReadModelRepo {
             SELECT *, COUNT(*) OVER()
             FROM (
                 SELECT *,
-                    bm25(oca_bundle_read_model, 1.0, 1.0, 100.0) as rank,
-                    snippet(oca_bundle_read_model, -1, '<mark>', '</mark>', '...', 64)
-                FROM oca_bundle_read_model
-                WHERE oca_bundle_read_model MATCH ?1
+                    bm25(oca_bundle_fts, 1.0, 1.0, 100.0) as rank,
+                    snippet(oca_bundle_fts, -1, '<mark>', '</mark>', '...', 64)
+                FROM oca_bundle_fts
+                WHERE oca_bundle_fts MATCH ?1
                 ORDER BY rank
             ) AS subquery
             GROUP BY oca_bundle_said

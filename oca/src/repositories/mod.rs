@@ -1,2 +1,2 @@
-pub mod oca_bundle_read_model_repo;
-pub use oca_bundle_read_model_repo::*;
+pub mod oca_bundle_fts_repo;
+pub use oca_bundle_fts_repo::*;
