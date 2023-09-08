@@ -58,7 +58,7 @@ impl Validator {
         self.enforced_translations = self
             .enforced_translations
             .into_iter()
-            .chain(languages.into_iter())
+            .chain(languages)
             .collect::<Vec<Language>>();
         self
     }
@@ -189,7 +189,6 @@ impl Validator {
         }
     }
 
-
     fn validate_meta(
         &self,
         enforced_langs: &HashSet<&Language>,
@@ -210,21 +209,22 @@ impl Validator {
             errors.push(Error::MissingTranslations(**m));
         }
 
-        for meta_overlay in meta_overlays {
-            if meta_overlay.attr_pairs.get("name").is_none() {
-                errors.push(Error::MissingMetaTranslation(
-                    *meta_overlay.language().unwrap(),
-                    "name".to_string(),
-                ));
-            }
+        let attributes = meta_overlays
+            .iter()
+            .flat_map(|o| o.attr_pairs.keys())
+            .collect::<HashSet<_>>();
 
-            if meta_overlay.attr_pairs.get("description").is_none() {
-                errors.push(Error::MissingMetaTranslation(
-                    *meta_overlay.language().unwrap(),
-                    "description".to_string(),
-                ));
-            }
+        for meta_overlay in meta_overlays {
+            attributes.iter().for_each(|attr| {
+                if meta_overlay.attr_pairs.get(*attr).is_none() {
+                    errors.push(Error::MissingMetaTranslation(
+                        *meta_overlay.language().unwrap(),
+                        attr.to_string(),
+                    ));
+                }
+            });
         }
+
         if errors.is_empty() {
             Ok(())
         } else {
@@ -337,8 +337,6 @@ mod tests {
         let mut oca = cascade! {
             OCABox::new();
             ..add_meta(Language::Eng, "name".to_string(), "Driving Licence".to_string());
-            ..add_meta(Language::Eng, "description".to_string(), "Driving Licence desc".to_string());
-            ..add_meta(Language::Pol, "description".to_string(), "Driving Licence desc".to_string());
         };
 
         let oca_bundle = oca.generate_bundle();
