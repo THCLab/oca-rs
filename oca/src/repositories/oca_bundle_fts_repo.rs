@@ -68,24 +68,6 @@ impl OCABundleFTSRepo {
         );
     }
 
-    pub fn find_all(&self) -> Vec<OCABundleFTSRecord> {
-        let mut results = vec![];
-        let query = "SELECT * FROM oca_bundle_fts";
-        let mut statement = self.connection.prepare(query).unwrap();
-        let models = statement
-            .query_map((), |row| {
-                Ok(OCABundleFTSRecord {
-                    name: row.get(0).unwrap(),
-                    description: row.get(1).unwrap(),
-                    language_code: row.get(2).unwrap(),
-                    oca_bundle_said: row.get(3).unwrap(),
-                })
-            })
-            .unwrap();
-        models.for_each(|model| results.push(model.unwrap()));
-        results
-    }
-
     pub fn search(
         &self,
         language: Option<isolang::Language>,

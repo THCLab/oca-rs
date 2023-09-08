@@ -1,9 +1,12 @@
 use super::Facade;
+use crate::data_storage::Namespace;
+use crate::repositories::{
+    OCABundleCacheRecord, OCABundleCacheRepo, OCABundleFTSRecord,
+    OCABundleFTSRepo,
+};
 use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
 use oca_dag::build_core_db_model;
-use crate::repositories::{OCABundleFTSRecord, OCABundleFTSRepo};
-use crate::data_storage::Namespace;
 
 use std::rc::Rc;
 
@@ -44,6 +47,12 @@ impl Facade {
         }
 
         let oca_build = oca_bundle::build::from_ast(base, oca_ast)?;
+
+        let oca_bundle_cache_repo =
+            OCABundleCacheRepo::new(Rc::clone(&self.connection));
+        let oca_bundle_cache_record =
+            OCABundleCacheRecord::new(&oca_build.oca_bundle);
+        oca_bundle_cache_repo.insert(oca_bundle_cache_record);
 
         let meta_overlays = oca_build
             .oca_bundle

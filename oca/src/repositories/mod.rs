@@ -1,7 +1,9 @@
 pub mod oca_bundle_fts_repo;
-use std::path::PathBuf;
-
 pub use oca_bundle_fts_repo::*;
+pub mod oca_bundle_cache_repo;
+pub use oca_bundle_cache_repo::*;
+
+use std::path::PathBuf;
 
 #[derive(Clone)]
 pub struct SQLiteConfig {
