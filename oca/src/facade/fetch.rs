@@ -5,7 +5,7 @@ use crate::{
     repositories::{OCABundleCacheRepo, OCABundleFTSRepo},
 };
 use oca_bundle::build::OCABuildStep;
-use oca_bundle::state::oca::OCABundle;
+use oca_bundle::state::oca::{capture_base::CaptureBase, OCABundle};
 
 use std::rc::Rc;
 
@@ -100,6 +100,37 @@ impl Facade {
         }
 
         Ok(oca_bundles)
+    }
+
+    pub fn fetch_all_capture_base(
+        &self,
+        limit: usize,
+    ) -> Result<Vec<CaptureBase>, Vec<String>> {
+        let mut capture_bases = vec![];
+        let mut errors = vec![];
+
+        let capture_base_cache_repo =
+            crate::repositories::CaptureBaseCacheRepo::new(Rc::clone(
+                &self.connection,
+            ));
+        let capture_base_cache_records =
+            capture_base_cache_repo.fetch_all(limit as i32);
+        for capture_base_cache_record in capture_base_cache_records {
+            match serde_json::from_str(&capture_base_cache_record.capture_base)
+            {
+                Ok(capture_base) => {
+                    capture_bases.push(capture_base);
+                }
+                Err(e) => {
+                    errors.push(format!("Failed to parse capture base: {}", e));
+                }
+            }
+        }
+        if !errors.is_empty() {
+            return Err(errors);
+        }
+
+        Ok(capture_bases)
     }
 
     pub fn get_oca_bundle(&self, said: String) -> Result<OCABundle, Vec<String>> {
