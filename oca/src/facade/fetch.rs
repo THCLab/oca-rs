@@ -1,8 +1,11 @@
 use super::Facade;
-use crate::{data_storage::DataStorage, repositories::OCABundleFTSRepo};
-use oca_bundle::state::oca::OCABundle;
-use oca_bundle::build::OCABuildStep;
 use crate::data_storage::Namespace;
+use crate::{
+    data_storage::DataStorage,
+    repositories::{OCABundleCacheRepo, OCABundleFTSRepo},
+};
+use oca_bundle::build::OCABuildStep;
+use oca_bundle::state::oca::OCABundle;
 
 use std::rc::Rc;
 
@@ -69,6 +72,34 @@ impl Facade {
                 page: search_result.metadata.page,
             },
         }
+    }
+
+    pub fn fetch_all_oca_bundle(
+        &self,
+        limit: usize,
+    ) -> Result<Vec<OCABundle>, Vec<String>> {
+        let mut oca_bundles = vec![];
+        let mut errors = vec![];
+
+        let oca_bundle_cache_repo =
+            OCABundleCacheRepo::new(Rc::clone(&self.connection));
+        let oca_bundle_cache_records =
+            oca_bundle_cache_repo.fetch_all(limit as i32);
+        for oca_bundle_cache_record in oca_bundle_cache_records {
+            match serde_json::from_str(&oca_bundle_cache_record.oca_bundle) {
+                Ok(oca_bundle) => {
+                    oca_bundles.push(oca_bundle);
+                }
+                Err(e) => {
+                    errors.push(format!("Failed to parse oca bundle: {}", e));
+                }
+            }
+        }
+        if !errors.is_empty() {
+            return Err(errors);
+        }
+
+        Ok(oca_bundles)
     }
 
     pub fn get_oca_bundle(&self, said: String) -> Result<OCABundle, Vec<String>> {
