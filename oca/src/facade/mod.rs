@@ -33,8 +33,7 @@ mod test {
     #[test]
     fn facade_build_from_ocafile_from_base() -> Result<(), Vec<String>> {
         let db = InMemoryDataStorage::new();
-        let cache_storage_config =
-            SQLiteConfig::build().path(":memory:".to_string()).unwrap();
+        let cache_storage_config = SQLiteConfig::build().unwrap();
         let ocafile = r#"
 ADD ATTRIBUTE d=Text i=Text passed=Boolean
 ADD META en PROPS name="Entrance credential" description="Entrance credential"
