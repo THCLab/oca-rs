@@ -11,19 +11,15 @@ use oca_bundle::state::oca::overlay::credential_layout::CredentialLayouts;
 use oca_bundle::state::oca::overlay::form_layout::FormLayouts;
 use isolang::Language;
 use oca_bundle::state::{
-    attribute::{
-        Attribute as AttributeRaw, AttributeType,
-        // Entries as EntriesRaw,
-        Entry as EntryRaw,
-    },
+    attribute::{Attribute as AttributeRaw, AttributeType},
     encoding::Encoding,
     entry_codes::EntryCodes as EntryCodesRaw,
     entries::EntriesElement as EntriesElementRaw,
-    // language::Language,
     oca::{OCABundle as OCABundleRaw, OCABox as OCABoxRaw},
     validator,
 };
-use serde::{Deserialize, Serialize};
+use oca_bundle::Encode;
+use serde::Serialize;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
@@ -31,8 +27,6 @@ use wasm_bindgen::prelude::*;
 extern "C" {
     #[wasm_bindgen(typescript_type = "OCABundle")]
     pub type OCABundle;
-    // #[wasm_bindgen(typescript_type = "Attribute")]
-    // pub type Attribute;
     #[wasm_bindgen(typescript_type = "'O' | 'M'")]
     pub type ConformanceOptions;
     #[wasm_bindgen(typescript_type = "{ [language: string]: string }")]
@@ -41,37 +35,10 @@ extern "C" {
     pub type IEntry;
     #[wasm_bindgen(typescript_type = "{ [code: string]: { [language: string]: string } }")]
     pub type EntriesTranslations;
-    // #[wasm_bindgen(typescript_type = "string | string[]")]
-    // pub type EntryCodes;
     #[wasm_bindgen(typescript_type = "string[]")]
     pub type EntryCodesMapping;
     #[wasm_bindgen(typescript_type = "string[]")]
     pub type Dependencies;
-}
-
-#[wasm_bindgen]
-#[derive(Serialize, Deserialize)]
-pub struct Entry {
-    code: String,
-    translations: HashMap<String, String>,
-}
-
-#[wasm_bindgen]
-impl Entry {
-    #[wasm_bindgen(constructor)]
-    pub fn constructor(code: String, translations: Translations) -> Entry {
-        let translations_str: HashMap<String, String> =
-            serde_wasm_bindgen::from_value(JsValue::from(translations)).unwrap();
-
-        Entry {
-            code,
-            translations: translations_str,
-        }
-    }
-
-    pub fn plain(self) -> IEntry {
-        IEntry::from(JsValue::from_serde(&self).unwrap_or(JsValue::NULL))
-    }
 }
 
 #[wasm_bindgen]
@@ -100,59 +67,17 @@ impl OCABox {
         self
     }
 
-    // #[wasm_bindgen(js_name = "addDefaultFormLayout")]
-    // pub fn add_default_form_layout(mut self) -> OCABuilder {
-    //     self.raw = self.raw.add_default_form_layout();
-    //     self
-    // }
-
     #[wasm_bindgen(js_name = "addFormLayout")]
     pub fn add_form_layout(mut self, layout: String) -> Self {
         self.raw.add_form_layout(layout);
         self
     }
 
-    // #[wasm_bindgen(js_name = "addDefaultCredentialLayout")]
-    // pub fn add_default_credential_layout(mut self) -> OCABuilder {
-    //     self.raw = self.raw.add_default_credential_layout();
-    //     self
-    // }
-
     #[wasm_bindgen(js_name = "addCredentialLayout")]
     pub fn add_credential_layout(mut self, layout: String) -> Self {
         self.raw.add_credential_layout(layout);
         self
     }
-
-    /*
-    #[wasm_bindgen(js_name = "addName")]
-    pub fn add_name(mut self, names: ITranslations) -> OCABuilder {
-        let names_str: HashMap<String, String> =
-            serde_wasm_bindgen::from_value(JsValue::from(names)).unwrap();
-
-        let mut names_raw: HashMap<Language, String> = HashMap::new();
-        for (lang, name) in names_str.iter() {
-            names_raw.insert(lang.to_string(), name.clone());
-        }
-
-        self.raw = self.raw.add_name(names_raw);
-        self
-    }
-
-    #[wasm_bindgen(js_name = "addDescription")]
-    pub fn add_description(mut self, descriptions: ITranslations) -> OCABuilder {
-        let descriptions_str: HashMap<String, String> =
-            serde_wasm_bindgen::from_value(JsValue::from(descriptions)).unwrap();
-
-        let mut descriptions_raw: HashMap<Language, String> = HashMap::new();
-        for (lang, description) in descriptions_str.iter() {
-            descriptions_raw.insert(lang.to_string(), description.clone());
-        }
-
-        self.raw = self.raw.add_description(descriptions_raw);
-        self
-    }
-    */
 
     #[wasm_bindgen(js_name = "addMeta")]
     pub fn add_meta(mut self, name: String, values: Translations) -> Self {
@@ -168,23 +93,21 @@ impl OCABox {
 
     #[wasm_bindgen(js_name = "addAttribute")]
     pub fn add_attribute(mut self, attr: Attribute) -> Self {
-        /*
-        let attr_raw: AttributeRaw = attr.into_serde().map_err(|e| {
-            e.to_string()
-                .split(" at line")
-                .collect::<Vec<&str>>()
-                .get(0)
-                .unwrap()
-                .to_string()
-        }).unwrap();
-        */
         self.raw.add_attribute(attr.raw);
         self
     }
 
     #[wasm_bindgen(js_name = "generateBundle")]
     pub fn generate_bundle(mut self) -> OCABundle {
-        OCABundle::from(JsValue::from_serde(&self.raw.generate_bundle()).unwrap_or(JsValue::NULL))
+        let oca_bundle_json_str =
+            String::from_utf8(self.raw.generate_bundle().encode().unwrap())
+                .unwrap();
+        OCABundle::from(
+            serde_json::from_str::<serde_json::Value>(&oca_bundle_json_str)
+                .unwrap()
+                .serialize(&serde_wasm_bindgen::Serializer::json_compatible())
+                .unwrap(),
+        )
     }
 }
 
@@ -228,7 +151,8 @@ impl Validator {
             errors: Vec<String>,
         }
         let return_result: ReturnResult;
-        match oca_bundle.into_serde::<OCABundleRaw>() {
+        match serde_wasm_bindgen::from_value::<OCABundleRaw>(oca_bundle.into())
+        {
             Ok(oca_bundle_raw) => {
                 let result = self.raw.validate(&oca_bundle_raw);
                 match result {
@@ -264,7 +188,9 @@ impl Validator {
             }
         }
 
-        JsValue::from_serde(&return_result).unwrap_or(JsValue::NULL)
+        return_result
+            .serialize(&serde_wasm_bindgen::Serializer::json_compatible())
+            .unwrap_or(JsValue::NULL)
     }
 }
 
@@ -320,7 +246,8 @@ impl Attribute {
 
     #[wasm_bindgen(js_name = "setConformance")]
     pub fn set_conformance(mut self, conformance: ConformanceOptions) -> Self {
-        let conformance_raw: String = conformance.into_serde().unwrap();
+        let conformance_raw: String =
+            serde_wasm_bindgen::from_value(conformance.into()).unwrap();
         self.raw.set_conformance(conformance_raw);
         self
     }
@@ -355,63 +282,8 @@ impl Attribute {
         self
     }
 
-    /*
-    #[wasm_bindgen(js_name = "addUnit")]
-    pub fn add_unit(mut self, metric_system: String, unit: String) -> AttributeBuilder {
-        self.raw = self.raw.add_unit(metric_system, unit);
-        self
-    }
-    #[wasm_bindgen(js_name = "addEntryCodes")]
-    pub fn add_entry_codes(mut self, entry_codes: EntryCodes) -> AttributeBuilder {
-        let entry_codes_value = JsValue::from(entry_codes);
-        let entry_codes_raw: EntryCodesRaw = match entry_codes_value.is_string() {
-            true => EntryCodesRaw::Sai(serde_wasm_bindgen::from_value(entry_codes_value).unwrap()),
-            false => {
-                EntryCodesRaw::Array(serde_wasm_bindgen::from_value(entry_codes_value).unwrap())
-            }
-        };
-
-        self.raw = self.raw.add_entry_codes(entry_codes_raw);
-        self
-    }
-
-    #[wasm_bindgen(js_name = "addEntryCodesMapping")]
-    pub fn add_entry_codes_mapping(mut self, mappings: EntryCodesMapping) -> AttributeBuilder {
-        let mappings_value = JsValue::from(mappings);
-
-        self.raw = self
-            .raw
-            .add_entry_codes_mapping(serde_wasm_bindgen::from_value(mappings_value).unwrap());
-        self
-    }
-
-    */
     #[wasm_bindgen(js_name = "setEntries")]
     pub fn set_entries(mut self, entries: EntriesTranslations) -> Self {
-      /*
-        let entries_value = JsValue::from(entries);
-        let entries_raw = match js_sys::Array::is_array(&entries_value) {
-            true => {
-                let mut entries_raw_vec: Vec<EntryRaw> = vec![];
-                let entries_vec: Vec<Entry> =
-                    serde_wasm_bindgen::from_value(entries_value).unwrap();
-                for entry in entries_vec.iter() {
-                    let mut entry_tr_raw: HashMap<Language, String> = HashMap::new();
-                    for (lang, entry_v) in entry.translations.iter() {
-                        entry_tr_raw.insert(lang.to_string(), entry_v.clone());
-                    }
-                    entries_raw_vec.push(EntryRaw::new(entry.code.to_string(), entry_tr_raw))
-                }
-                EntriesRaw::Object(entries_raw_vec)
-            }
-            false => {
-                let entries_sai: HashMap<Language, String> =
-                    serde_wasm_bindgen::from_value(entries_value).unwrap();
-                EntriesRaw::Sai(entries_sai)
-            }
-        };
-        */
-
         let entry_translations: HashMap<String, HashMap<String, String>> =
             serde_wasm_bindgen::from_value(JsValue::from(entries)).unwrap();
 
@@ -437,11 +309,26 @@ impl Attribute {
           self.raw.set_entry(*lang, EntriesElementRaw::Object(translations.clone()));
         }
 
-        // self.raw = self.raw.add_entries(entries_raw);
         self
     }
 
     /*
+    #[wasm_bindgen(js_name = "addUnit")]
+    pub fn add_unit(mut self, metric_system: String, unit: String) -> AttributeBuilder {
+        self.raw = self.raw.add_unit(metric_system, unit);
+        self
+    }
+
+    #[wasm_bindgen(js_name = "addEntryCodesMapping")]
+    pub fn add_entry_codes_mapping(mut self, mappings: EntryCodesMapping) -> AttributeBuilder {
+        let mappings_value = JsValue::from(mappings);
+
+        self.raw = self
+            .raw
+            .add_entry_codes_mapping(serde_wasm_bindgen::from_value(mappings_value).unwrap());
+        self
+    }
+
     #[wasm_bindgen(js_name = "addCondition")]
     pub fn add_condition(
         mut self,
@@ -473,6 +360,7 @@ impl Attribute {
 #[wasm_bindgen(typescript_custom_section)]
 const OCA_TYPE: &'static str = r#"
 type OCABundle = {
+  v: string,
   d: string,
   capture_base: CaptureBase,
   overlays: Overlays,

@@ -1,18 +1,14 @@
 import { expect } from 'chai'
-describe('', () => {
-  it('', () => {
-    expect(true).to.be.true
-  })
-})
-/*
-import { AttributeBuilder, AttributeType, Encoding, Entry, OCABuilder, Validator } from 'oca.js'
+import { Attribute, AttributeType, OCABox, OCABundle, Validator } from 'oca.js'
 
-describe('Plain OCA is validated', () => {
-  const oca = new OCABuilder(Encoding.Utf8).finalize()
+describe('Plain OCA', () => {
+  const oca = new OCABox()
+    .addClassification("GICS:35102020")
+    .generateBundle()
   const validator = new Validator()
   const result = validator.validate(oca)
 
-  it('return success', () => {
+  it('is valid', () => {
     expect(result).to.haveOwnProperty("success")
     expect(result).to.haveOwnProperty("errors")
 
@@ -21,89 +17,82 @@ describe('Plain OCA is validated', () => {
   })
 })
 
-describe('Translations are not enforced', () => {
-  const oca = new OCABuilder(Encoding.Utf8)
-    .addName({ en_EN: "OCA name" })
-    .finalize()
+describe('Validator without enforced translations', () => {
+  const oca = new OCABox()
+    .addClassification("GICS:35102020")
+    .addMeta("name", {
+      eng: "OCA name"
+    })
+    .generateBundle()
   const validator = new Validator()
   const result = validator.validate(oca)
 
-  it('return success', () => {
+  it('passes validation', () => {
     expect(result.success).to.be.true
   })
 })
 
-describe('Missing meta translations', () => {
-  const oca = new OCABuilder(Encoding.Utf8)
-    .addName({ en_EN: "OCA name" })
-    .finalize()
+describe('Missing enforced translation', () => {
+  const oca = new OCABox()
+    .addClassification("GICS:35102020")
+    .addMeta("name", {
+      eng: "OCA name"
+    })
+    .generateBundle()
+
   const validator = new Validator()
-    .enforceTranslations(["en_EN", "pl_PL"])
+    .enforceTranslations(["eng", "pol"])
   const result = validator.validate(oca)
 
-  it('return errors', () => {
+  it('is not valid', () => {
     expect(result.success).to.be.false
     expect(result.errors).to.be.an('array').lengthOf(1)
   })
-
-  describe('for name', () => {
-    const oca = new OCABuilder(Encoding.Utf8)
-      .addName({ en_EN: "OCA name" })
-      .addDescription({
-        en_EN: "OCA description",
-        pl_PL: "opis OCA"
-      })
-      .finalize()
-    const validator = new Validator()
-      .enforceTranslations(["en_EN", "pl_PL"])
-    const result = validator.validate(oca)
-
-    it('return errors', () => {
-      expect(result.success).to.be.false
-      expect(result.errors).to.be.an('array').lengthOf(1)
-    })
-  })
-
-  describe('for description', () => {
-    const oca = new OCABuilder(Encoding.Utf8)
-      .addName({
-        en_EN: "OCA name",
-        pl_PL: "nazwa OCA"
-      })
-      .addDescription({
-        en_EN: "OCA description",
-      })
-      .finalize()
-    const validator = new Validator()
-      .enforceTranslations(["en_EN", "pl_PL"])
-    const result = validator.validate(oca)
-
-    it('return errors', () => {
-      expect(result.success).to.be.false
-      expect(result.errors).to.be.an('array').lengthOf(1)
-    })
-  })
 })
 
-describe('Missing overlay translations', () => {
-  const oca = new OCABuilder(Encoding.Utf8)
+describe('Missing overlay translation', () => {
+  const oca = new OCABox()
     .addAttribute(
-      new AttributeBuilder("attr1", AttributeType.Text)
-        .addLabel({ en_EN: "Attribute 1" })
-        .addInformation({ en_EN: "Attribute 1 info" })
-        .addEntries([
-          new Entry("o1", { en_EN: "Option 1" }).plain()
-        ])
-        .build()
+      new Attribute("attr1")
+        .setAttributeType(AttributeType.Text)
+        .setLabel({ eng: "Attribute 1" })
+        .setInformation({ eng: "Attribute 1 info" })
+        .setEntries({
+          o1: { eng: "Option 1" }
+        })
     )
-    .finalize()
+    .generateBundle()
+
   const validator = new Validator()
-    .enforceTranslations(["en_EN", "pl_PL"])
+    .enforceTranslations(["eng", "pol"])
   const result = validator.validate(oca)
 
-  it('return errors', () => {
+  it('is not valid', () => {
     expect(result.success).to.be.false
     expect(result.errors).to.be.an('array').lengthOf(3)
   })
 })
-*/
+
+describe('Malformed OCA Bundle', () => {
+  const said = 'EKwwHUyIW5NOuVi2zo6fyibkdJmFUoAoO-tJbKKeOuMb'
+  const oca = {
+    v: 'OCAB10JSON000106_',
+    d: said,
+    capture_base: {
+      d: said,
+      type: 'spec/capture_base/1.0',
+      classification: 'GICS:35102020',
+      attributes: {},
+      flagged_attributes: []
+    },
+    overlays: {}
+  } as OCABundle
+
+  const validator = new Validator()
+  const result = validator.validate(oca)
+
+  it('is not valid', () => {
+    expect(result.success).to.be.false
+    expect(result.errors).to.be.an('array').lengthOf(1)
+  })
+})
