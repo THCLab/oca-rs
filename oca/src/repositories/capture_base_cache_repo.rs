@@ -16,6 +16,12 @@ impl CaptureBaseCacheRecord {
     }
 }
 
+#[derive(Debug)]
+pub struct AllCaptureBaseRecord {
+    pub cache_record: Option<CaptureBaseCacheRecord>,
+    pub total: usize,
+}
+
 pub struct CaptureBaseCacheRepo {
     connection: Rc<rusqlite::Connection>,
 }
@@ -43,18 +49,41 @@ impl CaptureBaseCacheRepo {
             .execute(query, [&model.said, &model.capture_base]);
     }
 
-    pub fn fetch_all(&self, limit: i32) -> Vec<CaptureBaseCacheRecord> {
+    pub fn fetch_all(
+        &self,
+        limit: usize,
+        page: usize,
+    ) -> Vec<AllCaptureBaseRecord> {
+        let offset = (page - 1) * limit;
         let mut results = vec![];
         let query = "
-        SELECT *
+        SELECT results.*, count.total
+        FROM
+        (
+            SELECT COUNT(*) OVER() AS total
             FROM capture_base_cache
-            LIMIT ?1";
+        ) AS count
+        LEFT JOIN
+        (
+            SELECT *
+            FROM capture_base_cache
+            LIMIT ?1 OFFSET ?2
+        ) AS results
+        ON true
+        GROUP BY said";
         let mut statement = self.connection.prepare(query).unwrap();
         let models = statement
-            .query_map([limit], |row| {
-                Ok(CaptureBaseCacheRecord {
-                    said: row.get(0).unwrap(),
-                    capture_base: row.get(1).unwrap(),
+            .query_map([limit, offset], |row| {
+                let cache_record = row
+                    .get::<_, Option<String>>(0)
+                    .unwrap()
+                    .map(|said| CaptureBaseCacheRecord {
+                        said,
+                        capture_base: row.get(1).unwrap(),
+                    });
+                Ok(AllCaptureBaseRecord {
+                    cache_record,
+                    total: row.get(2).unwrap(),
                 })
             })
             .unwrap();

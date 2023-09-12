@@ -51,6 +51,18 @@ pub struct AllOCABundleMetadata {
     pub page: usize,
 }
 
+#[derive(Debug, Serialize)]
+pub struct AllCaptureBaseResult {
+    pub records: Vec<CaptureBase>,
+    pub metadata: AllCaptureBaseMetadata,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AllCaptureBaseMetadata {
+    pub total: usize,
+    pub page: usize,
+}
+
 impl Facade {
     pub fn search_oca_bundle(
         &self,
@@ -128,24 +140,33 @@ impl Facade {
     pub fn fetch_all_capture_base(
         &self,
         limit: usize,
-    ) -> Result<Vec<CaptureBase>, Vec<String>> {
+        page: usize,
+    ) -> Result<AllCaptureBaseResult, Vec<String>> {
         let mut capture_bases = vec![];
+        let mut total: usize = 0;
         let mut errors = vec![];
 
         let capture_base_cache_repo =
             crate::repositories::CaptureBaseCacheRepo::new(Rc::clone(
                 &self.connection,
             ));
-        let capture_base_cache_records =
-            capture_base_cache_repo.fetch_all(limit as i32);
-        for capture_base_cache_record in capture_base_cache_records {
-            match serde_json::from_str(&capture_base_cache_record.capture_base)
-            {
-                Ok(capture_base) => {
-                    capture_bases.push(capture_base);
-                }
-                Err(e) => {
-                    errors.push(format!("Failed to parse capture base: {}", e));
+        let all_capture_base_records =
+            capture_base_cache_repo.fetch_all(limit, page);
+        for all_capture_base_record in all_capture_base_records {
+            if total == 0 {
+                total = all_capture_base_record.total;
+            }
+            if let Some(cache_record) = all_capture_base_record.cache_record {
+                match serde_json::from_str(&cache_record.capture_base) {
+                    Ok(capture_base) => {
+                        capture_bases.push(capture_base);
+                    }
+                    Err(e) => {
+                        errors.push(format!(
+                            "Failed to parse capture base: {}",
+                            e
+                        ));
+                    }
                 }
             }
         }
@@ -153,7 +174,10 @@ impl Facade {
             return Err(errors);
         }
 
-        Ok(capture_bases)
+        Ok(AllCaptureBaseResult {
+            records: capture_bases,
+            metadata: AllCaptureBaseMetadata { total, page },
+        })
     }
 
     pub fn get_oca_bundle(&self, said: String) -> Result<OCABundle, Vec<String>> {
