@@ -39,6 +39,18 @@ pub struct SearchMetadata {
     pub page: usize,
 }
 
+#[derive(Debug, Serialize)]
+pub struct AllOCABundleResult {
+    pub records: Vec<OCABundle>,
+    pub metadata: AllOCABundleMetadata,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AllOCABundleMetadata {
+    pub total: usize,
+    pub page: usize,
+}
+
 impl Facade {
     pub fn search_oca_bundle(
         &self,
@@ -77,21 +89,29 @@ impl Facade {
     pub fn fetch_all_oca_bundle(
         &self,
         limit: usize,
-    ) -> Result<Vec<OCABundle>, Vec<String>> {
+        page: usize,
+    ) -> Result<AllOCABundleResult, Vec<String>> {
         let mut oca_bundles = vec![];
+        let mut total: usize = 0;
         let mut errors = vec![];
 
         let oca_bundle_cache_repo =
             OCABundleCacheRepo::new(Rc::clone(&self.connection));
-        let oca_bundle_cache_records =
-            oca_bundle_cache_repo.fetch_all(limit as i32);
-        for oca_bundle_cache_record in oca_bundle_cache_records {
-            match serde_json::from_str(&oca_bundle_cache_record.oca_bundle) {
-                Ok(oca_bundle) => {
-                    oca_bundles.push(oca_bundle);
-                }
-                Err(e) => {
-                    errors.push(format!("Failed to parse oca bundle: {}", e));
+        let all_oca_bundle_records =
+            oca_bundle_cache_repo.fetch_all(limit, page);
+        for all_oca_bundle_record in all_oca_bundle_records {
+            if total == 0 {
+                total = all_oca_bundle_record.total;
+            }
+            if let Some(cache_record) = all_oca_bundle_record.cache_record {
+                match serde_json::from_str(&cache_record.oca_bundle) {
+                    Ok(oca_bundle) => {
+                        oca_bundles.push(oca_bundle);
+                    }
+                    Err(e) => {
+                        errors
+                            .push(format!("Failed to parse oca bundle: {}", e));
+                    }
                 }
             }
         }
@@ -99,7 +119,10 @@ impl Facade {
             return Err(errors);
         }
 
-        Ok(oca_bundles)
+        Ok(AllOCABundleResult {
+            records: oca_bundles,
+            metadata: AllOCABundleMetadata { total, page },
+        })
     }
 
     pub fn fetch_all_capture_base(

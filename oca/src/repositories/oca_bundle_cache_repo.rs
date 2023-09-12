@@ -17,6 +17,12 @@ impl OCABundleCacheRecord {
     }
 }
 
+#[derive(Debug)]
+pub struct AllOCABundleRecord {
+    pub cache_record: Option<OCABundleCacheRecord>,
+    pub total: usize,
+}
+
 pub struct OCABundleCacheRepo {
     connection: Rc<rusqlite::Connection>,
 }
@@ -44,18 +50,41 @@ impl OCABundleCacheRepo {
             .execute(query, [&model.said, &model.oca_bundle]);
     }
 
-    pub fn fetch_all(&self, limit: i32) -> Vec<OCABundleCacheRecord> {
+    pub fn fetch_all(
+        &self,
+        limit: usize,
+        page: usize,
+    ) -> Vec<AllOCABundleRecord> {
+        let offset = (page - 1) * limit;
         let mut results = vec![];
         let query = "
-        SELECT *
+        SELECT results.*, count.total
+        FROM
+        (
+            SELECT COUNT(*) OVER() AS total
             FROM oca_bundle_cache
-            LIMIT ?1";
+        ) AS count
+        LEFT JOIN
+        (
+            SELECT *
+            FROM oca_bundle_cache
+            LIMIT ?1 OFFSET ?2
+        ) AS results
+        ON true
+        GROUP BY said";
         let mut statement = self.connection.prepare(query).unwrap();
         let models = statement
-            .query_map([limit], |row| {
-                Ok(OCABundleCacheRecord {
-                    said: row.get(0).unwrap(),
-                    oca_bundle: row.get(1).unwrap(),
+            .query_map([limit, offset], |row| {
+                let cache_record = row
+                    .get::<_, Option<String>>(0)
+                    .unwrap()
+                    .map(|said| OCABundleCacheRecord {
+                        said,
+                        oca_bundle: row.get(1).unwrap(),
+                    });
+                Ok(AllOCABundleRecord {
+                    cache_record,
+                    total: row.get(2).unwrap(),
                 })
             })
             .unwrap();
