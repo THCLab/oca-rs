@@ -120,6 +120,8 @@ impl Facade {
             ).unwrap();
         });
 
+        let _ = self.add_relations(oca_build.oca_bundle.clone());
+
         let result_models = build_core_db_model(&oca_build);
         result_models.iter().for_each(|model| {
             if let Some(command_model) = &model.command {

@@ -5,6 +5,7 @@ pub enum Namespace {
     OCA,
     OCAJsonCache,
     CoreModel,
+    OCARelations,
 }
 
 impl Namespace {
@@ -13,6 +14,7 @@ impl Namespace {
             Self::OCA => "oca",
             Self::OCAJsonCache => "oca_json_cache",
             Self::CoreModel => "core_model",
+            Self::OCARelations => "oca_relations",
         }
     }
 }

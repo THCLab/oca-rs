@@ -4,6 +4,7 @@ use std::rc::Rc;
 
 mod build;
 mod fetch;
+mod explore;
 
 pub struct Facade {
     db: Box<dyn DataStorage>,
