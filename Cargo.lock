@@ -427,6 +427,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "dirs"
+version = "5.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44c45a9d03d6676652bcb5e724c7e988de1acad23a711b5217ab9cbecbec2225"
+dependencies = [
+ "dirs-sys",
+]
+
+[[package]]
+name = "dirs-sys"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "520f05a5cbd335fae5a99ff7a6ab8627577660ee5cfd6a94a6a929b52ff0321c"
+dependencies = [
+ "libc",
+ "option-ext",
+ "redox_users",
+ "windows-sys",
+]
+
+[[package]]
 name = "dyn-clonable"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -541,6 +562,17 @@ checksum = "85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a"
 dependencies = [
  "typenum",
  "version_check",
+]
+
+[[package]]
+name = "getrandom"
+version = "0.2.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be4136b2a15dd319360be1c07d9933517ccf0be8f16bf62a3bee4f0d618df427"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "wasi 0.11.0+wasi-snapshot-preview1",
 ]
 
 [[package]]
@@ -955,15 +987,17 @@ dependencies = [
 
 [[package]]
 name = "oca-rs"
-version = "0.3.0-rc.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97f9caf92973f4574f6f062f2440c15fb3ae738ba4b23eae3be72d321e2f6d58"
+version = "0.3.0-rc.16"
 dependencies = [
  "convert_case",
  "dyn-clonable",
+ "isolang",
  "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "oca-bundle 0.3.0-rc.8",
+ "oca-dag 0.3.0-rc.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "oca-file 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex",
+ "rusqlite",
  "serde",
  "serde_json",
  "sled",
@@ -972,6 +1006,8 @@ dependencies = [
 [[package]]
 name = "oca-rs"
 version = "0.3.0-rc.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "26207e65c0efce7b39aed3baba2da0622189d484b8492760715413528f291f05"
 dependencies = [
  "convert_case",
  "dyn-clonable",
@@ -992,9 +1028,10 @@ name = "ocatool"
 version = "0.1.0"
 dependencies = [
  "clap 4.3.11",
+ "dirs",
  "env_logger",
  "log",
- "oca-rs 0.3.0-rc.8",
+ "oca-rs 0.3.0-rc.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
  "serde_json",
 ]
@@ -1010,6 +1047,12 @@ name = "opaque-debug"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
+
+[[package]]
+name = "option-ext"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
 name = "ordered-float"
@@ -1160,6 +1203,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fb5a58c1855b4b6819d59012155603f0b22ad30cad752600aadfcb695265519a"
 dependencies = [
  "bitflags 1.3.2",
+]
+
+[[package]]
+name = "redox_users"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b033d837a7cf162d7993aded9304e30a83213c648b6e389db233191f891e5c2b"
+dependencies = [
+ "getrandom",
+ "redox_syscall",
+ "thiserror",
 ]
 
 [[package]]
@@ -1526,7 +1580,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b797afad3f312d1c66a56d11d0316f916356d11bd158fbc6ca6389ff6bf805a"
 dependencies = [
  "libc",
- "wasi",
+ "wasi 0.10.0+wasi-snapshot-preview1",
  "winapi",
 ]
 
@@ -1589,6 +1643,12 @@ name = "wasi"
 version = "0.10.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a143597ca7c7793eff794def352d41792a93c481eb1042423ff7ff72ba2c31f"
+
+[[package]]
+name = "wasi"
+version = "0.11.0+wasi-snapshot-preview1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
 
 [[package]]
 name = "wasm-bindgen"
