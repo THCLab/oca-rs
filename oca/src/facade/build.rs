@@ -105,7 +105,6 @@ impl Facade {
             }
 
             let command_str = serde_json::to_string(&step.command).unwrap();
-            input.push(command_str.as_bytes().len().try_into().unwrap());
             input.extend(command_str.as_bytes());
             let result_bundle = step.result.clone();
             self.db.insert(
