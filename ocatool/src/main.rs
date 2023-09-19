@@ -109,11 +109,12 @@ fn main() {
             // maybe we could get better naming for it
             let result = facade.build_from_ocafile(unparsed_file);
 
-
             if let Ok(oca_bundle) = result {
                 let serialized_bundle = serde_json::to_string_pretty(&oca_bundle).unwrap();
                 fs::write("output".to_string() + ".ocabundle", serialized_bundle).expect("Unable to write file");
                 println!("OCA bundle created in local repository with SCID: {:?}", oca_bundle.said.unwrap());
+            } else {
+                println!("{:?}", result);
             }
         }
         Some(Commands::Publish { repository: _ }) => {
