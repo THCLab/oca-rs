@@ -329,6 +329,8 @@ impl Facade {
                                                         }
                                                     }).collect::<Vec<String>>().join(", ");
                                                     line.push_str(format!("{}=[{}] ", key, codes).as_str());
+                                                } else if let oca_ast::ast::NestedValue::Value(said) = value {
+                                                    line.push_str(format!("{}=\"{}\" ", key, said).as_str());
                                                 }
                                             });
                                         }
@@ -364,6 +366,8 @@ impl Facade {
                                                         }
                                                     }).collect::<Vec<String>>().join(", ");
                                                     line.push_str(format!("{}={{ {} }} ", key, codes).as_str());
+                                                } else if let oca_ast::ast::NestedValue::Value(said) = value {
+                                                    line.push_str(format!("{}=\"{}\" ", key, said).as_str());
                                                 }
                                             });
                                         }
@@ -414,5 +418,42 @@ impl Facade {
         });
 
         Ok(ocafile)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::data_storage::InMemoryDataStorage;
+    use crate::repositories::SQLiteConfig;
+
+    #[test]
+    fn facade_get_ocafile() -> Result<(), Vec<String>> {
+        let db = InMemoryDataStorage::new();
+        let cache_storage_config = SQLiteConfig::build().unwrap();
+        let mut facade = Facade::new(Box::new(db), cache_storage_config);
+        let ocafile_input = r#"
+ADD ATTRIBUTE d=Text i=Text passed=Boolean
+ADD META en PROPS description="Entrance credential" name="Entrance credential"
+ADD CHARACTER_ENCODING ATTRS d="utf-8" i="utf-8" passed="utf-8"
+ADD CONFORMANCE ATTRS d="M" i="M" passed="M"
+ADD LABEL en ATTRS d="Schema digest" i="Credential Issuee" passed="Passed"
+ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables or disables passing"
+ADD FORMAT ATTRS d="image/jpeg"
+ADD UNIT si ATTRS i=m
+ADD ATTRIBUTE list=Array[Text] el=Text
+ADD CARDINALITY ATTRS list="1-2"
+ADD ENTRY_CODE ATTRS list="entry_code_said" el=["o1", "o2", "o3"]
+ADD ENTRY en ATTRS list="entry_said" el={"o1": "o1_label", "o2": "o2_label", "o3": "o3_label"}
+"#.to_string();
+        let oca_bundle = facade.build_from_ocafile(ocafile_input)?;
+
+        let ocafile = facade.get_oca_bundle_ocafile(
+            oca_bundle.said.clone().unwrap().to_string(),
+        )?;
+        let new_oca_bundle = facade.build_from_ocafile(ocafile)?;
+
+        assert_eq!(oca_bundle.said, new_oca_bundle.said);
+        Ok(())
     }
 }
