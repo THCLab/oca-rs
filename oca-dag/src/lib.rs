@@ -2,7 +2,6 @@ pub mod build;
 pub mod data_storage;
 pub mod versioning;
 
-use convert_case::{Case, Casing};
 use oca_ast::ast;
 use said::{derivation::HashFunction, SelfAddressingIdentifier};
 use std::collections::HashMap;
@@ -139,10 +138,8 @@ fn apply_step(
             }
 
             let overlay = step.result.overlays.iter().find(|overlay| {
-                overlay.overlay_type().contains(&format!(
-                    "/{}/",
-                    overlay_type.to_string().to_case(Case::Snake)
-                )) && overlay.language() == lang.as_ref()
+                overlay.overlay_type().eq(overlay_type)
+                  && overlay.language() == lang.as_ref()
             });
 
             if let Some(overlay) = overlay {
@@ -154,7 +151,7 @@ fn apply_step(
                             lang.to_639_1().unwrap()
                         )
                     }
-                    None => overlay.overlay_type().clone(),
+                    None => format!("{}", overlay.overlay_type()),
                 };
                 let parent_overlay = state.overlays.get(&overlay_key);
                 let overlay_model = OverlayModel {
