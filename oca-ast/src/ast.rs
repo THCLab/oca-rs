@@ -35,7 +35,7 @@ pub enum CommandType {
     From,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum ObjectKind {
     CaptureBase,
     OCABundle,
@@ -87,7 +87,7 @@ impl FromStr for AttributeType {
     }
 }
 
-#[derive(Debug, PartialEq, Display, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Display, Clone)]
 pub enum OverlayType {
     Label,
     Information,
@@ -260,6 +260,63 @@ impl Serialize for ObjectKind {
             ObjectKind::Overlay(overlay_type) => {
                 serializer.serialize_str(overlay_type.to_string().as_str())
             }
+        }
+    }
+}
+
+impl From<u8> for ObjectKind {
+    fn from(val: u8) -> Self {
+        match val {
+            0 => ObjectKind::CaptureBase,
+            1 => ObjectKind::OCABundle,
+            2 => ObjectKind::Overlay(OverlayType::Label),
+            3 => ObjectKind::Overlay(OverlayType::Information),
+            4 => ObjectKind::Overlay(OverlayType::Encoding),
+            5 => ObjectKind::Overlay(OverlayType::CharacterEncoding),
+            6 => ObjectKind::Overlay(OverlayType::Format),
+            7 => ObjectKind::Overlay(OverlayType::Meta),
+            8 => ObjectKind::Overlay(OverlayType::Standard),
+            9 => ObjectKind::Overlay(OverlayType::Cardinality),
+            10 => ObjectKind::Overlay(OverlayType::Conditional),
+            11 => ObjectKind::Overlay(OverlayType::Conformance),
+            12 => ObjectKind::Overlay(OverlayType::EntryCode),
+            13 => ObjectKind::Overlay(OverlayType::Entry),
+            14 => ObjectKind::Overlay(OverlayType::Unit),
+            15 => ObjectKind::Overlay(OverlayType::AttributeMapping),
+            16 => ObjectKind::Overlay(OverlayType::EntryCodeMapping),
+            17 => ObjectKind::Overlay(OverlayType::Subset),
+            18 => ObjectKind::Overlay(OverlayType::UnitMapping),
+            19 => ObjectKind::Overlay(OverlayType::Layout),
+            20 => ObjectKind::Overlay(OverlayType::Sensitivity),
+            _ => panic!("Unknown object type"),
+        }
+    }
+}
+
+impl From<ObjectKind> for u8 {
+    fn from(val: ObjectKind) -> Self {
+        match val {
+            ObjectKind::CaptureBase => 0,
+            ObjectKind::OCABundle => 1,
+            ObjectKind::Overlay(OverlayType::Label) => 2,
+            ObjectKind::Overlay(OverlayType::Information) => 3,
+            ObjectKind::Overlay(OverlayType::Encoding) => 4,
+            ObjectKind::Overlay(OverlayType::CharacterEncoding) => 5,
+            ObjectKind::Overlay(OverlayType::Format) => 6,
+            ObjectKind::Overlay(OverlayType::Meta) => 7,
+            ObjectKind::Overlay(OverlayType::Standard) => 8,
+            ObjectKind::Overlay(OverlayType::Cardinality) => 9,
+            ObjectKind::Overlay(OverlayType::Conditional) => 10,
+            ObjectKind::Overlay(OverlayType::Conformance) => 11,
+            ObjectKind::Overlay(OverlayType::EntryCode) => 12,
+            ObjectKind::Overlay(OverlayType::Entry) => 13,
+            ObjectKind::Overlay(OverlayType::Unit) => 14,
+            ObjectKind::Overlay(OverlayType::AttributeMapping) => 15,
+            ObjectKind::Overlay(OverlayType::EntryCodeMapping) => 16,
+            ObjectKind::Overlay(OverlayType::Subset) => 17,
+            ObjectKind::Overlay(OverlayType::UnitMapping) => 18,
+            ObjectKind::Overlay(OverlayType::Layout) => 19,
+            ObjectKind::Overlay(OverlayType::Sensitivity) => 20,
         }
     }
 }
