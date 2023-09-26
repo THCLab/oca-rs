@@ -832,9 +832,7 @@ dependencies = [
 
 [[package]]
 name = "oca-ast"
-version = "0.3.0-rc.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12a114e03cd91a2a0994ee8f6b3c7166f6ca1d437b38028c1f8389107a6b1075"
+version = "0.3.0-rc.7"
 dependencies = [
  "env_logger",
  "indexmap 1.9.3",
@@ -850,6 +848,8 @@ dependencies = [
 [[package]]
 name = "oca-ast"
 version = "0.3.0-rc.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b0c1ca6a2a2ffb5e981065e3feec958f1122f498b2651a270c0d84abcb824538"
 dependencies = [
  "env_logger",
  "indexmap 1.9.3",
@@ -864,34 +864,10 @@ dependencies = [
 
 [[package]]
 name = "oca-bundle"
-version = "0.3.0-rc.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "456b278ff11d3cb90c361840cfefdf44766ce377e3538e6d5d105ca725fff087"
-dependencies = [
- "cascade",
- "dyn-clonable",
- "erased-serde",
- "indexmap 1.9.3",
- "isolang",
- "lazy_static",
- "linked-hash-map",
- "oca-ast 0.3.0-rc.6",
- "paste",
- "regex",
- "said",
- "serde",
- "serde-value",
- "serde_json",
- "serde_yaml",
- "urn",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "oca-bundle"
 version = "0.3.0-rc.9"
 dependencies = [
  "cascade",
+ "convert_case",
  "dyn-clonable",
  "erased-serde",
  "indexmap 1.9.3",
@@ -899,7 +875,7 @@ dependencies = [
  "lazy_static",
  "linked-hash-map",
  "maplit",
- "oca-ast 0.3.0-rc.6",
+ "oca-ast 0.3.0-rc.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "paste",
  "regex",
  "said",
@@ -915,30 +891,11 @@ dependencies = [
 name = "oca-dag"
 version = "0.3.0-rc.2"
 dependencies = [
- "convert_case",
  "dyn-clonable",
  "indexmap 1.9.3",
  "isolang",
- "oca-ast 0.3.0-rc.6",
- "oca-bundle 0.3.0-rc.8",
- "said",
- "serde",
- "serde_json",
- "sled",
-]
-
-[[package]]
-name = "oca-dag"
-version = "0.3.0-rc.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c2da7c27ed1cce3569824c3aba22918a23537f86e6ed45751c3f929bd8ab170"
-dependencies = [
- "convert_case",
- "dyn-clonable",
- "indexmap 1.9.3",
- "isolang",
- "oca-ast 0.3.0-rc.6",
- "oca-bundle 0.3.0-rc.8",
+ "oca-ast 0.3.0-rc.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-bundle",
  "said",
  "serde",
  "serde_json",
@@ -953,28 +910,7 @@ dependencies = [
  "env_logger",
  "indexmap 1.9.3",
  "log",
- "oca-ast 0.3.0-rc.6",
- "pest",
- "pest_derive",
- "pretty_assertions",
- "said",
- "serde",
- "serde_json",
- "sled",
- "thiserror",
-]
-
-[[package]]
-name = "oca-file"
-version = "0.3.0-rc.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f9fae8db802e191f819c35356ea3fd947022ee99cda96d023a1b857f9cd66fd"
-dependencies = [
- "clap 4.3.11",
- "env_logger",
- "indexmap 1.9.3",
- "log",
- "oca-ast 0.3.0-rc.6",
+ "oca-ast 0.3.0-rc.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "pest",
  "pest_derive",
  "pretty_assertions",
@@ -992,30 +928,10 @@ dependencies = [
  "convert_case",
  "dyn-clonable",
  "isolang",
- "oca-ast 0.3.0-rc.6",
- "oca-bundle 0.3.0-rc.8",
- "oca-dag 0.3.0-rc.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "oca-file 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "regex",
- "rusqlite",
- "serde",
- "serde_json",
- "sled",
-]
-
-[[package]]
-name = "oca-rs"
-version = "0.3.0-rc.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26207e65c0efce7b39aed3baba2da0622189d484b8492760715413528f291f05"
-dependencies = [
- "convert_case",
- "dyn-clonable",
- "isolang",
- "oca-ast 0.3.0-rc.6",
- "oca-bundle 0.3.0-rc.8",
- "oca-dag 0.3.0-rc.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "oca-file 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.3.0-rc.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-bundle",
+ "oca-dag",
+ "oca-file",
  "regex",
  "rusqlite",
  "serde",
@@ -1031,7 +947,7 @@ dependencies = [
  "dirs",
  "env_logger",
  "log",
- "oca-rs 0.3.0-rc.16 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-rs",
  "serde",
  "serde_json",
 ]
