@@ -833,6 +833,8 @@ dependencies = [
 [[package]]
 name = "oca-ast"
 version = "0.3.0-rc.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12a114e03cd91a2a0994ee8f6b3c7166f6ca1d437b38028c1f8389107a6b1075"
 dependencies = [
  "env_logger",
  "indexmap 1.9.3",
@@ -847,9 +849,7 @@ dependencies = [
 
 [[package]]
 name = "oca-ast"
-version = "0.3.0-rc.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12a114e03cd91a2a0994ee8f6b3c7166f6ca1d437b38028c1f8389107a6b1075"
+version = "0.3.0-rc.7"
 dependencies = [
  "env_logger",
  "indexmap 1.9.3",
@@ -875,7 +875,7 @@ dependencies = [
  "isolang",
  "lazy_static",
  "linked-hash-map",
- "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.3.0-rc.6",
  "paste",
  "regex",
  "said",
@@ -899,7 +899,7 @@ dependencies = [
  "lazy_static",
  "linked-hash-map",
  "maplit",
- "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.3.0-rc.6",
  "paste",
  "regex",
  "said",
@@ -919,7 +919,7 @@ dependencies = [
  "dyn-clonable",
  "indexmap 1.9.3",
  "isolang",
- "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.3.0-rc.6",
  "oca-bundle 0.3.0-rc.8",
  "said",
  "serde",
@@ -937,7 +937,7 @@ dependencies = [
  "dyn-clonable",
  "indexmap 1.9.3",
  "isolang",
- "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.3.0-rc.6",
  "oca-bundle 0.3.0-rc.8",
  "said",
  "serde",
@@ -953,7 +953,7 @@ dependencies = [
  "env_logger",
  "indexmap 1.9.3",
  "log",
- "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.3.0-rc.6",
  "pest",
  "pest_derive",
  "pretty_assertions",
@@ -974,7 +974,7 @@ dependencies = [
  "env_logger",
  "indexmap 1.9.3",
  "log",
- "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.3.0-rc.6",
  "pest",
  "pest_derive",
  "pretty_assertions",
@@ -992,7 +992,7 @@ dependencies = [
  "convert_case",
  "dyn-clonable",
  "isolang",
- "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.3.0-rc.6",
  "oca-bundle 0.3.0-rc.8",
  "oca-dag 0.3.0-rc.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "oca-file 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1012,7 +1012,7 @@ dependencies = [
  "convert_case",
  "dyn-clonable",
  "isolang",
- "oca-ast 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-ast 0.3.0-rc.6",
  "oca-bundle 0.3.0-rc.8",
  "oca-dag 0.3.0-rc.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "oca-file 0.3.0-rc.6 (registry+https://github.com/rust-lang/crates.io-index)",
