@@ -1,6 +1,7 @@
 use crate::data_storage::Namespace;
 use oca_bundle::state::oca::OCABundle;
-use serde::Serialize;
+use oca_ast::ast::ObjectKind;
+use serde::{Serialize, ser::SerializeStruct};
 use std::collections::HashSet;
 
 use super::Facade;
@@ -28,7 +29,7 @@ impl Facade {
         self.db.insert(
             Namespace::OCARelations,
             &format!("{}.metadata", oca_bundle.said.clone().unwrap()),
-            &[OCAObjectType::OCABundle as u8],
+            &[ObjectKind::OCABundle.into()],
         )?;
         self.db.insert(
             Namespace::OCARelations,
@@ -36,13 +37,13 @@ impl Facade {
                 "{}.metadata",
                 oca_bundle.capture_base.said.clone().unwrap()
             ),
-            &[OCAObjectType::CaptureBase as u8],
+            &[ObjectKind::CaptureBase.into()],
         )?;
         oca_bundle.overlays.iter().for_each(|overlay| {
             let _ = self.db.insert(
                 Namespace::OCARelations,
                 &format!("{}.metadata", overlay.said().clone().unwrap()),
-                &[OCAObjectType::Overlay as u8],
+                &[ObjectKind::Overlay(overlay.overlay_type().clone()).into()],
             );
         });
 
@@ -118,7 +119,7 @@ impl Facade {
         Ok(())
     }
 
-    fn object_type(&self, said: String) -> OCAObjectType {
+    fn object_type(&self, said: String) -> ObjectKind {
         let object_type = self
             .db
             .get(Namespace::OCARelations, &format!("{}.metadata", said))
@@ -149,10 +150,10 @@ impl Relationship {
 
 impl From<Relationship> for Vec<u8> {
     fn from(val: Relationship) -> Self {
-        let mut result = Vec::new();
+        let mut result: Vec<u8> = Vec::new();
 
         val.relations.iter().for_each(|object| {
-            result.push(object.object_type.clone() as u8);
+            result.push(object.object_type.clone().into());
             result.push(object.said.len().try_into().unwrap());
             result.extend(object.said.as_bytes());
         });
@@ -165,7 +166,7 @@ impl From<Vec<u8>> for Relationship {
     fn from(val: Vec<u8>) -> Self {
         let mut result = Relationship::new(OCAObject {
             said: "".to_string(),
-            object_type: OCAObjectType::OCABundle,
+            object_type: ObjectKind::OCABundle,
         });
 
         let mut tmp_val = val.clone();
@@ -193,10 +194,37 @@ impl From<Vec<u8>> for OCAObject {
     }
 }
 
-#[derive(Eq, PartialEq, Hash, Clone)]
+#[derive(Eq, PartialEq, Hash, Clone, Debug)]
 pub struct OCAObject {
     pub said: String,
-    pub object_type: OCAObjectType,
+    pub object_type: ObjectKind,
+}
+
+impl Serialize for OCAObject {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where S: serde::Serializer {
+        #[derive(Serialize)]
+        struct OverlayMetadata {
+            kind: ObjectKind,
+        }
+
+        let mut state = serializer.serialize_struct("OCAObject", 3)?;
+        state.serialize_field("said", &self.said)?;
+        match &self.object_type {
+            ObjectKind::OCABundle |
+            ObjectKind::CaptureBase =>  {
+                state.serialize_field("object_type", &self.object_type)?
+            },
+            ObjectKind::Overlay(_) => {
+                state.serialize_field("object_type", "Overlay")?;
+                let overlay_metadata = OverlayMetadata {
+                    kind: self.object_type.clone(),
+                };
+                state.serialize_field("metadata", &overlay_metadata)?
+            }
+        }
+        state.end()
+    }
 }
 
 impl OCAObject {
@@ -204,24 +232,6 @@ impl OCAObject {
         Self {
             said: said.clone(),
             object_type: facade.object_type(said),
-        }
-    }
-}
-
-#[derive(Eq, PartialEq, Hash, Clone, Serialize)]
-pub enum OCAObjectType {
-    OCABundle,
-    CaptureBase,
-    Overlay,
-}
-
-impl From<u8> for OCAObjectType {
-    fn from(val: u8) -> Self {
-        match val {
-            0 => OCAObjectType::OCABundle,
-            1 => OCAObjectType::CaptureBase,
-            2 => OCAObjectType::Overlay,
-            _ => panic!("Unknown object type"),
         }
     }
 }
