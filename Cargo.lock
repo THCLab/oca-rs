@@ -987,7 +987,7 @@ dependencies = [
 
 [[package]]
 name = "oca-rs"
-version = "0.3.0-rc.16"
+version = "0.3.0-rc.17"
 dependencies = [
  "convert_case",
  "dyn-clonable",
