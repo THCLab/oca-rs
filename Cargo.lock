@@ -864,7 +864,7 @@ dependencies = [
 
 [[package]]
 name = "oca-bundle"
-version = "0.3.0-rc.9"
+version = "0.3.0-rc.10"
 dependencies = [
  "cascade",
  "convert_case",
