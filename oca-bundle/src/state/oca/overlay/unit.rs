@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
 use std::any::Any;
 use std::collections::HashMap;
 use said::{sad::SAD, sad::SerializationFormats};
+use oca_ast::ast::OverlayType;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, Hash, PartialEq)]
 pub enum MeasurementSystem {
@@ -200,7 +201,7 @@ pub struct UnitOverlay {
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
-    overlay_type: String,
+    overlay_type: OverlayType,
     capture_base: Option<said::SelfAddressingIdentifier>,
     pub measurement_system: MeasurementSystem,
     #[serde(serialize_with = "serialize_attributes")]
@@ -220,7 +221,7 @@ impl Overlay for UnitOverlay {
     fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.said
     }
-    fn overlay_type(&self) -> &String {
+    fn overlay_type(&self) -> &OverlayType {
         &self.overlay_type
     }
 
@@ -242,7 +243,7 @@ impl UnitOverlay {
         UnitOverlay {
             capture_base: None,
             said: None,
-            overlay_type: "spec/overlays/unit/1.0".to_string(),
+            overlay_type: OverlayType::Unit,
             measurement_system,
             attribute_units: HashMap::new(),
         }

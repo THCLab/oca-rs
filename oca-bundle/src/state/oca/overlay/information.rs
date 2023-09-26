@@ -4,6 +4,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use isolang::Language;
 use said::{sad::SAD, sad::SerializationFormats};
+use oca_ast::ast::OverlayType;
 
 pub trait Information {
     fn set_information(&mut self, l: Language, information: String);
@@ -42,7 +43,7 @@ pub struct InformationOverlay {
     said: Option<said::SelfAddressingIdentifier>,
     language: Language,
     #[serde(rename = "type")]
-    overlay_type: String,
+    overlay_type: OverlayType,
     capture_base: Option<said::SelfAddressingIdentifier>,
     #[serde(serialize_with = "serialize_attributes")]
     pub attribute_information: HashMap<String, String>,
@@ -58,7 +59,7 @@ impl Overlay for InformationOverlay {
     fn set_capture_base(&mut self, said: &said::SelfAddressingIdentifier) {
         self.capture_base = Some(said.clone());
     }
-    fn overlay_type(&self) -> &String {
+    fn overlay_type(&self) -> &OverlayType {
         &self.overlay_type
     }
     fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
@@ -85,7 +86,7 @@ impl InformationOverlay {
         InformationOverlay {
             capture_base: None,
             said: None,
-            overlay_type: "spec/overlays/information/1.0".to_string(),
+            overlay_type: OverlayType::Information,
             language: lang,
             attribute_information: HashMap::new(),
         }

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::HashMap;
 use said::{sad::SAD, sad::SerializationFormats};
+use oca_ast::ast::OverlayType;
 
 pub(crate) trait StandardAttribute {
     fn add_standard(&mut self, standard: Standard);
@@ -28,7 +29,7 @@ pub struct StandardOverlay {
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
-    overlay_type: String,
+    overlay_type: OverlayType,
     capture_base: Option<said::SelfAddressingIdentifier>,
     pub attribute_standards: HashMap<String, Standard>,
 }
@@ -46,7 +47,7 @@ impl Overlay for StandardOverlay {
     fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.said
     }
-    fn overlay_type(&self) -> &String {
+    fn overlay_type(&self) -> &OverlayType {
         &self.overlay_type
     }
     fn attributes(&self) -> Vec<&String> {
@@ -66,7 +67,7 @@ impl StandardOverlay {
         Box::new(StandardOverlay {
             capture_base: None,
             said: None,
-            overlay_type: "spec/overlays/standard/1.0".to_string(),
+            overlay_type: OverlayType::Standard,
             attribute_standards: HashMap::new(),
         })
     }

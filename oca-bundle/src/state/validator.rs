@@ -2,6 +2,7 @@ use crate::state::oca::overlay::Overlay;
 use crate::state::oca::DynOverlay;
 use std::collections::HashSet;
 use isolang::Language;
+use oca_ast::ast::OverlayType;
 
 use super::oca::{OCABundle, overlay};
 
@@ -143,14 +144,15 @@ impl Validator {
                 }
             }
 
-            for overlay_type in &["entry", "information", "label"] {
+            for overlay_type in &[
+                OverlayType::Entry,
+                OverlayType::Information,
+                OverlayType::Label
+            ] {
                 let typed_overlays: Vec<_> = oca_bundle
                     .overlays
                     .iter()
-                    .filter(|x| {
-                        x.overlay_type()
-                            .contains(format!("/{overlay_type}/").as_str())
-                    })
+                    .filter(|x| x.overlay_type().eq(overlay_type))
                     .collect();
                 if typed_overlays.is_empty() {
                     continue;

@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::BTreeMap;
 use said::{sad::SAD, sad::SerializationFormats};
+use oca_ast::ast::OverlayType;
 
 #[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct EntryCodeMappingOverlay {
@@ -11,7 +12,7 @@ pub struct EntryCodeMappingOverlay {
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
-    overlay_type: String,
+    overlay_type: OverlayType,
     pub attribute_entry_codes_mapping: BTreeMap<String, Vec<String>>,
 }
 
@@ -28,7 +29,7 @@ impl Overlay for EntryCodeMappingOverlay {
     fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.said
     }
-    fn overlay_type(&self) -> &String {
+    fn overlay_type(&self) -> &OverlayType {
         &self.overlay_type
     }
     fn attributes(&self) -> Vec<&String> {
@@ -51,7 +52,7 @@ impl EntryCodeMappingOverlay {
         Box::new(EntryCodeMappingOverlay {
             capture_base: None,
             said: None,
-            overlay_type: "spec/overlays/entry_code_mapping/1.0".to_string(),
+            overlay_type: OverlayType::EntryCodeMapping,
             attribute_entry_codes_mapping: BTreeMap::new(),
         })
     }

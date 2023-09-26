@@ -8,6 +8,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use isolang::Language;
 use said::{sad::SAD, sad::SerializationFormats};
+use oca_ast::ast::OverlayType;
 
 pub trait Metas {
     fn add_meta(&mut self, language: Language, key: String, value: String);
@@ -58,7 +59,7 @@ pub struct MetaOverlay {
     said: Option<said::SelfAddressingIdentifier>,
     pub language: Language,
     #[serde(rename = "type")]
-    overlay_type: String,
+    overlay_type: OverlayType,
     capture_base: Option<said::SelfAddressingIdentifier>,
     #[serde(flatten, serialize_with = "serialize_attributes")]
     pub attr_pairs: HashMap<String, String>,
@@ -78,7 +79,7 @@ impl Overlay for MetaOverlay {
     fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.said
     }
-    fn overlay_type(&self) -> &String {
+    fn overlay_type(&self) -> &OverlayType {
         &self.overlay_type
     }
     fn language(&self) -> Option<&Language> {
@@ -96,7 +97,7 @@ impl MetaOverlay {
         Self {
             capture_base: None,
             said: None,
-            overlay_type: "spec/overlays/meta/1.0".to_string(),
+            overlay_type: OverlayType::Meta,
             language: lang,
             attr_pairs,
         }

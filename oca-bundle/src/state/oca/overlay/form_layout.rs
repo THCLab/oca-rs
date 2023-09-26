@@ -3,6 +3,7 @@ use crate::state::{attribute::Attribute, oca::layout::form::Layout, oca::Overlay
 use serde::{Deserialize, Serialize};
 use std::any::Any;
 use said::{sad::SAD, sad::SerializationFormats};
+use oca_ast::ast::OverlayType;
 
 pub trait FormLayouts {
     fn add_form_layout(&mut self, layout_str: String);
@@ -30,7 +31,7 @@ pub struct FormLayoutOverlay {
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
-    overlay_type: String,
+    overlay_type: OverlayType,
     capture_base: Option<said::SelfAddressingIdentifier>,
     pub layout: Layout,
 }
@@ -45,7 +46,7 @@ impl Overlay for FormLayoutOverlay {
     fn set_capture_base(&mut self, said: &said::SelfAddressingIdentifier) {
         self.capture_base = Some(said.clone());
     }
-    fn overlay_type(&self) -> &String {
+    fn overlay_type(&self) -> &OverlayType {
         &self.overlay_type
     }
     fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
@@ -63,7 +64,7 @@ impl FormLayoutOverlay {
         Self {
             capture_base: None,
             said: None,
-            overlay_type: "spec/overlays/form_layout/1.0".to_string(),
+            overlay_type: OverlayType::Layout,
             layout,
         }
     }

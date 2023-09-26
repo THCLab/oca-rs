@@ -2,6 +2,7 @@ use crate::state::{attribute::Attribute, oca::Overlay};
 use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::BTreeMap;
+use oca_ast::ast::OverlayType;
 
 use said::{sad::SAD, sad::SerializationFormats};
 
@@ -11,7 +12,7 @@ pub struct AttributeMappingOverlay {
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
-    overlay_type: String,
+    overlay_type: OverlayType,
     capture_base: Option<said::SelfAddressingIdentifier>,
     pub attribute_mapping: BTreeMap<String, String>,
 }
@@ -29,7 +30,7 @@ impl Overlay for AttributeMappingOverlay {
     fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.said
     }
-    fn overlay_type(&self) -> &String {
+    fn overlay_type(&self) -> &OverlayType {
         &self.overlay_type
     }
     fn attributes(&self) -> Vec<&String> {
@@ -50,7 +51,7 @@ impl AttributeMappingOverlay {
         Box::new(AttributeMappingOverlay {
             capture_base: None,
             said: None,
-            overlay_type: "spec/overlays/mapping/1.0".to_string(),
+            overlay_type: OverlayType::AttributeMapping,
             attribute_mapping: BTreeMap::new(),
         })
     }

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap, ser::Serializ
 use std::any::Any;
 use std::collections::HashMap;
 use said::{sad::SAD, sad::SerializationFormats};
+use oca_ast::ast::OverlayType;
 
 pub trait Labels {
     fn set_label(&mut self, l: Language, label: String);
@@ -72,7 +73,7 @@ pub struct LabelOverlay {
     said: Option<said::SelfAddressingIdentifier>,
     language: Language,
     #[serde(rename = "type")]
-    overlay_type: String,
+    overlay_type: OverlayType,
     capture_base: Option<said::SelfAddressingIdentifier>,
     #[serde(serialize_with = "serialize_labels")]
     pub attribute_labels: HashMap<String, String>,
@@ -94,7 +95,7 @@ impl Overlay for LabelOverlay {
     fn set_capture_base(&mut self, said: &said::SelfAddressingIdentifier) {
         self.capture_base = Some(said.clone());
     }
-    fn overlay_type(&self) -> &String {
+    fn overlay_type(&self) -> &OverlayType {
         &self.overlay_type
     }
     fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
@@ -129,7 +130,7 @@ impl LabelOverlay {
         LabelOverlay {
             capture_base: None,
             said: None,
-            overlay_type: "spec/overlays/label/1.0".to_string(),
+            overlay_type: OverlayType::Label,
             language: lang,
             attribute_labels: HashMap::new(),
             attribute_categories: vec![],
@@ -203,7 +204,7 @@ mod tests {
         // even that attribute has 2 lagnuage only one attribute should be added to the overlay according to it's language
         overlay.add(&attr);
 
-        assert_eq!(overlay.overlay_type, "spec/overlays/label/1.0");
+        assert_eq!(overlay.overlay_type, OverlayType::Label);
         assert_eq!(overlay.language, Language::Eng);
         assert_eq!(overlay.attribute_labels.len(), 1);
         assert_eq!(overlay.category_labels.len(), 1);

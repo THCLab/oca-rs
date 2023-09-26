@@ -6,6 +6,7 @@ use std::any::Any;
 use std::collections::HashMap;
 use isolang::Language;
 use said::{sad::SAD, sad::SerializationFormats};
+use oca_ast::ast::OverlayType;
 
 pub trait Entries {
     fn set_entry(&mut self, l: Language, entry: EntriesElement);
@@ -44,7 +45,7 @@ pub struct EntryOverlay {
     said: Option<said::SelfAddressingIdentifier>,
     language: Language,
     #[serde(rename = "type")]
-    overlay_type: String,
+    overlay_type: OverlayType,
     capture_base: Option<said::SelfAddressingIdentifier>,
     #[serde(serialize_with = "serialize_attributes")]
     pub attribute_entries: HashMap<String, EntriesElement>,
@@ -63,7 +64,7 @@ impl Overlay for EntryOverlay {
     fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.said
     }
-    fn overlay_type(&self) -> &String {
+    fn overlay_type(&self) -> &OverlayType {
         &self.overlay_type
     }
     fn language(&self) -> Option<&Language> {
@@ -87,7 +88,7 @@ impl EntryOverlay {
         EntryOverlay {
             capture_base: None,
             said: None,
-            overlay_type: "spec/overlays/entry/1.0".to_string(),
+            overlay_type: OverlayType::Entry,
             language: lang,
             attribute_entries: HashMap::new(),
         }

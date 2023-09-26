@@ -50,7 +50,7 @@ pub trait Overlay: erased_serde::Serialize + Clone + SAD {
     fn capture_base(&self) -> &Option<said::SelfAddressingIdentifier>;
     fn set_capture_base(&mut self, said: &said::SelfAddressingIdentifier);
     fn said(&self) -> &Option<said::SelfAddressingIdentifier>;
-    fn overlay_type(&self) -> &String;
+    fn overlay_type(&self) -> &oca_ast::ast::OverlayType;
     fn language(&self) -> Option<&Language> {
         None
     }
@@ -102,7 +102,7 @@ macro_rules! overlay {
                 #[serde(rename = "d")]
                 said: Option<said::SelfAddressingIdentifier>,
                 #[serde(rename = "type")]
-                overlay_type: String,
+                overlay_type: oca_ast::ast::OverlayType,
                 capture_base: Option<said::SelfAddressingIdentifier>,
                 #[serde(serialize_with = "serialize_attributes")]
                 pub $field1: std::collections::HashMap<String, $field2_type>
@@ -112,7 +112,7 @@ macro_rules! overlay {
                 fn as_any(&self) -> &dyn std::any::Any {
                     self
                 }
-                fn overlay_type(&self) -> &String {
+                fn overlay_type(&self) -> &oca_ast::ast::OverlayType {
                     &self.overlay_type
                 }
                 fn capture_base(&self) -> &Option<said::SelfAddressingIdentifier> {
@@ -146,7 +146,7 @@ macro_rules! overlay {
                     Self {
                         capture_base: None,
                         said: None,
-                        overlay_type: format!("spec/overlays/{}/1.0", stringify!([<$name:snake:lower>])),
+                        overlay_type: oca_ast::ast::OverlayType::$name,
                         $field1: std::collections::HashMap::new(),
 
                     }

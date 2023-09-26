@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::BTreeMap;
 use said::{sad::SAD, sad::SerializationFormats};
+use oca_ast::ast::OverlayType;
 
 #[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct ConditionalOverlay {
@@ -10,7 +11,7 @@ pub struct ConditionalOverlay {
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
-    overlay_type: String,
+    overlay_type: OverlayType,
     capture_base: Option<said::SelfAddressingIdentifier>,
     pub attribute_conditions: BTreeMap<String, String>,
     pub attribute_dependencies: BTreeMap<String, Vec<String>>,
@@ -29,7 +30,7 @@ impl Overlay for ConditionalOverlay {
     fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.said
     }
-    fn overlay_type(&self) -> &String {
+    fn overlay_type(&self) -> &OverlayType {
         &self.overlay_type
     }
     fn attributes(&self) -> Vec<&String> {
@@ -56,7 +57,7 @@ impl ConditionalOverlay {
         Box::new(ConditionalOverlay {
             capture_base: None,
             said: None,
-            overlay_type: "spec/overlays/conditional/1.0".to_string(),
+            overlay_type: OverlayType::Conditional,
             attribute_conditions: BTreeMap::new(),
             attribute_dependencies: BTreeMap::new(),
         })

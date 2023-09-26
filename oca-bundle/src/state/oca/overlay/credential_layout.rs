@@ -3,6 +3,7 @@ use crate::state::{attribute::Attribute, oca::layout::credential::Layout, oca::O
 use serde::{Deserialize, Serialize};
 use std::any::Any;
 use said::{sad::SAD, sad::SerializationFormats};
+use oca_ast::ast::OverlayType;
 
 pub trait CredentialLayouts {
     fn add_credential_layout(&mut self, layout_str: String);
@@ -30,7 +31,7 @@ pub struct CredentialLayoutOverlay {
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
-    overlay_type: String,
+    overlay_type: OverlayType,
     capture_base: Option<said::SelfAddressingIdentifier>,
     pub layout: Layout,
 }
@@ -48,7 +49,7 @@ impl Overlay for CredentialLayoutOverlay {
     fn said(&self) -> &Option<said::SelfAddressingIdentifier> {
         &self.said
     }
-    fn overlay_type(&self) -> &String {
+    fn overlay_type(&self) -> &OverlayType {
         &self.overlay_type
     }
     fn attributes(&self) -> Vec<&String> {
@@ -63,7 +64,7 @@ impl CredentialLayoutOverlay {
         Self {
             capture_base: None,
             said: None,
-            overlay_type: "spec/overlays/credential_layout/1.0".to_string(),
+            overlay_type: OverlayType::Layout,
             layout,
         }
     }
