@@ -117,6 +117,19 @@ impl Facade {
                 &format!("oca.{}", result_bundle.said.clone().unwrap()),
                 &result_bundle.encode().unwrap(),
             ).unwrap();
+
+            self.db.insert(
+                Namespace::OCAJsonCache,
+                &format!("{}", result_bundle.capture_base.said.clone().unwrap()),
+                &serde_json::to_string(&result_bundle.capture_base).unwrap().into_bytes(),
+            ).unwrap();
+            result_bundle.overlays.iter().for_each(|overlay| {
+                self.db.insert(
+                    Namespace::OCAJsonCache,
+                    &format!("{}", overlay.said().clone().unwrap()),
+                    &serde_json::to_string(&overlay).unwrap().into_bytes(),
+                ).unwrap();
+            });
         });
 
         let _ = self.add_relations(oca_build.oca_bundle.clone());

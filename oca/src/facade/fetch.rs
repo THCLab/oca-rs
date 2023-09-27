@@ -4,13 +4,23 @@ use crate::{
     data_storage::DataStorage,
     repositories::{OCABundleCacheRepo, OCABundleFTSRepo},
 };
+use oca_ast::ast::ObjectKind;
 use oca_bundle::build::OCABuildStep;
-use oca_bundle::state::oca::{capture_base::CaptureBase, OCABundle};
+use oca_bundle::state::oca::{
+    capture_base::CaptureBase, DynOverlay, OCABundle,
+};
 
 use std::rc::Rc;
 
 use convert_case::{Case, Casing};
 use serde::Serialize;
+
+#[derive(Debug, Serialize)]
+#[serde(untagged)]
+pub enum OCAObject {
+    CaptureBase(CaptureBase),
+    Overlay(DynOverlay),
+}
 
 #[derive(Debug, Serialize)]
 pub struct SearchResult {
@@ -180,6 +190,66 @@ impl Facade {
         })
     }
 
+    pub fn get_oca_objects(
+        &self,
+        saids: Vec<String>,
+    ) -> Result<Vec<OCAObject>, Vec<String>> {
+        let mut result: Vec<OCAObject> = vec![];
+        let mut errors: Vec<String> = vec![];
+
+        for said in saids {
+            let r = self
+                .db
+                .get(Namespace::OCAJsonCache, &said)
+                .map_err(|e| {
+                    errors.push(e.to_string());
+                    errors.clone()
+                })?;
+            let object_str = String::from_utf8(r.ok_or_else(|| {
+                errors.push(format!("No OCA Object found for said: {}", said));
+                errors.clone()
+            })?)
+            .unwrap();
+            let r_type = self
+                .db
+                .get(Namespace::OCARelations, &format!("{}.metadata", said))
+                .map_err(|e| {
+                    errors.push(e.to_string());
+                    errors.clone()
+                })?;
+            let o_type: ObjectKind = (*r_type.unwrap().first().unwrap()).into();
+            match o_type {
+                ObjectKind::CaptureBase => result.push(OCAObject::CaptureBase(
+                    serde_json::from_str::<CaptureBase>(&object_str)
+                        .map_err(|e| {
+                            errors.push(format!(
+                                "Failed to parse OCA object: {}",
+                                e
+                            ));
+                            errors.clone()
+                        })?,
+                )),
+                ObjectKind::Overlay(_) => result.push(OCAObject::Overlay(
+                    serde_json::from_str::<DynOverlay>(&object_str)
+                        .map_err(|e| {
+                            errors.push(format!(
+                                "Failed to parse OCA object: {}",
+                                e
+                            ));
+                            errors.clone()
+                        })?,
+                )),
+                _ => {}
+            };
+        }
+
+        if !errors.is_empty() {
+            return Err(errors);
+        }
+
+        Ok(result)
+    }
+
     pub fn get_oca_bundle(&self, said: String) -> Result<OCABundle, Vec<String>> {
         let r = self.db.get(Namespace::OCAJsonCache, &format!("oca.{}", said)).map_err(|e| vec![format!("{}", e)])?;
         let oca_bundle_str = String::from_utf8(
@@ -243,7 +313,7 @@ impl Facade {
             if let oca_ast::ast::CommandType::Add = step.command.kind {
                 line.push_str("ADD ");
                 match &step.command.object_kind {
-                    oca_ast::ast::ObjectKind::CaptureBase => {
+                    ObjectKind::CaptureBase => {
                         if let Some(ref content) = step.command.content {
                             if let Some(ref attributes) = content.attributes {
                                 line.push_str("ATTRIBUTE ");
@@ -255,7 +325,7 @@ impl Facade {
                             }
                         };
                     },
-                    oca_ast::ast::ObjectKind::Overlay(o_type) => {
+                    ObjectKind::Overlay(o_type) => {
                         match o_type {
                             oca_ast::ast::OverlayType::Meta => {
                                 line.push_str("META ");
