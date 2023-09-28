@@ -17,6 +17,7 @@ pub mod standard;
 pub mod subset;
 pub mod unit;
 
+pub use oca_ast::ast::OverlayType;
 pub use self::attribute_mapping::AttributeMappingOverlay as AttributeMapping;
 pub use self::cardinality::CardinalityOverlay as Cardinality;
 pub use self::character_encoding::CharacterEncodingOverlay as CharacterEncoding;
@@ -37,7 +38,7 @@ pub use self::subset::SubsetOverlay as Subset;
 
 pub use self::unit::UnitOverlay as Unit;
 use crate::state::attribute::Attribute;
-use said::{sad::SAD};
+use said::sad::SAD;
 use std::any::Any;
 use isolang::Language;
 erased_serde::serialize_trait_object!(Overlay);
@@ -50,7 +51,7 @@ pub trait Overlay: erased_serde::Serialize + Clone + SAD {
     fn capture_base(&self) -> &Option<said::SelfAddressingIdentifier>;
     fn set_capture_base(&mut self, said: &said::SelfAddressingIdentifier);
     fn said(&self) -> &Option<said::SelfAddressingIdentifier>;
-    fn overlay_type(&self) -> &oca_ast::ast::OverlayType;
+    fn overlay_type(&self) -> &OverlayType;
     fn language(&self) -> Option<&Language> {
         None
     }
