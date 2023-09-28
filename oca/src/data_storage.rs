@@ -188,3 +188,105 @@ impl DataStorage for InMemoryDataStorage {
         Ok(())
     }
 }
+
+#[derive(Clone)]
+pub struct FileSystemStorage {
+    dir: Option<PathBuf>,
+}
+
+#[derive(Clone)]
+pub struct FileSystemStorageConfig {
+    pub path: String,
+}
+
+impl FileSystemStorageConfig {
+    pub fn build() -> FileSystemStorageConfigBuilder {
+        FileSystemStorageConfigBuilder { path: None }
+    }
+}
+
+pub struct FileSystemStorageConfigBuilder {
+    path: Option<PathBuf>,
+}
+
+impl FileSystemStorageConfigBuilder {
+    pub fn path(mut self, path: PathBuf) -> Self {
+        self.path = Some(path);
+        self
+    }
+
+    pub fn finalize(&self) -> Result<HashMap<String, String>, String> {
+        let mut config = HashMap::new();
+
+        match &self.path {
+            Some(path) => config.insert(
+                "path".to_string(),
+                path.clone()
+                    .into_os_string()
+                    .into_string()
+                    .map_err(|e| e.into_string().unwrap())?,
+            ),
+            None => return Err("path is required".to_string()),
+        };
+
+        Ok(config)
+    }
+
+    pub fn unwrap(&self) -> HashMap<String, String> {
+        self.finalize().unwrap()
+    }
+}
+
+impl DataStorage for FileSystemStorage {
+    fn new() -> Self {
+        Self { dir: None }
+    }
+
+    fn config(&self, config: HashMap<String, String>) -> Self {
+        if let Some(path) = config.get("path") {
+            return Self {
+                dir: Some(PathBuf::from(path)),
+            };
+        }
+        self.clone()
+    }
+
+    fn get(
+        &self,
+        namespace: Namespace,
+        key: &str,
+    ) -> Result<Option<Vec<u8>>, String> {
+        if let Some(ref dir) = self.dir {
+            let mut path = dir.clone();
+            path.push(namespace.as_str());
+            if path.try_exists().unwrap() {
+                path.push(key);
+                Ok(std::fs::read(path.clone()).ok())
+            } else {
+                Ok(None)
+            }
+        } else {
+            Err("File path is required".to_string())
+        }
+    }
+
+    fn insert(
+        &mut self,
+        namespace: Namespace,
+        key: &str,
+        value: &[u8],
+    ) -> Result<(), String> {
+        if let Some(ref dir) = self.dir {
+            let mut path = dir.clone();
+            path.push(namespace.as_str());
+            if !path.try_exists().unwrap() {
+                std::fs::create_dir_all(path.clone()).unwrap();
+            }
+
+            path.push(key);
+            std::fs::write(path.clone(), value).map_err(|e| e.to_string())
+        } else {
+            Err("File path is required".to_string())
+        }
+    }
+}
