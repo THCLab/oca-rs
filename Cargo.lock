@@ -988,6 +988,8 @@ dependencies = [
 [[package]]
 name = "oca-rs"
 version = "0.3.0-rc.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7728ac3d9540e023e7412575aee4f4c8e58d3045bd0f18d7b394484f75aa567a"
 dependencies = [
  "convert_case",
  "dyn-clonable",
@@ -1005,9 +1007,7 @@ dependencies = [
 
 [[package]]
 name = "oca-rs"
-version = "0.3.0-rc.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7728ac3d9540e023e7412575aee4f4c8e58d3045bd0f18d7b394484f75aa567a"
+version = "0.3.0-rc.18"
 dependencies = [
  "convert_case",
  "dyn-clonable",
@@ -1031,7 +1031,7 @@ dependencies = [
  "dirs",
  "env_logger",
  "log",
- "oca-rs 0.3.0-rc.17 (registry+https://github.com/rust-lang/crates.io-index)",
+ "oca-rs 0.3.0-rc.17",
  "serde",
  "serde_json",
 ]
