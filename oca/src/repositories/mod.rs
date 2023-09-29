@@ -9,7 +9,7 @@ use std::path::PathBuf;
 
 #[derive(Clone)]
 pub struct SQLiteConfig {
-    pub path: String,
+    pub path: Option<PathBuf>,
 }
 
 impl SQLiteConfig {
@@ -24,25 +24,14 @@ pub struct SQLiteConfigBuilder {
 
 impl SQLiteConfigBuilder {
     pub fn path(mut self, path: PathBuf) -> Self {
-        self.path = Some(path.join("search_data.db"));
+        self.path = Some(path);
         self
     }
 
     pub fn finalize(&self) -> Result<SQLiteConfig, String> {
-        let mut config = SQLiteConfig {
-            path: "".to_string(),
-        };
-
-        config.path = match &self.path {
-            Some(path) => path
-                .clone()
-                .into_os_string()
-                .into_string()
-                .map_err(|e| e.into_string().unwrap())?,
-            None => ":memory:".to_string(),
-        };
-
-        Ok(config)
+        Ok(SQLiteConfig {
+            path: self.path.clone(),
+        })
     }
 
     pub fn unwrap(&self) -> SQLiteConfig {

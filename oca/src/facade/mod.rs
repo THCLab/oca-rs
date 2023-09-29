@@ -3,8 +3,8 @@ use crate::repositories::SQLiteConfig;
 use std::rc::Rc;
 
 mod build;
-mod fetch;
 mod explore;
+mod fetch;
 
 pub struct Facade {
     db: Box<dyn DataStorage>,
@@ -16,9 +16,21 @@ impl Facade {
         db: Box<dyn DataStorage>,
         cache_storage_config: SQLiteConfig,
     ) -> Self {
-        let conn =
-            rusqlite::Connection::open(cache_storage_config.path.clone())
-                .unwrap();
+        let cache_path: String = match cache_storage_config.path {
+            Some(path) => {
+                if !path.try_exists().unwrap() {
+                    std::fs::create_dir_all(path.clone()).unwrap();
+                }
+                path.join("search_data.db")
+                    .clone()
+                    .into_os_string()
+                    .into_string()
+                    .unwrap()
+            }
+            None => ":memory:".to_string(),
+        };
+
+        let conn = rusqlite::Connection::open(cache_path).unwrap();
         Self {
             db,
             connection: Rc::new(conn),
