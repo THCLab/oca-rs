@@ -3,7 +3,8 @@ use std::{collections::HashMap, path::PathBuf};
 
 pub enum Namespace {
     OCA,
-    OCAJsonCache,
+    OCABundlesJSON,
+    OCAObjectsJSON,
     CoreModel,
     OCARelations,
 }
@@ -12,7 +13,8 @@ impl Namespace {
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::OCA => "oca",
-            Self::OCAJsonCache => "oca_json_cache",
+            Self::OCABundlesJSON => "oca_bundles_json",
+            Self::OCAObjectsJSON => "oca_objects_json",
             Self::CoreModel => "core_model",
             Self::OCARelations => "oca_relations",
         }

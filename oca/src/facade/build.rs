@@ -112,21 +112,21 @@ impl Facade {
                 &format!("oca.{}.operation", result_bundle.said.clone().unwrap()),
                 &input,
             ).unwrap();
-            self.db.insert(
-                Namespace::OCAJsonCache,
-                &format!("oca.{}", result_bundle.said.clone().unwrap()),
+
+            self.db_cache.insert(
+                Namespace::OCABundlesJSON,
+                &result_bundle.said.clone().unwrap().to_string(),
                 &result_bundle.encode().unwrap(),
             ).unwrap();
-
-            self.db.insert(
-                Namespace::OCAJsonCache,
-                &format!("{}", result_bundle.capture_base.said.clone().unwrap()),
+            self.db_cache.insert(
+                Namespace::OCAObjectsJSON,
+                &result_bundle.capture_base.said.clone().unwrap().to_string(),
                 &serde_json::to_string(&result_bundle.capture_base).unwrap().into_bytes(),
             ).unwrap();
             result_bundle.overlays.iter().for_each(|overlay| {
-                self.db.insert(
-                    Namespace::OCAJsonCache,
-                    &format!("{}", overlay.said().clone().unwrap()),
+                self.db_cache.insert(
+                    Namespace::OCAObjectsJSON,
+                    &overlay.said().clone().unwrap().to_string(),
                     &serde_json::to_string(&overlay).unwrap().into_bytes(),
                 ).unwrap();
             });

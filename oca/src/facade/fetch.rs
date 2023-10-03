@@ -199,8 +199,8 @@ impl Facade {
 
         for said in saids {
             let r = self
-                .db
-                .get(Namespace::OCAJsonCache, &said)
+                .db_cache
+                .get(Namespace::OCAObjectsJSON, &said)
                 .map_err(|e| {
                     errors.push(e.to_string());
                     errors.clone()
@@ -251,7 +251,7 @@ impl Facade {
     }
 
     pub fn get_oca_bundle(&self, said: String) -> Result<OCABundle, Vec<String>> {
-        let r = self.db.get(Namespace::OCAJsonCache, &format!("oca.{}", said)).map_err(|e| vec![format!("{}", e)])?;
+        let r = self.db_cache.get(Namespace::OCABundlesJSON, &said).map_err(|e| vec![format!("{}", e)])?;
         let oca_bundle_str = String::from_utf8(
             r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?
         ).unwrap();
@@ -500,8 +500,9 @@ mod test {
     #[test]
     fn facade_get_ocafile() -> Result<(), Vec<String>> {
         let db = InMemoryDataStorage::new();
+        let db_cache = InMemoryDataStorage::new();
         let cache_storage_config = SQLiteConfig::build().unwrap();
-        let mut facade = Facade::new(Box::new(db), cache_storage_config);
+        let mut facade = Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
         let ocafile_input = r#"
 ADD ATTRIBUTE d=Text i=Text passed=Boolean
 ADD META en PROPS description="Entrance credential" name="Entrance credential"
