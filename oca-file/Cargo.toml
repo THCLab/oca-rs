@@ -7,7 +7,6 @@ license = "EUPL-1.2"
 readme = "README.md"
 description = "Rust implementation of OCAFile"
 
-
 [lib]
 name = "oca_file"
 path = "src/lib.rs"

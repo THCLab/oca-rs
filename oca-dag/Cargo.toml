@@ -2,10 +2,15 @@
 name = "oca-dag"
 version = "0.3.0-rc.21"
 edition = "2021"
-authors = ["Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>", "Robert Mitwicki <robert.mitwicki@opensoftware.pl>", "Michał Pietrus <michal.pietrus@opensoftware.pl>"]
+authors = [
+  "Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>",
+  "Robert Mitwicki <robert.mitwicki@opensoftware.pl>",
+  "Michał Pietrus <michal.pietrus@opensoftware.pl>",
+]
 license = "EUPL-1.2"
 readme = "README.md"
 description = "Rust implementation of OCA DAG"
+include = ["src/**/*", "LICENSE", "README.md"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -15,13 +20,13 @@ path = "src/lib.rs"
 
 [dependencies]
 dyn-clonable = "0.9.0"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-sled = "0.34.7"
-said = { version = "0.3.0", features = ["macros"] }
+indexmap = { version = "1.9.3", features = ["serde"] }
+isolang = { version = "2.3.0", features = ["serde"] }
+oca-ast = { version = "0.3.0-rc.21", path = "../oca-ast" }
 oca-bundle = { version = "0.3.0-rc.21", path = "../oca-bundle", features = [
   "format_overlay",
 ] }
-oca-ast = { version = "0.3.0-rc.21", path = "../oca-ast" }
-indexmap = { version = "1.9.3", features = ["serde"]}
-isolang = { version = "2.3.0", features = ["serde"] }
+said = { version = "0.3.0", features = ["macros"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sled = "0.34.7"

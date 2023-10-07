@@ -1,7 +1,16 @@
 [package]
 name = "oca-js"
+description = "Bindings for the OCA in JavaScript"
 version = "0.3.0-rc.21"
-edition = "2018"
+license = "EUPL-1.2"
+edition = "2021"
+authors = [
+  "Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>",
+  "Robert Mitwicki <robert.mitwicki@opensoftware.pl>",
+  "Michał Pietrus <michal.pietrus@opensoftware.pl>",
+]
+readme = "README.md"
+include = ["src/**/*", "README.md"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
