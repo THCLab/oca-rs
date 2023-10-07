@@ -1,6 +1,6 @@
 [package]
 name = "oca-rs"
-version = "0.3.0-rc.20"
+version = "0.3.0-rc.21"
 edition = "2021"
 authors = ["Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>", "Robert Mitwicki <robert.mitwicki@opensoftware.pl>", "Michał Pietrus <michal.pietrus@opensoftware.pl>"]
 license = "EUPL-1.2"
@@ -15,12 +15,12 @@ path = "src/lib.rs"
 convert_case = "0.6.0"
 dyn-clonable = "0.9.0"
 isolang = "2.3.0"
-oca-ast = { version = "0.3.0-rc.20", path = "../oca-ast" }
-oca-bundle = { version = "0.3.0-rc.20", path = "../oca-bundle", features = [
+oca-ast = { version = "0.3.0-rc.21", path = "../oca-ast" }
+oca-bundle = { version = "0.3.0-rc.21", path = "../oca-bundle", features = [
   "format_overlay",
 ] }
-oca-dag = { version = "0.3.0-rc.20", path = "../oca-dag" }
-oca-file = { version = "0.3.0-rc.20", path = "../oca-file" }
+oca-dag = { version = "0.3.0-rc.21", path = "../oca-dag" }
+oca-file = { version = "0.3.0-rc.21", path = "../oca-file" }
 regex = "1.9.5"
 rusqlite = "0.29.0"
 serde = { version = "1.0", features = ["derive"] }
