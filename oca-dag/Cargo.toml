@@ -22,6 +22,6 @@ said = { version = "0.3.0", features = ["macros"] }
 oca-bundle = { version = "0.3.0-rc.10", path = "../oca-bundle", features = [
   "format_overlay",
 ] }
-oca-ast = "0.3.0-rc.7"
+oca-ast = { version = "0.3.0-rc.7", path = "../oca-ast" }
 indexmap = { version = "1.9.3", features = ["serde"]}
 isolang = { version = "2.3.0", features = ["serde"] }
