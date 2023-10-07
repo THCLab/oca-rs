@@ -63,9 +63,9 @@ enum Commands {
 fn create_or_open_local_storage(path: PathBuf) -> SledDataStorage {
     // TODO use PathBuf in SqlConfig to be more platform independent
    let config = SledDataStorageConfig::build().path(path).unwrap();
-   let db = SledDataStorage::new()
-                .config(config);
-   db
+
+   SledDataStorage::new()
+                .config(config)
 }
 
 
