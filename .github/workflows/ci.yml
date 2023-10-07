@@ -1,0 +1,194 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v*"
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all-features --verbose
+
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features --verbose
+
+  clippy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-features --verbose
+
+  test_oca-bundle_wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: wasm32-unknown-unknown
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli --version 0.2.85
+      - name: Build wasm
+        working-directory: oca-bundle/bindings/js/wasm
+        run: bash build-pkg.sh
+      - working-directory: oca-bundle/bindings/js/example
+        run: yarn install
+      - working-directory: oca-bundle/bindings/js/example
+        run: yarn test
+
+  publish_oca-ast:
+    runs-on: ubuntu-22.04
+    if: github.ref_type == 'tag'
+    needs: [check, test, clippy]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: katyo/publish-crates@v1
+        with:
+          path: "./oca-ast"
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  publish_oca-bundle:
+    runs-on: ubuntu-22.04
+    if: github.ref_type == 'tag'
+    needs:
+      - publish_oca-ast
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: katyo/publish-crates@v1
+        with:
+          path: "./oca-bundle"
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  publish_oca-bundle_wasm:
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    needs:
+      - test_oca-bundle_wasm
+      - publish_oca-bundle
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: wasm32-unknown-unknown
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli --version 0.2.85
+      - name: Build wasm
+        working-directory: oca-bundle/bindings/js/wasm
+        run: bash build-pkg.sh
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "12.x"
+          registry-url: "https://registry.npmjs.org"
+      - working-directory: oca-bundle/bindings/js/example
+        run: yarn install
+      - working-directory: oca-bundle/bindings/js/example
+        run: yarn test
+      - working-directory: oca-bundle/bindings/js/wasm/pkg
+        run: yarn install
+      - working-directory: oca-bundle/bindings/js/wasm/pkg
+        run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish_oca-file:
+    runs-on: ubuntu-22.04
+    if: github.ref_type == 'tag'
+    needs:
+      - publish_oca-ast
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: katyo/publish-crates@v1
+        with:
+          path: "./oca-file"
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  publish_oca-dag:
+    runs-on: ubuntu-22.04
+    if: github.ref_type == 'tag'
+    needs:
+      - publish_oca-ast
+      - publish_oca-bundle
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: katyo/publish-crates@v1
+        with:
+          path: "./oca-dag"
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  publish_oca-rs:
+    runs-on: ubuntu-22.04
+    if: github.ref_type == 'tag'
+    needs:
+      - publish_oca-ast
+      - publish_oca-bundle
+      - publish_oca-dag
+      - publish_oca-file
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: katyo/publish-crates@v1
+        with:
+          path: "./oca"
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
