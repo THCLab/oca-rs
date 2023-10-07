@@ -11,10 +11,10 @@ use oca_bundle::state::oca::overlay::label::Labels;
 use std::str::FromStr;
 use std::collections::HashMap;
 use oca_ast::ast;
-use oca_bundle::state::{oca::OCABox, oca::OCABundle, encoding::Encoding, attribute::{Attribute, AttributeType}, entry_codes::EntryCodes as EntryCodesValue, entries::EntriesElement};
+use oca_bundle::state::{oca::OCABox, encoding::Encoding, attribute::{Attribute, AttributeType}, entry_codes::EntryCodes as EntryCodesValue, entries::EntriesElement};
 
 pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> OCABox {
-    let mut digests: Vec<u8> = Vec::new();
+    let _digests: Vec<u8> = Vec::new();
 
     let mut oca: OCABox = match base {
         Some(oca) => oca,
@@ -166,15 +166,14 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> OCABox {
                                             let mut attribute = oca.attributes.get(attr_name).unwrap().clone();
                                             if let ast::NestedValue::Value(attr_unit) = attr_type_value {
 
-                                                let mut unit = None;
-                                                match unit_system {
+                                                let unit = match unit_system {
                                                     MeasurementSystem::Metric => {
-                                                        unit = Some(MeasurementUnit::Metric(MetricUnit::from_str(attr_unit).unwrap_or_else(|_| panic!("Invalid metric unit: {attr_unit}"))))
+                                                        Some(MeasurementUnit::Metric(MetricUnit::from_str(attr_unit).unwrap_or_else(|_| panic!("Invalid metric unit: {attr_unit}"))))
                                                     },
                                                     MeasurementSystem::Imperial => {
-                                                        unit = Some(MeasurementUnit::Imperial(ImperialUnit::from_str(attr_unit).unwrap_or_else(|_| panic!("Invalid imperial unit: {attr_unit}"))))
+                                                        Some(MeasurementUnit::Imperial(ImperialUnit::from_str(attr_unit).unwrap_or_else(|_| panic!("Invalid imperial unit: {attr_unit}"))))
                                                     }
-                                                }
+                                                };
                                                 attribute.set_unit(
                                                     AttributeUnit {
                                                         measurement_system: unit_system.clone(),

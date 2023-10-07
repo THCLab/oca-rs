@@ -6,6 +6,7 @@ pub struct Graph {
     pub db: Box<dyn DataStorage>,
 }
 
+#[allow(dead_code)]
 impl Graph {
     fn new(db: Box<dyn DataStorage>) -> Self {
         Self {
@@ -58,17 +59,16 @@ mod tests {
     use crate::data_storage::{ DataStorage, SledDataStorage };
 
     #[test]
-    #[ignore]
     fn test_history() {
         let db = SledDataStorage::open("db_test");
         let graph = Graph::new(Box::new(db));
-        graph.add("dag1", None);
-        graph.add("dag2", Some("dag1"));
-        graph.add("dag3", Some("dag2"));
-        graph.add("dag4", Some("dag2"));
-        graph.add("dag5", Some("dag4"));
+        let _ = graph.add("dag1", None);
+        let _ = graph.add("dag2", Some("dag1"));
+        let _ = graph.add("dag3", Some("dag2"));
+        let _ = graph.add("dag4", Some("dag2"));
+        let _ = graph.add("dag5", Some("dag4"));
 
-        dbg!(graph.db.get("dag1.upscending"));
+        /* dbg!(graph.db.get("dag1.upscending"));
         dbg!(graph.db.get("dag1.downscending"));
         dbg!(graph.db.get("dag2.upscending"));
         dbg!(graph.db.get("dag2.downscending"));
@@ -77,6 +77,6 @@ mod tests {
         dbg!(graph.db.get("dag4.upscending"));
         dbg!(graph.db.get("dag4.downscending"));
         dbg!(graph.db.get("dag5.upscending"));
-        dbg!(graph.db.get("dag5.downscending"));
+        dbg!(graph.db.get("dag5.downscending")); */
     }
 }

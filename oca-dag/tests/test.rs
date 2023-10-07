@@ -36,11 +36,11 @@ fn generate_commands() -> Vec<ast::Command> {
 
 #[test]
 fn test() {
-    let commands = generate_commands();
+    let _commands = generate_commands();
 
     // FROM base
-    let oca_bundle: Option<OCABundle> = None;
-    let db = SledDataStorage::open("db_test");
+    let _oca_bundle: Option<OCABundle> = None;
+    let _db = SledDataStorage::open("db_test");
     /*
     let oca_dag_manager = OCADagManager::new(oca_bundle, db);
 

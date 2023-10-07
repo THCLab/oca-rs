@@ -4,6 +4,7 @@ struct OCABundleDTO {
     bundle: OCABundle
 }
 
+#[allow(dead_code)]
 impl OCABundleDTO {
     fn new(bundle: OCABundle) -> Self {
         Self {
@@ -12,15 +13,15 @@ impl OCABundleDTO {
     }
 }
 
-impl Into<Vec<u8>> for OCABundleDTO {
-    fn into(self) -> Vec<u8> {
+impl From<OCABundleDTO> for Vec<u8> {
+    fn from(val: OCABundleDTO) -> Self {
         let mut digests: Vec<u8> = Vec::new();
-        if let Some(ref said) = self.bundle.capture_base.said {
+        if let Some(ref said) = val.bundle.capture_base.said {
             digests.push(said.to_string().as_bytes().len().try_into().unwrap());
             digests.extend(said.to_string().as_bytes());
         }
 
-        self.bundle.overlays.iter().for_each(|overlay| {
+        val.bundle.overlays.iter().for_each(|overlay| {
             if let Some(ref said) = overlay.said() {
                 digests.push(said.to_string().as_bytes().len().try_into().unwrap());
                 // digests.push(overlay.overlay_type().into());
