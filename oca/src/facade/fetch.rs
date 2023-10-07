@@ -517,12 +517,12 @@ ADD CARDINALITY ATTRS list="1-2"
 ADD ENTRY_CODE ATTRS list="entry_code_said" el=["o1", "o2", "o3"]
 ADD ENTRY en ATTRS list="entry_said" el={"o1": "o1_label", "o2": "o2_label", "o3": "o3_label"}
 "#.to_string();
-        let oca_bundle = facade.build_from_ocafile(ocafile_input)?;
+        let oca_bundle = facade.build_from_ocafile(ocafile_input).unwrap();
 
         let ocafile = facade.get_oca_bundle_ocafile(
             oca_bundle.said.clone().unwrap().to_string(),
         )?;
-        let new_oca_bundle = facade.build_from_ocafile(ocafile)?;
+        let new_oca_bundle = facade.build_from_ocafile(ocafile).unwrap();
 
         assert_eq!(oca_bundle.said, new_oca_bundle.said);
         Ok(())

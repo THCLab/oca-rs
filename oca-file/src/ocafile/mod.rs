@@ -33,9 +33,38 @@ impl TryFromPair for Command {
     }
 }
 
-pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, String> {
+#[derive(thiserror::Error, Debug, serde::Serialize)]
+#[serde(untagged)]
+pub enum ParseError {
+    #[error("Error at line {line_number} ({raw_line}): {message}")]
+    GrammarError {
+        #[serde(rename = "ln")]
+        line_number: usize,
+        #[serde(rename = "col")]
+        column_number: usize,
+        #[serde(rename = "c")]
+        raw_line: String,
+        #[serde(rename = "e")]
+        message: String,
+    },
+    #[error("{0}")]
+    Custom(String),
+}
+
+pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
     let file = OCAfileParser::parse(Rule::file, &unparsed_file)
-        .map_err(|e| e.to_string())?
+        .map_err(|e| {
+            let (line_number, column_number) = match e.line_col {
+                pest::error::LineColLocation::Pos((line, column)) => (line, column),
+                pest::error::LineColLocation::Span((line, column), _) => (line, column),
+            };
+            ParseError::GrammarError {
+                line_number,
+                column_number,
+                raw_line: e.line().to_string(),
+                message: e.variant.to_string(),
+            }
+        })?
         .next()
         .unwrap();
 
@@ -64,11 +93,11 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, String> {
                     });
                 }
                 Err(e) => {
-                    return Err(format!("Error validating instruction: {}", e));
+                    return Err(ParseError::Custom(format!("Error validating instruction: {}", e)));
                 }
             },
             Err(e) => {
-                return Err(format!("Error parsing instruction: {}", e));
+                return Err(ParseError::Custom(format!("Error parsing instruction: {}", e)));
             }
         };
     }

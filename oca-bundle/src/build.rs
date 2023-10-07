@@ -28,7 +28,28 @@ pub struct OCABuildStep {
     pub result: OCABundle,
 }
 
-pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCABuild, Vec<String>> {
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct FromASTError {
+    pub line_number: usize,
+    pub raw_line: String,
+    pub message: String,
+}
+
+#[derive(thiserror::Error, Debug, Clone, serde::Serialize)]
+#[serde(untagged)]
+pub enum Error {
+    #[error("Error at line {line_number} ({raw_line}): {message}")]
+    FromASTError {
+        #[serde(rename = "ln")]
+        line_number: usize,
+        #[serde(rename = "c")]
+        raw_line: String,
+        #[serde(rename = "e")]
+        message: String,
+    }
+}
+
+pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCABuild, Vec<Error>> {
     let mut errors = vec![];
     let mut steps = vec![];
     let mut parent_said: Option<said::SelfAddressingIdentifier> = match &from_oca {
@@ -48,7 +69,13 @@ pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCA
                 let mut oca_box_mut = oca_box.clone();
                 let oca_bundle = oca_box_mut.generate_bundle();
                 if oca_bundle.said == parent_said {
-                    errors.push(format!("Error at line {} ({}): Applying command failed", command_meta.line_number, command_meta.raw_line));
+                    errors.push(
+                        Error::FromASTError {
+                            line_number: command_meta.line_number,
+                            raw_line: command_meta.raw_line.clone(),
+                            message: "Applying command failed".to_string(),
+                        }
+                    );
                 } else {
                     steps.push(
                         OCABuildStep {
@@ -63,7 +90,11 @@ pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCA
             }
             Err(mut err) => {
                 errors.extend(err.iter_mut().map(|e|
-                    format!("Error at line {} ({}): {}", command_meta.line_number, command_meta.raw_line, e)
+                    Error::FromASTError {
+                        line_number: command_meta.line_number,
+                        raw_line: command_meta.raw_line.clone(),
+                        message: e.clone()
+                    }
                 ));
             }
         }

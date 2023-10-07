@@ -271,7 +271,7 @@ mod tests {
             commands,
             commands_meta: IndexMap::new(),
         };
-        let oca_build = oca_bundle::build::from_ast(None, ast)?;
+        let oca_build = oca_bundle::build::from_ast(None, ast).unwrap();
 
         let result = build_core_db_model(&oca_build);
         assert_eq!(result.len(), 4);

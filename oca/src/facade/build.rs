@@ -10,12 +10,32 @@ use oca_dag::build_core_db_model;
 
 use std::rc::Rc;
 
+#[derive(thiserror::Error, Debug, serde::Serialize)]
+#[serde(untagged)]
+pub enum Error {
+    #[error(transparent)]
+    OCAFileParse(#[from] oca_file::ocafile::ParseError),
+    #[error(transparent)]
+    OCABundleBuild(#[from] oca_bundle::build::Error),
+    #[error("Error at line {line_number} ({raw_line}): {message}")]
+    InvalidCommand {
+        #[serde(rename = "ln")]
+        line_number: usize,
+        #[serde(rename = "c")]
+        raw_line: String,
+        #[serde(rename = "e")]
+        message: String,
+    },
+}
+
 impl Facade {
-    pub fn build_from_ocafile(&mut self, ocafile: String) -> Result<OCABundle, Vec<String>> {
-        let mut errors = vec![];
+    pub fn build_from_ocafile(
+        &mut self,
+        ocafile: String,
+    ) -> Result<OCABundle, Vec<Error>> {
+        let mut errors: Vec<Error> = vec![];
         let mut oca_ast = oca_file::ocafile::parse_from_string(ocafile)
-            .map_err(|e| vec![format!("Failed to parse ocafile: {}", e)])
-            ?;
+            .map_err(|e| vec![Error::OCAFileParse(e)])?;
 
         let mut base: Option<OCABundle> = None;
         if let Some(first_command) = oca_ast.commands.get(0) {
@@ -31,7 +51,11 @@ impl Facade {
                                     let default_command_meta = oca_ast::ast::CommandMeta { line_number: 0, raw_line: "unknown".to_string() };
                                     let command_meta = oca_ast.commands_meta.get(&0).unwrap_or(&default_command_meta);
                                     e.iter().for_each(|e| errors.push(
-                                        format!("Error at line {} ({}): {}", command_meta.line_number, command_meta.raw_line, e)
+                                        Error::InvalidCommand {
+                                            line_number: command_meta.line_number,
+                                            raw_line: command_meta.raw_line.clone(),
+                                            message: e.clone()
+                                        }
                                     ));
                                 }
                             }
@@ -46,7 +70,11 @@ impl Facade {
             return Err(errors);
         }
 
-        let oca_build = oca_bundle::build::from_ast(base, oca_ast)?;
+        let oca_build = oca_bundle::build::from_ast(base, oca_ast).map_err(|e| {
+            e.iter().map(|e|
+                Error::OCABundleBuild(e.clone())
+            ).collect::<Vec<_>>()
+        })?;
 
         let oca_bundle_cache_repo =
             OCABundleCacheRepo::new(Rc::clone(&self.connection));

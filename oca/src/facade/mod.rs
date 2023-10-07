@@ -44,10 +44,10 @@ impl Facade {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::data_storage::InMemoryDataStorage;
+    use crate::{data_storage::InMemoryDataStorage, facade::build::Error};
 
     #[test]
-    fn facade_build_from_ocafile_from_base() -> Result<(), Vec<String>> {
+    fn facade_build_from_ocafile_from_base() -> Result<(), Vec<Error>> {
         let db = InMemoryDataStorage::new();
         let db_cache = InMemoryDataStorage::new();
         let cache_storage_config = SQLiteConfig::build().unwrap();
