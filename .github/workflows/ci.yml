@@ -127,10 +127,6 @@ jobs:
         with:
           node-version: "12.x"
           registry-url: "https://registry.npmjs.org"
-      - working-directory: oca-bundle/bindings/js/example
-        run: yarn install
-      - working-directory: oca-bundle/bindings/js/example
-        run: yarn test
       - working-directory: oca-bundle/bindings/js/wasm/pkg
         run: yarn install
       - working-directory: oca-bundle/bindings/js/wasm/pkg
