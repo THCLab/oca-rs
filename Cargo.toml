@@ -8,5 +8,4 @@ members = [
   "oca-ast",
   "oca-dag",
   "oca",
-  "ocatool",
 ]
