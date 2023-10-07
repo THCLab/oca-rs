@@ -13,7 +13,7 @@ use oca_bundle::state::{
     oca::overlay::entry::Entries,
     oca::overlay::label::Labels,
     oca::overlay::information::Information,
-    oca::overlay::unit::{Unit, AttributeUnit, MeasurementSystem, MeasurementUnit, MetricUnit, ImperialUnit},
+    oca::overlay::unit::{Unit, AttributeUnit, MeasurementSystem, MeasurementUnit, MetricUnit},
     oca::overlay::form_layout::FormLayouts,
     oca::overlay::credential_layout::CredentialLayouts,
 };
