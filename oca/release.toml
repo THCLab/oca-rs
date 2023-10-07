@@ -1,0 +1,29 @@
+publish = false
+
+[[pre-release-replacements]]
+file = "Cargo.toml"
+search = "oca-ast = . version = \"[a-z0-9\\.-]+\""
+replace = "oca-ast = { version = \"{{version}}\""
+exactly = 1
+prerelease = true
+
+[[pre-release-replacements]]
+file = "Cargo.toml"
+search = "oca-bundle = . version = \"[a-z0-9\\.-]+\""
+replace = "oca-bundle = { version = \"{{version}}\""
+exactly = 1
+prerelease = true
+
+[[pre-release-replacements]]
+file = "Cargo.toml"
+search = "oca-dag = . version = \"[a-z0-9\\.-]+\""
+replace = "oca-dag = { version = \"{{version}}\""
+exactly = 1
+prerelease = true
+
+[[pre-release-replacements]]
+file = "Cargo.toml"
+search = "oca-file = . version = \"[a-z0-9\\.-]+\""
+replace = "oca-file = { version = \"{{version}}\""
+exactly = 1
+prerelease = true

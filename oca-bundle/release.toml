@@ -1,6 +1,21 @@
-publish=false
-pre-release-replacements = [
-  {file="bindings/js/wasm/Cargo.toml", search="\nversion = \"[a-z0-9\\.-]+\"", replace="\nversion = \"{{version}}\"", exactly=1, prerelease=true},
-  {file="README.md", search="oca-bundle = .*", replace="oca-bundle = \"{{version}}\""},
-]
+publish = false
 # pre-release-hook = ["bash", "release-wasm-hook.sh"]
+
+[[pre-release-replacements]]
+file = "README.md"
+search = "oca-bundle = .*"
+replace = "oca-bundle = \"{{version}}\""
+
+[[pre-release-replacements]]
+file = "bindings/js/wasm/Cargo.toml"
+search = "\nversion = \"[a-z0-9\\.-]+\""
+replace = "\nversion = \"{{version}}\""
+exactly = 1
+prerelease = true
+
+[[pre-release-replacements]]
+file = "Cargo.toml"
+search = "oca-ast = . version = \"[a-z0-9\\.-]+\""
+replace = "oca-ast = { version = \"{{version}}\""
+exactly = 1
+prerelease = true
