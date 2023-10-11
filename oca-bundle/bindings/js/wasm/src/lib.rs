@@ -61,6 +61,17 @@ impl OCABox {
         }
     }
 
+    #[wasm_bindgen(js_name = "load")]
+    pub fn load(mut self, oca_bundle: OCABundle) -> Self {
+        self.raw = OCABoxRaw::from(
+            serde_wasm_bindgen::from_value::<OCABundleRaw>(JsValue::from(
+                oca_bundle,
+            ))
+            .unwrap(),
+        );
+        self
+    }
+
     #[wasm_bindgen(js_name = "addClassification")]
     pub fn add_classification(mut self, classification: String) -> Self {
         self.raw.add_classification(classification);
