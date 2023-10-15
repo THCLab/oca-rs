@@ -27,6 +27,12 @@ use wasm_bindgen::prelude::*;
 extern "C" {
     #[wasm_bindgen(typescript_type = "OCABundle")]
     pub type OCABundle;
+    #[wasm_bindgen(typescript_type = "IMeta")]
+    pub type MetaTSType;
+    #[wasm_bindgen(typescript_type = "IAttribute")]
+    pub type AttributeTSType;
+    #[wasm_bindgen(typescript_type = "IAttribute[]")]
+    pub type AttributesTSType;
     #[wasm_bindgen(typescript_type = "'O' | 'M'")]
     pub type ConformanceOptions;
     #[wasm_bindgen(typescript_type = "{ [language: string]: string }")]
@@ -72,6 +78,31 @@ impl OCABox {
         self
     }
 
+    #[wasm_bindgen(js_name = "attributes")]
+    pub fn attributes(&self) -> AttributesTSType {
+        AttributesTSType::from(
+            self.raw.attributes
+                .values()
+                .collect::<Vec<_>>()
+                .serialize(&serde_wasm_bindgen::Serializer::json_compatible())
+                .unwrap()
+        )
+    }
+
+    #[wasm_bindgen(js_name = "meta")]
+    pub fn meta(&self) -> MetaTSType {
+        MetaTSType::from(
+            self.raw.meta
+                .serialize(&serde_wasm_bindgen::Serializer::json_compatible())
+                .unwrap()
+        )
+    }
+
+    #[wasm_bindgen(js_name = "classification")]
+    pub fn classification(&self) -> Option<String> {
+        self.raw.classification.clone()
+    }
+
     #[wasm_bindgen(js_name = "addClassification")]
     pub fn add_classification(mut self, classification: String) -> Self {
         self.raw.add_classification(classification);
@@ -109,9 +140,10 @@ impl OCABox {
     }
 
     #[wasm_bindgen(js_name = "generateBundle")]
-    pub fn generate_bundle(mut self) -> OCABundle {
+    pub fn generate_bundle(&self) -> OCABundle {
+        let mut raw = self.raw.clone();
         let oca_bundle_json_str =
-            String::from_utf8(self.raw.generate_bundle().encode().unwrap())
+            String::from_utf8(raw.generate_bundle().encode().unwrap())
                 .unwrap();
         OCABundle::from(
             serde_json::from_str::<serde_json::Value>(&oca_bundle_json_str)
@@ -367,6 +399,37 @@ impl Attribute {
     }
     */
 }
+
+#[wasm_bindgen(typescript_custom_section)]
+const ATTRIBUTE_TYPE: &'static str = r#"
+type IMeta = {
+  [language: string]: {
+    [attribute_name: string]: string
+  }
+}
+
+type IAttribute = {
+  name: string
+  type: string
+  is_flagged: boolean
+  labels?: { [language: string]: string }
+  category_labels?: { [language: string]: string }
+  informations?: { [language: string]: string }
+  entry_codes?: string[] | string
+  entries?: { [language: string]: string | { [entry_code: string]: string } }
+  mapping?: string
+  encoding?: string
+  format?: string
+  units?: { [measurement_system: string]: string }
+  entry_codes_mapping?: string[]
+  reference_sai?: string
+  condition?: string
+  dependencies?: string[]
+  cardinality?: string
+  conformance?: 'O' | 'M'
+  standards?: string[]
+}
+"#;
 
 #[wasm_bindgen(typescript_custom_section)]
 const OCA_TYPE: &'static str = r#"
