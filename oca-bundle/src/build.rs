@@ -5,6 +5,7 @@ use crate::state::oca::overlay::format::Formats;
 use crate::state::oca::overlay::entry::Entries;
 use crate::state::oca::overlay::entry_code::EntryCodes;
 use crate::state::oca::overlay::cardinality::Cardinalitys;
+use crate::state::oca::overlay::conditional::Conditionals;
 use crate::state::oca::overlay::conformance::Conformances;
 use crate::state::oca::overlay::information::Information;
 use crate::state::oca::overlay::character_encoding::CharacterEncodings;
@@ -339,6 +340,24 @@ fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, Vec<S
                                             })?.clone();
                                         if let ast::NestedValue::Value(attr_cardinality) = attr_type_value {
                                             attribute.set_cardinality(attr_cardinality.clone());
+                                        }
+                                        oca.add_attribute(attribute);
+                                    }
+                                }
+                            }
+                        },
+                        ast::OverlayType::Conditional => {
+                            if let Some(ref content) = op.content {
+                                if let Some(ref attributes) = content.attributes {
+                                    for (attr_name, attr_type_value) in attributes {
+                                        let mut attribute = oca.attributes
+                                            .get(attr_name)
+                                            .ok_or_else(|| {
+                                                errors.push(format!("Undefined attribute: {attr_name}"));
+                                                errors.clone()
+                                            })?.clone();
+                                        if let ast::NestedValue::Value(attr_condition) = attr_type_value {
+                                            attribute.set_condition(attr_condition.clone());
                                         }
                                         oca.add_attribute(attribute);
                                     }

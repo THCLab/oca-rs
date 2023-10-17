@@ -124,6 +124,10 @@ impl Attribute {
 
             if other.condition.is_some() {
                 self.condition = other.condition.clone();
+
+                if other.dependencies.is_some() {
+                    self.dependencies = other.dependencies.clone();
+                }
             }
 
             if other.cardinality.is_some() {
@@ -177,15 +181,6 @@ impl Attribute {
             }
         }
     }
-    // pub fn add_condition(
-    //     mut self,
-    //     condition: String,
-    //     dependencies: Vec<String>,
-    // ) -> AttributeBuilder {
-    //     self.attribute.condition = Some(condition);
-    //     self.attribute.dependencies = Some(dependencies);
-    //     self
-    // }
 
     // pub fn add_mapping(mut self, mapping: String) -> AttributeBuilder {
     //     self.attribute.mapping = Some(mapping);

@@ -1,10 +1,11 @@
 use crate::state::oca::overlay::Overlay;
 use crate::state::oca::DynOverlay;
-use std::collections::HashSet;
+use std::{collections::{HashSet, HashMap}, str::FromStr, error::Error as StdError};
 use isolang::Language;
-use oca_ast::ast::OverlayType;
+use oca_ast::ast::{OverlayType, AttributeType};
 
 use super::oca::{OCABundle, overlay};
+use piccolo::{Closure, Lua, Thread};
 
 #[derive(Debug)]
 pub enum Error {
@@ -109,6 +110,18 @@ impl Validator {
             }
         }
 
+        let conditional_overlay = oca_bundle
+            .overlays
+            .iter()
+            .find_map(|x| x.as_any().downcast_ref::<overlay::Conditional>());
+
+        if let Some(conditional_overlay) = conditional_overlay {
+            self.validate_conditional(
+                oca_bundle.capture_base.attributes.clone(),
+                conditional_overlay
+            )?;
+        }
+
         if !enforced_langs.is_empty() {
 
             let meta_overlays = oca_bundle
@@ -180,6 +193,98 @@ impl Validator {
                             }
                         })
                     ).collect();
+                }
+            }
+        }
+
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
+    }
+
+    fn validate_conditional(
+        &self,
+        attr_types: HashMap<String, String>,
+        overlay: &overlay::Conditional,
+    ) -> Result<(), Vec<Error>> {
+        let mut errors: Vec<Error> = vec![];
+
+        let conditions = overlay.attribute_conditions.clone();
+        let dependencies = overlay.attribute_dependencies.clone();
+        let re = regex::Regex::new(r"\$\{(\d+)\}").unwrap();
+        for &attr in overlay.attributes().iter() {
+            let condition = conditions.get(attr).unwrap(); // todo
+            let condition_dependencies = dependencies.get(attr).unwrap(); // todo
+            if condition_dependencies.contains(attr) {
+                errors.push(Error::Custom(format!(
+                    "Attribute '{attr}' cannot be a dependency of itself"
+                )));
+                continue;
+            }
+
+            let mut attr_mocks: HashMap<String, String> = HashMap::new();
+            condition_dependencies.iter().for_each(|dep| {
+                let dep_type = AttributeType::from_str(
+                    attr_types.get(dep).unwrap().as_str(),
+                )
+                .unwrap(); // todo
+                let value = match dep_type {
+                    AttributeType::Text => "'test'".to_string(),
+                    AttributeType::ArrayText => "['test']".to_string(),
+                    AttributeType::Numeric => "0".to_string(),
+                    AttributeType::ArrayNumeric => "[0]".to_string(),
+                    AttributeType::DateTime => "'2020-01-01'".to_string(),
+                    AttributeType::ArrayDateTime => {
+                        "['2020-01-01']".to_string()
+                    }
+                    AttributeType::Reference => "'test'".to_string(),
+                    AttributeType::ArrayReference => "['test']".to_string(),
+                    AttributeType::Binary => "test".to_string(),
+                    AttributeType::ArrayBinary => "[test]".to_string(),
+                    AttributeType::Boolean => "true".to_string(),
+                    AttributeType::ArrayBoolean => "[true]".to_string(),
+                };
+                attr_mocks.insert(dep.to_string(), value);
+            });
+
+            let script = re
+                .replace_all(condition, |caps: &regex::Captures| {
+                    attr_mocks
+                        .get(
+                            &condition_dependencies
+                                [caps[1].parse::<usize>().unwrap()]
+                            .clone(),
+                        )
+                        .unwrap()
+                        .to_string()
+                })
+                .to_string();
+
+            let mut lua = Lua::new();
+            let thread_result = lua.try_run(|ctx| {
+                let closure =
+                    Closure::load(ctx, format!("return {script}").as_bytes())?;
+                let thread = Thread::new(&ctx);
+                thread.start(ctx, closure.into(), ())?;
+                Ok(ctx.state.registry.stash(&ctx, thread))
+            });
+
+            match thread_result {
+                Ok(thread) => {
+                    if let Err(e) = lua.run_thread::<bool>(&thread) {
+                        errors.push(Error::Custom(format!(
+                            "Attribute '{attr}' has invalid condition: {}",
+                            e.source().unwrap()
+                        )));
+                    }
+                }
+                Err(e) => {
+                    errors.push(Error::Custom(format!(
+                        "Attribute '{attr}' has invalid condition: {}",
+                        e.source().unwrap()
+                    )));
                 }
             }
         }
@@ -284,6 +389,7 @@ mod tests {
         attribute::{Attribute, AttributeType},
         oca::OCABox,
         encoding::Encoding,
+        oca::overlay::conditional::Conditionals,
         oca::overlay::meta::Metas,
         oca::overlay::character_encoding::CharacterEncodings,
         oca::overlay::label::Labels,
@@ -408,5 +514,40 @@ mod tests {
         if let Err(errors) = result {
             assert_eq!(errors.len(), 4);
         }
+    }
+
+    #[test]
+    fn validate_oca_with_conditional() {
+        let validator = Validator::new();
+
+        let mut oca = OCABox::new();
+
+        let attribute_age = cascade! {
+            Attribute::new("age".to_string());
+            ..set_attribute_type(AttributeType::Numeric);
+            ..set_encoding(Encoding::Utf8);
+        };
+
+        oca.add_attribute(attribute_age);
+
+        let attribute_name = cascade! {
+            Attribute::new("name".to_string());
+            ..set_attribute_type(AttributeType::Text);
+            ..set_condition(
+                "${age} > 18 and ${age} < 30".to_string()
+            );
+        };
+
+        oca.add_attribute(attribute_name);
+
+        let oca_bundle = oca.generate_bundle();
+        let result = validator.validate(&oca_bundle);
+        assert!(result.is_ok());
+
+        /* println!("{:?}", result);
+        assert!(result.is_err());
+        if let Err(errors) = result {
+            assert_eq!(errors.len(), 1);
+        } */
     }
 }

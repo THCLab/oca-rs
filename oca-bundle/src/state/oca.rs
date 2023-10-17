@@ -5,6 +5,7 @@ use crate::state::oca::overlay::unit::{Unit, AttributeUnit};
 #[cfg(feature = "format_overlay")]
 use crate::state::oca::overlay::format::Formats;
 use crate::state::oca::overlay::cardinality::Cardinalitys;
+use crate::state::oca::overlay::conditional::Conditionals;
 use crate::state::oca::overlay::conformance::Conformances;
 use crate::state::oca::overlay::meta::Metas;
 use crate::state::oca::overlay::character_encoding::CharacterEncodings;
@@ -198,6 +199,19 @@ impl OCABox {
                     cardinality_ov = overlays.last_mut();
                 }
                 if let Some(ov) = cardinality_ov {
+                    ov.add(attribute);
+                }
+            }
+
+            if attribute.condition.is_some() {
+                let mut conditional_ov = overlays
+                    .iter_mut()
+                    .find(|x| x.overlay_type().eq(&OverlayType::Conditional));
+                if conditional_ov.is_none() {
+                    overlays.push(Box::new(overlay::Conditional::new()));
+                    conditional_ov = overlays.last_mut();
+                }
+                if let Some(ov) = conditional_ov {
                     ov.add(attribute);
                 }
             }
@@ -714,6 +728,33 @@ impl From<OCABundle> for OCABox {
             }
         }
 
+        let conditional_overlays = oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| x.as_any().downcast_ref::<overlay::Conditional>())
+            .collect::<Vec<_>>();
+        for overlay in conditional_overlays {
+            let re = regex::Regex::new(r"\$\{(\d+)\}").unwrap();
+
+            for (attr_name, condition) in overlay.attribute_conditions.iter() {
+                let condition_dependencies = overlay
+                    .attribute_dependencies
+                    .get(attr_name)
+                    .unwrap(); // todo
+                let cond = re.replace_all(condition, |caps: &regex::Captures| {
+                    let dep = condition_dependencies[
+                        caps[1].parse::<usize>().unwrap()
+                    ].clone();
+                    format!("${{{}}}", dep)
+                }).to_string();
+
+                attributes
+                    .get_mut(attr_name)
+                    .unwrap()
+                    .set_condition(cond.clone());
+            }
+        }
+
         let cardinality_overlays = oca_bundle
             .overlays
             .iter()
@@ -980,8 +1021,21 @@ impl OCABundle {
                 OverlayType::Conditional => {
                     let conditional = overlay.as_any().downcast_ref::<overlay::Conditional>().unwrap();
                     let mut attributes = IndexMap::new();
-                    for (attr_name, conditional) in conditional.attribute_conditions.iter() {
-                        attributes.insert(attr_name.clone(), NestedValue::Value(conditional.clone()));
+                    let re = regex::Regex::new(r"\$\{(\d+)\}").unwrap();
+                    for (attr_name, condition) in conditional.attribute_conditions.iter() {
+
+                        let condition_dependencies = conditional
+                            .attribute_dependencies
+                            .get(attr_name)
+                            .unwrap(); // todo
+                        let cond = re.replace_all(condition, |caps: &regex::Captures| {
+                            let dep = condition_dependencies[
+                                caps[1].parse::<usize>().unwrap()
+                            ].clone();
+                            format!("${{{}}}", dep)
+                        }).to_string();
+
+                        attributes.insert(attr_name.clone(), NestedValue::Value(cond.clone()));
                     }
                     let command = Command {
                         kind: CommandType::Add,
@@ -1174,9 +1228,7 @@ impl AttributeLayoutValues {
 #[cfg(test)]
 mod tests {
     use crate::state::attribute::AttributeType;
-
     use super::*;
-    use crate::state::oca::overlay::meta::Metas;
 
     #[test]
     fn build_oca_bundle() {
@@ -1200,6 +1252,29 @@ mod tests {
         let oca_bundle = oca.generate_bundle();
         let said2 = oca_bundle.said;
         // let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
+        assert_eq!(said, said2);
+    }
+
+    #[test]
+    fn load_oca_box_from_oca_bundle() {
+        let mut oca = OCABox::new();
+        oca.add_meta(Language::Eng, "name".to_string(), "test name".to_string());
+        oca.add_meta(Language::Eng, "description".to_string(), "test desc".to_string());
+        let mut attr = Attribute::new("first_name".to_string());
+        attr.set_attribute_type(AttributeType::Text);
+        oca.add_attribute(attr);
+
+        let mut attr = Attribute::new("last_name".to_string());
+        attr.set_attribute_type(AttributeType::Text);
+        attr.set_condition("string.len(${first_name}) > 0".to_string());
+        oca.add_attribute(attr);
+        let oca_bundle = oca.generate_bundle();
+        let said = oca_bundle.said.clone();
+
+        let mut oca_box = OCABox::from(oca_bundle);
+        let oca_bundle = oca_box.generate_bundle();
+        let said2 = oca_bundle.said;
+
         assert_eq!(said, said2);
     }
 }

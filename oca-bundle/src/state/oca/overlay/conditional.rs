@@ -1,9 +1,34 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
+use oca_ast::ast::OverlayType;
+use said::{sad::SerializationFormats, sad::SAD};
 use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::BTreeMap;
-use said::{sad::SAD, sad::SerializationFormats};
-use oca_ast::ast::OverlayType;
+
+pub trait Conditionals {
+    fn set_condition(&mut self, condition: String);
+}
+
+impl Conditionals for Attribute {
+    fn set_condition(&mut self, condition: String) {
+        let re = regex::Regex::new(r"\$\{([^}]*)\}").unwrap();
+        let mut dependencies = Vec::new();
+
+        let cond = re.replace_all(&condition, |caps: &regex::Captures| {
+            let i = dependencies
+                .iter()
+                .position(|d| d == &caps[1])
+                .unwrap_or_else(|| {
+                    dependencies.push(caps[1].to_string());
+                    dependencies.len() - 1
+                });
+            format!("${{{}}}", i)
+        }).to_string();
+
+        self.condition = Some(cond);
+        self.dependencies = Some(dependencies);
+    }
+}
 
 #[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct ConditionalOverlay {
@@ -53,13 +78,19 @@ impl Overlay for ConditionalOverlay {
     }
 }
 impl ConditionalOverlay {
-    pub fn new() -> Box<ConditionalOverlay> {
-        Box::new(ConditionalOverlay {
+    pub fn new() -> Self {
+        Self {
             capture_base: None,
             said: None,
             overlay_type: OverlayType::Conditional,
             attribute_conditions: BTreeMap::new(),
             attribute_dependencies: BTreeMap::new(),
-        })
+        }
+    }
+}
+
+impl Default for ConditionalOverlay {
+    fn default() -> Self {
+        Self::new()
     }
 }
