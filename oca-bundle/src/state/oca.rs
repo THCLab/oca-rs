@@ -877,6 +877,7 @@ impl OCABundle {
                     };
                     ast.commands.push(command);
                 },
+                #[cfg(feature = "format_overlay")]
                 OverlayType::Format => {
                     let format = overlay.as_any().downcast_ref::<overlay::Format>().unwrap();
                     let mut attributes = IndexMap::new();
