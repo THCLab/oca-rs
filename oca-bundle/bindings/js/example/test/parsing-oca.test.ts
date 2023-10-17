@@ -1,11 +1,32 @@
 import { expect } from 'chai'
 import { OCABox } from 'oca.js'
-import * as util from 'util'
 const oca_bundle_json = require('./assets/oca.json')
 
 describe('OCA is loaded', () => {
   const oca_box = new OCABox().load(oca_bundle_json)
     .addClassification('test_classification')
+
+  describe('to AST', () => {
+    it('has a valid AST', () => {
+      const ast = oca_box.toAST()
+      expect(ast.version).to.be.equal('1.0.0')
+      expect(ast.commands.map(c => c.object_kind)).to.be.eql( [
+        'CaptureBase',
+        'Meta',
+        'Meta',
+        'Meta',
+        'Meta',
+        'CharacterEncoding',
+        'EntryCode',
+        'Entry',
+        'Label',
+        'Information',
+        'Information',
+        'Format',
+        'Unit'
+      ])
+    })
+  })
 
   it('has list of attributes', () => {
     const attributes = oca_box.attributes()

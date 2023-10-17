@@ -10,6 +10,7 @@ use crate::state::oca::overlay::meta::Metas;
 use crate::state::oca::overlay::character_encoding::CharacterEncodings;
 use crate::state::oca::overlay::label::Labels;
 use std::str::FromStr;
+use indexmap::IndexMap;
 use said::version::SerializationInfo;
 use said::sad::{SerializationFormats, SAD};
 use crate::state::oca::layout::credential::Layout as CredentialLayout;
@@ -25,7 +26,7 @@ use crate::state::{
     attribute::{Attribute, AttributeType},
     oca::{capture_base::CaptureBase, overlay::Overlay},
 };
-use oca_ast::ast::OverlayType;
+use oca_ast::ast::{OverlayType, NestedValue, OCAAst, Command, CommandType, ObjectKind, Content};
 use convert_case::{Case, Casing};
 /// Internal representation of OCA objects in split between non-attributes values and attributes.
 /// It is used to build dynamically objects without knowing yet whole structure of the object.
@@ -826,7 +827,324 @@ impl OCABundle {
     pub fn fill_said(&mut self) {
         self.compute_digest();
     }
+
+    pub fn to_ast(&self) -> OCAAst {
+        let mut ast = OCAAst::new();
+
+        let mut properties = None;
+        if !self.capture_base.classification.is_empty() {
+            properties = Some(IndexMap::new());
+            properties.as_mut().unwrap().insert(
+                "classification".to_string(),
+                NestedValue::Value(self.capture_base.classification.clone())
+            );
+        }
+
+        let mut attributes = IndexMap::new();
+        self.capture_base.attributes.iter().for_each(|(attr_name, attr_type)| {
+            attributes.insert(
+                attr_name.clone(),
+                NestedValue::Value(attr_type.clone())
+            );
+        });
+
+        let command = Command {
+            kind: CommandType::Add,
+            object_kind: ObjectKind::CaptureBase,
+            content: Some(Content {
+                attributes: Some(attributes),
+                properties,
+            }),
+        };
+        ast.commands.push(command);
+
+        self.overlays.iter().for_each(|overlay| {
+            match overlay.overlay_type() {
+                OverlayType::CharacterEncoding => {
+                    let character_encoding = overlay.as_any().downcast_ref::<overlay::CharacterEncoding>().unwrap();
+                    let mut attributes = IndexMap::new();
+                    for (attr_name, encoding) in character_encoding.attribute_character_encoding.iter() {
+                        let encoding_val = serde_json::to_value(encoding).unwrap();
+                        attributes.insert(attr_name.clone(), NestedValue::Value(encoding_val.as_str().unwrap().to_string()));
+                    }
+                    let command = Command {
+                        kind: CommandType::Add,
+                        object_kind: ObjectKind::Overlay(OverlayType::CharacterEncoding),
+                        content: Some(Content {
+                            attributes: Some(attributes),
+                            properties: None,
+                        }),
+                    };
+                    ast.commands.push(command);
+                },
+                OverlayType::Format => {
+                    let format = overlay.as_any().downcast_ref::<overlay::Format>().unwrap();
+                    let mut attributes = IndexMap::new();
+                    for (attr_name, format) in format.attribute_formats.iter() {
+                        attributes.insert(attr_name.clone(), NestedValue::Value(format.clone()));
+                    }
+                    let command = Command {
+                        kind: CommandType::Add,
+                        object_kind: ObjectKind::Overlay(OverlayType::Format),
+                        content: Some(Content {
+                            attributes: Some(attributes),
+                            properties: None,
+                        }),
+                    };
+                    ast.commands.push(command);
+                },
+                OverlayType::Meta => {
+                    let meta = overlay.as_any().downcast_ref::<overlay::Meta>().unwrap();
+                    let mut properties = IndexMap::new();
+                    properties.insert(
+                        "lang".to_string(),
+                        NestedValue::Value(
+                            meta
+                                .language()
+                                .unwrap()
+                                .to_639_1()
+                                .unwrap()
+                                .to_string()
+                        )
+                    );
+                    for (meta_name, meta_value) in meta.attr_pairs.iter() {
+                        properties.insert(meta_name.clone(), NestedValue::Value(meta_value.clone()));
+                    }
+                    let command = Command {
+                        kind: CommandType::Add,
+                        object_kind: ObjectKind::Overlay(OverlayType::Meta),
+                        content: Some(Content {
+                            attributes: None,
+                            properties: Some(properties),
+                        }),
+                    };
+                    ast.commands.push(command);
+                },
+                OverlayType::Label => {
+                    let label = overlay.as_any().downcast_ref::<overlay::Label>().unwrap();
+                    let mut properties = IndexMap::new();
+                    properties.insert(
+                        "lang".to_string(),
+                        NestedValue::Value(
+                            label
+                                .language()
+                                .unwrap()
+                                .to_639_1()
+                                .unwrap()
+                                .to_string()
+                        )
+                    );
+                    let mut attributes = IndexMap::new();
+                    for (attr_name, label) in label.attribute_labels.iter() {
+                        attributes.insert(attr_name.clone(), NestedValue::Value(label.clone()));
+                    }
+                    let command = Command {
+                        kind: CommandType::Add,
+                        object_kind: ObjectKind::Overlay(OverlayType::Label),
+                        content: Some(Content {
+                            attributes: Some(attributes),
+                            properties: Some(properties),
+                        }),
+                    };
+                    ast.commands.push(command);
+                },
+                OverlayType::Information => {
+                    let information = overlay.as_any().downcast_ref::<overlay::Information>().unwrap();
+                    let mut properties = IndexMap::new();
+                    properties.insert(
+                        "lang".to_string(),
+                        NestedValue::Value(
+                            information
+                                .language()
+                                .unwrap()
+                                .to_639_1()
+                                .unwrap()
+                                .to_string()
+                        )
+                    );
+                    let mut attributes = IndexMap::new();
+                    for (attr_name, information) in information.attribute_information.iter() {
+                        attributes.insert(attr_name.clone(), NestedValue::Value(information.clone()));
+                    }
+                    let command = Command {
+                        kind: CommandType::Add,
+                        object_kind: ObjectKind::Overlay(OverlayType::Information),
+                        content: Some(Content {
+                            attributes: Some(attributes),
+                            properties: Some(properties),
+                        }),
+                    };
+                    ast.commands.push(command);
+                },
+                OverlayType::Conditional => {
+                    let conditional = overlay.as_any().downcast_ref::<overlay::Conditional>().unwrap();
+                    let mut attributes = IndexMap::new();
+                    for (attr_name, conditional) in conditional.attribute_conditions.iter() {
+                        attributes.insert(attr_name.clone(), NestedValue::Value(conditional.clone()));
+                    }
+                    let command = Command {
+                        kind: CommandType::Add,
+                        object_kind: ObjectKind::Overlay(OverlayType::Conditional),
+                        content: Some(Content {
+                            attributes: Some(attributes),
+                            properties: None,
+                        }),
+                    };
+                    ast.commands.push(command);
+                },
+                OverlayType::Conformance => {
+                    let conformance = overlay.as_any().downcast_ref::<overlay::Conformance>().unwrap();
+                    let mut attributes = IndexMap::new();
+                    for (attr_name, conformance) in conformance.attribute_conformance.iter() {
+                        attributes.insert(attr_name.clone(), NestedValue::Value(conformance.clone()));
+                    }
+                    let command = Command {
+                        kind: CommandType::Add,
+                        object_kind: ObjectKind::Overlay(OverlayType::Conformance),
+                        content: Some(Content {
+                            attributes: Some(attributes),
+                            properties: None,
+                        }),
+                    };
+                    ast.commands.push(command);
+                },
+                OverlayType::EntryCode => {
+                    let entry_code = overlay.as_any().downcast_ref::<overlay::EntryCode>().unwrap();
+                    let mut attributes = IndexMap::new();
+                    for (attr_name, entry_code) in entry_code.attribute_entry_codes.iter() {
+                        match entry_code {
+                            crate::state::entry_codes::EntryCodes::Sai(said) => {
+                                attributes.insert(attr_name.clone(), NestedValue::Value(said.to_string()));
+                            },
+                            crate::state::entry_codes::EntryCodes::Array(entry_codes) => {
+                                attributes.insert(
+                                    attr_name.clone(),
+                                    NestedValue::Array(
+                                        entry_codes
+                                            .iter()
+                                            .map(|code|
+                                                NestedValue::Value(
+                                                    code.clone()
+                                                )
+                                            ).collect()
+                                    )
+                                );
+                            }
+                        }
+                    }
+                    let command = Command {
+                        kind: CommandType::Add,
+                        object_kind: ObjectKind::Overlay(OverlayType::EntryCode),
+                        content: Some(Content {
+                            attributes: Some(attributes),
+                            properties: None,
+                        }),
+                    };
+                    ast.commands.push(command);
+                },
+                OverlayType::Entry => {
+                    let entry = overlay.as_any().downcast_ref::<overlay::Entry>().unwrap();
+                    let mut properties = IndexMap::new();
+                    properties.insert(
+                        "lang".to_string(),
+                        NestedValue::Value(
+                            entry
+                                .language()
+                                .unwrap()
+                                .to_639_1()
+                                .unwrap()
+                                .to_string()
+                        )
+                    );
+                    let mut attributes = IndexMap::new();
+                    for (attr_name, entries) in entry.attribute_entries.iter() {
+                        match entries {
+                            crate::state::entries::EntriesElement::Sai(said) => {
+                                attributes.insert(attr_name.clone(), NestedValue::Value(said.to_string()));
+                            },
+                            crate::state::entries::EntriesElement::Object(entries) => {
+                                attributes.insert(
+                                    attr_name.clone(),
+                                    NestedValue::Object(
+                                        entries
+                                            .iter()
+                                            .map(|(k, v)|
+                                                (
+                                                    k.clone(),
+                                                    NestedValue::Value(
+                                                        v.clone()
+                                                    )
+                                                )
+                                            ).collect()
+                                    )
+                                );
+                            }
+                        }
+                    }
+                    let command = Command {
+                        kind: CommandType::Add,
+                        object_kind: ObjectKind::Overlay(OverlayType::Entry),
+                        content: Some(Content {
+                            attributes: Some(attributes),
+                            properties: Some(properties),
+                        }),
+                    };
+                    ast.commands.push(command);
+                },
+                OverlayType::Cardinality => {
+                    let cardinality = overlay.as_any().downcast_ref::<overlay::Cardinality>().unwrap();
+                    let mut attributes = IndexMap::new();
+                    for (attr_name, cardinality) in cardinality.attribute_cardinality.iter() {
+                        attributes.insert(attr_name.clone(), NestedValue::Value(cardinality.clone()));
+                    }
+                    let command = Command {
+                        kind: CommandType::Add,
+                        object_kind: ObjectKind::Overlay(OverlayType::Cardinality),
+                        content: Some(Content {
+                            attributes: Some(attributes),
+                            properties: None,
+                        }),
+                    };
+                    ast.commands.push(command);
+                },
+                OverlayType::Unit => {
+                    let unit_ov = overlay.as_any().downcast_ref::<overlay::Unit>().unwrap();
+                    let mut properties = IndexMap::new();
+                    let unit_system_val = serde_json::to_value(unit_ov.measurement_system().unwrap()).unwrap();
+                    properties.insert(
+                        "unit_system".to_string(),
+                        NestedValue::Value(
+                            unit_system_val.as_str().unwrap().to_string()
+                        )
+                    );
+                    let mut attributes = IndexMap::new();
+                    for (attr_name, unit) in unit_ov.attribute_units.iter() {
+                        let unit_val = serde_json::to_value(unit).unwrap();
+                        attributes.insert(
+                            attr_name.clone(),
+                            NestedValue::Value(
+                                unit_val.as_str().unwrap().to_string()
+                            )
+                        );
+                    }
+                    let command = Command {
+                        kind: CommandType::Add,
+                        object_kind: ObjectKind::Overlay(OverlayType::Unit),
+                        content: Some(Content {
+                            attributes: Some(attributes),
+                            properties: Some(properties),
+                        }),
+                    };
+                    ast.commands.push(command);
+                },
+                _ => {}
+            }
+        });
+
+        ast
+    }
 }
+
 /*
 #[derive(Clone)]
 struct AttributeLayoutValues {

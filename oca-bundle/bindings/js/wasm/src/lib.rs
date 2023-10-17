@@ -33,6 +33,8 @@ extern "C" {
     pub type AttributeTSType;
     #[wasm_bindgen(typescript_type = "IAttribute[]")]
     pub type AttributesTSType;
+    #[wasm_bindgen(typescript_type = "AST")]
+    pub type AST;
     #[wasm_bindgen(typescript_type = "'O' | 'M'")]
     pub type ConformanceOptions;
     #[wasm_bindgen(typescript_type = "{ [language: string]: string }")]
@@ -101,6 +103,16 @@ impl OCABox {
     #[wasm_bindgen(js_name = "classification")]
     pub fn classification(&self) -> Option<String> {
         self.raw.classification.clone()
+    }
+
+    #[wasm_bindgen(js_name = "toAST")]
+    pub fn to_ast(&self) -> AST {
+        let oca_bundle = self.raw.clone().generate_bundle();
+        AST::from(
+            oca_bundle.to_ast()
+                .serialize(&serde_wasm_bindgen::Serializer::json_compatible())
+                .unwrap()
+        )
     }
 
     #[wasm_bindgen(js_name = "addClassification")]
@@ -428,6 +440,48 @@ type IAttribute = {
   cardinality?: string
   conformance?: 'O' | 'M'
   standards?: string[]
+}
+"#;
+
+#[wasm_bindgen(typescript_custom_section)]
+const AST_TYPE: &'static str = r#"
+type Command = {
+  type: 'Add',
+  object_kind: string,
+  content: {
+    attributes?: { [attribute_name: string]: string },
+    properties?: { [property_name: string]: string }
+  }
+}
+
+type EntryCodeCommand = {
+  type: 'Add',
+  object_kind: 'EntryCode',
+  content: {
+    attributes?: {
+      [attribute_name: string]: string | string[]
+    },
+    properties?: { [property_name: string]: string }
+  }
+}
+
+type EntryCommand = {
+  type: 'Add',
+  object_kind: 'Entry',
+  content: {
+    attributes?: {
+      [attribute_name: string]: string | {
+        [entry_code: string]: string
+      }
+    },
+    properties?: { [property_name: string]: string }
+  }
+}
+
+type AST = {
+  version: string,
+  commands: (Command | EntryCodeCommand | EntryCommand)[],
+  commands_meta?: object
 }
 "#;
 
