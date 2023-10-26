@@ -96,6 +96,10 @@ impl AddInstruction {
                     object_kind = Some(ObjectKind::Overlay(OverlayType::Conformance));
                     helpers::extract_content(object)
                 }
+                Rule::conditional => {
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Conditional));
+                    helpers::extract_content(object)
+                }
                 Rule::cardinality => {
                     object_kind = Some(ObjectKind::Overlay(OverlayType::Cardinality));
                     helpers::extract_content(object)

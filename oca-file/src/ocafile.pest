@@ -95,6 +95,7 @@ oca_object = _{
     character_encoding_props |
     format |
     conformance |
+    conditional |
     cardinality |
     entry_code |
     entry |
@@ -114,6 +115,7 @@ remove_oca_object = _{
     character_encoding_props |
     format |
     conformance |
+    conditional |
     cardinality |
     entry_code |
     entry |
@@ -130,6 +132,7 @@ character_encoding = {^"character_encoding" ~ arg_ws ~ attrs_key ~ attr_key_pair
 character_encoding_props = {^"character_encoding" ~ arg_ws ~ props_key ~ prop_key_pairs}
 format = {^"format" ~ arg_ws ~ attrs_key? ~ attr_key_pairs}
 conformance = {^"conformance" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
+conditional = {^"condition" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
 cardinality = {^"cardinality" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
 entry_code = {^"entry_code" ~ arg_ws ~ attrs_key ~ attr_entry_code_key_pairs}
 entry = {^"entry" ~ arg_ws ~ lang ~ arg_ws ~ attrs_key ~ attr_entry_key_pairs}
