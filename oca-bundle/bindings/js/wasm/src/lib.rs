@@ -3,6 +3,7 @@ use oca_bundle::state::oca::overlay::entry_code::EntryCodes;
 use oca_bundle::state::oca::overlay::information::Information;
 use oca_bundle::state::oca::overlay::format::Formats;
 use oca_bundle::state::oca::overlay::conformance::Conformances;
+use oca_bundle::state::oca::overlay::conditional::Conditionals;
 use oca_bundle::state::oca::overlay::cardinality::Cardinalitys;
 use oca_bundle::state::oca::overlay::character_encoding::CharacterEncodings;
 use oca_bundle::state::oca::overlay::label::Labels;
@@ -296,6 +297,12 @@ impl Attribute {
     #[wasm_bindgen(js_name = "setCardinality")]
     pub fn set_cardinality(mut self, cardinality: String) -> Self {
         self.raw.set_cardinality(cardinality);
+        self
+    }
+
+    #[wasm_bindgen(js_name = "setCondition")]
+    pub fn set_condition(mut self, condition: String) -> Self {
+        self.raw.set_condition(condition);
         self
     }
 
