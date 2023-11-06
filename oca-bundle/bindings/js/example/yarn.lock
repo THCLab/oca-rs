@@ -2585,7 +2585,7 @@ object.pick@^1.3.0:
     isobject "^3.0.1"
 
 "oca.js@file:../wasm/pkg":
-  version "0.3.0-rc.8"
+  version "0.3.4"
 
 once@^1.3.0, once@^1.3.1, once@^1.4.0:
   version "1.4.0"
