@@ -245,7 +245,7 @@ impl Serialize for RefValue {
     {
         match &self {
             RefValue::Said(said) => serializer.serialize_str(
-                format!("_said_{}", said).as_str()
+                format!("_said_:{}", said).as_str()
             ),
             RefValue::Name(name) => serializer.serialize_str(
                 format!("_name_:{}", name).as_str()
