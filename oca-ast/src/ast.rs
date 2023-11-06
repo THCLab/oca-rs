@@ -226,10 +226,52 @@ pub struct Content {
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum NestedValue {
+    Reference(RefValue),
     Value(String),
     Object(IndexMap<String, NestedValue>),
-    Reference(String),
     Array(Vec<NestedValue>),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum RefValue {
+    Said(String),
+    Name(String),
+}
+
+impl Serialize for RefValue {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match &self {
+            RefValue::Said(said) => serializer.serialize_str(
+                format!("_said_{}", said).as_str()
+            ),
+            RefValue::Name(name) => serializer.serialize_str(
+                format!("_name_:{}", name).as_str()
+            ),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for RefValue {
+    fn deserialize<D>(deserializer: D) -> Result<RefValue, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        let (tag, rest) = s.split_once(':').ok_or(
+            serde::de::Error::custom(format!("invalid reference: {}", s))
+        )?;
+        match tag {
+            "_said_" => Ok(RefValue::Said(rest.to_string())),
+            "_name_" => Ok(RefValue::Name(rest.to_string())),
+            _ => Err(serde::de::Error::custom(format!(
+                "unknown reference type: {}",
+                tag
+            ))),
+        }
+    }
 }
 
 impl OCAAst {
