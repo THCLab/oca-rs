@@ -24,18 +24,18 @@ impl AddInstruction {
                     for attr_pairs in object.into_inner() {
                         match attr_pairs.as_rule() {
                             Rule::attr_pairs => {
-                                info!("attribute: {:?}", attr_pairs);
+                                debug!("Attribute pairs: {:?}", attr_pairs);
                                 for attr in attr_pairs.into_inner() {
-                                    debug!("Parsing attribute {:?}", attr);
+                                    debug!("Parsing attribute pair {:?}", attr);
                                     if let Some((key, value)) =
                                         helpers::extract_attribute_key_pairs(attr)
                                     {
-                                        debug!("Parsed attribute: {:?} = {:?}", key, value);
+                                        info!("Parsed attribute: {:?} = {:?}", key, value);
 
                                         // TODO find out how to parse nested objects
                                         attributes.insert(key, value);
                                     } else {
-                                        debug!("Skipping attribute");
+                                        debug!("Attribute skipped");
                                     }
                                 }
                             }
