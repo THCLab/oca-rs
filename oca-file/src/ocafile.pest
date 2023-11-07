@@ -171,19 +171,20 @@ attr_entry_key_pairs = ${ (arg_ws? ~ entry_key_pair ~ arg_ws?)+ }
 list_value = ${ (arg_ws? ~ key_value ~ arg_ws?)+ }
 unit_system = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 
-attr_type = ${ ("Text" |
-              "Numeric" |
-              "Reference" |
-              "Boolean" |
-              "Binary" |
-              "DateTime" |
-              "Array[Text]" |
-              "Array[Numeric]" |
-              "Array[Reference]" |
-              "Array[Boolean]" |
-              "Array[Binary]" |
-              "Array[DateTime]" )}
-attr_pair = @{attr_key ~ "=" ~ attr_type}
+attr_type = @{ ("Text" |
+        "Numeric" |
+        "Boolean" |
+        "Binary" |
+        "DateTime" |
+        "Array[Text]" |
+        "Array[Numeric]" |
+        "Array[Boolean]" |
+        "Array[Binary]" |
+        "Array[DateTime]" )}
+reference = @{ char+ }
+said = @{ char+ }
+_attr_type = ${ attr_type | (^"refs:" ~ said) | (^"refn:" ~ reference) }
+attr_pair = @{attr_key ~ "=" ~ _attr_type}
 attr_pairs = ${ (arg_ws ~ attr_pair)+}
 
 lang = ${ ASCII_ALPHA{2} ~ ("-" ~ ASCII_ALPHA{2})? }
