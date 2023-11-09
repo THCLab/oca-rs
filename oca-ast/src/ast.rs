@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 use serde::{Serialize, Serializer, Deserialize, Deserializer};
 use strum_macros::Display;
-use std::str::FromStr;
+use std::{str::FromStr, collections::HashMap};
 use wasm_bindgen::prelude::*;
 
 
@@ -10,6 +10,7 @@ pub struct OCAAst {
     pub version: String,
     pub commands: Vec<Command>,
     pub commands_meta: IndexMap<usize, CommandMeta>,
+    pub meta: HashMap<String, String>
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -281,6 +282,7 @@ impl OCAAst {
             version: String::from("1.0.0"),
             commands: Vec::new(),
             commands_meta: IndexMap::new(),
+            meta: HashMap::new(),
         }
     }
 }

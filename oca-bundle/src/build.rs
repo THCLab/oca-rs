@@ -671,6 +671,7 @@ mod tests {
             version: "1.0".to_string(),
             commands,
             commands_meta: IndexMap::new(),
+            meta: HashMap::new(),
         };
 
         let build_result = from_ast(None, oca_ast);
