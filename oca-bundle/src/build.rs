@@ -50,7 +50,11 @@ pub enum Error {
     }
 }
 
-pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCABuild, Vec<Error>> {
+pub fn from_ast(
+    from_oca: Option<OCABundle>,
+    oca_ast: ast::OCAAst,
+    references: HashMap<String, String>,
+) -> Result<OCABuild, Vec<Error>> {
     let mut errors = vec![];
     let mut steps = vec![];
     let mut parent_said: Option<said::SelfAddressingIdentifier> = match &from_oca {
@@ -65,7 +69,7 @@ pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCA
             None => i,
         };
         let command_meta = oca_ast.commands_meta.get(&command_index).unwrap_or(&default_command_meta);
-        match apply_command(base.clone(), command.clone()) {
+        match apply_command(base.clone(), command.clone(), &references) {
             Ok(oca_box) => {
                 let mut oca_box_mut = oca_box.clone();
                 let oca_bundle = oca_box_mut.generate_bundle();
@@ -112,7 +116,7 @@ pub fn from_ast(from_oca: Option<OCABundle>, oca_ast: ast::OCAAst) -> Result<OCA
     }
 }
 
-fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, Vec<String>> {
+fn apply_command(base: Option<OCABox>, op: ast::Command, references: &HashMap<String, String>) -> Result<OCABox, Vec<String>> {
     let mut errors = vec![];
     let mut oca: OCABox = match base {
         Some(oca) => oca,
@@ -134,6 +138,23 @@ fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, Vec<S
                                     match AttributeType::from_str(attr_value) {
                                         Ok(attribute_type) => attribute.set_attribute_type(attribute_type),
                                         Err(_) => errors.push(format!("Unknown attribute ({attr_name}) type: {attr_value}"))
+                                    }
+                                    oca.add_attribute(attribute);
+                                } else if let ast::NestedValue::Reference(ref_value) = attr_type_value {
+                                    attribute.set_attribute_type(AttributeType::Reference);
+                                    match ref_value {
+                                        ast::RefValue::Said(ref_said) => {
+                                            attribute.set_sai(ref_said.clone());
+                                        },
+                                        ast::RefValue::Name(ref_name) => {
+                                            let ref_said = references
+                                                .get(ref_name)
+                                                .ok_or_else(|| {
+                                                    errors.push(format!("Reference with name '{ref_name}' is not defined"));
+                                                    errors.clone()
+                                                })?;
+                                            attribute.set_sai(ref_said.clone());
+                                        },
                                     }
                                     oca.add_attribute(attribute);
                                 }
@@ -553,9 +574,11 @@ mod tests {
             }
         );
 
+        let refs = HashMap::new();
+
         let mut base: Option<OCABox> = None;
         for command in commands {
-            match apply_command(base.clone(), command.clone()) {
+            match apply_command(base.clone(), command.clone(), &refs) {
                 Ok(oca) => {
                     base = Some(oca);
                 },
@@ -674,7 +697,8 @@ mod tests {
             meta: HashMap::new(),
         };
 
-        let build_result = from_ast(None, oca_ast);
+        let refs = HashMap::new();
+        let build_result = from_ast(None, oca_ast, refs);
         match build_result {
             Ok(oca_build) => {
                 let oca_bundle_encoded = oca_build.oca_bundle.encode().unwrap();
