@@ -7,6 +7,7 @@ pub enum Namespace {
     OCAObjectsJSON,
     CoreModel,
     OCARelations,
+    OCAReferences,
 }
 
 impl Namespace {
@@ -17,6 +18,7 @@ impl Namespace {
             Self::OCAObjectsJSON => "oca_objects_json",
             Self::CoreModel => "core_model",
             Self::OCARelations => "oca_relations",
+            Self::OCAReferences => "oca_refs",
         }
     }
 }
@@ -28,6 +30,10 @@ pub trait DataStorage: Clone {
         namespace: Namespace,
         key: &str,
     ) -> Result<Option<Vec<u8>>, String>;
+    fn get_all(
+        &self,
+        namespace: Namespace,
+    ) -> Result<HashMap<String, Vec<u8>>, String>;
     fn insert(
         &mut self,
         namespace: Namespace,
@@ -126,6 +132,27 @@ impl DataStorage for SledDataStorage {
         }
     }
 
+    fn get_all(
+        &self,
+        namespace: Namespace,
+    ) -> Result<HashMap<String, Vec<u8>>, String> {
+        if let Some(ref db) = self.db {
+            let mut all = HashMap::new();
+            let tree = db.open_tree(namespace.as_str().as_bytes()).unwrap();
+            let mut iter = tree.iter();
+            while let Some(Ok((key, value))) = iter.next() {
+                all.insert(
+                    String::from_utf8(key.to_vec()).unwrap(),
+                    value.to_vec(),
+                );
+            }
+
+            Ok(all)
+        } else {
+            Err("Data Storage must be opened first".to_string())
+        }
+    }
+
     fn insert(
         &mut self,
         namespace: Namespace,
@@ -170,6 +197,16 @@ impl DataStorage for InMemoryDataStorage {
         match namespace_storage.get(key) {
             Some(value) => Ok(Some(value.to_vec())),
             None => Ok(None),
+        }
+    }
+
+    fn get_all(
+        &self,
+        namespace: Namespace,
+    ) -> Result<HashMap<String, Vec<u8>>, String> {
+        match self.db.get(namespace.as_str()) {
+            Some(namespace_storage) => Ok(namespace_storage.clone()),
+            None => Ok(HashMap::new()),
         }
     }
 
@@ -270,6 +307,13 @@ impl DataStorage for FileSystemStorage {
         } else {
             Err("File path is required".to_string())
         }
+    }
+
+    fn get_all(
+        &self,
+        _namespace:Namespace,
+    ) -> Result<HashMap<String, Vec<u8>>, String> {
+        Err("Not implemented".to_string())
     }
 
     fn insert(

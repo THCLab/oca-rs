@@ -16,6 +16,9 @@ include = ["src/**/*", "README.md"]
 name = "oca_rs"
 path = "src/lib.rs"
 
+[features]
+local-references = []
+
 [dependencies]
 convert_case = "0.6.0"
 dyn-clonable = "0.9.0"

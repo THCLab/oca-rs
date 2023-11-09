@@ -8,6 +8,7 @@ use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
 use oca_dag::build_core_db_model;
 
+use std::collections::HashMap;
 use std::rc::Rc;
 
 #[derive(thiserror::Error, Debug, serde::Serialize)]
@@ -70,11 +71,31 @@ impl Facade {
             return Err(errors);
         }
 
-        let oca_build = oca_bundle::build::from_ast(base, oca_ast).map_err(|e| {
+        let mut refs: HashMap<String, String> = HashMap::new();
+        #[cfg(feature = "local-references")]
+        self.db.get_all(Namespace::OCAReferences).unwrap()
+            .iter()
+            .for_each(|(k, v)| {
+                refs.insert(k.clone(), String::from_utf8(v.to_vec()).unwrap());
+            });
+
+        #[cfg(feature = "local-references")]
+        let schema_name = oca_ast.meta.get("name").cloned();
+
+        let oca_build = oca_bundle::build::from_ast(base, oca_ast, refs).map_err(|e| {
             e.iter().map(|e|
                 Error::OCABundleBuild(e.clone())
             ).collect::<Vec<_>>()
         })?;
+
+        #[cfg(feature = "local-references")]
+        if let Some(ref_name) = schema_name {
+            self.db.insert(
+                Namespace::OCAReferences,
+                &ref_name,
+                oca_build.oca_bundle.said.clone().unwrap().to_string().as_bytes(),
+            ).unwrap();
+        }
 
         let oca_bundle_cache_repo =
             OCABundleCacheRepo::new(Rc::clone(&self.connection));
