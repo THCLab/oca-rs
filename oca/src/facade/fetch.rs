@@ -11,8 +11,6 @@ use oca_bundle::state::oca::{
 };
 
 use std::rc::Rc;
-
-use convert_case::{Case, Casing};
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -304,203 +302,15 @@ impl Facade {
     }
 
     pub fn get_oca_bundle_ocafile(&self, said: String) -> Result<String, Vec<String>> {
-        let mut steps = self.get_oca_bundle_steps(said)?;
-        let mut ocafile = String::new();
+        let steps = self.get_oca_bundle_steps(said)?;
 
-        steps.iter_mut().for_each(|step| {
-            let mut line = String::new();
+        let mut oca_ast = oca_ast::ast::OCAAst::new();
+        oca_ast.commands = steps
+            .iter()
+            .map(|step| step.command.clone())
+            .collect();
 
-            if let oca_ast::ast::CommandType::Add = step.command.kind {
-                line.push_str("ADD ");
-                match &step.command.object_kind {
-                    ObjectKind::CaptureBase => {
-                        if let Some(ref content) = step.command.content {
-                            if let Some(ref attributes) = content.attributes {
-                                line.push_str("ATTRIBUTE ");
-                                attributes.iter().for_each(|(key, value)| {
-                                    if let oca_ast::ast::NestedValue::Value(value) = value {
-                                        line.push_str(format!("{}={} ", key, value).as_str());
-                                    }
-                                    if let oca_ast::ast::NestedValue::Reference(value) = value {
-                                        match value {
-                                            oca_ast::ast::RefValue::Name(refn) => {
-                                                line.push_str(format!("{}=refn:{} ", key, refn).as_str());
-                                            }
-                                            oca_ast::ast::RefValue::Said(refs) => {
-                                                line.push_str(format!("{}=refs:{} ", key, refs).as_str());
-                                            }
-
-                                        }
-                                    }
-                                    // TODO handle Array and object?
-
-                                });
-                            }
-                        };
-                    },
-                    ObjectKind::Overlay(o_type) => {
-                        match o_type {
-                            oca_ast::ast::OverlayType::Meta => {
-                                line.push_str("META ");
-                                if let Some(ref mut content) = step.command.content {
-                                    if let Some(ref mut properties) = content.properties {
-                                        if let Some(
-                                            oca_ast::ast::NestedValue::Value(lang)
-                                        ) = properties.remove("lang") {
-                                            line.push_str(format!("{} ", lang).as_str());
-                                        }
-                                        if !properties.is_empty() {
-                                            line.push_str("PROPS ");
-                                            properties.iter().for_each(|(key, value)| {
-                                                if let oca_ast::ast::NestedValue::Value(value) = value {
-                                                    line.push_str(format!("{}=\"{}\" ", key, value).as_str());
-                                                }
-                                            });
-                                        }
-                                    }
-                                };
-                            },
-                            oca_ast::ast::OverlayType::Unit => {
-                                line.push_str("UNIT ");
-                                if let Some(ref mut content) = step.command.content {
-                                    if let Some(ref mut properties) = content.properties {
-                                        if let Some(
-                                            oca_ast::ast::NestedValue::Value(unit_system)
-                                        ) = properties.remove("unit_system") {
-                                            line.push_str(format!("{} ", unit_system).as_str());
-                                        }
-                                        if !properties.is_empty() {
-                                            line.push_str("PROPS ");
-                                            properties.iter().for_each(|(key, value)| {
-                                                if let oca_ast::ast::NestedValue::Value(value) = value {
-                                                    line.push_str(format!("{}=\"{}\" ", key, value).as_str());
-                                                }
-                                            });
-                                        }
-                                        if let Some(ref attributes) = content.attributes {
-                                            line.push_str("ATTRS ");
-                                            attributes.iter().for_each(|(key, value)| {
-                                                if let oca_ast::ast::NestedValue::Value(value) = value {
-                                                    line.push_str(format!("{}=\"{}\" ", key, value).as_str());
-                                                }
-                                            });
-                                        }
-                                    }
-                                };
-                            },
-                            oca_ast::ast::OverlayType::EntryCode => {
-                                line.push_str("ENTRY_CODE ");
-                                if let Some(ref mut content) = step.command.content {
-                                    if let Some(ref mut properties) = content.properties {
-                                        if !properties.is_empty() {
-                                            line.push_str("PROPS ");
-                                            properties.iter().for_each(|(key, value)| {
-                                                if let oca_ast::ast::NestedValue::Value(value) = value {
-                                                    line.push_str(format!("{}={} ", key, value).as_str());
-                                                }
-                                            });
-                                        }
-                                        if let Some(ref attributes) = content.attributes {
-                                            line.push_str("ATTRS ");
-                                            attributes.iter().for_each(|(key, value)| {
-                                                if let oca_ast::ast::NestedValue::Array(values) = value {
-                                                    let codes = values.iter().filter_map(|value| {
-                                                        if let oca_ast::ast::NestedValue::Value(value) = value {
-                                                            Some(format!("\"{}\"", value))
-                                                        } else {
-                                                            None
-                                                        }
-                                                    }).collect::<Vec<String>>().join(", ");
-                                                    line.push_str(format!("{}=[{}] ", key, codes).as_str());
-                                                } else if let oca_ast::ast::NestedValue::Value(said) = value {
-                                                    line.push_str(format!("{}=\"{}\" ", key, said).as_str());
-                                                }
-                                            });
-                                        }
-                                    }
-                                };
-                            },
-                            oca_ast::ast::OverlayType::Entry => {
-                                line.push_str("ENTRY ");
-                                if let Some(ref mut content) = step.command.content {
-                                    if let Some(ref mut properties) = content.properties {
-                                        if let Some(
-                                            oca_ast::ast::NestedValue::Value(lang)
-                                        ) = properties.remove("lang") {
-                                            line.push_str(format!("{} ", lang).as_str());
-                                        }
-                                        if !properties.is_empty() {
-                                            line.push_str("PROPS ");
-                                            properties.iter().for_each(|(key, value)| {
-                                                if let oca_ast::ast::NestedValue::Value(value) = value {
-                                                    line.push_str(format!("{}={} ", key, value).as_str());
-                                                }
-                                            });
-                                        }
-                                        if let Some(ref attributes) = content.attributes {
-                                            line.push_str("ATTRS ");
-                                            attributes.iter().for_each(|(key, value)| {
-                                                if let oca_ast::ast::NestedValue::Object(values) = value {
-                                                    let codes = values.iter().filter_map(|(code, label)| {
-                                                        if let oca_ast::ast::NestedValue::Value(label) = label {
-                                                            Some(format!("\"{}\": \"{}\"", code, label))
-                                                        } else {
-                                                            None
-                                                        }
-                                                    }).collect::<Vec<String>>().join(", ");
-                                                    line.push_str(format!("{}={{ {} }} ", key, codes).as_str());
-                                                } else if let oca_ast::ast::NestedValue::Value(said) = value {
-                                                    line.push_str(format!("{}=\"{}\" ", key, said).as_str());
-                                                }
-                                            });
-                                        }
-                                    }
-                                };
-                            },
-                            _ => {
-                                line.push_str(
-                                    format!(
-                                        "{} ",
-                                        o_type.to_string().to_case(Case::UpperSnake)
-                                    ).as_str()
-                                );
-
-                                if let Some(ref mut content) = step.command.content {
-                                    if let Some(ref mut properties) = content.properties {
-                                        if let Some(
-                                            oca_ast::ast::NestedValue::Value(lang)
-                                        ) = properties.remove("lang") {
-                                            line.push_str(format!("{} ", lang).as_str());
-                                        }
-                                        if !properties.is_empty() {
-                                            line.push_str("PROPS ");
-                                            properties.iter().for_each(|(key, value)| {
-                                                if let oca_ast::ast::NestedValue::Value(value) = value {
-                                                    line.push_str(format!("{}=\"{}\" ", key, value).as_str());
-                                                }
-                                            });
-                                        }
-                                    }
-                                    if let Some(ref attributes) = content.attributes {
-                                        line.push_str("ATTRS ");
-                                        attributes.iter().for_each(|(key, value)| {
-                                            if let oca_ast::ast::NestedValue::Value(value) = value {
-                                                line.push_str(format!("{}=\"{}\" ", key, value).as_str());
-                                            }
-                                        });
-                                    }
-                                };
-                            }
-                        }
-                    },
-                    _ => {}
-                }
-            }
-
-            ocafile.push_str(format!("{}\n", line).as_str());
-        });
-
-        Ok(ocafile)
+        Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
     }
 }
 

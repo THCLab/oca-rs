@@ -20,7 +20,6 @@ path = "src/lib.rs"
 local-references = []
 
 [dependencies]
-convert_case = "0.6.0"
 dyn-clonable = "0.9.0"
 isolang = "2.3.0"
 oca-ast = { version = "0.3.5", path = "../oca-ast" }
