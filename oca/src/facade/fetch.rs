@@ -321,6 +321,19 @@ impl Facade {
                                     if let oca_ast::ast::NestedValue::Value(value) = value {
                                         line.push_str(format!("{}={} ", key, value).as_str());
                                     }
+                                    if let oca_ast::ast::NestedValue::Reference(value) = value {
+                                        match value {
+                                            oca_ast::ast::RefValue::Name(refn) => {
+                                                line.push_str(format!("{}=refn:{} ", key, refn).as_str());
+                                            }
+                                            oca_ast::ast::RefValue::Said(refs) => {
+                                                line.push_str(format!("{}=refs:{} ", key, refs).as_str());
+                                            }
+
+                                        }
+                                    }
+                                    // TODO handle Array and object?
+
                                 });
                             }
                         };

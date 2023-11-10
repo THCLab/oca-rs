@@ -11,23 +11,45 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
     let mut key = String::new();
     let mut value = NestedValue::Value(String::new());
 
-    debug!("Extract the attribute: {:?}", attr_pair);
+    debug!("Extracting the attribute from: {:?}", attr_pair);
     for item in attr_pair.into_inner() {
         match item.as_rule() {
             Rule::attr_key => {
+                debug!("Extracting attribute key");
                 key = item.as_str().to_string();
-            }
-            Rule::attr_type => match AttributeType::from_str(item.as_span().as_str()) {
-                Ok(attr_type) => {
-                    debug!("Attribute type: {:?}", attr_type);
-                    if let Ok(serde_json::Value::String(v)) = serde_json::to_value(attr_type) {
-                        value = NestedValue::Value(v);
-                    } else {
-                        panic!("Invalid attribute type {:?}", attr_type);
+            },
+            Rule::_attr_type => {
+                debug!("Attribute type to parse: {:?}", item);
+                if let Some(attr_type) = item.clone().into_inner().next() {
+                    match attr_type.as_rule() {
+                        Rule::reference => {
+                            debug!("Matching referance {:?}", item);
+                            value = NestedValue::Reference(oca_ast::ast::RefValue::Name(attr_type.as_str().to_string()))
+                        },
+                        Rule::attr_type => {
+                            debug!("checking: {}", item);
+                            match AttributeType::from_str(item.as_span().as_str()) {
+                                Ok(attr_type) => {
+                                    debug!("Attribute type: {:?}", attr_type);
+                                    if let Ok(serde_json::Value::String(v)) = serde_json::to_value(attr_type) {
+                                        value = NestedValue::Value(v);
+                                    } else {
+                                        panic!("Invalid attribute type {:?}", attr_type);
+                                    }
+                                }
+                                Err(e) => {
+                                    panic!("Invalid attribute type {:?}", e);
+                                }
+                            }
+                        }
+                        Rule::said => {
+                            debug!("Found said: {:?}", item );
+                            value = NestedValue::Reference(oca_ast::ast::RefValue::Said(attr_type.as_str().to_string()))
+                        }
+                        _ => {
+                            panic!("Matching referance didn't worked");
+                        }
                     }
-                }
-                Err(e) => {
-                    panic!("Invalid attribute type {:?}", e);
                 }
             },
             Rule::key_value => {
