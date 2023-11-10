@@ -1,10 +1,11 @@
 mod error;
 mod instructions;
 
+use convert_case::{Case, Casing};
 use self::instructions::{add::AddInstruction, from::FromInstruction, remove::RemoveInstruction};
 use crate::ocafile::error::Error;
 use oca_ast::{
-    ast::{Command, CommandMeta, OCAAst},
+    ast::{self, Command, CommandMeta, OCAAst},
     validator::{OCAValidator, Validator},
 };
 use pest::Parser;
@@ -129,6 +130,208 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
     Ok(oca_ast)
 }
 
+pub fn generate_from_ast(ast: &OCAAst) -> String {
+    let mut ocafile = String::new();
+
+    ast.commands.iter().for_each(|command| {
+        let mut line = String::new();
+
+        if let ast::CommandType::Add = command.kind {
+            line.push_str("ADD ");
+            match &command.object_kind {
+                ast::ObjectKind::CaptureBase => {
+                    if let Some(ref content) = command.content {
+                        if let Some(ref attributes) = content.attributes {
+                            line.push_str("ATTRIBUTE ");
+                            attributes.iter().for_each(|(key, value)| {
+                                if let ast::NestedValue::Value(value) = value {
+                                    line.push_str(format!("{}={} ", key, value).as_str());
+                                }
+                                if let ast::NestedValue::Reference(value) = value {
+                                    match value {
+                                        ast::RefValue::Name(refn) => {
+                                            line.push_str(format!("{}=refn:{} ", key, refn).as_str());
+                                        }
+                                        ast::RefValue::Said(refs) => {
+                                            line.push_str(format!("{}=refs:{} ", key, refs).as_str());
+                                        }
+
+                                    }
+                                }
+                                // TODO handle Array and object?
+
+                            });
+                        }
+                    };
+                },
+                ast::ObjectKind::Overlay(o_type) => {
+                    match o_type {
+                        ast::OverlayType::Meta => {
+                            line.push_str("META ");
+                            if let Some(ref content) = command.content {
+                                if let Some(ref properties) = content.properties {
+                                    let mut properties = properties.clone();
+                                    if let Some(
+                                        ast::NestedValue::Value(lang)
+                                    ) = properties.remove("lang") {
+                                        line.push_str(format!("{} ", lang).as_str());
+                                    }
+                                    if !properties.is_empty() {
+                                        line.push_str("PROPS ");
+                                        properties.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(format!("{}=\"{}\" ", key, value).as_str());
+                                            }
+                                        });
+                                    }
+                                }
+                            };
+                        },
+                        ast::OverlayType::Unit => {
+                            line.push_str("UNIT ");
+                            if let Some(ref content) = command.content {
+                                if let Some(ref properties) = content.properties {
+                                    let mut properties = properties.clone();
+                                    if let Some(
+                                        ast::NestedValue::Value(unit_system)
+                                    ) = properties.remove("unit_system") {
+                                        line.push_str(format!("{} ", unit_system).as_str());
+                                    }
+                                    if !properties.is_empty() {
+                                        line.push_str("PROPS ");
+                                        properties.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(format!("{}=\"{}\" ", key, value).as_str());
+                                            }
+                                        });
+                                    }
+                                    if let Some(ref attributes) = content.attributes {
+                                        line.push_str("ATTRS ");
+                                        attributes.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(format!("{}=\"{}\" ", key, value).as_str());
+                                            }
+                                        });
+                                    }
+                                }
+                            };
+                        },
+                        ast::OverlayType::EntryCode => {
+                            line.push_str("ENTRY_CODE ");
+                            if let Some(ref content) = command.content {
+                                if let Some(ref properties) = content.properties {
+                                    if !properties.is_empty() {
+                                        line.push_str("PROPS ");
+                                        properties.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(format!("{}={} ", key, value).as_str());
+                                            }
+                                        });
+                                    }
+                                    if let Some(ref attributes) = content.attributes {
+                                        line.push_str("ATTRS ");
+                                        attributes.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Array(values) = value {
+                                                let codes = values.iter().filter_map(|value| {
+                                                    if let ast::NestedValue::Value(value) = value {
+                                                        Some(format!("\"{}\"", value))
+                                                    } else {
+                                                        None
+                                                    }
+                                                }).collect::<Vec<String>>().join(", ");
+                                                line.push_str(format!("{}=[{}] ", key, codes).as_str());
+                                            } else if let ast::NestedValue::Value(said) = value {
+                                                line.push_str(format!("{}=\"{}\" ", key, said).as_str());
+                                            }
+                                        });
+                                    }
+                                }
+                            };
+                        },
+                        ast::OverlayType::Entry => {
+                            line.push_str("ENTRY ");
+                            if let Some(ref content) = command.content {
+                                if let Some(ref properties) = content.properties {
+                                    let mut properties = properties.clone();
+                                    if let Some(
+                                        ast::NestedValue::Value(lang)
+                                    ) = properties.remove("lang") {
+                                        line.push_str(format!("{} ", lang).as_str());
+                                    }
+                                    if !properties.is_empty() {
+                                        line.push_str("PROPS ");
+                                        properties.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(format!("{}={} ", key, value).as_str());
+                                            }
+                                        });
+                                    }
+                                    if let Some(ref attributes) = content.attributes {
+                                        line.push_str("ATTRS ");
+                                        attributes.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Object(values) = value {
+                                                let codes = values.iter().filter_map(|(code, label)| {
+                                                    if let ast::NestedValue::Value(label) = label {
+                                                        Some(format!("\"{}\": \"{}\"", code, label))
+                                                    } else {
+                                                        None
+                                                    }
+                                                }).collect::<Vec<String>>().join(", ");
+                                                line.push_str(format!("{}={{ {} }} ", key, codes).as_str());
+                                            } else if let ast::NestedValue::Value(said) = value {
+                                                line.push_str(format!("{}=\"{}\" ", key, said).as_str());
+                                            }
+                                        });
+                                    }
+                                }
+                            };
+                        },
+                        _ => {
+                            line.push_str(
+                                format!(
+                                    "{} ",
+                                    o_type.to_string().to_case(Case::UpperSnake)
+                                ).as_str()
+                            );
+
+                            if let Some(ref content) = command.content {
+                                if let Some(ref properties) = content.properties {
+                                    let mut properties = properties.clone();
+                                    if let Some(
+                                        ast::NestedValue::Value(lang)
+                                    ) = properties.remove("lang") {
+                                        line.push_str(format!("{} ", lang).as_str());
+                                    }
+                                    if !properties.is_empty() {
+                                        line.push_str("PROPS ");
+                                        properties.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(format!("{}=\"{}\" ", key, value).as_str());
+                                            }
+                                        });
+                                    }
+                                }
+                                if let Some(ref attributes) = content.attributes {
+                                    line.push_str("ATTRS ");
+                                    attributes.iter().for_each(|(key, value)| {
+                                        if let ast::NestedValue::Value(value) = value {
+                                            line.push_str(format!("{}=\"{}\" ", key, value).as_str());
+                                        }
+                                    });
+                                }
+                            };
+                        }
+                    }
+                },
+                _ => {}
+            }
+        }
+
+        ocafile.push_str(format!("{}\n", line).as_str());
+    });
+
+    ocafile
+}
 
 #[cfg(test)]
 mod tests {
