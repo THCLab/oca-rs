@@ -4,6 +4,12 @@
 // insignificant whitespace, not repeated
 ws = _{ " " | "\t" }
 
+meta_attr_key = ${ "name" | "version" }
+meta_attr_value = ${ string | char+}
+meta_key_pair = @{ meta_attr_key ~ "=" ~ meta_attr_value }
+meta_comment = @{ "--" ~ ws* ~ (!NEWLINE ~ meta_key_pair)* }
+meta_comment_line = _{ ws* ~ meta_comment ~ NEWLINE? }
+
 comment = @{ "#" ~ (!NEWLINE ~ ANY)* }
 comment_line = _{ ws* ~ comment ~ NEWLINE? }
 empty_line = @{ ws* ~ NEWLINE }
@@ -191,6 +197,6 @@ lang = ${ ASCII_ALPHA{2} ~ ("-" ~ ASCII_ALPHA{2})? }
 
 file = {
   SOI ~
-  (empty_line | comment_line | commands)*
+  (empty_line | meta_comment_line | comment_line | commands)*
   ~ EOI
 }

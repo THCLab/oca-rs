@@ -79,6 +79,31 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
         if let Rule::comment = line.as_rule() {
             continue;
         }
+        if let Rule::meta_comment = line.as_rule() {
+            let mut key = "".to_string();
+            let mut value = "".to_string();
+            for attr in line.into_inner() {
+                match attr.as_rule() {
+                    Rule::meta_attr_key => {
+                        key = attr.as_str().to_string();
+                    }
+                    Rule::meta_attr_value => {
+                        value = attr.as_str().to_string();
+                    }
+                    _ => {
+                        return Err(ParseError::Custom(format!("Error parsing meta: {}", attr.as_str())));
+                    }
+                }
+            }
+            if key == "" {
+                return Err(ParseError::Custom(format!("Error parsing meta: key is empty")));
+            }
+            if value == "" {
+                return Err(ParseError::Custom(format!("Error parsing meta: value is empty")));
+            }
+            oca_ast.meta.insert(key, value);
+            continue;
+        }
         if let Rule::empty_line = line.as_rule() {
             continue;
         }
@@ -102,4 +127,23 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
         };
     }
     Ok(oca_ast)
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_meta_from_string_valid() {
+        let unparsed_file = r#"
+-- version=0.0.1
+-- name=Objekt
+ADD attribute name=Text age=Numeric
+"#;
+
+        let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
+        assert_eq!(oca_ast.meta.get("version").unwrap(), "0.0.1");
+        assert_eq!(oca_ast.meta.get("name").unwrap(), "Objekt");
+    }
 }
