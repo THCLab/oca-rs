@@ -10,6 +10,7 @@ use oca_bundle::state::oca::{
     capture_base::CaptureBase, DynOverlay, OCABundle,
 };
 
+use std::collections::HashMap;
 use std::rc::Rc;
 use serde::Serialize;
 
@@ -104,6 +105,19 @@ impl Facade {
                 page: search_result.metadata.page,
             },
         }
+    }
+    #[cfg(feature = "local-references")]
+    pub fn fetch_all_refs(
+        &self,
+        ) -> Result<HashMap<String, String>, String> {
+
+        let mut refs: HashMap<String, String> = HashMap::new();
+        self.db.get_all(Namespace::OCAReferences).unwrap()
+            .iter()
+            .for_each(|(k, v)| {
+                refs.insert(k.clone(), String::from_utf8(v.to_vec()).unwrap());
+            });
+        return Ok(refs);
     }
 
     pub fn fetch_all_oca_bundle(
