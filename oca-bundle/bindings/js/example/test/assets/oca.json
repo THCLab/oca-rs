@@ -1,6 +1,6 @@
 {
   "v": "OCAB10JSON003e45_",
-  "d": "ELg6ryWOfCAxy3eiKsQgRlAoyeiEk_cRyV6xlH39sVrK",
+  "d": "EI1WkVtHMUIuFSOaZVMNoCLyCRrSUfU9-KakXja8sJpV",
   "capture_base": {
     "d": "EJo30WqZ0-pfvfPD3jb00UWPDhspdRLx1LAxat501FXV",
     "type": "spec/capture_base/1.0",
@@ -236,12 +236,12 @@
       }
     ],
     "unit": {
-      "d": "EHQq9Wdaoi0M0WQ493XBI7Hrou809LGBnMV0DjY0CdAu",
+      "d": "EG_ZvZPdTGnbzw58GyPwRJY-BXBfeL-wrqFHQkpo5XV-",
       "type": "spec/overlays/unit/1.0",
       "capture_base": "EJo30WqZ0-pfvfPD3jb00UWPDhspdRLx1LAxat501FXV",
-      "measurement_system": "Metric",
+      "measurement_system": "metric",
       "attribute_units": {
-        "optionalPersonalData": "Centimeter"
+        "optionalPersonalData": "centimeter"
       }
     }
   }

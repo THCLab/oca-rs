@@ -316,14 +316,12 @@ impl Facade {
     }
 
     pub fn get_oca_bundle_ocafile(&self, said: String) -> Result<String, Vec<String>> {
-        let steps = self.get_oca_bundle_steps(said)?;
+        let oca_bundle = self.get_oca_bundle(said)?;
+        self.parse_oca_bundle_to_ocafile(&oca_bundle)
+    }
 
-        let mut oca_ast = oca_ast::ast::OCAAst::new();
-        oca_ast.commands = steps
-            .iter()
-            .map(|step| step.command.clone())
-            .collect();
-
+    pub fn parse_oca_bundle_to_ocafile(&self, bundle: &OCABundle) -> Result<String, Vec<String>> {
+        let oca_ast = bundle.to_ast();
         Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
     }
 }
@@ -356,9 +354,7 @@ ADD ENTRY en ATTRS list="entry_said" el={"o1": "o1_label", "o2": "o2_label", "o3
 "#.to_string();
         let oca_bundle = facade.build_from_ocafile(ocafile_input).unwrap();
 
-        let ocafile = facade.get_oca_bundle_ocafile(
-            oca_bundle.said.clone().unwrap().to_string(),
-        )?;
+        let ocafile = facade.parse_oca_bundle_to_ocafile(&oca_bundle)?;
         let new_oca_bundle = facade.build_from_ocafile(ocafile).unwrap();
 
         assert_eq!(oca_bundle.said, new_oca_bundle.said);

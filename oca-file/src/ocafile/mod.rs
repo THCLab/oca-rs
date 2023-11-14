@@ -228,23 +228,23 @@ pub fn generate_from_ast(ast: &OCAAst) -> String {
                                             }
                                         });
                                     }
-                                    if let Some(ref attributes) = content.attributes {
-                                        line.push_str("ATTRS ");
-                                        attributes.iter().for_each(|(key, value)| {
-                                            if let ast::NestedValue::Array(values) = value {
-                                                let codes = values.iter().filter_map(|value| {
-                                                    if let ast::NestedValue::Value(value) = value {
-                                                        Some(format!("\"{}\"", value))
-                                                    } else {
-                                                        None
-                                                    }
-                                                }).collect::<Vec<String>>().join(", ");
-                                                line.push_str(format!("{}=[{}] ", key, codes).as_str());
-                                            } else if let ast::NestedValue::Value(said) = value {
-                                                line.push_str(format!("{}=\"{}\" ", key, said).as_str());
-                                            }
-                                        });
-                                    }
+                                }
+                                if let Some(ref attributes) = content.attributes {
+                                    line.push_str("ATTRS ");
+                                    attributes.iter().for_each(|(key, value)| {
+                                        if let ast::NestedValue::Array(values) = value {
+                                            let codes = values.iter().filter_map(|value| {
+                                                if let ast::NestedValue::Value(value) = value {
+                                                    Some(format!("\"{}\"", value))
+                                                } else {
+                                                    None
+                                                }
+                                            }).collect::<Vec<String>>().join(", ");
+                                            line.push_str(format!("{}=[{}] ", key, codes).as_str());
+                                        } else if let ast::NestedValue::Value(said) = value {
+                                            line.push_str(format!("{}=\"{}\" ", key, said).as_str());
+                                        }
+                                    });
                                 }
                             };
                         },

@@ -6,6 +6,7 @@ use said::{sad::SAD, sad::SerializationFormats};
 use oca_ast::ast::OverlayType;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, Hash, PartialEq)]
+#[serde(rename_all = "lowercase")]
 pub enum MeasurementSystem {
     Metric,
     Imperial,
@@ -23,6 +24,7 @@ pub enum MeasurementUnit {
 }
 
 #[derive(Eq, Hash, Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(rename_all = "lowercase")]
 pub enum MetricUnit {
     Kilogram,
     Gram,
@@ -45,6 +47,7 @@ pub enum MetricUnit {
 }
 
 #[derive(Eq, Hash, Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(rename_all = "lowercase")]
 pub enum ImperialUnit {
     Pound,
     Ounce,
