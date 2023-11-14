@@ -2,7 +2,7 @@ use crate::data_storage::DataStorage;
 use crate::repositories::SQLiteConfig;
 use std::rc::Rc;
 
-mod build;
+pub mod build;
 mod explore;
 mod fetch;
 
