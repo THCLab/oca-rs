@@ -83,7 +83,19 @@ impl FromStr for AttributeType {
             "Array[DateTime]" => Ok(AttributeType::ArrayDateTime),
             "Reference" => Ok(AttributeType::Reference),
             "Array[Reference]" => Ok(AttributeType::ArrayReference),
-            _ => Err(()),
+            _ => {
+                if let Some((attr_type, _)) = s.split_once(':') {
+                    if attr_type == "Reference" {
+                        Ok(AttributeType::Reference)
+                    } else if attr_type == "Array[Reference" {
+                        Ok(AttributeType::ArrayReference)
+                    } else {
+                        Err(())
+                    }
+                } else {
+                    Err(())
+                }
+            }
         }
     }
 }
