@@ -831,7 +831,7 @@ dependencies = [
 
 [[package]]
 name = "oca-ast"
-version = "0.3.6"
+version = "0.3.7"
 dependencies = [
  "env_logger",
  "indexmap 1.9.3",
@@ -846,7 +846,7 @@ dependencies = [
 
 [[package]]
 name = "oca-bundle"
-version = "0.3.6"
+version = "0.3.7"
 dependencies = [
  "cascade",
  "convert_case",
@@ -874,7 +874,7 @@ dependencies = [
 
 [[package]]
 name = "oca-dag"
-version = "0.3.6"
+version = "0.3.7"
 dependencies = [
  "dyn-clonable",
  "indexmap 1.9.3",
@@ -889,7 +889,7 @@ dependencies = [
 
 [[package]]
 name = "oca-file"
-version = "0.3.6"
+version = "0.3.7"
 dependencies = [
  "clap 4.4.8",
  "convert_case",
@@ -909,7 +909,7 @@ dependencies = [
 
 [[package]]
 name = "oca-rs"
-version = "0.3.6"
+version = "0.3.7"
 dependencies = [
  "dyn-clonable",
  "isolang",

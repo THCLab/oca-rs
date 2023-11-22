@@ -39,7 +39,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-oca-bundle = "0.3.6"
+oca-bundle = "0.3.7"
 ```
 
 ### Build
