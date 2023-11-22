@@ -678,9 +678,20 @@ impl From<OCABundle> for OCABox {
 
         let mut attributes: HashMap<String, Attribute> = HashMap::new();
         for (attr_name, attr_type) in oca_bundle.capture_base.attributes {
+            let attribute_type = AttributeType::from_str(&attr_type).unwrap();
+            let ref_said = if attribute_type == AttributeType::Reference {
+                Some(attr_type.split(':').last().unwrap().to_string())
+            } else if attribute_type == AttributeType::ArrayReference {
+                let mut said = attr_type.split(':').last().unwrap().to_string();
+                said.pop();
+                Some(said)
+            } else {
+                None
+            };
             let attr = Attribute {
                 name: attr_name.clone(),
-                attribute_type: Some(AttributeType::from_str(&attr_type).unwrap()),
+                attribute_type: Some(attribute_type),
+                reference_sai: ref_said,
                 ..Default::default()
             };
             attributes.insert(attr_name.clone(), attr);
@@ -1268,6 +1279,12 @@ mod tests {
         attr.set_attribute_type(AttributeType::Text);
         attr.set_condition("string.len(${first_name}) > 0".to_string());
         oca.add_attribute(attr);
+
+        let mut attr = Attribute::new("ref".to_string());
+        attr.set_attribute_type(AttributeType::Reference);
+        attr.set_sai("test".to_string());
+        oca.add_attribute(attr);
+
         let oca_bundle = oca.generate_bundle();
         let said = oca_bundle.said.clone();
 
