@@ -11,6 +11,7 @@ use crate::state::{encoding::Encoding, entry_codes::EntryCodes, entries::Entries
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Attribute {
     pub name: String,
+    #[serde(rename = "type")]
     pub attribute_type: Option<AttributeType>,
     pub is_flagged: bool,
     pub labels: Option<HashMap<Language, String>>,
