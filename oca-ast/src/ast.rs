@@ -61,6 +61,7 @@ pub enum AttributeType {
     DateTime,
     #[serde(rename = "Array[DateTime]")]
     ArrayDateTime,
+    #[serde(rename = "refs")]
     Reference,
     #[serde(rename = "Array[Reference]")]
     ArrayReference,
