@@ -325,6 +325,15 @@ impl Facade {
         Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
     }
 
+    pub fn get_oca_bundle_ast(&self, said: String) -> Result<OCAAst, Vec<String>> {
+        let oca_bundle_steps = self.get_oca_bundle_steps(said)?;
+        let mut oca_ast = OCAAst::new();
+        for step in oca_bundle_steps {
+            oca_ast.commands.push(step.command);
+        }
+        Ok(oca_ast)
+    }
+
     pub fn parse_oca_bundle_to_ocafile(&self, bundle: &OCABundle) -> Result<String, Vec<String>> {
         let oca_ast = bundle.to_ast();
         Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
