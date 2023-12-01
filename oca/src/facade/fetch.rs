@@ -10,6 +10,7 @@ use oca_bundle::state::oca::{
     capture_base::CaptureBase, DynOverlay, OCABundle,
 };
 
+#[cfg(feature = "local-references")]
 use std::collections::HashMap;
 use std::rc::Rc;
 use serde::Serialize;
