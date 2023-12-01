@@ -4,7 +4,7 @@ use crate::{
     data_storage::DataStorage,
     repositories::{OCABundleCacheRepo, OCABundleFTSRepo},
 };
-use oca_ast::ast::ObjectKind;
+use oca_ast::ast::{ObjectKind, OCAAst};
 use oca_bundle::build::OCABuildStep;
 use oca_bundle::state::oca::{
     capture_base::CaptureBase, DynOverlay, OCABundle,
@@ -316,8 +316,12 @@ impl Facade {
     }
 
     pub fn get_oca_bundle_ocafile(&self, said: String) -> Result<String, Vec<String>> {
-        let oca_bundle = self.get_oca_bundle(said)?;
-        self.parse_oca_bundle_to_ocafile(&oca_bundle)
+        let oca_bundle_steps = self.get_oca_bundle_steps(said)?;
+        let mut oca_ast = OCAAst::new();
+        for step in oca_bundle_steps {
+            oca_ast.commands.push(step.command);
+        }
+        Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
     }
 
     pub fn parse_oca_bundle_to_ocafile(&self, bundle: &OCABundle) -> Result<String, Vec<String>> {
