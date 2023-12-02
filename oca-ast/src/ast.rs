@@ -86,7 +86,7 @@ impl FromStr for AttributeType {
             "Array[Reference]" => Ok(AttributeType::ArrayReference),
             _ => {
                 if let Some((attr_type, _)) = s.split_once(':') {
-                    if attr_type == "Reference" {
+                    if attr_type == "refs" {
                         Ok(AttributeType::Reference)
                     } else if attr_type == "Array[Reference" {
                         Ok(AttributeType::ArrayReference)
