@@ -148,8 +148,11 @@ mod tests {
     fn test_add_attribute_instruction() {
         // test vector with example instruction and boolean if they should be valid or not
         let instructions = vec![
+            ("ADD ATTRIBUTE documentNumber=Array[refn:dokument]", true),
+            ("ADD ATTRIBUTE documentNumber=Array[refs:12d1j02dj1092dj1092jd1093]", true),
+            ("ADD ATTRIBUTE documentNumber=Array[refn:klient, refs:12d1j02dj1092dj1092jd1093]", false),
             ("ADD ATTRIBUTE documentNumber=snieg documentType=refs:12d1j02dj1092dj1092jd1092", false),
-            ("ADD ATTRIBUTE documentNumber=refn:snieg documentType=refs:12d1j02dj1092dj1092jd1092", true),
+            ("ADD ATTRIBUTE documentNumber=refn:snieg documentType=refs:12d1j02dj1092dj1092jd1094", true),
             ("ADD ATTRIBUTE documentNumber=Text documentType=Numeric", true),
             ("ADD ATTRIBUTE documentNumber=Text documentType=Numeric name=Text list=Array[Numeric]", true),
             ("ADD ATTRIBUTE name=Text", false),
@@ -162,7 +165,9 @@ mod tests {
 
         // loop over instructions to check if the are meeting the requirements
         for (instruction, is_valid) in instructions {
+            debug!("Instruction: {:?}", instruction);
             let parsed_instruction = OCAfileParser::parse(Rule::add, instruction);
+            debug!("Parsed instruction: {:?}", parsed_instruction);
 
             match parsed_instruction {
                 Ok(mut parsed_instruction) => {

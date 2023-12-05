@@ -187,9 +187,16 @@ attr_type = @{ ("Text" |
         "Array[Boolean]" |
         "Array[Binary]" |
         "Array[DateTime]" )}
+
+ref_array = ${ "Array[" ~ reference_type ~ "]"}
+reference_type = _{ ref_said | ref_name }
 reference = @{ char+ }
 said = @{ char+ }
-_attr_type = ${ attr_type | (^"refs:" ~ said) | (^"refn:" ~ reference) }
+refs = _{^"refs:"}
+refn = _{^"refn:"}
+ref_said = _{ refs ~ said}
+ref_name = _{ refn ~ reference }
+_attr_type = ${ attr_type | refs | refn | ref_array }
 attr_pair = @{attr_key ~ "=" ~ _attr_type}
 attr_pairs = ${ (arg_ws ~ attr_pair)+}
 
