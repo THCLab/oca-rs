@@ -239,6 +239,21 @@ pub struct Content {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
+/// Enum representing attribute type which can be nested.
+///
+/// References: supports ref said and ref name
+/// Value: supports all AttributeType
+/// Object: can be inline object which can have nested attributes types
+/// Array: is an array of specific type (only one type allowed)
+pub enum NestedAttrType {
+    Reference(RefValue),
+    Value(AttributeType),
+    Object(IndexMap<String, NestedAttrType>),
+    Array(Box<NestedAttrType>),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
 pub enum NestedValue {
     Reference(RefValue),
     Value(String),
