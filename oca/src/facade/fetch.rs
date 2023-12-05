@@ -10,7 +10,6 @@ use oca_bundle::state::oca::{
     capture_base::CaptureBase, DynOverlay, OCABundle,
 };
 
-#[cfg(feature = "local-references")]
 use std::collections::HashMap;
 use std::rc::Rc;
 use serde::Serialize;
@@ -316,13 +315,26 @@ impl Facade {
         Ok(history)
     }
 
-    pub fn get_oca_bundle_ocafile(&self, said: String) -> Result<String, Vec<String>> {
+    pub fn get_oca_bundle_ocafile(&self, said: String, dereference: bool) -> Result<String, Vec<String>> {
         let oca_bundle_steps = self.get_oca_bundle_steps(said)?;
         let mut oca_ast = OCAAst::new();
         for step in oca_bundle_steps {
             oca_ast.commands.push(step.command);
+        };
+
+        let mut refs: Option<HashMap<String, String>> = None;
+        if dereference {
+            let mut local_refs = HashMap::new();
+            #[cfg(feature = "local-references")]
+            self.db.get_all(Namespace::OCAReferences).unwrap()
+                .iter()
+                .for_each(|(k, v)| {
+                    local_refs.insert(k.clone(), String::from_utf8(v.to_vec()).unwrap());
+                });
+            refs = Some(local_refs);
         }
-        Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
+
+        Ok(oca_file::ocafile::generate_from_ast(&oca_ast, refs))
     }
 
     pub fn get_oca_bundle_ast(&self, said: String) -> Result<OCAAst, Vec<String>> {
@@ -336,7 +348,7 @@ impl Facade {
 
     pub fn parse_oca_bundle_to_ocafile(&self, bundle: &OCABundle) -> Result<String, Vec<String>> {
         let oca_ast = bundle.to_ast();
-        Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
+        Ok(oca_file::ocafile::generate_from_ast(&oca_ast, None))
     }
 }
 

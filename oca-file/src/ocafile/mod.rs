@@ -1,6 +1,8 @@
 mod error;
 mod instructions;
 
+use std::collections::HashMap;
+
 use convert_case::{Case, Casing};
 use self::instructions::{add::AddInstruction, from::FromInstruction, remove::RemoveInstruction};
 use crate::ocafile::error::Error;
@@ -130,7 +132,7 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
     Ok(oca_ast)
 }
 
-pub fn generate_from_ast(ast: &OCAAst) -> String {
+pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String>>) -> String {
     let mut ocafile = String::new();
 
     ast.commands.iter().for_each(|command| {
@@ -150,7 +152,18 @@ pub fn generate_from_ast(ast: &OCAAst) -> String {
                                 if let ast::NestedValue::Reference(value) = value {
                                     match value {
                                         ast::RefValue::Name(refn) => {
-                                            line.push_str(format!("{}=refn:{} ", key, refn).as_str());
+                                            match references {
+                                                Some(ref references) => {
+                                                    if let Some(refs) = references.get(refn) {
+                                                        line.push_str(format!("{}=refs:{} ", key, refs).as_str());
+                                                    } else {
+                                                        panic!("Reference not found: {}", refn)
+                                                    }
+                                                },
+                                                None => {
+                                                    line.push_str(format!("{}={} ", key, refn).as_str());
+                                                }
+                                            }
                                         }
                                         ast::RefValue::Said(refs) => {
                                             line.push_str(format!("{}=refs:{} ", key, refs).as_str());
