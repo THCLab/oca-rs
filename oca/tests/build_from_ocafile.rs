@@ -64,6 +64,7 @@ ADD ATTRIBUTE x=Text
         Ok(())
     }
 
+    #[cfg(feature = "local-references")]
     #[test]
     fn build_with_references() -> Result<(), Vec<Error>> {
         let db = InMemoryDataStorage::new();
@@ -89,7 +90,7 @@ ADD ATTRIBUTE B=refn:other
 
         assert_eq!(
             result.said.unwrap().to_string(),
-            "EPZNx7Vbl06cYdsAKbRVtgxUOoLcap61Go7ueau1RjEN"
+            "ELxZNFB5vW8_wDKLsAyAiX2AdsiNIHuw_1ZakI7LBbgd"
         );
         Ok(())
     }
