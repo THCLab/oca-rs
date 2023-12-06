@@ -1,12 +1,11 @@
 use crate::{
-    ast::{Command, CommandType, NestedValue, OCAAst, ObjectKind, NestedAttrType},
+    ast::{Command, CommandType, OCAAst, ObjectKind, NestedAttrType},
     errors::Error,
 };
 use indexmap::{indexmap, IndexMap};
 use log::debug;
 
-type PropContentType = IndexMap<String, NestedValue>;
-type AttrContentType = IndexMap<String, NestedAttrType>;
+type CaptureAttributes = IndexMap<String, NestedAttrType>;
 
 /// Validates given commands against existing valid OCA AST
 ///
@@ -59,42 +58,38 @@ fn validate_1_0_0(ast: &OCAAst, command: Command) -> Result<bool, Error> {
     // Attributes must have valid type
     let mut valid = true;
     let mut errors = Vec::new();
-    match command.kind {
-        CommandType::Add => {
-            if command.object_kind == ObjectKind::CaptureBase {
-                match rule_add_attr_if_not_exist(ast, command) {
-                    Ok(result) => {
-                        if !result {
-                            valid = result;
-                        }
+    match (&command.kind, &command.object_kind) {
+        (CommandType::Add, ObjectKind::CaptureBase(_)) => {
+            match rule_add_attr_if_not_exist(ast, command) {
+                Ok(result) => {
+                    if !result {
+                        valid = result;
                     }
-                    Err(error) => {
-                        valid = false;
-                        errors.push(error);
-                    }
+                }
+                Err(error) => {
+                    valid = false;
+                    errors.push(error);
                 }
             }
         }
-        CommandType::Remove => {
-            if command.object_kind == ObjectKind::CaptureBase {
-                match rule_remove_attr_if_exist(ast, command) {
-                    Ok(result) => {
-                        if !result {
-                            valid = result;
-                        }
+        (CommandType::Remove, ObjectKind::CaptureBase(_)) => {
+            match rule_remove_attr_if_exist(ast, command) {
+                Ok(result) => {
+                    if !result {
+                        valid = result;
                     }
-                    Err(error) => {
-                        valid = false;
-                        errors.push(error);
-                    }
+                }
+                Err(error) => {
+                    valid = false;
+                    errors.push(error);
                 }
             }
         }
-        CommandType::Modify => {
-        },
-        CommandType::From => {
 
-        },
+        _ => {
+            // TODO: Add support for FROM, MODIFY with combination of different object kinds
+        }
+    }
         // CommandType::Modify => {
         //     match rule_modify_if_exist(ast, command) {
         //         Ok(result) => {
@@ -108,7 +103,6 @@ fn validate_1_0_0(ast: &OCAAst, command: Command) -> Result<bool, Error> {
         //         }
         //     }
         // }
-    }
 
     if valid {
         Ok(true)
@@ -128,44 +122,33 @@ fn validate_1_0_0(ast: &OCAAst, command: Command) -> Result<bool, Error> {
 /// * `Result<bool, Error>` - Result of validation
 fn rule_remove_attr_if_exist(ast: &OCAAst, command_to_validate: Command) -> Result<bool, Error> {
     let mut errors = Vec::new();
-    // Create a list of all attributes ADDed and REMOVEd via commands and check if what left covers needs of new command
-    let default_attrs: IndexMap<String, NestedAttrType> = indexmap! {};
-    let default_props: IndexMap<String, NestedValue> = indexmap! {};
 
-    let (attributes, properties) = extract_content(ast);
+    let attributes = extract_attributes(ast);
 
-    let content = command_to_validate.content.as_ref().unwrap();
+    let content = command_to_validate.object_kind.capture_content();
+
     match content {
-        crate::ast::CommandContent::AttributeTypes(inner_content) => {
-            let attrs_to_remove = inner_content.attributes.clone().unwrap_or(default_attrs);
-            debug!("attrs_to_remove: {:?}", attrs_to_remove);
+        Some(content) => {
+            let attrs_to_remove = content.attributes.clone().unwrap();
             let valid = attrs_to_remove
                 .keys()
-                .all(|key| !attributes.contains_key(key));
+                .all(|key| attributes.contains_key(key));
                 if valid {
                     Ok(true)
                 } else {
                     errors.push(Error::InvalidOperation(
-                    "Cannot add attribute if already exists".to_string(),
+                    "Cannot remove attribute if does not exists".to_string(),
                 ));
                 Err(Error::Validation(errors))
             }
         }
-        crate::ast::CommandContent::Properties(inner_prop) => {
-            let props_to_remove = inner_prop.properties.clone().unwrap_or(default_props);
-            debug!("props_to_remove: {:?}", props_to_remove);
-            let valid = props_to_remove
-                .keys()
-                .all(|key| !properties.contains_key(key));
-            if valid {
-                Ok(true)
-            } else {
-                errors.push(Error::InvalidOperation(
-                    "Cannot add attribute if already exists".to_string(),
-                ));
-                Err(Error::Validation(errors))
-            }
+        None => {
+            errors.push(Error::InvalidOperation(
+                "No attribtues specify to be removed".to_string(),
+            ));
+            Err(Error::Validation(errors))
         }
+
     }
 }
 
@@ -182,15 +165,14 @@ fn rule_add_attr_if_not_exist(ast: &OCAAst, command_to_validate: Command) -> Res
     let mut errors = Vec::new();
     // Create a list of all attributes ADDed and REMOVEd via commands and check if what left covers needs of new command
     let default_attrs: IndexMap<String, NestedAttrType> = indexmap! {};
-    let default_props: IndexMap<String, NestedValue> = indexmap! {};
 
-    let (attributes, properties) = extract_content(ast);
+    let attributes = extract_attributes(ast);
 
+    let content = command_to_validate.object_kind.capture_content();
 
-    let content = command_to_validate.content.as_ref().unwrap();
     match content {
-        crate::ast::CommandContent::AttributeTypes(inner_content) => {
-            let attrs_to_add = inner_content.attributes.clone().unwrap_or(default_attrs);
+        Some(content) => {
+            let attrs_to_add = content.attributes.clone().unwrap_or(default_attrs);
             debug!("attrs_to_add: {:?}", attrs_to_add);
             let valid = attrs_to_add
                 .keys()
@@ -204,69 +186,34 @@ fn rule_add_attr_if_not_exist(ast: &OCAAst, command_to_validate: Command) -> Res
                 Err(Error::Validation(errors))
             }
         }
-        crate::ast::CommandContent::Properties(inner_prop) => {
-            let props_to_remove = inner_prop.properties.clone().unwrap_or(default_props);
-            debug!("props_to_remove: {:?}", props_to_remove);
-            let valid = props_to_remove
-                .keys()
-                .all(|key| !properties.contains_key(key));
-            if valid {
-                Ok(true)
-            } else {
-                errors.push(Error::InvalidOperation(
-                    "Cannot add attribute if already exists".to_string(),
-                ));
-                Err(Error::Validation(errors))
-            }
+        None => {
+            errors.push(Error::InvalidOperation(
+                "No attribtues specify to be added".to_string(),
+            ));
+            Err(Error::Validation(errors))
         }
     }
 }
 
 
-
-fn extract_content(ast: &OCAAst) -> (AttrContentType, PropContentType) {
+fn extract_attributes(ast: &OCAAst) -> CaptureAttributes {
     let default_attrs: IndexMap<String, NestedAttrType> = indexmap! {};
-    let default_props: IndexMap<String, NestedValue> = indexmap! {};
-    let mut attributes: AttrContentType = indexmap! {};
-    let mut properties: PropContentType = indexmap! {};
-    // Collect properties and attributes from all commands for purpose of validation
+    let mut attributes: CaptureAttributes = indexmap! {};
     for instruction in &ast.commands {
-        match instruction.kind {
-            CommandType::Remove => {
-                if instruction.object_kind == ObjectKind::CaptureBase {
-                    let content = instruction.content.clone().unwrap();
-                    match content {
-                        crate::ast::CommandContent::AttributeTypes(inner_content) => {
-                            let attrs = inner_content.attributes.as_ref().unwrap_or(&default_attrs);
-                            attributes.retain(|key, _value| !attrs.contains_key(key));
-                        }
-                        crate::ast::CommandContent::Properties(inner_prop) => {
-                            let props = inner_prop.properties.as_ref().unwrap_or(&default_props);
-                            properties.retain(|key, _value| !props.contains_key(key));
-                        }
-
-                    }
-                }
+        match (instruction.kind.clone(), instruction.object_kind.clone()) {
+            (CommandType::Remove, ObjectKind::CaptureBase(capture_content)) => {
+                let attrs = capture_content.attributes.as_ref().unwrap_or(&default_attrs);
+                attributes.retain(|key, _value| !attrs.contains_key(key));
             }
-            CommandType::Add => {
-                if instruction.object_kind == ObjectKind::CaptureBase {
-                    let conten = instruction.content.clone().unwrap();
-                    match conten {
-                        crate::ast::CommandContent::AttributeTypes(inner_content) => {
-                            let attrs = inner_content.attributes.as_ref().unwrap_or(&default_attrs);
-                            attributes.extend(attrs.iter().map(|(k, v)| (k.clone(), v.clone())));
-                        }
-                        crate::ast::CommandContent::Properties(inner_prop) => {
-                            let props = inner_prop.properties.as_ref().unwrap_or(&default_props);
-                            properties.extend(props.iter().map(|(k, v)| (k.clone(), v.clone())));
-                        }
-                    }
-                }
+            (CommandType::Add, ObjectKind::CaptureBase(capture_content)) => {
+                let attrs = capture_content.attributes.as_ref().unwrap_or(&default_attrs);
+                attributes.extend(attrs.iter().map(|(k, v)| (k.clone(), v.clone())));
             }
             _ => {}
         }
     }
-    (attributes, properties)
+    attributes
+
 }
 
 #[cfg(test)]
@@ -274,62 +221,94 @@ mod tests {
     use indexmap::indexmap;
 
     use super::*;
-    use crate::ast::{Command, CommandType, Content, NestedValue, OCAAst, ObjectKind, AttributeType, CommandContent, AttributeTypeContent};
+    use crate::ast::{Command, CommandType, NestedValue, OCAAst, ObjectKind, AttributeType, CaptureContent};
+
+
 
     #[test]
     fn test_rule_remove_if_exist() {
         let command = Command {
             kind: CommandType::Add,
-            object_kind: ObjectKind::CaptureBase,
-            content: Some(CommandContent::AttributeTypes(AttributeTypeContent {
+            object_kind: ObjectKind::CaptureBase( CaptureContent {
                 attributes: Some(indexmap! {
                     "name".to_string() => NestedAttrType::Value(AttributeType::Text),
                     "documentType".to_string() => NestedAttrType::Value(AttributeType::Text),
                     "photo".to_string() => NestedAttrType::Value(AttributeType::Binary),
                 }),
-            })),
+                properties: Some(indexmap! {
+                    "classification".to_string() => NestedValue::Value("GICS:1234".to_string()),
+                }),
+            }),
         };
 
         let command2 = Command {
             kind: CommandType::Add,
-            object_kind: ObjectKind::CaptureBase,
-            content: Some(CommandContent::AttributeTypes( AttributeTypeContent {
+            object_kind: ObjectKind::CaptureBase( CaptureContent {
                 attributes: Some(indexmap! {
                     "issuer".to_string() => NestedAttrType::Value(AttributeType::Text),
                     "last_name".to_string() => NestedAttrType::Value(AttributeType::Binary),
                 }),
-            })),
+                properties: Some(indexmap! {
+                    "classification".to_string() => NestedValue::Value("GICS:1234".to_string()),
+                }),
+            }),
         };
 
         let remove_command = Command {
             kind: CommandType::Remove,
-            object_kind: ObjectKind::CaptureBase,
-            content: Some( CommandContent::AttributeTypes( AttributeTypeContent {
+            object_kind: ObjectKind::CaptureBase( CaptureContent {
+                attributes: Some(indexmap! {
+                    "name".to_string() => NestedAttrType::Null,
+                    "documentType".to_string() => NestedAttrType::Null,
+                }),
+                properties: Some(indexmap! {
+                }),
+            }),
+        };
+
+        let add_command = Command {
+            kind: CommandType::Add,
+            object_kind: ObjectKind::CaptureBase( CaptureContent {
+                attributes: Some(indexmap! {
+                    "name".to_string() => NestedAttrType::Value(AttributeType::Text),
+                }),
+                properties: Some(indexmap! {
+                }),
+            }),
+        };
+
+        let valid_command = Command {
+            kind: CommandType::Remove,
+            object_kind: ObjectKind::CaptureBase( CaptureContent {
                 attributes: Some(indexmap! {
                     "name".to_string() => NestedAttrType::Null,
                     "issuer".to_string() => NestedAttrType::Null,
                 }),
-            })),
+                properties: Some(indexmap! {
+                }),
+            }),
         };
 
-        let remove_command2 = Command {
+        let invalid_command = Command {
             kind: CommandType::Remove,
-            object_kind: ObjectKind::CaptureBase,
-            content: Some(CommandContent::AttributeTypes( AttributeTypeContent {
+            object_kind: ObjectKind::CaptureBase( CaptureContent {
                 attributes: Some(indexmap! {
-                    "name".to_string() => NestedAttrType::Null,
-                    "photo".to_string() => NestedAttrType::Null,
+                    "documentType".to_string() => NestedAttrType::Null,
                 }),
-            })),
+                properties: Some(indexmap! {
+                }),
+            }),
         };
 
         let mut ocaast = OCAAst::new();
         ocaast.commands.push(command);
         ocaast.commands.push(command2);
-        let mut result = rule_remove_attr_if_exist(&ocaast, remove_command.clone());
+        ocaast.commands.push(remove_command);
+        ocaast.commands.push(add_command);
+        let mut result = rule_remove_attr_if_exist(&ocaast, valid_command.clone());
         assert!(result.is_ok());
-        ocaast.commands.push(remove_command2);
-        result = rule_remove_attr_if_exist(&ocaast, remove_command);
+        ocaast.commands.push(invalid_command.clone());
+        result = rule_remove_attr_if_exist(&ocaast, invalid_command);
         assert!(result.is_err());
     }
 
@@ -337,55 +316,61 @@ mod tests {
     fn test_rule_add_if_not_exist() {
         let command = Command {
             kind: CommandType::Add,
-            object_kind: ObjectKind::CaptureBase,
-            content: Some( CommandContent::AttributeTypes( AttributeTypeContent {
+            object_kind: ObjectKind::CaptureBase( CaptureContent {
                 attributes: Some(indexmap! {
+                    "name".to_string() => NestedAttrType::Value(AttributeType::Text),
                     "documentType".to_string() => NestedAttrType::Value(AttributeType::Text),
                     "photo".to_string() => NestedAttrType::Value(AttributeType::Binary),
                 }),
-            })),
+                properties: Some(indexmap! {
+                    "classification".to_string() => NestedValue::Value("GICS:1234".to_string()),
+                }),
+            }),
         };
 
         let command2 = Command {
             kind: CommandType::Add,
-            object_kind: ObjectKind::CaptureBase,
-            content: Some( CommandContent::AttributeTypes( AttributeTypeContent {
+            object_kind: ObjectKind::CaptureBase( CaptureContent {
                 attributes: Some(indexmap! {
                     "issuer".to_string() => NestedAttrType::Value(AttributeType::Text),
                     "last_name".to_string() => NestedAttrType::Value(AttributeType::Binary),
                 }),
-            })),
+                properties: Some(indexmap! {
+                }),
+            }),
         };
 
-        let add_command = Command {
+        let valid_command = Command {
             kind: CommandType::Add,
-            object_kind: ObjectKind::CaptureBase,
-            content: Some( CommandContent::AttributeTypes( AttributeTypeContent {
+            object_kind: ObjectKind::CaptureBase( CaptureContent {
+                attributes: Some(indexmap! {
+                    "first_name".to_string() => NestedAttrType::Value(AttributeType::Text),
+                    "address".to_string() => NestedAttrType::Value(AttributeType::Text),
+                }),
+                properties: Some(indexmap! {
+                }),
+            }),
+        };
+
+        let invalid_command = Command {
+            kind: CommandType::Add,
+            object_kind: ObjectKind::CaptureBase( CaptureContent {
                 attributes: Some(indexmap! {
                     "name".to_string() => NestedAttrType::Value(AttributeType::Text),
-                    "address".to_string() => NestedAttrType::Value(AttributeType::Text),
-                }),
-            })),
-        };
-
-        let add_command2 = Command {
-            kind: CommandType::Add,
-            object_kind: ObjectKind::CaptureBase,
-            content: Some( CommandContent::AttributeTypes( AttributeTypeContent {
-                attributes: Some(indexmap! {
-                    "address".to_string() => NestedAttrType::Value(AttributeType::Text),
                     "phone".to_string() => NestedAttrType::Value(AttributeType::Text),
                 }),
-            })),
+                properties: Some(indexmap! {
+                }),
+            }),
         };
 
         let mut ocaast = OCAAst::new();
         ocaast.commands.push(command);
         ocaast.commands.push(command2);
-        let mut result = rule_add_attr_if_not_exist(&ocaast, add_command.clone());
+        let mut result = rule_add_attr_if_not_exist(&ocaast, valid_command.clone());
         assert!(result.is_ok());
-        ocaast.commands.push(add_command2);
-        result = rule_add_attr_if_not_exist(&ocaast, add_command);
+        ocaast.commands.push(invalid_command.clone());
+        result = rule_add_attr_if_not_exist(&ocaast, invalid_command.clone());
         assert!(result.is_err());
     }
 }
