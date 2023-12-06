@@ -177,7 +177,7 @@ attr_entry_key_pairs = ${ (arg_ws? ~ entry_key_pair ~ arg_ws?)+ }
 list_value = ${ (arg_ws? ~ key_value ~ arg_ws?)+ }
 unit_system = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 
-attr_type = @{ ("Text" |
+base_attr_type = @{ ("Text" |
         "Numeric" |
         "Boolean" |
         "Binary" |
@@ -196,7 +196,7 @@ refs = _{^"refs:"}
 refn = _{^"refn:"}
 ref_said = _{ refs ~ said}
 ref_name = _{ refn ~ reference }
-_attr_type = ${ attr_type | refs | refn | ref_array }
+_attr_type = ${ base_attr_type | refs | refn | ref_array }
 attr_pair = @{attr_key ~ "=" ~ _attr_type}
 attr_pairs = ${ (arg_ws ~ attr_pair)+}
 

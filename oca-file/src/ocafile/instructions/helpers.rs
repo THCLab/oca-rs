@@ -2,11 +2,76 @@ use std::str::FromStr;
 
 use indexmap::IndexMap;
 use log::debug;
-use oca_ast::ast::{Content, NestedValue, AttributeType};
+use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, PropertyContent};
 use crate::ocafile::{Pair, Rule};
 
-/// Extract attributes key pairs for ADD and MODIFY command
+pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType)> {
+    let mut attr_name = String::new();
+    let mut attr_type = NestedAttrType::Value(AttributeType::Text);
 
+    debug!("Extracting the attribute type from: {:?}", attr_pair);
+    for item in attr_pair.into_inner() {
+        match item.as_rule() {
+            Rule::attr_key => {
+                attr_name = item.as_str().to_string();
+                debug!("Extracting attribute key {:?}", attr_name);
+            },
+            Rule::_attr_type => {
+                debug!("Attribute type to parse: {:?}", item);
+                if let Some(attr_type_rule) = item.clone().into_inner().next() {
+                    match attr_type_rule.as_rule() {
+                        Rule::reference => {
+                            debug!("Matching referance {:?}", attr_type_rule);
+                            attr_type = NestedAttrType::Reference(oca_ast::ast::RefValue::Name(attr_type_rule.as_str().to_string()));
+                        },
+                        Rule::said => {
+                            debug!("Matching said reference: {:?}", attr_type_rule);
+                            attr_type = NestedAttrType::Reference(oca_ast::ast::RefValue::Said(attr_type_rule.as_str().to_string()))
+                        }
+                        Rule::base_attr_type => {
+                            debug!("Matching basic attribute type from rule: {}", attr_type_rule);
+                            match AttributeType::from_str(attr_type_rule.as_span().as_str()) {
+                                Ok(base_attr_type) => {
+                                    debug!("Attribute type: {:?}", base_attr_type);
+                                    attr_type = NestedAttrType::Value(base_attr_type);
+                                }
+                                Err(e) => {
+                                    panic!("Invalid attribute type {:?}", e);
+                                }
+                            }
+                        }
+                        Rule::ref_array => {
+                            debug!("Matching reference array type from rule: {:?}", attr_type_rule);
+                            if let Some(value) = attr_type_rule.clone().into_inner().next() {
+                                match value.as_rule() {
+                                    Rule::reference => {
+                                        attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Reference(oca_ast::ast::RefValue::Name(value.as_str().to_string()))));
+                                    },
+                                    Rule::said => {
+                                        attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Reference(oca_ast::ast::RefValue::Said(value.as_str().to_string()))));
+                                    },
+                                    _ => {
+                                        panic!("Invalid reference array value in {:?}", value.as_rule());
+                                    }
+                                }
+                            }
+                        }
+                        _ => {
+                            panic!("Matching referance didn't worked");
+                        }
+                    }
+                }
+            },
+            _ => {
+                panic!("Invalid attribute in {:?}", item.as_rule());
+            }
+        }
+    }
+    Some((attr_name, attr_type))
+}
+
+
+/// Extract attributes key pairs for ADD and MODIFY command
 pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedValue)> {
     let mut key = String::new();
     let mut value = NestedValue::Value(String::new());
@@ -17,58 +82,6 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
             Rule::attr_key => {
                 key = item.as_str().to_string();
                 debug!("Extracting attribute key {:?}", key);
-            },
-            Rule::_attr_type => {
-                debug!("Attribute type to parse: {:?}", item);
-                if let Some(attr_type) = item.clone().into_inner().next() {
-                    match attr_type.as_rule() {
-                        Rule::reference => {
-                            debug!("Matching referance {:?}", attr_type);
-                            value = NestedValue::Reference(oca_ast::ast::RefValue::Name(attr_type.as_str().to_string()));
-                        },
-                        Rule::attr_type => {
-                            debug!("Matching basic attribute type: {}", attr_type);
-                            match AttributeType::from_str(attr_type.as_span().as_str()) {
-                                Ok(attr_type) => {
-                                    debug!("Attribute type: {:?}", attr_type);
-                                    if let Ok(serde_json::Value::String(v)) = serde_json::to_value(attr_type) {
-                                        value = NestedValue::Value(v);
-                                    } else {
-                                        panic!("Invalid attribute type {:?}", attr_type);
-                                    }
-                                }
-                                Err(e) => {
-                                    panic!("Invalid attribute type {:?}", e);
-                                }
-                            }
-                        }
-                        Rule::said => {
-                            debug!("Matching said reference: {:?}", attr_type);
-                            value = NestedValue::Reference(oca_ast::ast::RefValue::Said(attr_type.as_str().to_string()))
-                        }
-                        Rule::ref_array => {
-                            debug!("Matching reference array: {:?}", attr_type);
-                            let mut ref_array = Vec::new();
-                            for el in attr_type.clone().into_inner() {
-                                match el.as_rule() {
-                                    Rule::reference => {
-                                        ref_array.push(NestedValue::Reference(oca_ast::ast::RefValue::Name(el.as_str().to_string())));
-                                    },
-                                    Rule::said => {
-                                        ref_array.push(NestedValue::Reference(oca_ast::ast::RefValue::Said(el.as_str().to_string())));
-                                    },
-                                    _ => {
-                                        panic!("Invalid reference array value in {:?}", el.as_rule());
-                                    }
-                                }
-                            }
-                            value = NestedValue::Array(ref_array);
-                        }
-                        _ => {
-                            panic!("Matching referance didn't worked");
-                        }
-                    }
-                }
             },
             Rule::key_value => {
                 if let Some(nested_item) = item.clone().into_inner().next() {
