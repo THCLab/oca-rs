@@ -19,7 +19,7 @@ pub struct Command {
     pub kind: CommandType,
     pub object_kind: ObjectKind,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<Content>,
+    pub content: Option<CommandContent>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -229,8 +229,30 @@ impl<'de> Deserialize<'de> for OverlayType {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[serde(untagged)]
+pub enum CommandContent {
+    Properties(PropertiesContent),
+    AttributeTypes(AttributeTypeContent),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct AttributeTypeContent {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attributes: Option<IndexMap<String, NestedAttrType>>,
+}
+
+// TODO remove it when moved all to BaseAttributeContent
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Content {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attributes: Option<IndexMap<String, NestedAttrType>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub properties: Option<IndexMap<String, NestedValue>>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct PropertiesContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<IndexMap<String, NestedValue>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -250,6 +272,8 @@ pub enum NestedAttrType {
     Value(AttributeType),
     Object(IndexMap<String, NestedAttrType>),
     Array(Box<NestedAttrType>),
+    /// Indicator that attribute was removed and does not need any type
+    Null,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
