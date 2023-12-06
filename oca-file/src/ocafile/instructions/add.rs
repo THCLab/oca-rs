@@ -1,7 +1,7 @@
 use crate::ocafile::{error::Error, instructions::helpers, Pair, Rule};
 use indexmap::IndexMap;
 use log::{debug, info};
-use oca_ast::ast::{Command, CommandType, Content, NestedAttrType, ObjectKind, OverlayType};
+use oca_ast::ast::{Command, CommandType, Content, NestedAttrType, ObjectKind, OverlayType, NestedValue, PropertyContent};
 
 pub struct AddInstruction {}
 
@@ -56,12 +56,12 @@ impl AddInstruction {
                 Rule::comment => continue,
                 Rule::classification => {
                     object_kind = Some(ObjectKind::CaptureBase);
-                    let mut properties: IndexMap<String, NestedAttrType> = IndexMap::new();
+                    let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
                     let classification = object.into_inner().next().unwrap();
                     print!("Classification: {:?}", classification.as_rule());
                     properties.insert(
                         "classification".to_string(),
-                        NestedAttrType::Value(classification.as_str().to_string()),
+                        NestedValue::Value(classification.as_str().to_string()),
                     );
 
                     Some(Content {

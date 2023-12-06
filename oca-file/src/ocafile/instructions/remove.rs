@@ -1,7 +1,7 @@
 use crate::ocafile::{error::Error, Pair, Rule};
 use indexmap::IndexMap;
 use log::debug;
-use oca_ast::ast::{Command, CommandType, Content, NestedValue, ObjectKind, OverlayType};
+use oca_ast::ast::{Command, CommandType, Content, NestedValue, ObjectKind, OverlayType, NestedAttrType};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct RemoveInstruction {}
@@ -36,11 +36,11 @@ impl RemoveInstruction {
                 }
                 Rule::remove_attribute => {
                     object_kind = Some(ObjectKind::CaptureBase);
-                    let mut attributes: IndexMap<String, NestedValue> = IndexMap::new();
+                    let mut attributes: IndexMap<String, NestedAttrType> = IndexMap::new();
                     for key in object.into_inner() {
                         debug!("Parsing key to remove: {:?}", key.as_str());
                         attributes
-                            .insert(key.as_str().to_string(), NestedValue::Value("".to_string()));
+                            .insert(key.as_str().to_string(), NestedAttrType::Null);
                     }
                     Some(Content {
                         properties: None,
@@ -69,7 +69,7 @@ impl RemoveInstruction {
 
 fn extract_content(object: Pair) -> Option<Content> {
     let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
-    let mut attributes: IndexMap<String, NestedValue> = IndexMap::new();
+    let mut attributes: IndexMap<String, NestedAttrType> = IndexMap::new();
 
     debug!("Into the object: {:?}", object);
     for attr in object.into_inner() {
@@ -80,7 +80,7 @@ fn extract_content(object: Pair) -> Option<Content> {
                 // TODO find out how to parse nested objects
                 attributes.insert(
                     attr.as_str().to_string(),
-                    NestedValue::Value("".to_string()),
+                    NestedAttrType::Null
                 );
             }
             Rule::prop_key => {
