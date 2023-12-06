@@ -17,9 +17,8 @@ pub struct OCAAst {
 pub struct Command {
     #[serde(rename = "type")]
     pub kind: CommandType,
+    #[serde(flatten)]
     pub object_kind: ObjectKind,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<CommandContent>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -36,13 +35,30 @@ pub enum CommandType {
     From,
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[serde(tag = "object_kind", content = "content")]
 pub enum ObjectKind {
-    CaptureBase,
+    CaptureBase(CaptureContent),
     OCABundle,
-    Overlay(OverlayType),
+    Overlay(OverlayType, Content),
 }
 
+
+impl ObjectKind {
+    pub fn capture_content(&self) -> Option<&CaptureContent> {
+        match self {
+            ObjectKind::CaptureBase(content) => Some(content),
+            _ => None,
+        }
+    }
+
+    pub fn overlay_content(&self) -> Option<&Content> {
+        match self {
+            ObjectKind::Overlay(_, content) => Some(content),
+            _ => None,
+        }
+    }
+}
 #[wasm_bindgen]
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Copy)]
 pub enum AttributeType {
@@ -229,17 +245,12 @@ impl<'de> Deserialize<'de> for OverlayType {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-#[serde(untagged)]
-pub enum CommandContent {
-    Properties(PropertiesContent),
-    AttributeTypes(AttributeTypeContent),
-}
-
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-pub struct AttributeTypeContent {
+pub struct CaptureContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<IndexMap<String, NestedAttrType>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub properties: Option<IndexMap<String, NestedValue>>,
 }
 
 // TODO remove it when moved all to BaseAttributeContent
@@ -247,14 +258,6 @@ pub struct AttributeTypeContent {
 pub struct Content {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<IndexMap<String, NestedAttrType>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub properties: Option<IndexMap<String, NestedValue>>,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-pub struct PropertiesContent {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub attributes: Option<IndexMap<String, NestedValue>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub properties: Option<IndexMap<String, NestedValue>>,
 }
@@ -345,6 +348,7 @@ impl Default for OCAAst {
     }
 }
 
+/*
 impl Serialize for ObjectKind {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -358,8 +362,8 @@ impl Serialize for ObjectKind {
             }
         }
     }
-}
-
+}*/
+/*
 impl From<u8> for ObjectKind {
     fn from(val: u8) -> Self {
         match val {
@@ -415,8 +419,8 @@ impl From<ObjectKind> for u8 {
             ObjectKind::Overlay(OverlayType::Sensitivity) => 20,
         }
     }
-}
-
+}*/
+/*
 impl<'de> Deserialize<'de> for ObjectKind {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -449,10 +453,12 @@ impl<'de> Deserialize<'de> for ObjectKind {
             _ => Err(serde::de::Error::custom(format!("unknown object kind: {}", s))),
         }
     }
-}
+} */
 
 #[cfg(test)]
 mod tests {
+    use log::debug;
+
     use super::*;
 
     #[test]
@@ -460,15 +466,14 @@ mod tests {
         let mut attributes = IndexMap::new();
         let mut properties = IndexMap::new();
         let mut person = IndexMap::new();
-        person.insert("name".to_string(), NestedValue::Value("Text".to_string()));
+        person.insert("name".to_string(), NestedAttrType::Value(AttributeType::Text));
 
-        attributes.insert("test".to_string(), NestedValue::Value("test".to_string()));
-        attributes.insert("person".to_string(), NestedValue::Object(person));
+        attributes.insert("test".to_string(), NestedAttrType::Value(AttributeType::Text));
+        attributes.insert("person".to_string(), NestedAttrType::Object(person));
         properties.insert("test".to_string(), NestedValue::Value("test".to_string()));
         let command = Command {
             kind: CommandType::Add,
-            object_kind: ObjectKind::CaptureBase,
-            content: Some(Content {
+            object_kind: ObjectKind::CaptureBase(CaptureContent {
                 attributes: Some(attributes),
                 properties: Some(properties),
             }),
@@ -477,9 +482,10 @@ mod tests {
         let mut ocaast = OCAAst::new();
         ocaast.commands.push(command);
         let serialized = serde_json::to_string(&ocaast).unwrap();
+        debug!("serialized: {}", serialized);
         assert_eq!(
             serialized,
-            r#"{"version":"1.0.0","commands":[{"type":"Add","object_kind":"CaptureBase","content":{"attributes":{"test":"test","person":{"name":"Text"}},"properties":{"test":"test"}}}],"commands_meta":{},"meta":{}}"#
+            r#"{"version":"1.0.0","commands":[{"type":"Add","object_kind":"CaptureBase","content":{"attributes":{"test":"Text","person":{"name":"Text"}},"properties":{"test":"test"}}}],"commands_meta":{},"meta":{}}"#
         );
     }
 }
