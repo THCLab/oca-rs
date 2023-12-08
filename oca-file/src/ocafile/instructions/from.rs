@@ -32,11 +32,10 @@ impl FromInstruction {
         properties.insert("said".to_string(), NestedValue::Value(said.to_string()));
         Ok(Command {
             kind: CommandType::From,
-            object_kind: ObjectKind::OCABundle,
-            content: Some(Content {
+            object_kind: ObjectKind::OCABundle(Content {
                 properties: Some(properties),
                 attributes: None,
-            }),
+            })
         })
     }
 }
@@ -81,10 +80,11 @@ mod tests {
 
             match result {
                 Ok(command) => {
-                    let content = command.content.unwrap();
-                    let properties = content.properties.unwrap();
+                    let content = command.object_kind.oca_bundle_content().unwrap();
+                    let properties = content.properties.as_ref().unwrap();
                     let said_value = properties.get("said").unwrap();
                     match said_value {
+                        // TODO this should be simple reference not value
                         NestedValue::Value(said_str) => {
                             SelfAddressingIdentifier::from_str(said_str).unwrap();
                             assert!(is_valid, "Instruction should be valid");

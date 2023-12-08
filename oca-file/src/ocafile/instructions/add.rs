@@ -1,7 +1,7 @@
 use crate::ocafile::{error::Error, instructions::helpers, Pair, Rule};
 use indexmap::IndexMap;
 use log::{debug, info};
-use oca_ast::ast::{Command, CommandType, Content, NestedAttrType, ObjectKind, OverlayType, NestedValue, PropertyContent};
+use oca_ast::ast::{Command, CommandType, NestedAttrType, ObjectKind, OverlayType, NestedValue, CaptureContent};
 
 pub struct AddInstruction {}
 
@@ -9,17 +9,14 @@ impl AddInstruction {
     pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Command, Error> {
         let mut object_kind = None;
         let kind = CommandType::Add;
-        let mut content = None;
 
-        debug!("Into the record: {:?}", record);
+        debug!("Parsing add instruction from the record: {:?}", record);
         for object in record.into_inner() {
-            content = match object.as_rule() {
+            match object.as_rule() {
                 Rule::meta => {
-                    object_kind = Some(ObjectKind::Overlay(oca_ast::ast::OverlayType::Meta));
-                    helpers::extract_content(object)
+                    object_kind = Some(ObjectKind::Overlay(oca_ast::ast::OverlayType::Meta, helpers::extract_content(object)));
                 }
                 Rule::attribute => {
-                    object_kind = Some(ObjectKind::CaptureBase);
                     let mut attributes: IndexMap<String, NestedAttrType> = IndexMap::new();
                     for attr_pairs in object.into_inner() {
                         match attr_pairs.as_rule() {
@@ -48,14 +45,13 @@ impl AddInstruction {
                         }
                     }
                     debug!("Attributes: {:?}", attributes);
-                    Some(Content {
+                    object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
                         properties: None,
                         attributes: Some(attributes),
-                    })
+                    }));
                 }
                 Rule::comment => continue,
                 Rule::classification => {
-                    object_kind = Some(ObjectKind::CaptureBase);
                     let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
                     let classification = object.into_inner().next().unwrap();
                     print!("Classification: {:?}", classification.as_rule());
@@ -63,62 +59,49 @@ impl AddInstruction {
                         "classification".to_string(),
                         NestedValue::Value(classification.as_str().to_string()),
                     );
-
-                    Some(Content {
+                    object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
                         properties: Some(properties),
                         attributes: None,
-                    })
+                    }));
                 }
                 Rule::information => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Information));
-                    helpers::extract_content(object)
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Information, helpers::extract_content(object)));
                 }
                 Rule::character_encoding => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::CharacterEncoding));
-                    helpers::extract_content(object)
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::CharacterEncoding, helpers::extract_content(object)));
                 }
                 Rule::character_encoding_props => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::CharacterEncoding));
-                    helpers::extract_content(object)
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::CharacterEncoding, helpers::extract_content(object)));
                 }
                 Rule::label => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Label));
-                    helpers::extract_content(object)
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Label, helpers::extract_content(object)));
                 }
                 Rule::unit => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Unit));
-                    helpers::extract_content(object)
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Unit, helpers::extract_content(object)));
                 }
                 Rule::format => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Format));
-                    helpers::extract_content(object)
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Format, helpers::extract_content(object)));
                 }
                 Rule::conformance => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Conformance));
-                    helpers::extract_content(object)
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Conformance, helpers::extract_content(object)));
                 }
                 Rule::conditional => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Conditional));
-                    helpers::extract_content(object)
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Conditional, helpers::extract_content(object)));
                 }
                 Rule::cardinality => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Cardinality));
-                    helpers::extract_content(object)
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Cardinality, helpers::extract_content(object)));
                 }
                 Rule::entry_code => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::EntryCode));
-                    helpers::extract_content(object)
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::EntryCode, helpers::extract_content(object)));
                 }
                 Rule::entry => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Entry));
-                    helpers::extract_content(object)
+                    object_kind = Some(ObjectKind::Overlay(OverlayType::Entry, helpers::extract_content(object)));
                 }
                 Rule::flagged_attrs => {
-                    object_kind = Some(ObjectKind::CaptureBase);
-                    Some(Content {
+                    object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
                         properties: None,
-                        attributes: None,
-                    })
+                        attributes: Some(helpers::extract_flagged_attrs(object)),
+                    }));
                 }
                 _ => {
                     return Err(Error::UnexpectedToken(format!(
@@ -131,8 +114,7 @@ impl AddInstruction {
 
         Ok(Command {
             kind,
-            object_kind: object_kind.unwrap(),
-            content,
+            object_kind: object_kind.unwrap()
         })
     }
 }
@@ -176,16 +158,14 @@ mod tests {
                     match instruction {
                         Some(instruction) => {
                             let instruction = AddInstruction::from_record(instruction, 0).unwrap();
-                            println!("Parsed instruction: {:?}", instruction);
 
                             assert_eq!(instruction.kind, CommandType::Add);
-                            assert_eq!(instruction.object_kind, ObjectKind::CaptureBase);
-                            match instruction.content {
-                                Some(content) => {
+                            match instruction.object_kind {
+                                ObjectKind::CaptureBase(content) => {
                                     assert!(content.attributes.is_some());
                                     assert!(content.attributes.unwrap().len() > 0);
                                 }
-                                None => {
+                                _ => {
                                     assert!(!is_valid, "Instruction is not valid");
                                 }
                             }

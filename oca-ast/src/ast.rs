@@ -39,7 +39,7 @@ pub enum CommandType {
 #[serde(tag = "object_kind", content = "content")]
 pub enum ObjectKind {
     CaptureBase(CaptureContent),
-    OCABundle,
+    OCABundle(Content),
     Overlay(OverlayType, Content),
 }
 
@@ -58,9 +58,15 @@ impl ObjectKind {
             _ => None,
         }
     }
+    pub fn oca_bundle_content(&self) -> Option<&Content> {
+        match self {
+            ObjectKind::OCABundle(content) => Some(content),
+            _ => None,
+        }
+    }
 }
 #[wasm_bindgen]
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Copy, Display)]
 pub enum AttributeType {
     Boolean,
     #[serde(rename = "Array[Boolean]")]
@@ -257,7 +263,7 @@ pub struct CaptureContent {
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Content {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub attributes: Option<IndexMap<String, NestedAttrType>>,
+    pub attributes: Option<IndexMap<String, NestedValue>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub properties: Option<IndexMap<String, NestedValue>>,
 }
