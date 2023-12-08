@@ -141,15 +141,16 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
         if let ast::CommandType::Add = command.kind {
             line.push_str("ADD ");
             match &command.object_kind {
-                ast::ObjectKind::CaptureBase => {
-                    if let Some(ref content) = command.content {
+
+                ast::ObjectKind::CaptureBase(CaptureContnet) => {
+                    if let Some(content) = command.object_kind.capture_content() {
                         if let Some(ref attributes) = content.attributes {
                             line.push_str("ATTRIBUTE ");
                             attributes.iter().for_each(|(key, value)| {
-                                if let ast::NestedValue::Value(value) = value {
+                                if let ast::NestedAttrType::Value(value) = value {
                                     line.push_str(format!("{}={} ", key, value).as_str());
                                 }
-                                if let ast::NestedValue::Reference(value) = value {
+                                if let ast::NestedAttrType::Reference(value) = value {
                                     match value {
                                         ast::RefValue::Name(refn) => {
                                             match references {
@@ -177,11 +178,11 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                         }
                     };
                 },
-                ast::ObjectKind::Overlay(o_type) => {
+                ast::ObjectKind::Overlay(o_type, _) => {
                     match o_type {
                         ast::OverlayType::Meta => {
                             line.push_str("META ");
-                            if let Some(ref content) = command.content {
+                            if let Some(content) = command.object_kind.overlay_content() {
                                 if let Some(ref properties) = content.properties {
                                     let mut properties = properties.clone();
                                     if let Some(
@@ -202,7 +203,7 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                         },
                         ast::OverlayType::Unit => {
                             line.push_str("UNIT ");
-                            if let Some(ref content) = command.content {
+                            if let Some(content) = command.object_kind.overlay_content() {
                                 if let Some(ref properties) = content.properties {
                                     let mut properties = properties.clone();
                                     if let Some(
@@ -231,7 +232,7 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                         },
                         ast::OverlayType::EntryCode => {
                             line.push_str("ENTRY_CODE ");
-                            if let Some(ref content) = command.content {
+                            if let Some(content) = command.object_kind.overlay_content() {
                                 if let Some(ref properties) = content.properties {
                                     if !properties.is_empty() {
                                         line.push_str("PROPS ");
@@ -263,7 +264,7 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                         },
                         ast::OverlayType::Entry => {
                             line.push_str("ENTRY ");
-                            if let Some(ref content) = command.content {
+                            if let Some(content) = command.object_kind.overlay_content() {
                                 if let Some(ref properties) = content.properties {
                                     let mut properties = properties.clone();
                                     if let Some(
@@ -307,7 +308,7 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                                 ).as_str()
                             );
 
-                            if let Some(ref content) = command.content {
+                            if let Some(content) = command.object_kind.overlay_content() {
                                 if let Some(ref properties) = content.properties {
                                     let mut properties = properties.clone();
                                     if let Some(

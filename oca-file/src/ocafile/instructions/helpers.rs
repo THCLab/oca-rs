@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use indexmap::IndexMap;
 use log::debug;
-use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, PropertyContent};
+use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, Content};
 use crate::ocafile::{Pair, Rule};
 
 pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType)> {
@@ -181,13 +181,11 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
     Some((key, value))
 }
 
-// Extract content from instruction for ADD and MODIFY command
 
-pub fn extract_content(object: Pair) -> Option<Content> {
-    let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
+pub fn extract_attributes_key_paris(object: Pair) -> Option<IndexMap<String, NestedValue>> {
     let mut attributes: IndexMap<String, NestedValue> = IndexMap::new();
 
-    debug!("Into the object: {:?}", object);
+    debug!("Extracting content of the attributes: {:?}", object);
     for attr in object.into_inner() {
         debug!("Inside the object: {:?}", attr);
         match attr.as_rule() {
@@ -205,12 +203,33 @@ pub fn extract_content(object: Pair) -> Option<Content> {
                     }
                 }
             }
+            _ => {
+                debug!(
+                    "Unexpected token: Invalid attribute in instruction {:?}",
+                    attr.as_rule()
+                );
+                return None;
+            }
+        }
+    }
+
+
+    Some(attributes)
+}
+
+/// Extract properties key pairs for any command
+pub fn extract_properites_key_pairs(object: Pair) -> Option<IndexMap<String, NestedValue>> {
+    let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
+
+    debug!("Extracting properties from the object: {:?}", object);
+    for attr in object.into_inner() {
+        debug!("Inside the object: {:?}", attr);
+        match attr.as_rule() {
             Rule::prop_key_pairs => {
                 for prop in attr.into_inner() {
                     debug!("Parsing property {:?}", prop);
                     if let Some((key, value)) = extract_attribute_key_pairs(prop) {
                         debug!("Parsed property: {:?} = {:?}", key, value);
-                        // TODO find out how to parse nested objects
                         properties.insert(key, value);
                     } else {
                         debug!("Skipping property");
@@ -236,13 +255,29 @@ pub fn extract_content(object: Pair) -> Option<Content> {
                     "Unexpected token: Invalid attribute in instruction {:?}",
                     attr.as_rule()
                 );
-                return None;
             }
         }
     }
+    Some(properties)
+}
 
-    Some(Content {
-        properties: Some(properties),
-        attributes: Some(attributes),
-    })
+
+/// Extract content from any instruction related to any overlay
+pub fn extract_content(object: Pair) -> Content {
+    let mut properties: Option<IndexMap<String, NestedValue>> = Some(IndexMap::new());
+    let mut attributes: Option<IndexMap<String, NestedValue>> = Some(IndexMap::new());
+
+
+    properties = extract_properites_key_pairs(object.clone());
+    attributes = extract_attributes_key_paris(object.clone());
+
+
+    Content {
+        properties,
+        attributes,
+    }
+}
+
+pub(crate) fn extract_flagged_attrs(object: pest::iterators::Pair<'_, Rule>) -> IndexMap<String, NestedAttrType> {
+    todo!()
 }
