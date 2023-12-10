@@ -10,7 +10,6 @@ use crate::state::oca::overlay::conformance::Conformances;
 use crate::state::oca::overlay::meta::Metas;
 use crate::state::oca::overlay::character_encoding::CharacterEncodings;
 use crate::state::oca::overlay::label::Labels;
-use std::str::FromStr;
 use indexmap::IndexMap;
 use said::version::SerializationInfo;
 use said::sad::{SerializationFormats, SAD};
@@ -24,10 +23,10 @@ mod layout;
 pub mod overlay;
 use isolang::Language;
 use crate::state::{
-    attribute::{Attribute, AttributeType},
+    attribute::Attribute,
     oca::{capture_base::CaptureBase, overlay::Overlay},
 };
-use oca_ast::ast::{OverlayType, NestedValue, OCAAst, Command, CommandType, ObjectKind, Content};
+use oca_ast::ast::{OverlayType, NestedValue, OCAAst, Command, CommandType, ObjectKind, Content, CaptureContent};
 use convert_case::{Case, Casing};
 /// Internal representation of OCA objects in split between non-attributes values and attributes.
 /// It is used to build dynamically objects without knowing yet whole structure of the object.
@@ -678,20 +677,11 @@ impl From<OCABundle> for OCABox {
 
         let mut attributes: HashMap<String, Attribute> = HashMap::new();
         for (attr_name, attr_type) in oca_bundle.capture_base.attributes {
-            let attribute_type = AttributeType::from_str(&attr_type).unwrap();
-            let ref_said = if attribute_type == AttributeType::Reference {
-                Some(attr_type.split(':').last().unwrap().to_string())
-            } else if attribute_type == AttributeType::ArrayReference {
-                let mut said = attr_type.split(':').last().unwrap().to_string();
-                said.pop();
-                Some(said)
-            } else {
-                None
-            };
             let attr = Attribute {
                 name: attr_name.clone(),
-                attribute_type: Some(attribute_type),
-                reference_sai: ref_said,
+                attribute_type: Some(attr_type),
+                // TODO find out how to make sure that said or Array said would be in a attr type
+               // reference_sai: ref_said,
                 ..Default::default()
             };
             attributes.insert(attr_name.clone(), attr);
@@ -896,15 +886,15 @@ impl OCABundle {
         self.capture_base.attributes.iter().for_each(|(attr_name, attr_type)| {
             attributes.insert(
                 attr_name.clone(),
-                NestedValue::Value(attr_type.clone())
+                attr_type.clone(),
             );
         });
 
         let command = Command {
             kind: CommandType::Add,
-            object_kind: ObjectKind::CaptureBase,
-            content: Some(Content {
-                attributes: Some(attributes),
+            object_kind: ObjectKind::CaptureBase( CaptureContent {
+                // TODO find out if we can use indexmap in capture base to simplify stuff
+                attributes: Some(self.capture_base.attributes.clone().into_iter().collect()),
                 properties,
             }),
         };
@@ -921,8 +911,7 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::CharacterEncoding),
-                        content: Some(Content {
+                        object_kind: ObjectKind::Overlay(OverlayType::CharacterEncoding, Content {
                             attributes: Some(attributes),
                             properties: None,
                         }),
@@ -938,8 +927,7 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Format),
-                        content: Some(Content {
+                        object_kind: ObjectKind::Overlay(OverlayType::Format, Content {
                             attributes: Some(attributes),
                             properties: None,
                         }),
@@ -965,8 +953,7 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Meta),
-                        content: Some(Content {
+                        object_kind: ObjectKind::Overlay(OverlayType::Meta, Content {
                             attributes: None,
                             properties: Some(properties),
                         }),
@@ -993,8 +980,7 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Label),
-                        content: Some(Content {
+                        object_kind: ObjectKind::Overlay(OverlayType::Label, Content {
                             attributes: Some(attributes),
                             properties: Some(properties),
                         }),
@@ -1021,8 +1007,7 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Information),
-                        content: Some(Content {
+                        object_kind: ObjectKind::Overlay(OverlayType::Information, Content {
                             attributes: Some(attributes),
                             properties: Some(properties),
                         }),
@@ -1050,8 +1035,7 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Conditional),
-                        content: Some(Content {
+                        object_kind: ObjectKind::Overlay(OverlayType::Conditional, Content  {
                             attributes: Some(attributes),
                             properties: None,
                         }),
@@ -1066,8 +1050,7 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Conformance),
-                        content: Some(Content {
+                        object_kind: ObjectKind::Overlay(OverlayType::Conformance, Content {
                             attributes: Some(attributes),
                             properties: None,
                         }),
@@ -1100,8 +1083,7 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::EntryCode),
-                        content: Some(Content {
+                        object_kind: ObjectKind::Overlay(OverlayType::EntryCode, Content {
                             attributes: Some(attributes),
                             properties: None,
                         }),
@@ -1149,8 +1131,7 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Entry),
-                        content: Some(Content {
+                        object_kind: ObjectKind::Overlay(OverlayType::Entry, Content {
                             attributes: Some(attributes),
                             properties: Some(properties),
                         }),
@@ -1165,8 +1146,7 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Cardinality),
-                        content: Some(Content {
+                        object_kind: ObjectKind::Overlay(OverlayType::Cardinality, Content {
                             attributes: Some(attributes),
                             properties: None,
                         }),
@@ -1195,8 +1175,7 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Unit),
-                        content: Some(Content {
+                        object_kind: ObjectKind::Overlay(OverlayType::Unit, Content {
                             attributes: Some(attributes),
                             properties: Some(properties),
                         }),
@@ -1238,6 +1217,8 @@ impl AttributeLayoutValues {
 
 #[cfg(test)]
 mod tests {
+    use oca_ast::ast::{NestedAttrType, RefValue};
+
     use crate::state::attribute::AttributeType;
     use super::*;
 
@@ -1248,11 +1229,11 @@ mod tests {
         oca.add_meta(Language::Eng, "name".to_string(), "test name".to_string());
         oca.add_meta(Language::Eng, "description".to_string(), "test desc".to_string());
         let mut attr = Attribute::new("first_name".to_string());
-        attr.set_attribute_type(AttributeType::Text);
+        attr.set_attribute_type(NestedAttrType::Value(AttributeType::Text));
         oca.add_attribute(attr);
 
         let mut attr = Attribute::new("last_name".to_string());
-        attr.set_attribute_type(AttributeType::Text);
+        attr.set_attribute_type(NestedAttrType::Value(AttributeType::Text));
         oca.add_attribute(attr);
         // oca.add_attribute(Attribute::new("last_name".to_string()));
         let oca_bundle = oca.generate_bundle();
@@ -1272,16 +1253,17 @@ mod tests {
         oca.add_meta(Language::Eng, "name".to_string(), "test name".to_string());
         oca.add_meta(Language::Eng, "description".to_string(), "test desc".to_string());
         let mut attr = Attribute::new("first_name".to_string());
-        attr.set_attribute_type(AttributeType::Text);
+        attr.set_attribute_type(NestedAttrType::Value(AttributeType::Text));
         oca.add_attribute(attr);
 
         let mut attr = Attribute::new("last_name".to_string());
-        attr.set_attribute_type(AttributeType::Text);
+        attr.set_attribute_type(NestedAttrType::Value(AttributeType::Text));
         attr.set_condition("string.len(${first_name}) > 0".to_string());
         oca.add_attribute(attr);
 
         let mut attr = Attribute::new("ref".to_string());
-        attr.set_attribute_type(AttributeType::Reference);
+        attr.set_attribute_type(NestedAttrType::Reference(RefValue::Said("test".to_string())));
+        // todo this should not be needed
         attr.set_sai("test".to_string());
         oca.add_attribute(attr);
 

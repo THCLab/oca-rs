@@ -3,6 +3,7 @@ use super::{
     standard::Standard,
 };
 use isolang::Language;
+use oca_ast::ast::NestedAttrType;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 pub use oca_ast::ast::AttributeType;
@@ -12,7 +13,7 @@ use crate::state::{encoding::Encoding, entry_codes::EntryCodes, entries::Entries
 pub struct Attribute {
     pub name: String,
     #[serde(rename = "type")]
-    pub attribute_type: Option<AttributeType>,
+    pub attribute_type: Option<NestedAttrType>,
     pub is_flagged: bool,
     pub labels: Option<HashMap<Language, String>>,
     pub category_labels: Option<HashMap<Language, String>>,
@@ -69,7 +70,7 @@ impl Attribute {
         self.is_flagged = true;
     }
 
-    pub fn set_attribute_type(&mut self, attribute_type: AttributeType) {
+    pub fn set_attribute_type(&mut self, attribute_type: NestedAttrType) {
         self.attribute_type = Some(attribute_type);
     }
 
@@ -83,7 +84,7 @@ impl Attribute {
             panic!("Cannot merge attributes with different names");
         } else {
             if other.attribute_type.is_some() {
-                self.attribute_type = other.attribute_type;
+                self.attribute_type = other.attribute_type.clone();
             }
 
             self.merge_labels(other);
