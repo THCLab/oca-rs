@@ -181,12 +181,14 @@ base_attr_type = @{ ("Text" |
         "Numeric" |
         "Boolean" |
         "Binary" |
-        "DateTime" |
-        "Array[Text]" |
-        "Array[Numeric]" |
-        "Array[Boolean]" |
-        "Array[Binary]" |
-        "Array[DateTime]" )}
+        "DateTime" )}
+
+array_attr_type = ${(
+        "Array["~ base_attr_type ~"]" |
+        "Array["~ base_attr_type ~"]" |
+        "Array["~ base_attr_type ~"]" |
+        "Array["~ base_attr_type ~"]" |
+        "Array["~ base_attr_type ~"]" )}
 
 ref_array = ${ "Array[" ~ reference_type ~ "]"}
 reference_type = _{ ref_said | ref_name }
@@ -196,7 +198,7 @@ refs = _{^"refs:"}
 refn = _{^"refn:"}
 ref_said = _{ refs ~ said}
 ref_name = _{ refn ~ reference }
-_attr_type = ${ base_attr_type | refs | refn | ref_array }
+_attr_type = ${ base_attr_type | array_attr_type | refs | refn | ref_array }
 attr_pair = @{attr_key ~ "=" ~ _attr_type}
 attr_pairs = ${ (arg_ws ~ attr_pair)+}
 

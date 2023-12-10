@@ -40,6 +40,20 @@ pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType
                                 }
                             }
                         }
+                        Rule::array_attr_type => {
+                            debug!("Matching array attribute type from rule: {:?}", attr_type_rule);
+                            if let Some(value) = attr_type_rule.clone().into_inner().next() {
+                                match AttributeType::from_str(value.as_span().as_str()) {
+                                    Ok(base_attr_type) => {
+                                        attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Value(base_attr_type)));
+                                    }
+                                    Err(e) => {
+                                        panic!("Invalid attribute type {:?}", e);
+                                    }
+                                }
+                            }
+
+                        }
                         Rule::ref_array => {
                             debug!("Matching reference array type from rule: {:?}", attr_type_rule);
                             if let Some(value) = attr_type_rule.clone().into_inner().next() {
