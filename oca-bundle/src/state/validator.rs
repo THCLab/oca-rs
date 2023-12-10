@@ -1,8 +1,8 @@
 use crate::state::oca::overlay::Overlay;
 use crate::state::oca::DynOverlay;
-use std::{collections::{HashSet, HashMap}, str::FromStr, error::Error as StdError};
+use std::{collections::{HashSet, HashMap}, error::Error as StdError};
 use isolang::Language;
-use oca_ast::ast::{OverlayType, AttributeType};
+use oca_ast::ast::{OverlayType, AttributeType, NestedAttrType};
 
 use super::oca::{OCABundle, overlay};
 use piccolo::{Closure, Lua, Thread};
@@ -206,7 +206,7 @@ impl Validator {
 
     fn validate_conditional(
         &self,
-        attr_types: HashMap<String, String>,
+        attr_types: HashMap<String, NestedAttrType>,
         overlay: &overlay::Conditional,
     ) -> Result<(), Vec<Error>> {
         let mut errors: Vec<Error> = vec![];
@@ -226,25 +226,37 @@ impl Validator {
 
             let mut attr_mocks: HashMap<String, String> = HashMap::new();
             condition_dependencies.iter().for_each(|dep| {
-                let dep_type = AttributeType::from_str(
-                    attr_types.get(dep).unwrap().as_str(),
-                )
-                .unwrap(); // todo
+                let dep_type = attr_types.get(dep).unwrap(); // todo
                 let value = match dep_type {
-                    AttributeType::Text => "'test'".to_string(),
-                    AttributeType::ArrayText => "['test']".to_string(),
-                    AttributeType::Numeric => "0".to_string(),
-                    AttributeType::ArrayNumeric => "[0]".to_string(),
-                    AttributeType::DateTime => "'2020-01-01'".to_string(),
-                    AttributeType::ArrayDateTime => {
-                        "['2020-01-01']".to_string()
+                    NestedAttrType::Null => "null".to_string(),
+                    NestedAttrType::Value(base_type) => {
+                        match base_type {
+                            AttributeType::Text => "'test'".to_string(),
+                            AttributeType::Numeric => "0".to_string(),
+                            AttributeType::DateTime => "'2020-01-01'".to_string(),
+                            AttributeType::Binary => "test".to_string(),
+                            AttributeType::Boolean => "true".to_string(),
+                        }
                     }
-                    AttributeType::Reference => "'test'".to_string(),
-                    AttributeType::ArrayReference => "['test']".to_string(),
-                    AttributeType::Binary => "test".to_string(),
-                    AttributeType::ArrayBinary => "[test]".to_string(),
-                    AttributeType::Boolean => "true".to_string(),
-                    AttributeType::ArrayBoolean => "[true]".to_string(),
+                    NestedAttrType::Array(boxed_type) =>  {
+                        match **boxed_type {
+                            NestedAttrType::Value(base_type) => match base_type {
+                                AttributeType::Text => "['test']".to_string(),
+                                AttributeType::Numeric => "[0]".to_string(),
+                                AttributeType::DateTime => "['2020-01-01']".to_string(),
+                                AttributeType::Binary => "[test]".to_string(),
+                                AttributeType::Boolean => "[true]".to_string(),
+                                _ => panic!("Invalid or not supported array type"),
+                            },
+                            _ => panic!("Invalid or not supported array type"),
+                        }
+                    },
+                    NestedAttrType::Object(_) => {
+                        panic!("Invalid or not supported object type")
+                    },
+                    NestedAttrType::Reference(ref_value) => {
+                        ref_value.to_string()
+                    }
                 };
                 attr_mocks.insert(dep.to_string(), value);
             });
@@ -410,7 +422,7 @@ mod tests {
 
         let attribute = cascade! {
             Attribute::new("name".to_string());
-            ..set_attribute_type(AttributeType::Text);
+            ..set_attribute_type(NestedAttrType::Value(AttributeType::Text));
             ..set_encoding(Encoding::Utf8);
             ..set_label(Language::Eng, "Name: ".to_string());
             ..set_label(Language::Pol, "Imię: ".to_string());
@@ -420,7 +432,7 @@ mod tests {
 
         let attribute_2 = cascade! {
             Attribute::new("age".to_string());
-            ..set_attribute_type(AttributeType::Numeric);
+            ..set_attribute_type(NestedAttrType::Value(AttributeType::Numeric));
             ..set_label(Language::Eng, "Age: ".to_string());
             ..set_label(Language::Pol, "Wiek: ".to_string());
         };
@@ -491,7 +503,7 @@ mod tests {
         "attributes": {
             "n1": "Text",
             "n2": "DateTime",
-            "n3": "Reference:sai"
+            "n3": "refs:EBQMQm_tXSC8tnNICl7paGUeGg0SyF1tceHhTUutn1aP"
         },
         "flagged_attributes": ["n1"]
     },
@@ -507,12 +519,19 @@ mod tests {
 }
         "#;
         let oca_bundle = load_oca(&mut data.as_bytes());
-
-        let result = validator.validate(&oca_bundle.unwrap());
-
-        assert!(result.is_err());
-        if let Err(errors) = result {
-            assert_eq!(errors.len(), 4);
+        match oca_bundle {
+            Ok(oca_bundle) => {
+                let result = validator.validate(&oca_bundle);
+                assert!(result.is_err());
+                if let Err(errors) = result {
+                    println!("{:?}", errors);
+                    assert_eq!(errors.len(), 4);
+                }
+            }
+            Err(e) => {
+                println!("{:?}", e);
+                assert!(false);
+            }
         }
     }
 
@@ -524,7 +543,7 @@ mod tests {
 
         let attribute_age = cascade! {
             Attribute::new("age".to_string());
-            ..set_attribute_type(AttributeType::Numeric);
+            ..set_attribute_type(NestedAttrType::Value(AttributeType::Numeric));
             ..set_encoding(Encoding::Utf8);
         };
 
@@ -532,7 +551,7 @@ mod tests {
 
         let attribute_name = cascade! {
             Attribute::new("name".to_string());
-            ..set_attribute_type(AttributeType::Text);
+            ..set_attribute_type(NestedAttrType::Value(AttributeType::Text));
             ..set_condition(
                 "${age} > 18 and ${age} < 30".to_string()
             );

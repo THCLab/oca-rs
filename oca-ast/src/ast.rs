@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
-use serde::{Serialize, Serializer, Deserialize, Deserializer};
+use serde::{Serialize, Serializer, Deserialize, Deserializer, de::{Visitor, self}};
 use strum_macros::Display;
-use std::{str::FromStr, collections::HashMap};
+use std::{str::FromStr, collections::HashMap, fmt};
 use wasm_bindgen::prelude::*;
 
 
@@ -69,24 +69,10 @@ impl ObjectKind {
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Copy, Display)]
 pub enum AttributeType {
     Boolean,
-    #[serde(rename = "Array[Boolean]")]
-    ArrayBoolean,
     Binary,
-    #[serde(rename = "Array[Binary]")]
-    ArrayBinary,
     Text,
-    #[serde(rename = "Array[Text]")]
-    ArrayText,
     Numeric,
-    #[serde(rename = "Array[Numeric]")]
-    ArrayNumeric,
     DateTime,
-    #[serde(rename = "Array[DateTime]")]
-    ArrayDateTime,
-    #[serde(rename = "refs")]
-    Reference,
-    #[serde(rename = "Array[Reference]")]
-    ArrayReference,
 }
 
 impl FromStr for AttributeType {
@@ -95,29 +81,12 @@ impl FromStr for AttributeType {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "Boolean" => Ok(AttributeType::Boolean),
-            "Array[Boolean]" => Ok(AttributeType::ArrayBoolean),
             "Binary" => Ok(AttributeType::Binary),
-            "Array[Binary]" => Ok(AttributeType::ArrayBinary),
             "Text" => Ok(AttributeType::Text),
-            "Array[Text]" => Ok(AttributeType::ArrayText),
             "Numeric" => Ok(AttributeType::Numeric),
-            "Array[Numeric]" => Ok(AttributeType::ArrayNumeric),
             "DateTime" => Ok(AttributeType::DateTime),
-            "Array[DateTime]" => Ok(AttributeType::ArrayDateTime),
-            "Reference" => Ok(AttributeType::Reference),
-            "Array[Reference]" => Ok(AttributeType::ArrayReference),
             _ => {
-                if let Some((attr_type, _)) = s.split_once(':') {
-                    if attr_type == "refs" {
-                        Ok(AttributeType::Reference)
-                    } else if attr_type == "Array[Reference" {
-                        Ok(AttributeType::ArrayReference)
-                    } else {
-                        Err(())
-                    }
-                } else {
-                    Err(())
-                }
+                Err(())
             }
         }
     }
@@ -268,7 +237,67 @@ pub struct Content {
     pub properties: Option<IndexMap<String, NestedValue>>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+
+// TODO implement deserializer for NestedAttrType
+impl<'de> Deserialize<'de> for NestedAttrType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct NestedAttrTypeVisitor {
+            depth: usize,
+        }
+
+        impl<'de> Visitor<'de> for NestedAttrTypeVisitor {
+            type Value = NestedAttrType;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a valid NestedAttrType")
+            }
+
+            // Implement the visit_* methods to handle each case
+            // ...
+
+
+            fn visit_str<E>(self, value: &str) -> Result<NestedAttrType, E>
+            where
+                E: de::Error,
+            {
+                println!("visit_str: {}", value);
+                // Try to parse base attribute
+                match AttributeType::from_str(value) {
+                    Ok(attr_type) => Ok(NestedAttrType::Value(attr_type)),
+                    Err(_) => {
+                        Ok(NestedAttrType::Reference(RefValue::from_str(value).unwrap()))
+                    }
+                }
+            }
+
+            // Example for one of the visit methods
+            fn visit_map<V>(self, mut map: V) -> Result<NestedAttrType, V::Error>
+            where
+                V: serde::de::MapAccess<'de>,
+            {
+                const MAX_DEPTH: usize = 4;
+                if self.depth > MAX_DEPTH {
+                    return Err(de::Error::custom("recursion depth exceeded"));
+                }
+
+                let mut object = IndexMap::new();
+                println!("depth: {}", self.depth);
+                println!(">>>>> object: {:?}", object);
+                Ok(NestedAttrType::Object(object))
+            }
+        }
+
+        deserializer.deserialize_any(NestedAttrTypeVisitor { depth: 0 })
+    }
+}
+
+
+
+
+#[derive(Debug, PartialEq, Serialize, Clone)]
 #[serde(untagged)]
 /// Enum representing attribute type which can be nested.
 ///
@@ -300,6 +329,28 @@ pub enum RefValue {
     Name(String),
 }
 
+
+impl FromStr for RefValue {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (tag, rest) = s.split_once(':').ok_or(())?;
+        match tag {
+            "refs" => Ok(RefValue::Said(rest.to_string())),
+            "refn" => Ok(RefValue::Name(rest.to_string())),
+            _ => Err(()),
+        }
+    }
+}
+
+impl fmt::Display for RefValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self {
+            RefValue::Said(said) => write!(f, "_said_:{}", said),
+            RefValue::Name(name) => write!(f, "_name_:{}", name),
+        }
+    }
+}
 impl Serialize for RefValue {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

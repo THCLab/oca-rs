@@ -49,7 +49,7 @@ pages:
 
     let mut attribute = cascade! {
         Attribute::new("name".to_string());
-        ..set_attribute_type(AttributeType::Text);
+        ..set_attribute_type(oca_ast::ast::NestedAttrType::Value(AttributeType::Text));
         ..set_flagged();
         ..set_encoding(Encoding::Utf8);
         ..set_cardinality("1".to_string());
@@ -70,7 +70,7 @@ pages:
 
     let mut attribute_2 = cascade! {
         Attribute::new("age".to_string());
-        ..set_attribute_type(AttributeType::Numeric);
+        ..set_attribute_type(oca_ast::ast::NestedAttrType::Value(AttributeType::Numeric));
         ..set_flagged();
         ..set_encoding(Encoding::Utf8);
         ..set_cardinality("2".to_string());
