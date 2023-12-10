@@ -4,6 +4,7 @@ use crate::repositories::{
     CaptureBaseCacheRecord, CaptureBaseCacheRepo, OCABundleCacheRecord,
     OCABundleCacheRepo, OCABundleFTSRecord, OCABundleFTSRepo,
 };
+use oca_ast::ast::{BundleContent, ObjectKind, RefValue, ReferenceAttrType};
 use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
 use oca_dag::build_core_db_model;
@@ -40,32 +41,37 @@ impl Facade {
 
         let mut base: Option<OCABundle> = None;
         if let Some(first_command) = oca_ast.commands.get(0) {
-            if let oca_ast::ast::CommandType::From = first_command.kind {
-                if let Some(ref content) = first_command.content {
-                    if let Some(ref properties) = content.properties {
-                        if let Some(oca_ast::ast::NestedValue::Value(said)) = properties.get("said") {
-                            match self.get_oca_bundle(said.clone()) {
-                                Ok(oca_bundle) => {
-                                    base = Some(oca_bundle);
-                                },
-                                Err(e) => {
-                                    let default_command_meta = oca_ast::ast::CommandMeta { line_number: 0, raw_line: "unknown".to_string() };
-                                    let command_meta = oca_ast.commands_meta.get(&0).unwrap_or(&default_command_meta);
-                                    e.iter().for_each(|e| errors.push(
-                                        Error::InvalidCommand {
-                                            line_number: command_meta.line_number,
-                                            raw_line: command_meta.raw_line.clone(),
-                                            message: e.clone()
+            match (first_command.clone().kind, first_command.clone().object_kind) {
+                (oca_ast::ast::CommandType::From, ObjectKind::OCABundle(content)) => {
+                    match content.said {
+                        ReferenceAttrType::Reference(refs) => {
+                            match refs {
+                                RefValue::Said(said) => {
+                                    match self.get_oca_bundle(said) {
+                                        Ok(oca_bundle) => {
+                                            base = Some(oca_bundle);
+                                        },
+                                        Err(e) => {
+                                            let default_command_meta = oca_ast::ast::CommandMeta { line_number: 0, raw_line: "unknown".to_string() };
+                                            let command_meta = oca_ast.commands_meta.get(&0).unwrap_or(&default_command_meta);
+                                            e.iter().for_each(|e| errors.push(
+                                                Error::InvalidCommand {
+                                                    line_number: command_meta.line_number,
+                                                    raw_line: command_meta.raw_line.clone(),
+                                                    message: e.clone()
+                                                }
+                                            ));
                                         }
-                                    ));
-                                }
+                                    }
+                                },
+                                RefValue::Name(_) => todo!(),
                             }
                         }
                     }
-                }
-
-                oca_ast.commands.remove(0);
+                },
+                _ => {}
             }
+            oca_ast.commands.remove(0);
         }
         if !errors.is_empty() {
             return Err(errors);

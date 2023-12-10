@@ -3,6 +3,7 @@ use serde::{Serialize, Serializer, Deserialize, Deserializer, de::{Visitor, self
 use strum_macros::Display;
 use std::{str::FromStr, collections::HashMap, fmt};
 use wasm_bindgen::prelude::*;
+use std::hash::{Hash, Hasher};
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -35,12 +36,51 @@ pub enum CommandType {
     From,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, PartialEq, Clone, Eq)]
 #[serde(tag = "object_kind", content = "content")]
 pub enum ObjectKind {
     CaptureBase(CaptureContent),
     OCABundle(BundleContent),
     Overlay(OverlayType, Content),
+}
+
+impl Hash for ObjectKind {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            ObjectKind::CaptureBase(content) => {
+                content.hash(state);
+            }
+            ObjectKind::OCABundle(content) => {
+                content.hash(state);
+            }
+            ObjectKind::Overlay(overlay_type, content) => {
+                overlay_type.hash(state);
+            }
+        }
+    }
+}
+
+impl Hash for CaptureContent {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match &self.attributes {
+            Some(attributes) => {
+                for (key, value) in attributes {
+                    key.hash(state);
+                    value.hash(state);
+                }
+            }
+            None => {}
+        }
+        match &self.properties {
+            Some(properties) => {
+                for (key, value) in properties {
+                    key.hash(state);
+                    value.hash(state);
+                }
+            }
+            None => {}
+        }
+    }
 }
 
 
@@ -66,7 +106,7 @@ impl ObjectKind {
     }
 }
 #[wasm_bindgen]
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Copy, Display)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Copy, Display, Eq, Hash)]
 pub enum AttributeType {
     Boolean,
     Binary,
@@ -220,12 +260,12 @@ impl<'de> Deserialize<'de> for OverlayType {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq, Hash)]
 pub struct BundleContent {
     pub said: ReferenceAttrType,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq)]
 pub struct CaptureContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<IndexMap<String, NestedAttrType>>,
@@ -234,7 +274,7 @@ pub struct CaptureContent {
 }
 
 // TODO remove it when moved all to BaseAttributeContent
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq)]
 pub struct Content {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<IndexMap<String, NestedValue>>,
@@ -300,9 +340,7 @@ impl<'de> Deserialize<'de> for NestedAttrType {
 }
 
 
-
-
-#[derive(Debug, PartialEq, Serialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Clone, Eq)]
 #[serde(untagged)]
 /// Enum representing attribute type which can be nested.
 ///
@@ -319,7 +357,31 @@ pub enum NestedAttrType {
     Null,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+impl Hash for NestedAttrType {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            NestedAttrType::Reference(ref_value) => {
+                ref_value.hash(state);
+            }
+            NestedAttrType::Value(attr_type) => {
+                attr_type.hash(state);
+            }
+            NestedAttrType::Object(object) => {
+                for (key, value) in object {
+                    key.hash(state);
+                    value.hash(state);
+                }
+            }
+            NestedAttrType::Array(array) => {
+                array.hash(state);
+            }
+            NestedAttrType::Null => {
+                "null".hash(state);
+            }
+        }
+    }
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq, Hash)]
 #[serde(untagged)]
 /// Enum representing type supported in bundle (From command)
 ///
@@ -328,7 +390,7 @@ pub enum ReferenceAttrType {
     Reference(RefValue),
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq)]
 #[serde(untagged)]
 pub enum NestedValue {
     Reference(RefValue),
@@ -336,8 +398,31 @@ pub enum NestedValue {
     Object(IndexMap<String, NestedValue>),
     Array(Vec<NestedValue>),
 }
+impl NestedValue {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            NestedValue::Reference(ref_value) => {
+                ref_value.hash(state);
+            }
+            NestedValue::Value(value) => {
+                value.hash(state);
+            }
+            NestedValue::Object(object) => {
+                for (key, value) in object {
+                    key.hash(state);
+                    value.hash(state);
+                }
+            }
+            NestedValue::Array(array) => {
+                for value in array {
+                    value.hash(state);
+                }
+            }
+        }
+    }
+}
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Hash, Eq)]
 pub enum RefValue {
     Said(String),
     Name(String),
@@ -434,31 +519,34 @@ impl Serialize for ObjectKind {
         }
     }
 }*/
-/*
+
 impl From<u8> for ObjectKind {
     fn from(val: u8) -> Self {
         match val {
-            0 => ObjectKind::CaptureBase,
-            1 => ObjectKind::OCABundle,
-            2 => ObjectKind::Overlay(OverlayType::Label),
-            3 => ObjectKind::Overlay(OverlayType::Information),
-            4 => ObjectKind::Overlay(OverlayType::Encoding),
-            5 => ObjectKind::Overlay(OverlayType::CharacterEncoding),
-            6 => ObjectKind::Overlay(OverlayType::Format),
-            7 => ObjectKind::Overlay(OverlayType::Meta),
-            8 => ObjectKind::Overlay(OverlayType::Standard),
-            9 => ObjectKind::Overlay(OverlayType::Cardinality),
-            10 => ObjectKind::Overlay(OverlayType::Conditional),
-            11 => ObjectKind::Overlay(OverlayType::Conformance),
-            12 => ObjectKind::Overlay(OverlayType::EntryCode),
-            13 => ObjectKind::Overlay(OverlayType::Entry),
-            14 => ObjectKind::Overlay(OverlayType::Unit),
-            15 => ObjectKind::Overlay(OverlayType::AttributeMapping),
-            16 => ObjectKind::Overlay(OverlayType::EntryCodeMapping),
-            17 => ObjectKind::Overlay(OverlayType::Subset),
-            18 => ObjectKind::Overlay(OverlayType::UnitMapping),
-            19 => ObjectKind::Overlay(OverlayType::Layout),
-            20 => ObjectKind::Overlay(OverlayType::Sensitivity),
+            0 => ObjectKind::CaptureBase(CaptureContent {
+                attributes: None,
+                properties: None,
+            }),
+            1 => ObjectKind::OCABundle(BundleContent { said: ReferenceAttrType::Reference(RefValue::Said("".to_string())) }),
+            2 => ObjectKind::Overlay(OverlayType::Label, Content { attributes: None, properties: None }),
+            3 => ObjectKind::Overlay(OverlayType::Information, Content { attributes: None, properties: None }),
+            4 => ObjectKind::Overlay(OverlayType::Encoding, Content { attributes: None, properties: None }),
+            5 => ObjectKind::Overlay(OverlayType::CharacterEncoding, Content { attributes: None, properties: None }),
+            6 => ObjectKind::Overlay(OverlayType::Format, Content { attributes: None, properties: None }),
+            7 => ObjectKind::Overlay(OverlayType::Meta, Content { attributes: None, properties: None }),
+            8 => ObjectKind::Overlay(OverlayType::Standard, Content { attributes: None, properties: None }),
+            9 => ObjectKind::Overlay(OverlayType::Cardinality, Content { attributes: None, properties: None }),
+            10 => ObjectKind::Overlay(OverlayType::Conditional, Content { attributes: None, properties: None }),
+            11 => ObjectKind::Overlay(OverlayType::Conformance, Content { attributes: None, properties: None }),
+            12 => ObjectKind::Overlay(OverlayType::EntryCode, Content { attributes: None, properties: None }),
+            13 => ObjectKind::Overlay(OverlayType::Entry, Content { attributes: None, properties: None }),
+            14 => ObjectKind::Overlay(OverlayType::Unit, Content { attributes: None, properties: None }),
+            15 => ObjectKind::Overlay(OverlayType::AttributeMapping, Content { attributes: None, properties: None }),
+            16 => ObjectKind::Overlay(OverlayType::EntryCodeMapping, Content { attributes: None, properties: None }),
+            17 => ObjectKind::Overlay(OverlayType::Subset, Content { attributes: None, properties: None }),
+            18 => ObjectKind::Overlay(OverlayType::UnitMapping, Content { attributes: None, properties: None }),
+            19 => ObjectKind::Overlay(OverlayType::Layout, Content { attributes: None, properties: None }),
+            20 => ObjectKind::Overlay(OverlayType::Sensitivity, Content { attributes: None, properties: None }),
             _ => panic!("Unknown object type"),
         }
     }
@@ -467,31 +555,31 @@ impl From<u8> for ObjectKind {
 impl From<ObjectKind> for u8 {
     fn from(val: ObjectKind) -> Self {
         match val {
-            ObjectKind::CaptureBase => 0,
-            ObjectKind::OCABundle => 1,
-            ObjectKind::Overlay(OverlayType::Label) => 2,
-            ObjectKind::Overlay(OverlayType::Information) => 3,
-            ObjectKind::Overlay(OverlayType::Encoding) => 4,
-            ObjectKind::Overlay(OverlayType::CharacterEncoding) => 5,
-            ObjectKind::Overlay(OverlayType::Format) => 6,
-            ObjectKind::Overlay(OverlayType::Meta) => 7,
-            ObjectKind::Overlay(OverlayType::Standard) => 8,
-            ObjectKind::Overlay(OverlayType::Cardinality) => 9,
-            ObjectKind::Overlay(OverlayType::Conditional) => 10,
-            ObjectKind::Overlay(OverlayType::Conformance) => 11,
-            ObjectKind::Overlay(OverlayType::EntryCode) => 12,
-            ObjectKind::Overlay(OverlayType::Entry) => 13,
-            ObjectKind::Overlay(OverlayType::Unit) => 14,
-            ObjectKind::Overlay(OverlayType::AttributeMapping) => 15,
-            ObjectKind::Overlay(OverlayType::EntryCodeMapping) => 16,
-            ObjectKind::Overlay(OverlayType::Subset) => 17,
-            ObjectKind::Overlay(OverlayType::UnitMapping) => 18,
-            ObjectKind::Overlay(OverlayType::Layout) => 19,
-            ObjectKind::Overlay(OverlayType::Sensitivity) => 20,
+            ObjectKind::CaptureBase(_) => 0,
+            ObjectKind::OCABundle(_) => 1,
+            ObjectKind::Overlay(OverlayType::Label, _) => 2,
+            ObjectKind::Overlay(OverlayType::Information, _) => 3,
+            ObjectKind::Overlay(OverlayType::Encoding, _) => 4,
+            ObjectKind::Overlay(OverlayType::CharacterEncoding, _) => 5,
+            ObjectKind::Overlay(OverlayType::Format, _) => 6,
+            ObjectKind::Overlay(OverlayType::Meta, _) => 7,
+            ObjectKind::Overlay(OverlayType::Standard, _) => 8,
+            ObjectKind::Overlay(OverlayType::Cardinality, _) => 9,
+            ObjectKind::Overlay(OverlayType::Conditional, _) => 10,
+            ObjectKind::Overlay(OverlayType::Conformance, _) => 11,
+            ObjectKind::Overlay(OverlayType::EntryCode, _) => 12,
+            ObjectKind::Overlay(OverlayType::Entry, _) => 13,
+            ObjectKind::Overlay(OverlayType::Unit, _) => 14,
+            ObjectKind::Overlay(OverlayType::AttributeMapping, _) => 15,
+            ObjectKind::Overlay(OverlayType::EntryCodeMapping, _) => 16,
+            ObjectKind::Overlay(OverlayType::Subset, _) => 17,
+            ObjectKind::Overlay(OverlayType::UnitMapping, _) => 18,
+            ObjectKind::Overlay(OverlayType::Layout, _) => 19,
+            ObjectKind::Overlay(OverlayType::Sensitivity, _) => 20,
         }
     }
-}*/
-/*
+}
+
 impl<'de> Deserialize<'de> for ObjectKind {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -500,31 +588,34 @@ impl<'de> Deserialize<'de> for ObjectKind {
 
         let s = String::deserialize(deserializer)?;
         match s.as_str() {
-            "CaptureBase" => Ok(ObjectKind::CaptureBase),
-            "OCABundle" => Ok(ObjectKind::OCABundle),
-            "Label" => Ok(ObjectKind::Overlay(OverlayType::Label)),
-            "Information" => Ok(ObjectKind::Overlay(OverlayType::Information)),
-            "Encoding" => Ok(ObjectKind::Overlay(OverlayType::Encoding)),
-            "CharacterEncoding" => Ok(ObjectKind::Overlay(OverlayType::CharacterEncoding)),
-            "Format" => Ok(ObjectKind::Overlay(OverlayType::Format)),
-            "Meta" => Ok(ObjectKind::Overlay(OverlayType::Meta)),
-            "Standard" => Ok(ObjectKind::Overlay(OverlayType::Standard)),
-            "Cardinality" => Ok(ObjectKind::Overlay(OverlayType::Cardinality)),
-            "Conditional" => Ok(ObjectKind::Overlay(OverlayType::Conditional)),
-            "Conformance" => Ok(ObjectKind::Overlay(OverlayType::Conformance)),
-            "EntryCode" => Ok(ObjectKind::Overlay(OverlayType::EntryCode)),
-            "Entry" => Ok(ObjectKind::Overlay(OverlayType::Entry)),
-            "Unit" => Ok(ObjectKind::Overlay(OverlayType::Unit)),
-            "AttributeMapping" => Ok(ObjectKind::Overlay(OverlayType::AttributeMapping)),
-            "EntryCodeMapping" => Ok(ObjectKind::Overlay(OverlayType::EntryCodeMapping)),
-            "Subset" => Ok(ObjectKind::Overlay(OverlayType::Subset)),
-            "UnitMapping" => Ok(ObjectKind::Overlay(OverlayType::UnitMapping)),
-            "Layout" => Ok(ObjectKind::Overlay(OverlayType::Layout)),
-            "Sensitivity" => Ok(ObjectKind::Overlay(OverlayType::Sensitivity)),
+            "CaptureBase" => Ok(ObjectKind::CaptureBase(CaptureContent {
+                attributes: None,
+                properties: None,
+            })),
+            "OCABundle" => Ok(ObjectKind::OCABundle(BundleContent { said: ReferenceAttrType::Reference(RefValue::Said("".to_string())) })),
+            "Label" => Ok(ObjectKind::Overlay(OverlayType::Label, Content { attributes: None, properties: None })),
+            "Information" => Ok(ObjectKind::Overlay(OverlayType::Information, Content { attributes: None, properties: None })),
+            "Encoding" => Ok(ObjectKind::Overlay(OverlayType::Encoding, Content { attributes: None, properties: None })),
+            "CharacterEncoding" => Ok(ObjectKind::Overlay(OverlayType::CharacterEncoding, Content { attributes: None, properties: None })),
+            "Format" => Ok(ObjectKind::Overlay(OverlayType::Format, Content { attributes: None, properties: None })),
+            "Meta" => Ok(ObjectKind::Overlay(OverlayType::Meta, Content { attributes: None, properties: None })),
+            "Standard" => Ok(ObjectKind::Overlay(OverlayType::Standard, Content { attributes: None, properties: None })),
+            "Cardinality" => Ok(ObjectKind::Overlay(OverlayType::Cardinality, Content { attributes: None, properties: None })),
+            "Conditional" => Ok(ObjectKind::Overlay(OverlayType::Conditional, Content { attributes: None, properties: None })),
+            "Conformance" => Ok(ObjectKind::Overlay(OverlayType::Conformance, Content { attributes: None, properties: None })),
+            "EntryCode" => Ok(ObjectKind::Overlay(OverlayType::EntryCode, Content { attributes: None, properties: None })),
+            "Entry" => Ok(ObjectKind::Overlay(OverlayType::Entry, Content { attributes: None, properties: None })),
+            "Unit" => Ok(ObjectKind::Overlay(OverlayType::Unit, Content { attributes: None, properties: None })),
+            "AttributeMapping" => Ok(ObjectKind::Overlay(OverlayType::AttributeMapping, Content { attributes: None, properties: None })),
+            "EntryCodeMapping" => Ok(ObjectKind::Overlay(OverlayType::EntryCodeMapping, Content { attributes: None, properties: None })),
+            "Subset" => Ok(ObjectKind::Overlay(OverlayType::Subset, Content { attributes: None, properties: None })),
+            "UnitMapping" => Ok(ObjectKind::Overlay(OverlayType::UnitMapping, Content { attributes: None, properties: None })),
+            "Layout" => Ok(ObjectKind::Overlay(OverlayType::Layout, Content { attributes: None, properties: None })),
+            "Sensitivity" => Ok(ObjectKind::Overlay(OverlayType::Sensitivity, Content { attributes: None, properties: None })),
             _ => Err(serde::de::Error::custom(format!("unknown object kind: {}", s))),
         }
     }
-} */
+}
 
 #[cfg(test)]
 mod tests {

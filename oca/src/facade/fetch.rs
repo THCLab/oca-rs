@@ -231,7 +231,7 @@ impl Facade {
                 })?;
             let o_type: ObjectKind = (*r_type.unwrap().first().unwrap()).into();
             match o_type {
-                ObjectKind::CaptureBase => result.push(OCAObject::CaptureBase(
+                ObjectKind::CaptureBase(content) => result.push(OCAObject::CaptureBase(
                     serde_json::from_str::<CaptureBase>(&object_str)
                         .map_err(|e| {
                             errors.push(format!(
@@ -241,16 +241,19 @@ impl Facade {
                             errors.clone()
                         })?,
                 )),
-                ObjectKind::Overlay(_) => result.push(OCAObject::Overlay(
-                    serde_json::from_str::<DynOverlay>(&object_str)
-                        .map_err(|e| {
-                            errors.push(format!(
-                                "Failed to parse OCA object: {}",
-                                e
-                            ));
-                            errors.clone()
-                        })?,
-                )),
+                ObjectKind::Overlay(_,_) => {
+                    let oca_overlay = OCAObject::Overlay(
+                        serde_json::from_str::<DynOverlay>(&object_str)
+                            .map_err(|e| {
+                                errors.push(format!(
+                                    "Failed to parse OCA object: {}",
+                                    e
+                                ));
+                                errors.clone()
+                            })?,
+                    );
+                    result.push(oca_overlay);
+                }
                 _ => {}
             };
         }

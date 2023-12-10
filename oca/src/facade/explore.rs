@@ -1,6 +1,6 @@
 use crate::data_storage::Namespace;
 use oca_bundle::state::oca::OCABundle;
-use oca_ast::ast::ObjectKind;
+use oca_ast::ast::{ObjectKind, Content, BundleContent, RefValue, CaptureContent};
 use serde::{Serialize, ser::SerializeStruct};
 use std::collections::HashSet;
 
@@ -29,7 +29,7 @@ impl Facade {
         self.db.insert(
             Namespace::OCARelations,
             &format!("{}.metadata", oca_bundle.said.clone().unwrap()),
-            &[ObjectKind::OCABundle.into()],
+            &[ObjectKind::OCABundle(BundleContent { said: oca_ast::ast::ReferenceAttrType::Reference(RefValue::Said("".to_string())) }).into()],
         )?;
         self.db.insert(
             Namespace::OCARelations,
@@ -37,13 +37,13 @@ impl Facade {
                 "{}.metadata",
                 oca_bundle.capture_base.said.clone().unwrap()
             ),
-            &[ObjectKind::CaptureBase.into()],
+            &[ObjectKind::CaptureBase( CaptureContent { attributes: None, properties: None }).into()],
         )?;
         oca_bundle.overlays.iter().for_each(|overlay| {
             let _ = self.db.insert(
                 Namespace::OCARelations,
                 &format!("{}.metadata", overlay.said().clone().unwrap()),
-                &[ObjectKind::Overlay(overlay.overlay_type().clone()).into()],
+                &[ObjectKind::Overlay(overlay.overlay_type().clone(), Content { attributes: None, properties: None }).into()],
             );
         });
 
@@ -166,7 +166,7 @@ impl From<Vec<u8>> for Relationship {
     fn from(val: Vec<u8>) -> Self {
         let mut result = Relationship::new(OCAObject {
             said: "".to_string(),
-            object_type: ObjectKind::OCABundle,
+            object_type: ObjectKind::OCABundle( BundleContent { said: oca_ast::ast::ReferenceAttrType::Reference(RefValue::Said("".to_string())) } ),
         });
 
         let mut tmp_val = val.clone();
@@ -211,11 +211,11 @@ impl Serialize for OCAObject {
         let mut state = serializer.serialize_struct("OCAObject", 3)?;
         state.serialize_field("said", &self.said)?;
         match &self.object_type {
-            ObjectKind::OCABundle |
-            ObjectKind::CaptureBase =>  {
+            ObjectKind::OCABundle(_) |
+            ObjectKind::CaptureBase(_) =>  {
                 state.serialize_field("object_type", &self.object_type)?
             },
-            ObjectKind::Overlay(_) => {
+            ObjectKind::Overlay(_,_) => {
                 state.serialize_field("object_type", "Overlay")?;
                 let overlay_metadata = OverlayMetadata {
                     kind: self.object_type.clone(),
