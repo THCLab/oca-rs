@@ -117,7 +117,7 @@ pub fn from_ast(
     }
 }
 
-fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, Vec<String>> {
+pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, Vec<String>> {
     let mut errors = vec![];
     let mut oca: OCABox = match base {
         Some(oca) => oca,

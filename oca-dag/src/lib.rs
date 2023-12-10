@@ -110,7 +110,7 @@ fn apply_step(
     result.command = Some(command_model.clone());
 
     match &step.command.object_kind {
-        ast::ObjectKind::CaptureBase => {
+        ast::ObjectKind::CaptureBase(_) => {
             let capture_base_model = CaptureBaseModel {
                 capture_base_said: step
                     .result
@@ -125,16 +125,17 @@ fn apply_step(
             current_state.capture_base =
                 Some(capture_base_model.capture_base_said.clone());
         }
-        ast::ObjectKind::Overlay(overlay_type) => {
+        ast::ObjectKind::Overlay(overlay_type, content) => {
             let mut lang = None;
-            if let Some(properties) =
-                &step.command.content.as_ref().unwrap().properties
-            {
-                if let Some(ast::NestedValue::Value(lang_value)) =
-                    properties.get("lang")
-                {
-                    lang = isolang::Language::from_639_1(lang_value);
+            match &content.properties {
+                Some(properties) => {
+                    if let Some(ast::NestedValue::Value(lang_value)) =
+                        properties.get("lang")
+                    {
+                        lang = isolang::Language::from_639_1(lang_value);
+                    }
                 }
+                _ => (),
             }
 
             let overlay = step.result.overlays.iter().find(|overlay| {
@@ -165,7 +166,7 @@ fn apply_step(
                     .insert(overlay_key, overlay_model.overlay_said.clone());
             }
         }
-        ast::ObjectKind::OCABundle => {
+        ast::ObjectKind::OCABundle(_) => {
             dbg!("OCABundle");
         }
     }
@@ -191,6 +192,7 @@ fn apply_step(
 mod tests {
     use super::*;
     use indexmap::{indexmap, IndexMap};
+    use oca_ast::ast::Content;
 
     #[test]
     fn test_build_core_db_model() -> Result<(), Vec<String>> {
@@ -199,20 +201,18 @@ mod tests {
         // 1. ADD ATTR abc
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
-            object_kind: ast::ObjectKind::CaptureBase,
-            content: Some(ast::Content {
+            object_kind: ast::ObjectKind::CaptureBase( ast::CaptureContent {
                 attributes: Some(indexmap! {
-                    "abc".to_string() => ast::NestedValue::Value("Text".to_string())
+                    "abc".to_string() => ast::NestedAttrType::Value(ast::AttributeType::Text)
                 }),
                 properties: None,
-            }),
+            })
         });
 
         // 2. add label en abc "ble"
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
-            object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Label),
-            content: Some(ast::Content {
+            object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Label, Content {
                 attributes: Some(indexmap! {
                     "abc".to_string() => ast::NestedValue::Value("ble".to_string())
                 }),
@@ -225,20 +225,18 @@ mod tests {
         // 3. add attr def
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
-            object_kind: ast::ObjectKind::CaptureBase,
-            content: Some(ast::Content {
+            object_kind: ast::ObjectKind::CaptureBase(ast::CaptureContent {
                 attributes: Some(indexmap! {
-                    "def".to_string() => ast::NestedValue::Value("Text".to_string())
+                    "def".to_string() => ast::NestedAttrType::Value(ast::AttributeType::Text)
                 }),
                 properties: None,
-            }),
+            })
         });
 
         // 4. add label fr abc "ble"
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
-            object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Label),
-            content: Some(ast::Content {
+            object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Label, Content {
                 attributes: Some(indexmap! {
                     "abc".to_string() => ast::NestedValue::Value("ble".to_string())
                 }),

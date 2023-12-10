@@ -1,16 +1,28 @@
 use said::version::Encode;
-use oca_ast::ast;
+use oca_ast::ast::{self, RefValue};
 use oca_bundle::state::oca::{OCABox, OCABundle};
-use crate::{build, data_storage::DataStorage};
+use crate::data_storage::DataStorage;
 
 pub fn build_oca(db: Box<dyn DataStorage>, commands: Vec<ast::Command>) -> Result<OCABundle, String> {
     let mut base: Option<OCABox> = None;
     for command in commands {
         if let ast::CommandType::From = command.kind {
-            let said = command.clone().content.unwrap().properties.unwrap().get("said").unwrap().clone();
-            let said = match said {
-                ast::NestedValue::Value(said) => said,
-                _ => return Err("Invalid said".to_string())
+            let said = match command.clone().object_kind.oca_bundle_content() {
+                Some(oca_bundle_content) => {
+                    match oca_bundle_content.clone().said {
+                        ast::ReferenceAttrType::Reference(refs) => {
+                            match refs {
+                                RefValue::Said(said) => {
+                                    said.to_string()
+                                },
+                                RefValue::Name(_) => {
+                                    return Err("Not implemented".to_string())
+                                },
+                            }
+                        },
+                    }
+                },
+                None => return Err("Missing bundle content".to_string())
             };
             let oca_bundle_str = match db.get(&format!("oca.{}", said))? {
                 Some(oca_bundle_str) => String::from_utf8(oca_bundle_str).unwrap(),
@@ -19,7 +31,16 @@ pub fn build_oca(db: Box<dyn DataStorage>, commands: Vec<ast::Command>) -> Resul
             let oca_b = serde_json::from_str::<OCABundle>(&oca_bundle_str).unwrap();
             base = Some(oca_b.into());
         } else {
-            let mut oca_box = build::apply_command(base.clone(), command.clone());
+            let result = oca_bundle::build::apply_command(base.clone(), command.clone());
+            let mut oca_box: OCABox = OCABox::new();
+            match result {
+                Ok(oca) => {
+                    oca_box = oca;
+                },
+                Err(errors) => {
+                    println!("{:?}", errors);
+                }
+            };
             let oca_bundle = oca_box.generate_bundle();
             let command_str = serde_json::to_string(&command).unwrap();
 
@@ -56,6 +77,7 @@ pub fn build_oca(db: Box<dyn DataStorage>, commands: Vec<ast::Command>) -> Resul
 mod tests {
     use super::*;
     use indexmap::IndexMap;
+    use oca_ast::ast::{CaptureContent, Content, BundleContent};
     use crate::data_storage::{ DataStorage, SledDataStorage };
 
     #[test]
@@ -64,14 +86,13 @@ mod tests {
         let mut commands = vec![];
 
         let mut attributes = IndexMap::new();
-        attributes.insert("d".to_string(), ast::NestedValue::Value("Text".to_string()));
-        attributes.insert("i".to_string(), ast::NestedValue::Value("Text".to_string()));
-        attributes.insert("passed".to_string(), ast::NestedValue::Value("Boolean".to_string()));
+        attributes.insert("d".to_string(), ast::NestedAttrType::Value(ast::AttributeType::Text));
+        attributes.insert("i".to_string(), ast::NestedAttrType::Value(ast::AttributeType::Text));
+        attributes.insert("passed".to_string(), ast::NestedAttrType::Value(ast::AttributeType::Boolean));
         commands.push(
             ast::Command {
                 kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::CaptureBase,
-                content: Some(ast::Content {
+                object_kind: ast::ObjectKind::CaptureBase( CaptureContent {
                     attributes: Some(attributes),
                     properties: None,
                 }),
@@ -85,8 +106,7 @@ mod tests {
         commands.push(
             ast::Command {
                 kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Meta),
-                content: Some(ast::Content {
+                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Meta, Content {
                     attributes: None,
                     properties: Some(properties),
                 }),
@@ -102,8 +122,7 @@ mod tests {
         commands.push(
             ast::Command {
                 kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Label),
-                content: Some(ast::Content {
+                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Label, Content {
                     attributes: Some(attributes),
                     properties: Some(properties),
                 }),
@@ -119,8 +138,7 @@ mod tests {
         commands.push(
             ast::Command {
                 kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Information),
-                content: Some(ast::Content {
+                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Information, Content {
                     attributes: Some(attributes),
                     properties: Some(properties),
                 }),
@@ -134,8 +152,7 @@ mod tests {
         commands.push(
             ast::Command {
                 kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::CharacterEncoding),
-                content: Some(ast::Content {
+                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::CharacterEncoding, Content {
                     attributes: Some(attributes),
                     properties: None,
                 }),
@@ -149,8 +166,7 @@ mod tests {
         commands.push(
             ast::Command {
                 kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Conformance),
-                content: Some(ast::Content {
+                object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Conformance, Content {
                     attributes: Some(attributes),
                     properties: None,
                 }),
@@ -173,26 +189,20 @@ mod tests {
     fn test_ocafile_build_from() {
         let mut commands = vec![];
 
-        let mut properties = IndexMap::new();
-        properties.insert("said".to_string(), ast::NestedValue::Value("EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs".to_string()));
+        let said = ast::ReferenceAttrType::Reference(RefValue::Said("EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs".to_string()));
         commands.push(
             ast::Command {
                 kind: ast::CommandType::From,
-                object_kind: ast::ObjectKind::OCABundle,
-                content: Some(ast::Content {
-                    attributes: None,
-                    properties: Some(properties),
-                }),
+                object_kind: ast::ObjectKind::OCABundle( BundleContent { said }),
             }
         );
 
         let mut attributes = IndexMap::new();
-        attributes.insert("new".to_string(), ast::NestedValue::Value("Text".to_string()));
+        attributes.insert("new".to_string(), ast::NestedAttrType::Value(ast::AttributeType::Text));
         commands.push(
             ast::Command {
                 kind: ast::CommandType::Add,
-                object_kind: ast::ObjectKind::CaptureBase,
-                content: Some(ast::Content {
+                object_kind: ast::ObjectKind::CaptureBase( CaptureContent {
                     attributes: Some(attributes),
                     properties: None,
                 }),
