@@ -39,7 +39,7 @@ pub enum CommandType {
 #[serde(tag = "object_kind", content = "content")]
 pub enum ObjectKind {
     CaptureBase(CaptureContent),
-    OCABundle(Content),
+    OCABundle(BundleContent),
     Overlay(OverlayType, Content),
 }
 
@@ -58,7 +58,7 @@ impl ObjectKind {
             _ => None,
         }
     }
-    pub fn oca_bundle_content(&self) -> Option<&Content> {
+    pub fn oca_bundle_content(&self) -> Option<&BundleContent> {
         match self {
             ObjectKind::OCABundle(content) => Some(content),
             _ => None,
@@ -221,6 +221,11 @@ impl<'de> Deserialize<'de> for OverlayType {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct BundleContent {
+    pub said: ReferenceAttrType,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct CaptureContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<IndexMap<String, NestedAttrType>>,
@@ -316,6 +321,15 @@ pub enum NestedAttrType {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
+/// Enum representing type supported in bundle (From command)
+///
+/// References: supports ref said and ref name
+pub enum ReferenceAttrType {
+    Reference(RefValue),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
 pub enum NestedValue {
     Reference(RefValue),
     Value(String),
@@ -346,8 +360,8 @@ impl FromStr for RefValue {
 impl fmt::Display for RefValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self {
-            RefValue::Said(said) => write!(f, "_said_:{}", said),
-            RefValue::Name(name) => write!(f, "_name_:{}", name),
+            RefValue::Said(said) => write!(f, "refs:{}", said),
+            RefValue::Name(name) => write!(f, "refn:{}", name),
         }
     }
 }
@@ -358,10 +372,10 @@ impl Serialize for RefValue {
     {
         match &self {
             RefValue::Said(said) => serializer.serialize_str(
-                format!("_said_:{}", said).as_str()
+                format!("refs:{}", said).as_str()
             ),
             RefValue::Name(name) => serializer.serialize_str(
-                format!("_name_:{}", name).as_str()
+                format!("refn:{}", name).as_str()
             ),
         }
     }
@@ -377,8 +391,8 @@ impl<'de> Deserialize<'de> for RefValue {
             serde::de::Error::custom(format!("invalid reference: {}", s))
         )?;
         match tag {
-            "_said_" => Ok(RefValue::Said(rest.to_string())),
-            "_name_" => Ok(RefValue::Name(rest.to_string())),
+            "refs" => Ok(RefValue::Said(rest.to_string())),
+            "refn" => Ok(RefValue::Name(rest.to_string())),
             _ => Err(serde::de::Error::custom(format!(
                 "unknown reference type: {}",
                 tag

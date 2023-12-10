@@ -1,7 +1,6 @@
 use crate::ocafile::{error::Error, Pair, Rule};
-use indexmap::IndexMap;
 use log::debug;
-use oca_ast::ast::{Command, CommandType, Content, NestedValue, ObjectKind};
+use oca_ast::ast::{Command, CommandType, ObjectKind, BundleContent, ReferenceAttrType, RefValue};
 use said::SelfAddressingIdentifier;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -28,21 +27,18 @@ impl FromInstruction {
         let said: SelfAddressingIdentifier = said_str.parse()
             .map_err(|_| Error::Parser(format!("Invalid said: {said_str}")))?;
         debug!("Using oca bundle from: {:?}", said);
-        let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
-        properties.insert("said".to_string(), NestedValue::Value(said.to_string()));
+        let said = ReferenceAttrType::Reference(RefValue::Said(said.to_string()));
         Ok(Command {
             kind: CommandType::From,
-            object_kind: ObjectKind::OCABundle(Content {
-                properties: Some(properties),
-                attributes: None,
-            })
+            object_kind: ObjectKind::OCABundle( BundleContent { said }),
         })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::ocafile::{error::Error, OCAfileParser, Pair, Rule};
+    use crate::ocafile::{error::Error, OCAfileParser, Pair, Rule, self};
+    use oca_ast::ast::RefValue;
     use pest::Parser;
     use std::str::FromStr;
 
@@ -81,14 +77,19 @@ mod tests {
             match result {
                 Ok(command) => {
                     let content = command.object_kind.oca_bundle_content().unwrap();
-                    let properties = content.properties.as_ref().unwrap();
-                    let said_value = properties.get("said").unwrap();
-                    match said_value {
-                        // TODO this should be simple reference not value
-                        NestedValue::Value(said_str) => {
-                            SelfAddressingIdentifier::from_str(said_str).unwrap();
-                            assert!(is_valid, "Instruction should be valid");
-                        }
+
+                    match content.clone().said {
+                        ocafile::ast::ReferenceAttrType::Reference(refs) => {
+                            match refs {
+                                RefValue::Said(said) => {
+                                    SelfAddressingIdentifier::from_str(&said).unwrap();
+                                    assert!(is_valid, "Instruction should be valid");
+                                },
+                                RefValue::Name(_) => {
+                                    panic!("Refn not supported");
+                                }
+                            }
+                        },
                         _ => {
                             panic!("said should be a value");
                         }
