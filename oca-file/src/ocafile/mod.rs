@@ -142,15 +142,15 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
             line.push_str("ADD ");
             match &command.object_kind {
 
-                ast::ObjectKind::CaptureBase(CaptureContnet) => {
-                    if let Some(content) = command.object_kind.capture_content() {
-                        if let Some(ref attributes) = content.attributes {
-                            line.push_str("ATTRIBUTE ");
-                            attributes.iter().for_each(|(key, value)| {
-                                if let ast::NestedAttrType::Value(value) = value {
+                ast::ObjectKind::CaptureBase(content) => {
+                    if let Some(ref attributes) = content.attributes {
+                        line.push_str("ATTRIBUTE ");
+                        attributes.iter().for_each(|(key, value)| {
+                            match value {
+                                ast::NestedAttrType::Value(value) => {
                                     line.push_str(format!("{}={} ", key, value).as_str());
                                 }
-                                if let ast::NestedAttrType::Reference(value) = value {
+                                ast::NestedAttrType::Reference(value) => {
                                     match value {
                                         ast::RefValue::Name(refn) => {
                                             match references {
@@ -172,11 +172,34 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
 
                                     }
                                 }
-                                // TODO handle Array and object?
+                                ast::NestedAttrType::Object(_) => todo!(),
+                                ast::NestedAttrType::Array(inner_type) => {
+                                    match **inner_type {
+                                        ast::NestedAttrType::Value(value) => {
+                                            line.push_str(format!("{}=Array[{}] ", key, value).as_str());
+                                        }
+                                        ast::NestedAttrType::Reference(ref value) => {
+                                            match value {
+                                                ast::RefValue::Name(_) => todo!(),
+                                                ast::RefValue::Said(refs) => {
+                                                    line.push_str(format!("{}=Array[refs:{}] ", key, refs).as_str());
+                                                }
 
-                            });
-                        }
-                    };
+                                            }
+                                        }
+                                        // TODO find out how to solve recursive objects for time
+                                        // being we do only one level
+                                        ast::NestedAttrType::Object(_) => todo!(),
+                                        ast::NestedAttrType::Array(_) => todo!(),
+                                        ast::NestedAttrType::Null => todo!(),
+                                    }
+
+                                },
+                                ast::NestedAttrType::Null => todo!(),
+                            }
+
+                        });
+                    }
                 },
                 ast::ObjectKind::Overlay(o_type, _) => {
                     match o_type {

@@ -4,7 +4,7 @@ use crate::repositories::{
     CaptureBaseCacheRecord, CaptureBaseCacheRepo, OCABundleCacheRecord,
     OCABundleCacheRepo, OCABundleFTSRecord, OCABundleFTSRepo,
 };
-use oca_ast::ast::{BundleContent, ObjectKind, RefValue, ReferenceAttrType};
+use oca_ast::ast::{ObjectKind, RefValue, ReferenceAttrType};
 use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
 use oca_dag::build_core_db_model;
@@ -68,10 +68,12 @@ impl Facade {
                             }
                         }
                     }
+                    oca_ast.commands.remove(0);
                 },
-                _ => {}
+                _ => {
+
+                }
             }
-            oca_ast.commands.remove(0);
         }
         if !errors.is_empty() {
             return Err(errors);

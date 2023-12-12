@@ -246,7 +246,6 @@ impl Validator {
                                 AttributeType::DateTime => "['2020-01-01']".to_string(),
                                 AttributeType::Binary => "[test]".to_string(),
                                 AttributeType::Boolean => "[true]".to_string(),
-                                _ => panic!("Invalid or not supported array type"),
                             },
                             _ => panic!("Invalid or not supported array type"),
                         }

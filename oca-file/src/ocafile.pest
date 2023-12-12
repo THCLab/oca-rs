@@ -183,13 +183,7 @@ base_attr_type = @{ ("Text" |
         "Binary" |
         "DateTime" )}
 
-array_attr_type = ${(
-        "Array["~ base_attr_type ~"]" |
-        "Array["~ base_attr_type ~"]" |
-        "Array["~ base_attr_type ~"]" |
-        "Array["~ base_attr_type ~"]" |
-        "Array["~ base_attr_type ~"]" )}
-
+array_attr_type = ${( "Array["~ base_attr_type ~"]" )}
 ref_array = ${ "Array[" ~ reference_type ~ "]"}
 reference_type = _{ ref_said | ref_name }
 reference = @{ char+ }

@@ -3,7 +3,7 @@ use serde::{Serialize, Serializer, Deserialize, Deserializer, de::{Visitor, self
 use strum_macros::Display;
 use std::{str::FromStr, collections::HashMap, fmt};
 use wasm_bindgen::prelude::*;
-use std::hash::{Hash, Hasher};
+use std::hash::Hash;
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -53,7 +53,8 @@ impl Hash for ObjectKind {
             ObjectKind::OCABundle(content) => {
                 content.hash(state);
             }
-            ObjectKind::Overlay(overlay_type, content) => {
+            // TODO hash over content as well?
+            ObjectKind::Overlay(overlay_type, _) => {
                 overlay_type.hash(state);
             }
         }
@@ -319,7 +320,7 @@ impl<'de> Deserialize<'de> for NestedAttrType {
             }
 
             // Example for one of the visit methods
-            fn visit_map<V>(self, mut map: V) -> Result<NestedAttrType, V::Error>
+            fn visit_map<V>(self, _: V) -> Result<NestedAttrType, V::Error>
             where
                 V: serde::de::MapAccess<'de>,
             {
@@ -328,9 +329,7 @@ impl<'de> Deserialize<'de> for NestedAttrType {
                     return Err(de::Error::custom("recursion depth exceeded"));
                 }
 
-                let mut object = IndexMap::new();
-                println!("depth: {}", self.depth);
-                println!(">>>>> object: {:?}", object);
+                let object = IndexMap::new();
                 Ok(NestedAttrType::Object(object))
             }
         }
