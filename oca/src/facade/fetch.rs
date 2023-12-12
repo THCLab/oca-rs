@@ -231,7 +231,7 @@ impl Facade {
                 })?;
             let o_type: ObjectKind = (*r_type.unwrap().first().unwrap()).into();
             match o_type {
-                ObjectKind::CaptureBase(content) => result.push(OCAObject::CaptureBase(
+                ObjectKind::CaptureBase(_) => result.push(OCAObject::CaptureBase(
                     serde_json::from_str::<CaptureBase>(&object_str)
                         .map_err(|e| {
                             errors.push(format!(
@@ -381,12 +381,23 @@ ADD CARDINALITY ATTRS list="1-2"
 ADD ENTRY_CODE ATTRS list="entry_code_said" el=["o1", "o2", "o3"]
 ADD ENTRY en ATTRS list="entry_said" el={"o1": "o1_label", "o2": "o2_label", "o3": "o3_label"}
 "#.to_string();
-        let oca_bundle = facade.build_from_ocafile(ocafile_input).unwrap();
+        let oca_bundle = facade.build_from_ocafile(ocafile_input);
+        let oca_bundle = oca_bundle.unwrap();
+
 
         let ocafile = facade.parse_oca_bundle_to_ocafile(&oca_bundle)?;
-        let new_oca_bundle = facade.build_from_ocafile(ocafile).unwrap();
+        let new_oca_bundle = facade.build_from_ocafile(ocafile);
+            match new_oca_bundle {
+                Ok(new_oca_bundle) => {
+                    assert_eq!(oca_bundle.said, new_oca_bundle.said);
+                }
+                Err(e) => {
+                    println!("{:#?}", e);
+                    assert!(false);
+                }
 
-        assert_eq!(oca_bundle.said, new_oca_bundle.said);
+            }
+
         Ok(())
     }
 }

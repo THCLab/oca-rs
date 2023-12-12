@@ -418,7 +418,6 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
         (ast::CommandType::Modify, ast::ObjectKind::CaptureBase(_)) => todo!(),
         (ast::CommandType::Modify, ast::ObjectKind::OCABundle(_)) => todo!(),
         (ast::CommandType::Modify, ast::ObjectKind::Overlay(_, _)) => todo!(),
-        _ => (),
     }
 
     if errors.is_empty() {

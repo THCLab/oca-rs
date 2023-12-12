@@ -219,10 +219,9 @@ pub fn extract_attributes_key_paris(object: Pair) -> Option<IndexMap<String, Nes
             }
             _ => {
                 debug!(
-                    "Unexpected token: Invalid attribute in instruction {:?}",
+                    "Unexpected token: Skipping invalid attribute in instruction {:?}",
                     attr.as_rule()
                 );
-                return None;
             }
         }
     }
@@ -278,8 +277,8 @@ pub fn extract_properites_key_pairs(object: Pair) -> Option<IndexMap<String, Nes
 
 /// Extract content from any instruction related to any overlay
 pub fn extract_content(object: Pair) -> Content {
-    let mut properties: Option<IndexMap<String, NestedValue>> = Some(IndexMap::new());
-    let mut attributes: Option<IndexMap<String, NestedValue>> = Some(IndexMap::new());
+    let properties: Option<IndexMap<String, NestedValue>>;
+    let attributes: Option<IndexMap<String, NestedValue>>;
 
 
     properties = extract_properites_key_pairs(object.clone());
@@ -292,6 +291,6 @@ pub fn extract_content(object: Pair) -> Content {
     }
 }
 
-pub(crate) fn extract_flagged_attrs(object: pest::iterators::Pair<'_, Rule>) -> IndexMap<String, NestedAttrType> {
+pub(crate) fn extract_flagged_attrs(_: pest::iterators::Pair<'_, Rule>) -> IndexMap<String, NestedAttrType> {
     todo!()
 }
