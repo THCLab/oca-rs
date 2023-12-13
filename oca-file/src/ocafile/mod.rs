@@ -386,4 +386,22 @@ ADD attribute name=Text age=Numeric
         assert_eq!(oca_ast.meta.get("version").unwrap(), "0.0.1");
         assert_eq!(oca_ast.meta.get("name").unwrap(), "Objekt");
     }
+
+
+    #[test]
+    fn test_deserialization_ast_to_ocafile() {
+        let unparsed_file = r#"
+-- version=0.0.1
+-- name=Object
+ADD attribute name=Text age=Numeric
+ADD meta en PROPS name="Object" description="Object"
+ADD LABEL en ATTRS name="Object" age="Object"
+ADD INFORMATION en ATTRS name="Object" age="Object"
+ADD CHARACTER_ENCODING ATTRS name="utf-8" age="utf-8"
+"#;
+        let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
+        let ocafile = generate_from_ast(&oca_ast, None);
+        assert_eq!(ocafile, unparsed_file, "left:\n {} \n right:\n {}", ocafile, unparsed_file);
+    }
+
 }
