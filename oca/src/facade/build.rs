@@ -47,7 +47,7 @@ impl Facade {
                         ReferenceAttrType::Reference(refs) => {
                             match refs {
                                 RefValue::Said(said) => {
-                                    match self.get_oca_bundle(said) {
+                                    match self.get_oca_bundle(said, false) {
                                         Ok(oca_bundle) => {
                                             base = Some(oca_bundle);
                                         },
