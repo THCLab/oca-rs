@@ -375,6 +375,31 @@ mod tests {
     use super::*;
 
     #[test]
+    fn parse_from_string_valid() {
+        let unparsed_file = r#"
+-- version=0.0.1
+-- name=プラスウルトラ
+ADD ATTRIBUTE name=Text age=Numeric
+ADD ATTRIBUTE d=Text i=Text passed=Boolean
+ADD META en PROPS description="Entrance credential" name="Entrance credential"
+ADD CHARACTER_ENCODING ATTRS d="utf-8" i="utf-8" passed="utf-8"
+ADD CONFORMANCE ATTRS d="M" i="M" passed="M"
+ADD LABEL en ATTRS d="Schema digest" i="Credential Issuee" passed="Passed"
+ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables or disables passing"
+ADD FORMAT ATTRS d="image/jpeg"
+ADD UNIT si ATTRS i=m
+ADD ATTRIBUTE list=Array[Text] el=Text
+ADD CARDINALITY ATTRS list="1-2"
+ADD ENTRY_CODE ATTRS list="entry_code_said" el=["o1", "o2", "o3"]
+ADD ENTRY en ATTRS list="entry_said" el={"o1": "o1_label", "o2": "o2_label", "o3": "o3_label"}
+"#;
+        let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
+        assert_eq!(oca_ast.meta.get("version").unwrap(), "0.0.1");
+        assert_eq!(oca_ast.meta.get("name").unwrap(), "プラスウルトラ");
+
+    }
+
+    #[test]
     fn parse_meta_from_string_valid() {
         let unparsed_file = r#"
 -- version=0.0.1
