@@ -5,6 +5,7 @@ use crate::repositories::{
     CaptureBaseCacheRecord, CaptureBaseCacheRepo, OCABundleCacheRecord,
     OCABundleCacheRepo, OCABundleFTSRecord, OCABundleFTSRepo,
 };
+use log::debug;
 use oca_ast::ast::{ObjectKind, RefValue, ReferenceAttrType};
 use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
@@ -88,9 +89,11 @@ impl Facade {
 
         #[cfg(feature = "local-references")]
         let references = self.fetch_all_refs().unwrap();
+        debug!("References found in local db: {:?}", references);
 
         #[cfg(feature = "local-references")]
         let schema_name = oca_ast.meta.get("name");
+        debug!("Schema name found: {:?}", schema_name);
 
         #[cfg(feature = "local-references")]
         if schema_name.is_some() {
