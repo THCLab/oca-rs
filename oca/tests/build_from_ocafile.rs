@@ -85,13 +85,16 @@ ADD ATTRIBUTE c=Text
 
         facade.build_from_ocafile(third_ocafile)?;
 
-
         let ocafile = r#"
 ADD ATTRIBUTE A=refs:EI_5ohTYptgOrXldUfZujgd7vcXK9zwa6aNqk4-UDWzq
 ADD ATTRIBUTE B=refn:first
 ADD ATTRIBUTE C=Array[refn:second]
 "#.to_string();
         let result = facade.build_from_ocafile(ocafile).unwrap();
+        let refs = facade.fetch_all_refs().unwrap();
+
+        assert_eq!(refs.len(), 2);
+        assert_eq!(refs.get("second").unwrap(), "EJ9jPoPyZxJNtQsWI_yiHowfbP1B9SDOvlsSxlHbn9oW");
 
         assert_eq!(
             result.said.unwrap().to_string(),
