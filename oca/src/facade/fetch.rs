@@ -120,6 +120,35 @@ impl Facade {
         Ok(refs)
     }
 
+    /// Retrive all exsting references from given OCA Bundle
+    ///
+    /// # Arguments
+    /// * `said` - SAID of the OCA Bundle
+    ///
+    /// # Return
+    /// * `Vec<String>` - Vector of all SAID references
+    /// TODO should take SAID not string
+    pub fn get_all_references(&self, said: String) -> Vec<String> {
+        let bundle = self.get_oca_bundle(said).unwrap();
+
+        let mut refs: Vec<String> = vec![];
+
+        for (_, value) in bundle.capture_base.attributes {
+            match value {
+                ast::NestedAttrType::Reference(RefValue::Said(said)) => {
+                  refs.push(said.to_string());
+                }
+                ast::NestedAttrType::Array(box_attr_type) => {
+                    if let ast::NestedAttrType::Reference(RefValue::Said(said)) = &*box_attr_type {
+                      refs.push(said.to_string());
+                    }
+                }
+                _ => {}
+            }
+        }
+        refs
+    }
+
     pub fn fetch_all_oca_bundle(
         &self,
         limit: usize,
