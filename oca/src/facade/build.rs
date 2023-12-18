@@ -96,7 +96,7 @@ impl Facade {
         if schema_name.is_some() {
             let schema_name = schema_name.unwrap();
             let said = oca_build.oca_bundle.said.clone().unwrap().to_string();
-            self.store_reference(schema_name, RefValue::Said(said));
+            self.store_reference(schema_name, said);
         }
 
         #[cfg(feature = "local-references")]
@@ -337,8 +337,8 @@ impl Facade {
         Ok(oca_build.oca_bundle)
     }
 
-    // TODO should not be Refvalue but SAID
-    fn store_reference(&mut self, refn: &String, bundle_said: RefValue) {
+    // TODO should not be String but SAID
+    fn store_reference(&mut self, refn: &String, bundle_said: String) {
         if !refn.is_empty() {
             self.db.insert(
                 Namespace::OCAReferences,
