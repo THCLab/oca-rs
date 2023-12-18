@@ -49,7 +49,7 @@ impl Facade {
                     ReferenceAttrType::Reference(refs) => {
                         match refs {
                             RefValue::Said(said) => {
-                                match self.get_oca_bundle(said, false) {
+                                match self.get_oca_bundle(said) {
                                     Ok(oca_bundle) => {
                                         base = Some(oca_bundle);
                                     },
@@ -76,7 +76,12 @@ impl Facade {
         if !errors.is_empty() {
             return Err(errors);
         }
+        #[cfg(feature = "local-references")]
+        let references = self.fetch_all_refs().unwrap();
+        debug!("References found in local db: {:?}", references);
 
+        #[cfg(feature = "local-references")]
+        local_references::dereference_ast(&mut oca_ast, references);
         // TODO why we passing base if the oca_ast would include FROM command ....
         // TDOO ast should go with dereferenced attribute types
         // if we pass ast with refn the digest of bundle would be calculated wrongly if we don't
@@ -87,9 +92,6 @@ impl Facade {
             ).collect::<Vec<_>>()
         })?;
 
-        #[cfg(feature = "local-references")]
-        let references = self.fetch_all_refs().unwrap();
-        debug!("References found in local db: {:?}", references);
 
         #[cfg(feature = "local-references")]
         let schema_name = oca_ast.meta.get("name");
@@ -102,8 +104,6 @@ impl Facade {
             self.store_reference(schema_name, said);
         }
 
-        #[cfg(feature = "local-references")]
-        local_references::dereference_ast(&mut oca_ast, references);
 
         let oca_bundle_cache_repo =
             OCABundleCacheRepo::new(Rc::clone(&self.connection));

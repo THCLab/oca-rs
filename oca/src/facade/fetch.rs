@@ -89,7 +89,7 @@ impl Facade {
             .iter()
             .map(|record| SearchRecord {
                 oca_bundle: self
-                    .get_oca_bundle(record.oca_bundle_said.clone(), false)
+                    .get_oca_bundle(record.oca_bundle_said.clone())
                     .unwrap(),
                 metadata: SearchRecordMetadata {
                     phrase: record.metadata.phrase.clone(),
@@ -265,7 +265,7 @@ impl Facade {
         Ok(result)
     }
 
-    pub fn get_oca_bundle(&self, said: String, dereference: bool) -> Result<OCABundle, Vec<String>> {
+    pub fn get_oca_bundle(&self, said: String) -> Result<OCABundle, Vec<String>> {
         let r = self.db_cache.get(Namespace::OCABundlesJSON, &said).map_err(|e| vec![format!("{}", e)])?;
         let oca_bundle_str = String::from_utf8(
             r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?
@@ -273,44 +273,7 @@ impl Facade {
         let mut oca_bundle: Result<OCABundle, Vec<String>> = serde_json::from_str(&oca_bundle_str)
             .map_err(|e| vec![format!("Failed to parse oca bundle: {}", e)]);
 
-        if dereference {
-            let mut local_refs = HashMap::new();
-            #[cfg(feature = "local-references")]
-            self.db.get_all(Namespace::OCAReferences).unwrap()
-                .iter()
-                .for_each(|(k, v)| {
-                    local_refs.insert(k.clone(), String::from_utf8(v.to_vec()).unwrap());
-                });
-
-            match oca_bundle {
-                Ok(ref mut oca_bundle) => {
-                    for (_key, value) in oca_bundle.capture_base.attributes.iter_mut() {
-                        match value {
-                                ast::NestedAttrType::Reference(ref mut reference) => {
-                                    match reference {
-                                        ast::RefValue::Name(refn) => {
-                                                    if let Some(refs) = local_refs.get(refn) {
-                                                        *reference = RefValue::Said(refs.to_string());
-                                                    } else {
-                                                        panic!("Reference not found: {}", refn)
-                                                    }
-                                                },
-                                        _ => {}
-                                    }
-                                },
-                                _ => {}
-                        }
-                    }
-                },
-                Err(e) => {
-                    return Err(e)
-                }
-            }
-        }
-
-
-
-       return oca_bundle
+       oca_bundle
     }
 
     pub fn get_oca_bundle_steps(&self, said: String) -> Result<Vec<OCABuildStep>, Vec<String>> {
@@ -344,7 +307,7 @@ impl Facade {
                 OCABuildStep {
                     parent_said: parent_said.clone().parse().ok(),
                     command,
-                    result: self.get_oca_bundle(said.clone(), false).unwrap(),
+                    result: self.get_oca_bundle(said.clone()).unwrap(),
                 }
             );
             said = parent_said;
