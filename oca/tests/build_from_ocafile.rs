@@ -98,7 +98,7 @@ ADD ATTRIBUTE C=Array[refn:second]
 
         assert_eq!(
             result.said.unwrap().to_string(),
-            "EALPaUcm8GrDiDmV-worpP5GYc_lLlsGLWwLykVrO7Ud"
+            "EGeaFkSlbesMw5-ZpEGHG9hGhi9s1-ixI62Rf4cQquEX"
         );
         Ok(())
     }
