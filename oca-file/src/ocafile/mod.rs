@@ -144,11 +144,11 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
 
                 ast::ObjectKind::CaptureBase(content) => {
                     if let Some(ref attributes) = content.attributes {
-                        line.push_str("ATTRIBUTE ");
+                        line.push_str("ATTRIBUTE");
                         attributes.iter().for_each(|(key, value)| {
                             match value {
                                 ast::NestedAttrType::Value(value) => {
-                                    line.push_str(format!("{}={} ", key, value).as_str());
+                                    line.push_str(format!(" {}={}", key, value).as_str());
                                 }
                                 ast::NestedAttrType::Reference(value) => {
                                     match value {
@@ -156,18 +156,18 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                                             match references {
                                                 Some(ref references) => {
                                                     if let Some(refs) = references.get(refn) {
-                                                        line.push_str(format!("{}=refs:{} ", key, refs).as_str());
+                                                        line.push_str(format!(" {}=refs:{}", key, refs).as_str());
                                                     } else {
                                                         panic!("Reference not found: {}", refn)
                                                     }
                                                 },
                                                 None => {
-                                                    line.push_str(format!("{}={} ", key, refn).as_str());
+                                                    line.push_str(format!(" {}={}", key, refn).as_str());
                                                 }
                                             }
                                         }
                                         ast::RefValue::Said(refs) => {
-                                            line.push_str(format!("{}=refs:{} ", key, refs).as_str());
+                                            line.push_str(format!(" {}=refs:{}", key, refs).as_str());
                                         }
 
                                     }
@@ -176,13 +176,13 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                                 ast::NestedAttrType::Array(inner_type) => {
                                     match **inner_type {
                                         ast::NestedAttrType::Value(value) => {
-                                            line.push_str(format!("{}=Array[{}] ", key, value).as_str());
+                                            line.push_str(format!(" {}=Array[{}]", key, value).as_str());
                                         }
                                         ast::NestedAttrType::Reference(ref value) => {
                                             match value {
                                                 ast::RefValue::Name(_) => todo!(),
                                                 ast::RefValue::Said(refs) => {
-                                                    line.push_str(format!("{}=Array[refs:{}] ", key, refs).as_str());
+                                                    line.push_str(format!(" {}=Array[refs:{}]", key, refs).as_str());
                                                 }
 
                                             }
@@ -217,7 +217,7 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                                         line.push_str("PROPS ");
                                         properties.iter().for_each(|(key, value)| {
                                             if let ast::NestedValue::Value(value) = value {
-                                                line.push_str(format!("{}=\"{}\" ", key, value).as_str());
+                                                line.push_str(format!(" {}=\"{}\"", key, value).as_str());
                                             }
                                         });
                                     }
@@ -238,15 +238,15 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                                         line.push_str("PROPS ");
                                         properties.iter().for_each(|(key, value)| {
                                             if let ast::NestedValue::Value(value) = value {
-                                                line.push_str(format!("{}=\"{}\" ", key, value).as_str());
+                                                line.push_str(format!(" {}=\"{}\"", key, value).as_str());
                                             }
                                         });
                                     }
                                     if let Some(ref attributes) = content.attributes {
-                                        line.push_str("ATTRS ");
+                                        line.push_str("ATTRS");
                                         attributes.iter().for_each(|(key, value)| {
                                             if let ast::NestedValue::Value(value) = value {
-                                                line.push_str(format!("{}=\"{}\" ", key, value).as_str());
+                                                line.push_str(format!(" {}=\"{}\"", key, value).as_str());
                                             }
                                         });
                                     }
@@ -261,13 +261,13 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                                         line.push_str("PROPS ");
                                         properties.iter().for_each(|(key, value)| {
                                             if let ast::NestedValue::Value(value) = value {
-                                                line.push_str(format!("{}={} ", key, value).as_str());
+                                                line.push_str(format!(" {}={}", key, value).as_str());
                                             }
                                         });
                                     }
                                 }
                                 if let Some(ref attributes) = content.attributes {
-                                    line.push_str("ATTRS ");
+                                    line.push_str("ATTRS");
                                     attributes.iter().for_each(|(key, value)| {
                                         if let ast::NestedValue::Array(values) = value {
                                             let codes = values.iter().filter_map(|value| {
@@ -277,9 +277,9 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                                                     None
                                                 }
                                             }).collect::<Vec<String>>().join(", ");
-                                            line.push_str(format!("{}=[{}] ", key, codes).as_str());
+                                            line.push_str(format!(" {}=[{}]", key, codes).as_str());
                                         } else if let ast::NestedValue::Value(said) = value {
-                                            line.push_str(format!("{}=\"{}\" ", key, said).as_str());
+                                            line.push_str(format!(" {}=\"{}\"", key, said).as_str());
                                         }
                                     });
                                 }
@@ -299,12 +299,12 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                                         line.push_str("PROPS ");
                                         properties.iter().for_each(|(key, value)| {
                                             if let ast::NestedValue::Value(value) = value {
-                                                line.push_str(format!("{}={} ", key, value).as_str());
+                                                line.push_str(format!(" {}={}", key, value).as_str());
                                             }
                                         });
                                     }
                                     if let Some(ref attributes) = content.attributes {
-                                        line.push_str("ATTRS ");
+                                        line.push_str("ATTRS");
                                         attributes.iter().for_each(|(key, value)| {
                                             if let ast::NestedValue::Object(values) = value {
                                                 let codes = values.iter().filter_map(|(code, label)| {
@@ -314,9 +314,9 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                                                         None
                                                     }
                                                 }).collect::<Vec<String>>().join(", ");
-                                                line.push_str(format!("{}={{ {} }} ", key, codes).as_str());
+                                                line.push_str(format!(" {}={{ {} }}", key, codes).as_str());
                                             } else if let ast::NestedValue::Value(said) = value {
-                                                line.push_str(format!("{}=\"{}\" ", key, said).as_str());
+                                                line.push_str(format!(" {}=\"{}\"", key, said).as_str());
                                             }
                                         });
                                     }
@@ -343,16 +343,16 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                                         line.push_str("PROPS ");
                                         properties.iter().for_each(|(key, value)| {
                                             if let ast::NestedValue::Value(value) = value {
-                                                line.push_str(format!("{}=\"{}\" ", key, value).as_str());
+                                                line.push_str(format!(" {}=\"{}\"", key, value).as_str());
                                             }
                                         });
                                     }
                                 }
                                 if let Some(ref attributes) = content.attributes {
-                                    line.push_str("ATTRS ");
+                                    line.push_str("ATTRS");
                                     attributes.iter().for_each(|(key, value)| {
                                         if let ast::NestedValue::Value(value) = value {
-                                            line.push_str(format!("{}=\"{}\" ", key, value).as_str());
+                                            line.push_str(format!(" {}=\"{}\"", key, value).as_str());
                                         }
                                     });
                                 }
@@ -415,18 +415,15 @@ ADD attribute name=Text age=Numeric
 
     #[test]
     fn test_deserialization_ast_to_ocafile() {
-        let unparsed_file = r#"
--- version=0.0.1
--- name=Object
-ADD attribute name=Text age=Numeric
-ADD meta en PROPS name="Object" description="Object"
+        let unparsed_file = r#"ADD ATTRIBUTE name=Text age=Numeric
 ADD LABEL en ATTRS name="Object" age="Object"
 ADD INFORMATION en ATTRS name="Object" age="Object"
 ADD CHARACTER_ENCODING ATTRS name="utf-8" age="utf-8"
 "#;
         let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
+
         let ocafile = generate_from_ast(&oca_ast, None);
-        assert_eq!(ocafile, unparsed_file, "left:\n {} \n right:\n {}", ocafile, unparsed_file);
+        assert_eq!(ocafile, unparsed_file, "left:\n{} \n right:\n {}", ocafile, unparsed_file);
     }
 
 }

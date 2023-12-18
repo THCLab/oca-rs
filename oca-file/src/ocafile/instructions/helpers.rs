@@ -277,12 +277,8 @@ pub fn extract_properites_key_pairs(object: Pair) -> Option<IndexMap<String, Nes
 
 /// Extract content from any instruction related to any overlay
 pub fn extract_content(object: Pair) -> Content {
-    let properties: Option<IndexMap<String, NestedValue>>;
-    let attributes: Option<IndexMap<String, NestedValue>>;
-
-
-    properties = extract_properites_key_pairs(object.clone());
-    attributes = extract_attributes_key_paris(object.clone());
+    let properties: Option<IndexMap<String, NestedValue>> = extract_properites_key_pairs(object.clone());
+    let attributes: Option<IndexMap<String, NestedValue>> = extract_attributes_key_paris(object.clone());
 
 
     Content {
