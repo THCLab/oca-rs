@@ -52,8 +52,7 @@ pub enum Error {
 
 pub fn from_ast(
     from_oca: Option<OCABundle>,
-    oca_ast: ast::OCAAst,
-    references: HashMap<String, String>,
+    oca_ast: &ast::OCAAst,
 ) -> Result<OCABuild, Vec<Error>> {
     let mut errors = vec![];
     let mut steps = vec![];
@@ -95,6 +94,7 @@ pub fn from_ast(
                 }
             }
             Err(mut err) => {
+                println!("Error applying command: {:?}", err);
                 errors.extend(err.iter_mut().map(|e|
                         Error::FromASTError {
                             line_number: command_meta.line_number,
@@ -642,8 +642,7 @@ mod tests {
             meta: HashMap::new(),
         };
 
-        let refs = HashMap::new();
-        let build_result = from_ast(None, oca_ast, refs);
+        let build_result = from_ast(None, &oca_ast);
         match build_result {
             Ok(oca_build) => {
                 let oca_bundle_encoded = oca_build.oca_bundle.encode().unwrap();

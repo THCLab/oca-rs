@@ -72,26 +72,50 @@ ADD ATTRIBUTE x=Text
         let cache_storage_config = SQLiteConfig::build().unwrap();
         let mut facade =
             Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
-        let first_ocafile = r#"
-ADD ATTRIBUTE a=Text
-"#.to_string();
-        facade.build_from_ocafile(first_ocafile)?;
         let second_ocafile = r#"
--- name=other
+-- name=first
 ADD ATTRIBUTE b=Text
 "#.to_string();
         facade.build_from_ocafile(second_ocafile)?;
 
+        let third_ocafile = r#"
+-- name=second
+ADD ATTRIBUTE c=Text
+"#.to_string();
+
+        facade.build_from_ocafile(third_ocafile)?;
+
+
         let ocafile = r#"
 ADD ATTRIBUTE A=refs:EI_5ohTYptgOrXldUfZujgd7vcXK9zwa6aNqk4-UDWzq
-ADD ATTRIBUTE B=refn:other
+ADD ATTRIBUTE B=refn:first
+ADD ATTRIBUTE C=Array[refn:second]
 "#.to_string();
-        let result = facade.build_from_ocafile(ocafile)?;
+        let result = facade.build_from_ocafile(ocafile).unwrap();
 
         assert_eq!(
             result.said.unwrap().to_string(),
-            "ELxZNFB5vW8_wDKLsAyAiX2AdsiNIHuw_1ZakI7LBbgd"
+            "EALPaUcm8GrDiDmV-worpP5GYc_lLlsGLWwLykVrO7Ud"
         );
         Ok(())
     }
+
+    #[cfg(feature = "local-references")]
+    #[test]
+    #[should_panic(expected = "Reference not found")]
+    fn panic_while_building_from_unknown_reference() {
+        let db = InMemoryDataStorage::new();
+        let db_cache = InMemoryDataStorage::new();
+        let cache_storage_config = SQLiteConfig::build().unwrap();
+        let mut facade =
+            Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
+
+        let ocafile = r#"
+ADD ATTRIBUTE A=refs:EI_5ohTYptgOrXldUfZujgd7vcXK9zwa6aNqk4-UDWzq
+ADD ATTRIBUTE B=refn:second
+ADD ATTRIBUTE C=Array[refn:third]
+"#.to_string();
+        let _ = facade.build_from_ocafile(ocafile);
+    }
+
 }
