@@ -117,7 +117,7 @@ impl Facade {
             .for_each(|(k, v)| {
                 refs.insert(k.clone(), String::from_utf8(v.to_vec()).unwrap());
             });
-        return Ok(refs);
+        Ok(refs)
     }
 
     pub fn fetch_all_oca_bundle(

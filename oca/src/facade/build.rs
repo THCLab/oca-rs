@@ -1,5 +1,6 @@
 use super::Facade;
 use crate::data_storage::Namespace;
+use crate::local_references;
 use crate::repositories::{
     CaptureBaseCacheRecord, CaptureBaseCacheRepo, OCABundleCacheRecord,
     OCABundleCacheRepo, OCABundleFTSRecord, OCABundleFTSRepo,
@@ -9,7 +10,6 @@ use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
 use oca_dag::build_core_db_model;
 
-use std::collections::HashMap;
 use std::rc::Rc;
 
 #[derive(thiserror::Error, Debug, serde::Serialize)]
@@ -40,70 +40,67 @@ impl Facade {
             .map_err(|e| vec![Error::OCAFileParse(e)])?;
 
         let mut base: Option<OCABundle> = None;
+        // TODO this should be avoided if the ast is passed for further processing, the base is
+        // checked again in generate bundle
         if let Some(first_command) = oca_ast.commands.get(0) {
-            match (first_command.clone().kind, first_command.clone().object_kind) {
-                (oca_ast::ast::CommandType::From, ObjectKind::OCABundle(content)) => {
-                    match content.said {
-                        ReferenceAttrType::Reference(refs) => {
-                            match refs {
-                                RefValue::Said(said) => {
-                                    match self.get_oca_bundle(said, false) {
-                                        Ok(oca_bundle) => {
-                                            base = Some(oca_bundle);
-                                        },
-                                        Err(e) => {
-                                            let default_command_meta = oca_ast::ast::CommandMeta { line_number: 0, raw_line: "unknown".to_string() };
-                                            let command_meta = oca_ast.commands_meta.get(&0).unwrap_or(&default_command_meta);
-                                            e.iter().for_each(|e| errors.push(
-                                                Error::InvalidCommand {
-                                                    line_number: command_meta.line_number,
-                                                    raw_line: command_meta.raw_line.clone(),
-                                                    message: e.clone()
-                                                }
-                                            ));
-                                        }
+            if let (oca_ast::ast::CommandType::From, ObjectKind::OCABundle(content)) = (first_command.clone().kind, first_command.clone().object_kind) {
+                match content.said {
+                    ReferenceAttrType::Reference(refs) => {
+                        match refs {
+                            RefValue::Said(said) => {
+                                match self.get_oca_bundle(said, false) {
+                                    Ok(oca_bundle) => {
+                                        base = Some(oca_bundle);
+                                    },
+                                    Err(e) => {
+                                        let default_command_meta = oca_ast::ast::CommandMeta { line_number: 0, raw_line: "unknown".to_string() };
+                                        let command_meta = oca_ast.commands_meta.get(&0).unwrap_or(&default_command_meta);
+                                        e.iter().for_each(|e| errors.push(
+                                            Error::InvalidCommand {
+                                                line_number: command_meta.line_number,
+                                                raw_line: command_meta.raw_line.clone(),
+                                                message: e.clone()
+                                            }
+                                        ));
                                     }
-                                },
-                                RefValue::Name(_) => todo!(),
-                            }
+                                }
+                            },
+                            RefValue::Name(_) => todo!(),
                         }
                     }
-                    oca_ast.commands.remove(0);
-                },
-                _ => {
-
                 }
+                oca_ast.commands.remove(0);
             }
         }
         if !errors.is_empty() {
             return Err(errors);
         }
 
-        let mut refs: HashMap<String, String> = HashMap::new();
-        #[cfg(feature = "local-references")]
-        self.db.get_all(Namespace::OCAReferences).unwrap()
-            .iter()
-            .for_each(|(k, v)| {
-                refs.insert(k.clone(), String::from_utf8(v.to_vec()).unwrap());
-            });
-
-        #[cfg(feature = "local-references")]
-        let schema_name = oca_ast.meta.get("name").cloned();
-
-        let oca_build = oca_bundle::build::from_ast(base, oca_ast, refs).map_err(|e| {
+        // TODO why we passing base if the oca_ast would include FROM command ....
+        // TDOO ast should go with dereferenced attribute types
+        // if we pass ast with refn the digest of bundle would be calculated wrongly if we don't
+        // dereference it.
+        let oca_build = oca_bundle::build::from_ast(base, &oca_ast).map_err(|e| {
             e.iter().map(|e|
                 Error::OCABundleBuild(e.clone())
             ).collect::<Vec<_>>()
         })?;
 
         #[cfg(feature = "local-references")]
-        if let Some(ref_name) = schema_name {
-            self.db.insert(
-                Namespace::OCAReferences,
-                &ref_name,
-                oca_build.oca_bundle.said.clone().unwrap().to_string().as_bytes(),
-            ).unwrap();
+        let references = self.fetch_all_refs().unwrap();
+
+        #[cfg(feature = "local-references")]
+        let schema_name = oca_ast.meta.get("name");
+
+        #[cfg(feature = "local-references")]
+        if schema_name.is_some() {
+            let schema_name = schema_name.unwrap();
+            let said = oca_build.oca_bundle.said.clone().unwrap().to_string();
+            self.store_reference(schema_name, RefValue::Said(said));
         }
+
+        #[cfg(feature = "local-references")]
+        local_references::dereference_ast(&mut oca_ast, references);
 
         let oca_bundle_cache_repo =
             OCABundleCacheRepo::new(Rc::clone(&self.connection));
@@ -338,5 +335,16 @@ impl Facade {
         });
 
         Ok(oca_build.oca_bundle)
+    }
+
+    // TODO should not be Refvalue but SAID
+    fn store_reference(&mut self, refn: &String, bundle_said: RefValue) {
+        if !refn.is_empty() {
+            self.db.insert(
+                Namespace::OCAReferences,
+                refn,
+                bundle_said.to_string().as_bytes(),
+            ).unwrap();
+        }
     }
 }

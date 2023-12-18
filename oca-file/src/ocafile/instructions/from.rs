@@ -89,9 +89,6 @@ mod tests {
                                     panic!("Refn not supported");
                                 }
                             }
-                        },
-                        _ => {
-                            panic!("said should be a value");
                         }
                     }
                 }

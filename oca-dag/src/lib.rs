@@ -269,8 +269,7 @@ mod tests {
             commands_meta: IndexMap::new(),
             meta: HashMap::new(),
         };
-        let refs = HashMap::new();
-        let oca_build = oca_bundle::build::from_ast(None, ast, refs).unwrap();
+        let oca_build = oca_bundle::build::from_ast(None, &ast).unwrap();
 
         let result = build_core_db_model(&oca_build);
         assert_eq!(result.len(), 4);
