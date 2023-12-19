@@ -1265,8 +1265,6 @@ mod tests {
         let mut attr = Attribute::new("ref".to_string());
         let said = SelfAddressingIdentifier::default();
         attr.set_attribute_type(NestedAttrType::Reference(RefValue::Said(said)));
-        // todo this should not be needed
-        attr.set_sai("test".to_string());
         oca.add_attribute(attr);
 
         let oca_bundle = oca.generate_bundle();
