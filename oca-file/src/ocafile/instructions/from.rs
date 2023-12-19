@@ -27,7 +27,7 @@ impl FromInstruction {
         let said: SelfAddressingIdentifier = said_str.parse()
             .map_err(|_| Error::Parser(format!("Invalid said: {said_str}")))?;
         debug!("Using oca bundle from: {:?}", said);
-        let said = ReferenceAttrType::Reference(RefValue::Said(said.to_string()));
+        let said = ReferenceAttrType::Reference(RefValue::Said(said));
         Ok(Command {
             kind: CommandType::From,
             object_kind: ObjectKind::OCABundle( BundleContent { said }),
@@ -40,7 +40,6 @@ mod tests {
     use crate::ocafile::{error::Error, OCAfileParser, Pair, Rule, self};
     use oca_ast::ast::RefValue;
     use pest::Parser;
-    use std::str::FromStr;
 
     pub fn parse_direct<T, F>(input: &str, rule: Rule, func: F) -> Result<T, Error>
     where
@@ -82,7 +81,6 @@ mod tests {
                         ocafile::ast::ReferenceAttrType::Reference(refs) => {
                             match refs {
                                 RefValue::Said(said) => {
-                                    SelfAddressingIdentifier::from_str(&said).unwrap();
                                     assert!(is_valid, "Instruction should be valid");
                                 },
                                 RefValue::Name(_) => {

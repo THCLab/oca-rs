@@ -75,9 +75,12 @@ pub fn build_oca(db: Box<dyn DataStorage>, commands: Vec<ast::Command>) -> Resul
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::*;
     use indexmap::IndexMap;
     use oca_ast::ast::{CaptureContent, Content, BundleContent};
+    use said::SelfAddressingIdentifier;
     use crate::data_storage::{ DataStorage, SledDataStorage };
 
     #[test]
@@ -189,11 +192,12 @@ mod tests {
     fn test_ocafile_build_from() {
         let mut commands = vec![];
 
-        let said = ast::ReferenceAttrType::Reference(RefValue::Said("EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs".to_string()));
+        let said = SelfAddressingIdentifier::from_str("EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs").unwrap();
+        let reference = ast::ReferenceAttrType::Reference(RefValue::Said(said));
         commands.push(
             ast::Command {
                 kind: ast::CommandType::From,
-                object_kind: ast::ObjectKind::OCABundle( BundleContent { said }),
+                object_kind: ast::ObjectKind::OCABundle( BundleContent { said: reference }),
             }
         );
 

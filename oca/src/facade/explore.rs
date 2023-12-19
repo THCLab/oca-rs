@@ -29,7 +29,7 @@ impl Facade {
         self.db.insert(
             Namespace::OCARelations,
             &format!("{}.metadata", oca_bundle.said.clone().unwrap()),
-            &[ObjectKind::OCABundle(BundleContent { said: oca_ast::ast::ReferenceAttrType::Reference(RefValue::Said("".to_string())) }).into()],
+            &[ObjectKind::OCABundle(BundleContent { said: oca_ast::ast::ReferenceAttrType::Reference(RefValue::Name("".to_string())) }).into()],
         )?;
         self.db.insert(
             Namespace::OCARelations,
@@ -166,7 +166,7 @@ impl From<Vec<u8>> for Relationship {
     fn from(val: Vec<u8>) -> Self {
         let mut result = Relationship::new(OCAObject {
             said: "".to_string(),
-            object_type: ObjectKind::OCABundle( BundleContent { said: oca_ast::ast::ReferenceAttrType::Reference(RefValue::Said("".to_string())) } ),
+            object_type: ObjectKind::OCABundle( BundleContent { said: oca_ast::ast::ReferenceAttrType::Reference(RefValue::Name("".to_string())) } ),
         });
 
         let mut tmp_val = val.clone();

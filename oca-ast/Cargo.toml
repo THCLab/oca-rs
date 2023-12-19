@@ -26,3 +26,4 @@ strum = "0.24"
 strum_macros = "0.24"
 thiserror = "1.0.38"
 wasm-bindgen = { version = "0.2.77" }
+said = { version = "0.3.0", features = ["macros"] }

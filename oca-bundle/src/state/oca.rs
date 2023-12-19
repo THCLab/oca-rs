@@ -1218,6 +1218,7 @@ impl AttributeLayoutValues {
 #[cfg(test)]
 mod tests {
     use oca_ast::ast::{NestedAttrType, RefValue};
+    use said::SelfAddressingIdentifier;
 
     use crate::state::attribute::AttributeType;
     use super::*;
@@ -1262,7 +1263,8 @@ mod tests {
         oca.add_attribute(attr);
 
         let mut attr = Attribute::new("ref".to_string());
-        attr.set_attribute_type(NestedAttrType::Reference(RefValue::Said("test".to_string())));
+        let said = SelfAddressingIdentifier::default();
+        attr.set_attribute_type(NestedAttrType::Reference(RefValue::Said(said)));
         // todo this should not be needed
         attr.set_sai("test".to_string());
         oca.add_attribute(attr);

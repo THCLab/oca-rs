@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use said::SelfAddressingIdentifier;
 use serde::{Serialize, Serializer, Deserialize, Deserializer, de::{Visitor, self, MapAccess}, ser::SerializeStruct};
 use strum_macros::Display;
 use std::{str::FromStr, collections::HashMap, fmt};
@@ -509,7 +510,8 @@ impl NestedValue {
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq)]
 pub enum RefValue {
-    Said(String),
+    Said(said::SelfAddressingIdentifier),
+    // This type is supported only for local-reference feature from facade (oca)
     Name(String),
 }
 
@@ -520,7 +522,13 @@ impl FromStr for RefValue {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (tag, rest) = s.split_once(':').ok_or(())?;
         match tag {
-            "refs" => Ok(RefValue::Said(rest.to_string())),
+            "refs" => {
+                let said = SelfAddressingIdentifier::from_str(rest);
+                match said {
+                    Ok(said) => Ok(RefValue::Said(said)),
+                    Err(_) => Err(()),
+                }
+            },
             "refn" => Ok(RefValue::Name(rest.to_string())),
             _ => Err(()),
         }
@@ -677,7 +685,13 @@ impl<'de> Deserialize<'de> for RefValue {
             serde::de::Error::custom(format!("invalid reference: {}", s))
         )?;
         match tag {
-            "refs" => Ok(RefValue::Said(rest.to_string())),
+            "refs" => {
+                let said = SelfAddressingIdentifier::from_str(rest);
+                match said {
+                    Ok(said) => Ok(RefValue::Said(said)),
+                    Err(_) => Err(serde::de::Error::custom(format!("invalid reference: {}", s)))
+                }
+            },
             "refn" => Ok(RefValue::Name(rest.to_string())),
             _ => Err(serde::de::Error::custom(format!(
                 "unknown reference type: {}",
@@ -728,7 +742,7 @@ impl From<u8> for ObjectKind {
                 attributes: None,
                 properties: None,
             }),
-            1 => ObjectKind::OCABundle(BundleContent { said: ReferenceAttrType::Reference(RefValue::Said("".to_string())) }),
+            1 => ObjectKind::OCABundle(BundleContent { said: ReferenceAttrType::Reference(RefValue::Name("".to_string())) }),
             2 => ObjectKind::Overlay(OverlayType::Label, Content { attributes: None, properties: None }),
             3 => ObjectKind::Overlay(OverlayType::Information, Content { attributes: None, properties: None }),
             4 => ObjectKind::Overlay(OverlayType::Encoding, Content { attributes: None, properties: None }),
@@ -793,7 +807,7 @@ impl<'de> Deserialize<'de> for ObjectKind {
                 attributes: None,
                 properties: None,
             })),
-            "OCABundle" => Ok(ObjectKind::OCABundle(BundleContent { said: ReferenceAttrType::Reference(RefValue::Said("".to_string())) })),
+            "OCABundle" => Ok(ObjectKind::OCABundle(BundleContent { said: ReferenceAttrType::Reference(RefValue::Name("".to_string())) })),
             "Label" => Ok(ObjectKind::Overlay(OverlayType::Label, Content { attributes: None, properties: None })),
             "Information" => Ok(ObjectKind::Overlay(OverlayType::Information, Content { attributes: None, properties: None })),
             "Encoding" => Ok(ObjectKind::Overlay(OverlayType::Encoding, Content { attributes: None, properties: None })),

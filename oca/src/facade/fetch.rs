@@ -9,9 +9,11 @@ use oca_bundle::build::OCABuildStep;
 use oca_bundle::state::oca::{
     capture_base::CaptureBase, DynOverlay, OCABundle,
 };
+use said::SelfAddressingIdentifier;
 
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::str::FromStr;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -128,20 +130,20 @@ impl Facade {
     /// # Return
     /// * `Vec<String>` - Vector of all SAID references
     /// TODO should take SAID not string
-    pub fn get_all_references(&self, said: String) -> Vec<String> {
+    pub fn get_all_references(&self, said: SelfAddressingIdentifier) -> Vec<SelfAddressingIdentifier> {
         // TODO
         let bundle = self.get_oca_bundle(said, false).unwrap().last().unwrap().clone();
 
-        let mut refs: Vec<String> = vec![];
+        let mut refs: Vec<SelfAddressingIdentifier> = vec![];
 
         for (_, value) in bundle.capture_base.attributes {
             match value {
                 ast::NestedAttrType::Reference(RefValue::Said(said)) => {
-                  refs.push(said.to_string());
+                  refs.push(said);
                 }
                 ast::NestedAttrType::Array(box_attr_type) => {
                     if let ast::NestedAttrType::Reference(RefValue::Said(said)) = &*box_attr_type {
-                      refs.push(said.to_string());
+                      refs.push(said.clone());
                     }
                 }
                 _ => {}
@@ -295,13 +297,13 @@ impl Facade {
         Ok(result)
     }
 
-    pub fn get_oca_bundle(&self, said: String, with_dep: bool) -> Result<Vec<OCABundle>, Vec<String>> {
+    pub fn get_oca_bundle(&self, said: SelfAddressingIdentifier, with_dep: bool) -> Result<Vec<OCABundle>, Vec<String>> {
         let mut oca_bundles = vec![];
         if with_dep {
             let mut deps = self.get_all_references(said.clone());
             deps.retain(|dep| dep != &said);
             for dep in deps {
-                let r = self.db_cache.get(Namespace::OCABundlesJSON, &dep).map_err(|e| vec![format!("{}", e)])?;
+                let r = self.db_cache.get(Namespace::OCABundlesJSON, &dep.to_string()).map_err(|e| vec![format!("{}", e)])?;
                 let oca_bundle_str = String::from_utf8(
                     r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?
                 ).unwrap();
@@ -310,7 +312,7 @@ impl Facade {
                 oca_bundles.push(oca_bundle.unwrap());
             }
         }
-        let r = self.db_cache.get(Namespace::OCABundlesJSON, &said).map_err(|e| vec![format!("{}", e)])?;
+        let r = self.db_cache.get(Namespace::OCABundlesJSON, &said.to_string()).map_err(|e| vec![format!("{}", e)])?;
         let oca_bundle_str = String::from_utf8(
             r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?
         ).unwrap();
@@ -348,11 +350,12 @@ impl Facade {
                 dbg!("Malformed history for said: {}", said);
                 return Err(vec![format!("Malformed history")]);
             }
+            let s = SelfAddressingIdentifier::from_str(&said).unwrap(); // TODO
             history.push(
                 OCABuildStep {
                     parent_said: parent_said.clone().parse().ok(),
                     command,
-                    result: self.get_oca_bundle(said.clone(), false).unwrap().last().unwrap().clone(),
+                    result: self.get_oca_bundle(s, false).unwrap().last().unwrap().clone(),
                 }
             );
             said = parent_said;
