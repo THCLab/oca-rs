@@ -83,12 +83,11 @@ impl Facade {
         #[cfg(feature = "local-references")]
         debug!("References found in local db: {:?}", references);
 
+        // Dereference (refn -> refs) the AST before it start processing bundle steps, otherwise the SAID would
+        // not match.
         #[cfg(feature = "local-references")]
         local_references::dereference_ast(&mut oca_ast, references);
-        // TODO why we passing base if the oca_ast would include FROM command ....
-        // TDOO ast should go with dereferenced attribute types
-        // if we pass ast with refn the digest of bundle would be calculated wrongly if we don't
-        // dereference it.
+
         let oca_build = oca_bundle::build::from_ast(base, &oca_ast).map_err(|e| {
             e.iter().map(|e|
                 Error::OCABundleBuild(e.clone())
