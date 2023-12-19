@@ -88,9 +88,9 @@ impl Facade {
             .records
             .iter()
             .map(|record| SearchRecord {
+                // TODO
                 oca_bundle: self
-                    .get_oca_bundle(record.oca_bundle_said.clone())
-                    .unwrap(),
+                    .get_oca_bundle(record.oca_bundle_said.clone(), false).unwrap().last().unwrap().clone(),
                 metadata: SearchRecordMetadata {
                     phrase: record.metadata.phrase.clone(),
                     scope: record.metadata.scope.clone(),
@@ -129,7 +129,8 @@ impl Facade {
     /// * `Vec<String>` - Vector of all SAID references
     /// TODO should take SAID not string
     pub fn get_all_references(&self, said: String) -> Vec<String> {
-        let bundle = self.get_oca_bundle(said).unwrap();
+        // TODO
+        let bundle = self.get_oca_bundle(said, false).unwrap().last().unwrap().clone();
 
         let mut refs: Vec<String> = vec![];
 
@@ -294,15 +295,30 @@ impl Facade {
         Ok(result)
     }
 
-    pub fn get_oca_bundle(&self, said: String) -> Result<OCABundle, Vec<String>> {
+    pub fn get_oca_bundle(&self, said: String, with_dep: bool) -> Result<Vec<OCABundle>, Vec<String>> {
+        let mut oca_bundles = vec![];
+        if with_dep {
+            let mut deps = self.get_all_references(said.clone());
+            deps.retain(|dep| dep != &said);
+            for dep in deps {
+                let r = self.db_cache.get(Namespace::OCABundlesJSON, &dep).map_err(|e| vec![format!("{}", e)])?;
+                let oca_bundle_str = String::from_utf8(
+                    r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?
+                ).unwrap();
+                let mut oca_bundle: Result<OCABundle, Vec<String>> = serde_json::from_str(&oca_bundle_str)
+                    .map_err(|e| vec![format!("Failed to parse oca bundle: {}", e)]);
+                oca_bundles.push(oca_bundle.unwrap());
+            }
+        }
         let r = self.db_cache.get(Namespace::OCABundlesJSON, &said).map_err(|e| vec![format!("{}", e)])?;
         let oca_bundle_str = String::from_utf8(
             r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?
         ).unwrap();
         let mut oca_bundle: Result<OCABundle, Vec<String>> = serde_json::from_str(&oca_bundle_str)
             .map_err(|e| vec![format!("Failed to parse oca bundle: {}", e)]);
+        oca_bundles.push(oca_bundle.unwrap());
 
-       oca_bundle
+      Ok(oca_bundles)
     }
 
     pub fn get_oca_bundle_steps(&self, said: String) -> Result<Vec<OCABuildStep>, Vec<String>> {
@@ -336,7 +352,7 @@ impl Facade {
                 OCABuildStep {
                     parent_said: parent_said.clone().parse().ok(),
                     command,
-                    result: self.get_oca_bundle(said.clone()).unwrap(),
+                    result: self.get_oca_bundle(said.clone(), false).unwrap().last().unwrap().clone(),
                 }
             );
             said = parent_said;

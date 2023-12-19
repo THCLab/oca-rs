@@ -126,7 +126,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
 
     match (op.kind, op.object_kind) {
         (ast::CommandType::From, _) => {
-            errors.push("Unsupported FROM command".to_string());
+            errors.push("Unsupported FROM command, it should be resolved before applying commands".to_string());
         },
         (ast::CommandType::Add, ast::ObjectKind::CaptureBase(content)) => {
             if let Some(ref attributes) = content.attributes {
