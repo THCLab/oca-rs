@@ -26,7 +26,6 @@ pub struct Attribute {
     pub format: Option<String>,
     pub units: Option<HashMap<MeasurementSystem, MeasurementUnit>>,
     pub entry_codes_mapping: Option<Vec<String>>,
-    pub reference_sai: Option<String>, // replace with SAI and move to RefAttribute
     pub condition: Option<String>,
     pub dependencies: Option<Vec<String>>,
     pub cardinality: Option<String>,
@@ -57,7 +56,6 @@ impl Attribute {
             entry_codes: None,
             entries: None,
             entry_codes_mapping: None,
-            reference_sai: None, // TODO: replace with RefAttribute which consist only with reference to another object
             condition: None,
             dependencies: None,
             cardinality: None,
@@ -74,9 +72,6 @@ impl Attribute {
         self.attribute_type = Some(attribute_type);
     }
 
-    pub fn set_sai(&mut self, sai: String) {
-        self.reference_sai = Some(sai);
-    }
 
     // Merge assumption is that if `other` is not None then it would overwrite `self` or would be concatenated with `self`
     pub fn merge(&mut self, other: &Attribute) {
@@ -118,10 +113,6 @@ impl Attribute {
 
             if self.entry_codes_mapping.is_none() {
                 self.entry_codes_mapping = other.entry_codes_mapping.clone();
-            }
-
-            if other.reference_sai.is_some() {
-                self.reference_sai = other.reference_sai.clone();
             }
 
             if other.condition.is_some() {
