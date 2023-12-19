@@ -91,15 +91,27 @@ ADD ATTRIBUTE B=refn:first
 ADD ATTRIBUTE C=Array[refn:second]
 "#.to_string();
         let result = facade.build_from_ocafile(ocafile).unwrap();
-        let refs = facade.fetch_all_refs().unwrap();
-
-        assert_eq!(refs.len(), 2);
-        assert_eq!(refs.get("second").unwrap(), "EJ9jPoPyZxJNtQsWI_yiHowfbP1B9SDOvlsSxlHbn9oW");
 
         assert_eq!(
             result.said.unwrap().to_string(),
             "EGeaFkSlbesMw5-ZpEGHG9hGhi9s1-ixI62Rf4cQquEX"
         );
+        let from_ocafile = r#"
+FROM EJ9jPoPyZxJNtQsWI_yiHowfbP1B9SDOvlsSxlHbn9oW
+ADD ATTRIBUTE x=Text
+"#.to_string();
+
+        let result = facade.build_from_ocafile(from_ocafile).unwrap();
+
+        assert_eq!(
+            result.said.unwrap().to_string(),
+            "ENyO7FUBx7oILUYt8FwmLaDVmvOZGETXWHICultMSEpW"
+        );
+        let refs = facade.fetch_all_refs().unwrap();
+
+        assert_eq!(refs.len(), 2);
+        assert_eq!(refs.get("second").unwrap(), "EJ9jPoPyZxJNtQsWI_yiHowfbP1B9SDOvlsSxlHbn9oW");
+
         Ok(())
     }
 

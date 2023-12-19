@@ -50,9 +50,10 @@ impl Facade {
                     ReferenceAttrType::Reference(refs) => {
                         match refs {
                             RefValue::Said(said) => {
-                                match self.get_oca_bundle(said) {
+                                match self.get_oca_bundle(said, false) {
                                     Ok(oca_bundle) => {
-                                        base = Some(oca_bundle);
+                                        // TODO
+                                        base = Some(oca_bundle.last().unwrap().clone());
                                     },
                                     Err(e) => {
                                         let default_command_meta = oca_ast::ast::CommandMeta { line_number: 0, raw_line: "unknown".to_string() };
