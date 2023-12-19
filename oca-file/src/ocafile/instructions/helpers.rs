@@ -2,7 +2,8 @@ use std::str::FromStr;
 
 use indexmap::IndexMap;
 use log::debug;
-use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, Content};
+use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, Content, RefValue};
+use said::SelfAddressingIdentifier;
 use crate::ocafile::{Pair, Rule};
 
 pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType)> {
@@ -26,7 +27,8 @@ pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType
                         },
                         Rule::said => {
                             debug!("Matching said reference: {:?}", attr_type_rule);
-                            attr_type = NestedAttrType::Reference(oca_ast::ast::RefValue::Said(attr_type_rule.as_str().to_string()))
+                            let said = SelfAddressingIdentifier::from_str(attr_type_rule.as_str()).unwrap();
+                            attr_type = NestedAttrType::Reference(RefValue::Said(said));
                         }
                         Rule::base_attr_type => {
                             debug!("Matching basic attribute type from rule: {}", attr_type_rule);
@@ -62,7 +64,8 @@ pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType
                                         attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Reference(oca_ast::ast::RefValue::Name(value.as_str().to_string()))));
                                     },
                                     Rule::said => {
-                                        attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Reference(oca_ast::ast::RefValue::Said(value.as_str().to_string()))));
+                                        let said = SelfAddressingIdentifier::from_str(value.as_str()).unwrap(); // TODO
+                                        attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Reference(RefValue::Said(said))));
                                     },
                                     _ => {
                                         panic!("Invalid reference array value in {:?}", value.as_rule());

@@ -1,4 +1,6 @@
-use std::rc::Rc;
+use std::{rc::Rc, str::FromStr};
+
+use said::SelfAddressingIdentifier;
 
 #[derive(Debug)]
 pub struct OCABundleFTSRecord {
@@ -203,7 +205,7 @@ meta_overlay:{}
             };
 
             records.push(SearchRecord {
-                oca_bundle_said: record.oca_bundle_said.unwrap(),
+                oca_bundle_said: SelfAddressingIdentifier::from_str(&record.oca_bundle_said.unwrap()).unwrap(), //TODO
                 metadata: metdata,
             });
         }
@@ -223,7 +225,7 @@ pub struct SearchResult {
 
 #[derive(Debug)]
 pub struct SearchRecord {
-    pub oca_bundle_said: String,
+    pub oca_bundle_said: SelfAddressingIdentifier,
     pub metadata: SearchRecordMetadata,
 }
 
