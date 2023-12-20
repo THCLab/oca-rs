@@ -836,6 +836,7 @@ dependencies = [
  "env_logger",
  "indexmap 1.9.3",
  "log",
+ "recursion",
  "said",
  "serde",
  "serde_json",
@@ -1132,6 +1133,12 @@ checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
 ]
+
+[[package]]
+name = "recursion"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f53e857b2b1b92a9265c645b3d5aa76d8435f81d06af5ca08f9027b1225351c2"
 
 [[package]]
 name = "redox_syscall"
