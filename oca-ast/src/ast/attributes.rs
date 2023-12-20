@@ -1,5 +1,6 @@
 use indexmap::IndexMap;
 use recursion::{Collapsible, CollapsibleExt, Expandable, MappableFrame, PartiallyApplied};
+use said::derivation::{HashFunction, HashFunctionCode};
 use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize,
@@ -205,7 +206,6 @@ impl<'de> Deserialize<'de> for NestedAttrType {
     }
 }
 
-
 #[test]
 fn test_oca_file_format() {
     let mut object_example = IndexMap::new();
@@ -217,10 +217,16 @@ fn test_oca_file_format() {
         "age".to_string(),
         NestedAttrType::Value(AttributeType::Numeric),
     );
+    object_example.insert(
+        "data".to_string(),
+        NestedAttrType::Reference(RefValue::Said(
+            HashFunction::from(HashFunctionCode::Blake3_256).derive("example".as_bytes()),
+        )),
+    );
 
     let attr = NestedAttrType::Array(Box::new(NestedAttrType::Object(object_example)));
 
     let out = oca_file_format(attr, &None);
-    assert_eq!(out, "Array[Object { name=Text,  age=Numeric}]");
+    assert_eq!(out, "Array[Object { name=Text,  age=Numeric,  data=refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu}]");
     println!("{}", out);
 }
