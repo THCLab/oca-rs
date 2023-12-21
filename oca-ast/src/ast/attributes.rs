@@ -1,15 +1,19 @@
 use indexmap::IndexMap;
-use recursion::{Collapsible, CollapsibleExt, Expandable, MappableFrame, PartiallyApplied};
+use log::debug;
+use recursion::{
+    Collapsible, CollapsibleExt, Expandable, ExpandableExt, MappableFrame, PartiallyApplied,
+};
 use said::derivation::{HashFunction, HashFunctionCode};
 use serde::{
     de::{self, Visitor},
-    Deserialize, Deserializer, Serialize,
+    ser::{SerializeMap, SerializeSeq},
+    Deserialize, Deserializer, Serialize, Serializer,
 };
 use std::{collections::HashMap, fmt, hash::Hash, str::FromStr};
 
 use super::{AttributeType, RefValue};
 
-#[derive(Debug, PartialEq, Serialize, Clone, Eq)]
+#[derive(Debug, PartialEq, Clone, Eq, Serialize)]
 #[serde(untagged)]
 /// Enum representing attribute type which can be nested.
 ///
@@ -18,12 +22,27 @@ use super::{AttributeType, RefValue};
 /// Object: can be inline object which can have nested attributes types
 /// Array: is an array of specific type (only one type allowed)
 pub enum NestedAttrType {
+    #[serde(serialize_with = "array_serializer")]
+    Array(Box<NestedAttrType>),
     Reference(RefValue),
     Value(AttributeType),
     Object(IndexMap<String, NestedAttrType>),
-    Array(Box<NestedAttrType>),
     /// Indicator that attribute was removed and does not need any type
     Null,
+}
+
+fn array_serializer<S>(foo: &Box<NestedAttrType>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    // Serialize the inner value as an array
+    let mut seq = serializer.serialize_seq(Some(1))?;
+    seq.serialize_element(&foo)?;
+    seq.end()
+
+    // Serialize the inner value and combine it with "Array"
+    // let serialized = serde_json::to_string(&foo).unwrap();
+    // let serialized_with_array = format!("Array[{}]", serialized);
 }
 
 impl Hash for NestedAttrType {
@@ -152,59 +171,88 @@ pub fn oca_file_format(
     })
 }
 
-// TODO implement deserializer for NestedAttrType
 impl<'de> Deserialize<'de> for NestedAttrType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        struct NestedAttrTypeVisitor {
-            depth: usize,
-        }
+        let input: serde_json::Value = serde_json::Value::deserialize(deserializer)?;
 
-        impl<'de> Visitor<'de> for NestedAttrTypeVisitor {
-            type Value = NestedAttrType;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                formatter.write_str("a valid NestedAttrType")
-            }
-
-            // Implement the visit_* methods to handle each case
-            // ...
-
-            // For string we have based types and references
-            fn visit_str<E>(self, value: &str) -> Result<NestedAttrType, E>
-            where
-                E: de::Error,
-            {
-                // Try to parse base attribute first and then references
-                match AttributeType::from_str(value) {
-                    Ok(attr_type) => Ok(NestedAttrType::Value(attr_type)),
-                    Err(_) => match RefValue::from_str(value) {
-                        Ok(ref_value) => Ok(NestedAttrType::Reference(ref_value)),
-                        Err(_) => Err(de::Error::custom(format!("invalid reference: {}", value))),
-                    },
+        let expanded = NestedAttrType::expand_frames(input, |seed| match seed {
+            serde_json::Value::String(text) => match text.parse::<RefValue>() {
+                Ok(ref_value) => NestedAttrTypeFrame::Reference(ref_value),
+                Err(_) => match text.parse::<AttributeType>() {
+                    Ok(attribute_type) => NestedAttrTypeFrame::Value(attribute_type),
+                    Err(_) => todo!(),
+                },
+            },
+            serde_json::Value::Object(obj) => {
+                let mut idx_map = IndexMap::new();
+                for (key, value) in obj {
+                    idx_map.insert(key, value);
                 }
+                NestedAttrTypeFrame::Object(idx_map)
             }
-
-            // Example for one of the visit methods
-            fn visit_map<V>(self, _: V) -> Result<NestedAttrType, V::Error>
-            where
-                V: serde::de::MapAccess<'de>,
-            {
-                const MAX_DEPTH: usize = 4;
-                if self.depth > MAX_DEPTH {
-                    return Err(de::Error::custom("recursion depth exceeded"));
-                }
-
-                let object = IndexMap::new();
-                Ok(NestedAttrType::Object(object))
-            }
-        }
-
-        deserializer.deserialize_any(NestedAttrTypeVisitor { depth: 0 })
+            serde_json::Value::Array(arr) => NestedAttrTypeFrame::Array(arr[0].clone()),
+            _ => todo!(),
+        });
+        Ok(expanded)
     }
 }
+
+// // TODO implement deserializer for NestedAttrType
+// impl<'de> Deserialize<'de> for NestedAttrType {
+//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+//     where
+//         D: Deserializer<'de>,
+//     {
+//         struct NestedAttrTypeVisitor {
+//             depth: usize,
+//         }
+
+//         impl<'de> Visitor<'de> for NestedAttrTypeVisitor {
+//             type Value = NestedAttrType;
+
+//             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+//                 formatter.write_str("a valid NestedAttrType")
+//             }
+
+//             // Implement the visit_* methods to handle each case
+//             // ...
+
+//             // For string we have based types and references
+//             fn visit_str<E>(self, value: &str) -> Result<NestedAttrType, E>
+//             where
+//                 E: de::Error,
+//             {
+//                 // Try to parse base attribute first and then references
+//                 match AttributeType::from_str(value) {
+//                     Ok(attr_type) => Ok(NestedAttrType::Value(attr_type)),
+//                     Err(_) => match RefValue::from_str(value) {
+//                         Ok(ref_value) => Ok(NestedAttrType::Reference(ref_value)),
+//                         Err(_) => Err(de::Error::custom(format!("invalid reference: {}", value))),
+//                     },
+//                 }
+//             }
+
+//             // Example for one of the visit methods
+//             fn visit_map<V>(self, _: V) -> Result<NestedAttrType, V::Error>
+//             where
+//                 V: serde::de::MapAccess<'de>,
+//             {
+//                 const MAX_DEPTH: usize = 4;
+//                 if self.depth > MAX_DEPTH {
+//                     return Err(de::Error::custom("recursion depth exceeded"));
+//                 }
+
+//                 let object = IndexMap::new();
+//                 Ok(NestedAttrType::Object(object))
+//             }
+//         }
+
+//         deserializer.deserialize_any(NestedAttrTypeVisitor { depth: 0 })
+//     }
+// }
 
 #[test]
 fn test_oca_file_format() {
@@ -229,4 +277,47 @@ fn test_oca_file_format() {
     let out = oca_file_format(attr, &None);
     assert_eq!(out, "Array[Object { name=Text,  age=Numeric,  data=refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu}]");
     println!("{}", out);
+}
+
+#[test]
+fn test_nested_attribute_serialize() {
+    let mut object_example = IndexMap::new();
+    let mut person = IndexMap::new();
+    person.insert(
+        "name".to_string(),
+        NestedAttrType::Value(AttributeType::Text),
+    );
+
+    let arr = NestedAttrType::Array(Box::new(NestedAttrType::Value(AttributeType::Boolean)));
+    object_example.insert("allowed".to_string(), arr);
+
+    object_example.insert(
+        "test".to_string(),
+        NestedAttrType::Value(AttributeType::Text),
+    );
+    object_example.insert("person".to_string(), NestedAttrType::Object(person));
+    let said = HashFunction::from(HashFunctionCode::Blake3_256).derive("fff".as_bytes());
+    object_example.insert(
+        "ref".to_string(),
+        NestedAttrType::Reference(RefValue::Said(said.clone())),
+    );
+
+    let attributes = NestedAttrType::Object(object_example);
+
+    let serialized = serde_json::to_string(&attributes).unwrap();
+    let expected = r#"{"allowed":["Boolean"],"test":"Text","person":{"name":"Text"},"ref":"refs:EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"}"#;
+    assert_eq!(expected, serialized);
+
+    let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(attributes, deser);
+
+    let attributes =
+        NestedAttrType::Array(Box::new(NestedAttrType::Reference(RefValue::Said(said))));
+
+    let serialized = serde_json::to_string(&attributes).unwrap();
+    let expected = r#"["refs:EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"]"#;
+    assert_eq!(expected, serialized);
+
+    let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
+    assert_eq!(attributes, deser);
 }
