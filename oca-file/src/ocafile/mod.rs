@@ -416,9 +416,12 @@ ADD attribute name=Text age=Numeric
     #[test]
     fn test_deserialization_ast_to_ocafile() {
         let unparsed_file = r#"ADD ATTRIBUTE name=Text age=Numeric
-ADD LABEL en ATTRS name="Object" age="Object"
+ADD LABEL en ATTRS name="Object" age="Object" radio=Text
 ADD INFORMATION en ATTRS name="Object" age="Object"
 ADD CHARACTER_ENCODING ATTRS name="utf-8" age="utf-8"
+ADD ENTRY_CODE ATTRS radio=["o1", "o2", "o3"]
+ADD ENTRY en ATTRS radio={"o1": "label1", "o2": "label2", "o3": "label3"}
+ADD ENTRY pl ATTRS radio={"o1": "etykieta1", "o2": "etykieta2", "o3": "etykieta3"}
 "#;
         let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
 

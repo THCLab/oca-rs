@@ -1217,10 +1217,11 @@ impl AttributeLayoutValues {
 
 #[cfg(test)]
 mod tests {
+    use maplit::hashmap;
     use oca_ast::ast::{NestedAttrType, RefValue};
     use said::SelfAddressingIdentifier;
 
-    use crate::state::attribute::AttributeType;
+    use crate::state::{attribute::AttributeType, entries::EntriesElement};
     use super::*;
 
     #[test]
@@ -1232,6 +1233,10 @@ mod tests {
         let mut attr = Attribute::new("first_name".to_string());
         attr.set_attribute_type(NestedAttrType::Value(AttributeType::Text));
         oca.add_attribute(attr);
+
+        let mut attr2 = Attribute::new("gender".to_string());
+        let entries = EntriesElement::Object(( hashmap! {}));
+        attr2.set_entry(Language::Eng, entries);
 
         let mut attr = Attribute::new("last_name".to_string());
         attr.set_attribute_type(NestedAttrType::Value(AttributeType::Text));
