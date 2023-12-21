@@ -1,15 +1,16 @@
 use indexmap::IndexMap;
-use log::debug;
 use recursion::{
     Collapsible, CollapsibleExt, Expandable, ExpandableExt, MappableFrame, PartiallyApplied,
 };
-use said::derivation::{HashFunction, HashFunctionCode};
 use serde::{
-    de::{self, Visitor},
-    ser::{SerializeMap, SerializeSeq},
-    Deserialize, Deserializer, Serialize, Serializer,
+    // de::{self, Visitor},
+    ser::SerializeSeq,
+    Deserialize,
+    Deserializer,
+    Serialize,
+    Serializer,
 };
-use std::{collections::HashMap, fmt, hash::Hash, str::FromStr};
+use std::{collections::HashMap, hash::Hash};
 
 use super::{AttributeType, RefValue};
 
@@ -254,70 +255,78 @@ impl<'de> Deserialize<'de> for NestedAttrType {
 //     }
 // }
 
-#[test]
-fn test_oca_file_format() {
-    let mut object_example = IndexMap::new();
-    object_example.insert(
-        "name".to_string(),
-        NestedAttrType::Value(AttributeType::Text),
-    );
-    object_example.insert(
-        "age".to_string(),
-        NestedAttrType::Value(AttributeType::Numeric),
-    );
-    object_example.insert(
-        "data".to_string(),
-        NestedAttrType::Reference(RefValue::Said(
-            HashFunction::from(HashFunctionCode::Blake3_256).derive("example".as_bytes()),
-        )),
-    );
+#[cfg(test)]
+mod tests {
+    use indexmap::IndexMap;
+    use said::derivation::{HashFunction, HashFunctionCode};
 
-    let attr = NestedAttrType::Array(Box::new(NestedAttrType::Object(object_example)));
+    use crate::ast::{attributes::oca_file_format, AttributeType, NestedAttrType, RefValue};
 
-    let out = oca_file_format(attr, &None);
-    assert_eq!(out, "Array[Object { name=Text,  age=Numeric,  data=refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu}]");
-    println!("{}", out);
-}
+    #[test]
+    fn test_oca_file_format() {
+        let mut object_example = IndexMap::new();
+        object_example.insert(
+            "name".to_string(),
+            NestedAttrType::Value(AttributeType::Text),
+        );
+        object_example.insert(
+            "age".to_string(),
+            NestedAttrType::Value(AttributeType::Numeric),
+        );
+        object_example.insert(
+            "data".to_string(),
+            NestedAttrType::Reference(RefValue::Said(
+                HashFunction::from(HashFunctionCode::Blake3_256).derive("example".as_bytes()),
+            )),
+        );
 
-#[test]
-fn test_nested_attribute_serialize() {
-    let mut object_example = IndexMap::new();
-    let mut person = IndexMap::new();
-    person.insert(
-        "name".to_string(),
-        NestedAttrType::Value(AttributeType::Text),
-    );
+        let attr = NestedAttrType::Array(Box::new(NestedAttrType::Object(object_example)));
 
-    let arr = NestedAttrType::Array(Box::new(NestedAttrType::Value(AttributeType::Boolean)));
-    object_example.insert("allowed".to_string(), arr);
+        let out = oca_file_format(attr, &None);
+        assert_eq!(out, "Array[Object { name=Text,  age=Numeric,  data=refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu}]");
+        println!("{}", out);
+    }
 
-    object_example.insert(
-        "test".to_string(),
-        NestedAttrType::Value(AttributeType::Text),
-    );
-    object_example.insert("person".to_string(), NestedAttrType::Object(person));
-    let said = HashFunction::from(HashFunctionCode::Blake3_256).derive("fff".as_bytes());
-    object_example.insert(
-        "ref".to_string(),
-        NestedAttrType::Reference(RefValue::Said(said.clone())),
-    );
+    #[test]
+    fn test_nested_attribute_serialize() {
+        let mut object_example = IndexMap::new();
+        let mut person = IndexMap::new();
+        person.insert(
+            "name".to_string(),
+            NestedAttrType::Value(AttributeType::Text),
+        );
 
-    let attributes = NestedAttrType::Object(object_example);
+        let arr = NestedAttrType::Array(Box::new(NestedAttrType::Value(AttributeType::Boolean)));
+        object_example.insert("allowed".to_string(), arr);
 
-    let serialized = serde_json::to_string(&attributes).unwrap();
-    let expected = r#"{"allowed":["Boolean"],"test":"Text","person":{"name":"Text"},"ref":"refs:EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"}"#;
-    assert_eq!(expected, serialized);
+        object_example.insert(
+            "test".to_string(),
+            NestedAttrType::Value(AttributeType::Text),
+        );
+        object_example.insert("person".to_string(), NestedAttrType::Object(person));
+        let said = HashFunction::from(HashFunctionCode::Blake3_256).derive("fff".as_bytes());
+        object_example.insert(
+            "ref".to_string(),
+            NestedAttrType::Reference(RefValue::Said(said.clone())),
+        );
 
-    let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
-    assert_eq!(attributes, deser);
+        let attributes = NestedAttrType::Object(object_example);
 
-    let attributes =
-        NestedAttrType::Array(Box::new(NestedAttrType::Reference(RefValue::Said(said))));
+        let serialized = serde_json::to_string(&attributes).unwrap();
+        let expected = r#"{"allowed":["Boolean"],"test":"Text","person":{"name":"Text"},"ref":"refs:EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"}"#;
+        assert_eq!(expected, serialized);
 
-    let serialized = serde_json::to_string(&attributes).unwrap();
-    let expected = r#"["refs:EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"]"#;
-    assert_eq!(expected, serialized);
+        let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(attributes, deser);
 
-    let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
-    assert_eq!(attributes, deser);
+        let attributes =
+            NestedAttrType::Array(Box::new(NestedAttrType::Reference(RefValue::Said(said))));
+
+        let serialized = serde_json::to_string(&attributes).unwrap();
+        let expected = r#"["refs:EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"]"#;
+        assert_eq!(expected, serialized);
+
+        let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(attributes, deser);
+    }
 }
