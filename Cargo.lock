@@ -902,6 +902,7 @@ dependencies = [
  "pest",
  "pest_derive",
  "pretty_assertions",
+ "recursion",
  "said",
  "serde",
  "serde_json",

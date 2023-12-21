@@ -14,7 +14,7 @@ pub use self::attributes::NestedAttrType;
 
 pub mod attributes;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct OCAAst {
     pub version: String,
     pub commands: Vec<Command>,

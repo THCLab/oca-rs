@@ -86,7 +86,7 @@ impl Facade {
         // Dereference (refn -> refs) the AST before it start processing bundle steps, otherwise the SAID would
         // not match.
         #[cfg(feature = "local-references")]
-        local_references::dereference_ast(&mut oca_ast, references);
+        local_references::replace_refn_with_refs(&mut oca_ast, references);
 
         let oca_build = oca_bundle::build::from_ast(base, &oca_ast).map_err(|e| {
             e.iter().map(|e|
