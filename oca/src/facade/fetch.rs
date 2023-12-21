@@ -1,5 +1,7 @@
 use super::Facade;
 use crate::data_storage::Namespace;
+#[cfg(feature = "local-references")]
+use crate::local_references;
 use crate::{
     data_storage::DataStorage,
     repositories::{OCABundleCacheRepo, OCABundleFTSRepo},
@@ -377,8 +379,8 @@ impl Facade {
             oca_ast.commands.push(step.command);
         };
 
-        let mut refs: Option<HashMap<String, String>> = None;
         if dereference {
+            #[cfg(feature = "local-references")]
             let mut local_refs = HashMap::new();
             #[cfg(feature = "local-references")]
             self.db.get_all(Namespace::OCAReferences).unwrap()
@@ -386,10 +388,11 @@ impl Facade {
                 .for_each(|(k, v)| {
                     local_refs.insert(k.clone(), String::from_utf8(v.to_vec()).unwrap());
                 });
-            refs = Some(local_refs);
+            #[cfg(feature = "local-references")]
+            local_references::replace_refn_with_refs(&mut oca_ast, local_refs);
         }
 
-        Ok(oca_file::ocafile::generate_from_ast(&oca_ast, refs))
+        Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
     }
 
     /// Retrive steps (AST representation) for a given said
@@ -405,7 +408,7 @@ impl Facade {
 
     pub fn parse_oca_bundle_to_ocafile(&self, bundle: &OCABundle) -> Result<String, Vec<String>> {
         let oca_ast = bundle.to_ast();
-        Ok(oca_file::ocafile::generate_from_ast(&oca_ast, None))
+        Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
     }
 }
 

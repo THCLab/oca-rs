@@ -1,16 +1,18 @@
 mod error;
 mod instructions;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 
 use self::instructions::{add::AddInstruction, from::FromInstruction, remove::RemoveInstruction};
 use crate::ocafile::error::Error;
 use convert_case::{Case, Casing};
 use oca_ast::{
-    ast::{self, attributes::oca_file_format, Command, CommandMeta, OCAAst},
+    ast::{self, Command, CommandMeta, OCAAst, RefValue, NestedAttrType, attributes::NestedAttrTypeFrame},
     validator::{OCAValidator, Validator},
 };
 use pest::Parser;
+use said::SelfAddressingIdentifier;
+use recursion::CollapsibleExt;
 
 #[derive(pest_derive::Parser)]
 #[grammar = "ocafile.pest"]
@@ -148,7 +150,46 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
     Ok(oca_ast)
 }
 
-pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String>>) -> String {
+// Format reference to oca file syntax
+fn format_reference(ref_value: RefValue) -> String {
+    match ref_value {
+        RefValue::Said(said) => format!("refs:{}", said),
+        _ => panic!( "Unsupported reference type: {:?}", ref_value)
+    }
+}
+
+// Convert NestedAttrType to oca file syntax
+fn oca_file_format(nested: NestedAttrType) -> String {
+    nested.collapse_frames(|frame| match frame {
+        NestedAttrTypeFrame::Reference(ref_value) => format_reference(ref_value),
+        NestedAttrTypeFrame::Value(value) => {
+            format!("{}", value)
+        }
+        NestedAttrTypeFrame::Object(obj) => {
+            let start = "Object {".to_string();
+            let end = "}".to_string();
+            let inner_data = obj
+                .into_iter()
+                .map(|(obj_key, obj_value)| format!(" {}={}", obj_key, obj_value));
+            let out = inner_data.collect::<Vec<_>>().join(", ");
+            vec![start, out, end].join("")
+        }
+        NestedAttrTypeFrame::Array(arr) => {
+            format!("Array[{}]", arr)
+        }
+        NestedAttrTypeFrame::Null => "".to_string(),
+    })
+}
+
+/// Generate OCA file from AST
+///
+/// # Arguments
+/// * `ast` - AST
+/// * `references` - Optional references names and thier saids for dereferencing
+///
+/// If references are present, ast would be trevers and all refn would be replaced with refs
+
+pub fn generate_from_ast(ast: &OCAAst) -> String {
     let mut ocafile = String::new();
 
     ast.commands.iter().for_each(|command| {
@@ -163,7 +204,7 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                         for (key, value) in attributes {
                             line.push_str(&format!(" {}=", key));
                             // TODO avoid clone
-                            let out = oca_file_format(value.clone(), &references);
+                            let out = oca_file_format(value.clone());
                             line.push_str(&out);
                         }
                     }
@@ -280,12 +321,14 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                                     });
                                 }
                                 if let Some(ref attributes) = content.attributes {
-                                    line.push_str("ATTRS");
+                                    line.push_str("ATTRS ");
                                     attributes.iter().for_each(|(key, value)| {
+                                        // TODO there is no need for NestedValue here
                                         if let ast::NestedValue::Object(values) = value {
                                             let codes = values
                                                 .iter()
                                                 .filter_map(|(code, label)| {
+                                                    // TODO there is no need for NestedValue here
                                                     if let ast::NestedValue::Value(label) = label {
                                                         Some(format!("\"{}\": \"{}\"", code, label))
                                                     } else {
@@ -295,11 +338,7 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
                                                 .collect::<Vec<String>>()
                                                 .join(", ");
                                             line.push_str(
-                                                format!(" {}={{ {} }}", key, codes).as_str(),
-                                            );
-                                        } else if let ast::NestedValue::Value(said) = value {
-                                            line.push_str(
-                                                format!(" {}=\"{}\"", key, said).as_str(),
+                                                format!("{}={{{}}}", key, codes).as_str(),
                                             );
                                         }
                                     });
@@ -354,6 +393,10 @@ pub fn generate_from_ast(ast: &OCAAst, references: Option<HashMap<String, String
 
 #[cfg(test)]
 mod tests {
+    use indexmap::IndexMap;
+    use oca_ast::ast::AttributeType;
+    use said::derivation::{HashFunction, HashFunctionCode};
+
     use super::*;
 
     #[test]
@@ -395,17 +438,17 @@ ADD attribute name=Text age=Numeric
 
     #[test]
     fn test_deserialization_ast_to_ocafile() {
-        let unparsed_file = r#"ADD ATTRIBUTE name=Text age=Numeric
-ADD LABEL en ATTRS name="Object" age="Object" radio=Text
+        let unparsed_file = r#"ADD ATTRIBUTE name=Text age=Numeric radio=Text
+ADD LABEL eo ATTRS name="Nomo" age="aĝo" radio="radio"
 ADD INFORMATION en ATTRS name="Object" age="Object"
 ADD CHARACTER_ENCODING ATTRS name="utf-8" age="utf-8"
 ADD ENTRY_CODE ATTRS radio=["o1", "o2", "o3"]
-ADD ENTRY en ATTRS radio={"o1": "label1", "o2": "label2", "o3": "label3"}
+ADD ENTRY eo ATTRS radio={"o1": "etikedo1", "o2": "etikedo2", "o3": "etikiedo3"}
 ADD ENTRY pl ATTRS radio={"o1": "etykieta1", "o2": "etykieta2", "o3": "etykieta3"}
 "#;
         let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
 
-        let ocafile = generate_from_ast(&oca_ast, None);
+        let ocafile = generate_from_ast(&oca_ast);
         assert_eq!(
             ocafile, unparsed_file,
             "left:\n{} \n right:\n {}",
@@ -420,11 +463,36 @@ ADD ATTRIBUTE list=Array[Text] el=Text
 "#;
         let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
 
-        let ocafile = generate_from_ast(&oca_ast, None);
+        let ocafile = generate_from_ast(&oca_ast);
         assert_eq!(
             ocafile, unparsed_file,
             "left:\n{} \n right:\n {}",
             ocafile, unparsed_file
         );
+    }
+
+    #[test]
+    fn test_oca_file_format() {
+        let mut object_example = IndexMap::new();
+        object_example.insert(
+            "name".to_string(),
+            NestedAttrType::Value(AttributeType::Text),
+        );
+        object_example.insert(
+            "age".to_string(),
+            NestedAttrType::Value(AttributeType::Numeric),
+        );
+        object_example.insert(
+            "data".to_string(),
+            NestedAttrType::Reference(RefValue::Said(
+                HashFunction::from(HashFunctionCode::Blake3_256).derive("example".as_bytes()),
+            )),
+        );
+
+        let attr = NestedAttrType::Array(Box::new(NestedAttrType::Object(object_example)));
+
+        let out = oca_file_format(attr);
+        assert_eq!(out, "Array[Object { name=Text,  age=Numeric,  data=refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu}]");
+        println!("{}", out);
     }
 }

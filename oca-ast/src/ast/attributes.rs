@@ -1,16 +1,15 @@
 use indexmap::IndexMap;
 use recursion::{
-    Collapsible, CollapsibleExt, Expandable, ExpandableExt, MappableFrame, PartiallyApplied,
+    Collapsible, Expandable, ExpandableExt, MappableFrame, PartiallyApplied,
 };
 use serde::{
-    // de::{self, Visitor},
     ser::SerializeSeq,
     Deserialize,
     Deserializer,
     Serialize,
     Serializer,
 };
-use std::{collections::HashMap, hash::Hash};
+use std::hash::Hash;
 
 use super::{AttributeType, RefValue};
 
@@ -127,51 +126,6 @@ impl Collapsible for NestedAttrType {
     }
 }
 
-fn format_reference(ref_value: RefValue, references: &Option<HashMap<String, String>>) -> String {
-    match ref_value {
-        RefValue::Name(ref refn) => match references {
-            Some(ref references) => {
-                if let Some(refs) = references.get(refn) {
-                    format!("refn:{}", refs)
-                } else {
-                    panic!("Reference not found: {}", refn)
-                }
-            }
-            None => {
-                format!("{}", refn)
-            }
-        },
-        RefValue::Said(refs) => {
-            format!("refs:{}", refs)
-        }
-    }
-}
-
-pub fn oca_file_format(
-    nested: NestedAttrType,
-    references: &Option<HashMap<String, String>>,
-) -> String {
-    nested.collapse_frames(|frame| match frame {
-        NestedAttrTypeFrame::Reference(ref_value) => format_reference(ref_value, references),
-        NestedAttrTypeFrame::Value(value) => {
-            format!("{}", value)
-        }
-        NestedAttrTypeFrame::Object(obj) => {
-            let start = "Object {".to_string();
-            let end = "}".to_string();
-            let inner_data = obj
-                .into_iter()
-                .map(|(obj_key, obj_value)| format!(" {}={}", obj_key, obj_value));
-            let out = inner_data.collect::<Vec<_>>().join(", ");
-            vec![start, out, end].join("")
-        }
-        NestedAttrTypeFrame::Array(arr) => {
-            format!("Array[{}]", arr)
-        }
-        NestedAttrTypeFrame::Null => "".to_string(),
-    })
-}
-
 impl<'de> Deserialize<'de> for NestedAttrType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -201,91 +155,13 @@ impl<'de> Deserialize<'de> for NestedAttrType {
     }
 }
 
-// // TODO implement deserializer for NestedAttrType
-// impl<'de> Deserialize<'de> for NestedAttrType {
-//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-//     where
-//         D: Deserializer<'de>,
-//     {
-//         struct NestedAttrTypeVisitor {
-//             depth: usize,
-//         }
-
-//         impl<'de> Visitor<'de> for NestedAttrTypeVisitor {
-//             type Value = NestedAttrType;
-
-//             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-//                 formatter.write_str("a valid NestedAttrType")
-//             }
-
-//             // Implement the visit_* methods to handle each case
-//             // ...
-
-//             // For string we have based types and references
-//             fn visit_str<E>(self, value: &str) -> Result<NestedAttrType, E>
-//             where
-//                 E: de::Error,
-//             {
-//                 // Try to parse base attribute first and then references
-//                 match AttributeType::from_str(value) {
-//                     Ok(attr_type) => Ok(NestedAttrType::Value(attr_type)),
-//                     Err(_) => match RefValue::from_str(value) {
-//                         Ok(ref_value) => Ok(NestedAttrType::Reference(ref_value)),
-//                         Err(_) => Err(de::Error::custom(format!("invalid reference: {}", value))),
-//                     },
-//                 }
-//             }
-
-//             // Example for one of the visit methods
-//             fn visit_map<V>(self, _: V) -> Result<NestedAttrType, V::Error>
-//             where
-//                 V: serde::de::MapAccess<'de>,
-//             {
-//                 const MAX_DEPTH: usize = 4;
-//                 if self.depth > MAX_DEPTH {
-//                     return Err(de::Error::custom("recursion depth exceeded"));
-//                 }
-
-//                 let object = IndexMap::new();
-//                 Ok(NestedAttrType::Object(object))
-//             }
-//         }
-
-//         deserializer.deserialize_any(NestedAttrTypeVisitor { depth: 0 })
-//     }
-// }
-
 #[cfg(test)]
 mod tests {
     use indexmap::IndexMap;
     use said::derivation::{HashFunction, HashFunctionCode};
 
-    use crate::ast::{attributes::oca_file_format, AttributeType, NestedAttrType, RefValue};
+    use crate::ast::{AttributeType, NestedAttrType, RefValue};
 
-    #[test]
-    fn test_oca_file_format() {
-        let mut object_example = IndexMap::new();
-        object_example.insert(
-            "name".to_string(),
-            NestedAttrType::Value(AttributeType::Text),
-        );
-        object_example.insert(
-            "age".to_string(),
-            NestedAttrType::Value(AttributeType::Numeric),
-        );
-        object_example.insert(
-            "data".to_string(),
-            NestedAttrType::Reference(RefValue::Said(
-                HashFunction::from(HashFunctionCode::Blake3_256).derive("example".as_bytes()),
-            )),
-        );
-
-        let attr = NestedAttrType::Array(Box::new(NestedAttrType::Object(object_example)));
-
-        let out = oca_file_format(attr, &None);
-        assert_eq!(out, "Array[Object { name=Text,  age=Numeric,  data=refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu}]");
-        println!("{}", out);
-    }
 
     #[test]
     fn test_nested_attribute_serialize() {
