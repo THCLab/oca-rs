@@ -130,7 +130,7 @@ impl Facade {
     /// # Return
     /// * `Vec<String>` - Vector of all SAID references
     /// TODO should take SAID not string
-    pub fn get_all_references(&self, said: SelfAddressingIdentifier) -> Vec<SelfAddressingIdentifier> {
+    fn get_all_references(&self, said: SelfAddressingIdentifier) -> Vec<SelfAddressingIdentifier> {
         // TODO
         let bundle = self.get_oca_bundle(said, false).unwrap().last().unwrap().clone();
 
@@ -323,8 +323,8 @@ impl Facade {
       Ok(oca_bundles)
     }
 
-    pub fn get_oca_bundle_steps(&self, said: String) -> Result<Vec<OCABuildStep>, Vec<String>> {
-        let mut said = said;
+    pub fn get_oca_bundle_steps(&self, said: SelfAddressingIdentifier) -> Result<Vec<OCABuildStep>, Vec<String>> {
+        let mut said = said.to_string();
         #[allow(clippy::borrowed_box)]
         fn extract_operation(db: &Box<dyn DataStorage>, said: &String) -> Result<(String, oca_ast::ast::Command), Vec<String>> {
             let r = db.get(Namespace::OCA, &format!("oca.{}.operation", said))
@@ -370,7 +370,7 @@ impl Facade {
 
     /// Retrive the ocafile for a given said
     /// If dereference is true, all local references will be dereferenced to SAID
-    pub fn get_oca_bundle_ocafile(&self, said: String, dereference: bool) -> Result<String, Vec<String>> {
+    pub fn get_oca_bundle_ocafile(&self, said: SelfAddressingIdentifier, dereference: bool) -> Result<String, Vec<String>> {
         let oca_bundle_steps = self.get_oca_bundle_steps(said)?;
         let mut oca_ast = OCAAst::new();
         for step in oca_bundle_steps {
@@ -394,7 +394,7 @@ impl Facade {
 
     /// Retrive steps (AST representation) for a given said
     ///
-    pub fn get_oca_bundle_ast(&self, said: String) -> Result<OCAAst, Vec<String>> {
+    pub fn get_oca_bundle_ast(&self, said: SelfAddressingIdentifier) -> Result<OCAAst, Vec<String>> {
         let oca_bundle_steps = self.get_oca_bundle_steps(said)?;
         let mut oca_ast = OCAAst::new();
         for step in oca_bundle_steps {
