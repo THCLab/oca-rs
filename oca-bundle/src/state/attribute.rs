@@ -107,9 +107,7 @@ impl Attribute {
                 self.entry_codes = other.entry_codes.clone();
             }
 
-            if self.entries.is_none() {
-                self.entries = other.entries.clone();
-            }
+            self.merge_entries(other);
 
             if self.entry_codes_mapping.is_none() {
                 self.entry_codes_mapping = other.entry_codes_mapping.clone();
@@ -135,6 +133,19 @@ impl Attribute {
                 self.standards = other.standards.clone();
             }
 
+        }
+    }
+
+    fn merge_entries(&mut self, other: &Attribute) {
+        if self.entries.is_none() {
+            self.entries = other.entries.clone();
+        } else if let Some(entries) = &other.entries {
+            for (lang, entry) in entries {
+                self.entries
+                    .as_mut()
+                    .unwrap()
+                    .insert(*lang, entry.clone());
+            }
         }
     }
 

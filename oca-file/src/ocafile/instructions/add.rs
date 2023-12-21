@@ -183,4 +183,57 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_add_overlay_instructions() {
+        let instructions = vec![
+            ("ADD ENTRY_CODE ATTRS radio=[\"o1\",\"o2\", \"o3\"]", true),
+        ];
+
+        let _ = env_logger::builder().is_test(true).try_init();
+
+        for (instruction, is_valid) in instructions {
+            debug!("Instruction: {:?}", instruction);
+            let parsed_instruction = OCAfileParser::parse(Rule::add, instruction);
+            debug!("Parsed instruction: {:?}", parsed_instruction);
+
+            match parsed_instruction {
+                Ok(mut parsed_instruction) => {
+                    let instruction = parsed_instruction.next();
+                    assert!(instruction.is_some());
+                    match instruction {
+                        Some(instruction) => {
+                            let instruction = AddInstruction::from_record(instruction, 0).unwrap();
+                            println!("Instruction: {:?}", instruction);
+
+                            assert_eq!(instruction.kind, CommandType::Add);
+                            match instruction.object_kind {
+                                ObjectKind::Overlay(overlay_type, content) => {
+                                    assert_eq!(overlay_type, OverlayType::EntryCode);
+                                    let attr_array = NestedValue::Array(vec![
+                                            NestedValue::Value("o1".to_string()),
+                                            NestedValue::Value("o2".to_string()),
+                                            NestedValue::Value("o3".to_string())
+                                    ]);
+
+                                    assert_eq!(content.attributes.unwrap().get("radio").unwrap(), &attr_array);
+                                }
+                                _ => {
+                                    assert!(!is_valid, "Instruction is not valid");
+                                }
+                            }
+                        }
+                        None => {
+                            assert!(!is_valid, "Instruction is not valid");
+                        }
+                    }
+                }
+                Err(e) => {
+                    assert!(!is_valid, "Instruction should be invalid");
+                    println!("Error: {:?}", e);
+                }
+            }
+        }
+
+    }
 }

@@ -57,6 +57,10 @@ pages:
         ..set_label(isolang::Language::Eng, "Name".to_string());
         ..set_information(isolang::Language::Eng, "name information".to_string());
         ..set_entry_codes(EntryCodesValue::Array(vec!["a".to_string(), "b".to_string()]));
+        ..set_entry(isolang::Language::Pol, EntriesElement::Object(hashmap! {
+            "a".to_string() => "Opcja A".to_string(),
+            "b".to_string() => "Opcja B".to_string(),
+        }));
         ..set_entry(isolang::Language::Eng, EntriesElement::Object(hashmap! {
             "a".to_string() => "Option A".to_string(),
             "b".to_string() => "Option B".to_string(),
@@ -92,20 +96,21 @@ pages:
 
     let oca_bundle = oca.generate_bundle();
     assert_eq!(oca_bundle.said, oca.generate_bundle().said);
+    println!("{:#?}", oca_bundle);
 
     assert_eq!(oca_bundle.capture_base.attributes.len(), 2);
     assert_eq!(oca_bundle.capture_base.flagged_attributes.len(), 2);
 
     #[cfg(not(feature = "format_overlay"))]
-    assert_eq!(oca_bundle.overlays.len(), 10);
-    #[cfg(feature = "format_overlay")]
     assert_eq!(oca_bundle.overlays.len(), 11);
+    #[cfg(feature = "format_overlay")]
+    assert_eq!(oca_bundle.overlays.len(), 12);
 
     let serialized_bundle = serde_json::to_string_pretty(&oca_bundle).unwrap();
 
     let expected = if cfg!(feature = "format_overlay") {
 r#"{
-  "d": "EP3_9m8B2BqPXrF2i0_01zsvjsuMr8SQOuua32KT1RO-",
+  "d": "EDsnRN7SgxuXLDren6zKnLoivAF3Zn6jAWCI8IKyztx0",
   "capture_base": {
     "d": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
     "type": "spec/capture_base/1.0",
@@ -227,6 +232,18 @@ r#"{
             "b": "Option B"
           }
         }
+      },
+      {
+        "d": "EO-aHJSL_9gya59Am-qUPkZtWEqCBIHmXD2Nrtek3rd4",
+        "language": "pol",
+        "type": "spec/overlays/entry/1.0",
+        "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
+        "attribute_entries": {
+          "name": {
+            "a": "Opcja A",
+            "b": "Opcja B"
+          }
+        }
       }
     ],
     "cardinality": {
@@ -253,7 +270,7 @@ r#"{
     } else {
 
 r#"{
-  "d": "EP0kXbXniRBITVqKmHihZZ5F7Ryb8_17qDfSUyoAoaCX",
+  "d": "EFPeNUp47pVfrMoi_ioFV4dH63qQOWQGt5lM5EFted0c",
   "capture_base": {
     "d": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
     "type": "spec/capture_base/1.0",
@@ -364,6 +381,18 @@ r#"{
           "name": {
             "a": "Option A",
             "b": "Option B"
+          }
+        }
+      },
+      {
+        "d": "EO-aHJSL_9gya59Am-qUPkZtWEqCBIHmXD2Nrtek3rd4",
+        "language": "pol",
+        "type": "spec/overlays/entry/1.0",
+        "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
+        "attribute_entries": {
+          "name": {
+            "a": "Opcja A",
+            "b": "Opcja B"
           }
         }
       }
