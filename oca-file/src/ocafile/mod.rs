@@ -401,10 +401,13 @@ mod tests {
 
     #[test]
     fn parse_from_string_valid() {
+
+        let _ = env_logger::builder().is_test(true).try_init();
+
         let unparsed_file = r#"
 -- version=0.0.1
 -- name=プラスウルトラ
-ADD ATTRIBUTE name=Text age=Numeric
+ADD ATTRIBUTE name=Text age=Numeric car=Object({vin=Text, model=Text, year=Numeric})
 ADD ATTRIBUTE d=Text i=Text passed=Boolean
 ADD META en PROPS description="Entrance credential" name="Entrance credential"
 ADD CHARACTER_ENCODING ATTRS d="utf-8" i="utf-8" passed="utf-8"
