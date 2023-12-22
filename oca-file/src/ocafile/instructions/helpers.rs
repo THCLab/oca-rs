@@ -17,6 +17,17 @@ pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType
                 attr_name = item.as_str().to_string();
                 debug!("Extracting attribute key {:?}", attr_name);
             },
+            Rule::object_attr_type => {
+                // TODO hack to make it work for ARRAY needs to be solved properly
+                debug!("Matching object attribute type from rule: {:?}", item);
+                let mut entries = IndexMap::new();
+                // TODO recurently parse nested objects
+                // Currently extract_attribute_type fn does not handle nested objects,
+                // ita always overwrites the attr
+                let (entry_key, entry_value) = extract_attribute_type(item).unwrap();
+                entries.insert(entry_key, entry_value);
+                attr_type = NestedAttrType::Object(entries);
+            },
             Rule::_attr_type => {
                 debug!("Attribute type to parse: {:?}", item);
                 if let Some(attr_type_rule) = item.clone().into_inner().next() {
@@ -44,13 +55,39 @@ pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType
                         }
                         Rule::array_attr_type => {
                             debug!("Matching array attribute type from rule: {:?}", attr_type_rule);
-                            if let Some(value) = attr_type_rule.clone().into_inner().next() {
-                                match AttributeType::from_str(value.as_span().as_str()) {
-                                    Ok(base_attr_type) => {
-                                        attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Value(base_attr_type)));
+                            // TODO hack: First try basic type if doesn not work try to extract next level.
+                            for temp_attr_type in attr_type_rule.clone().into_inner() {
+                                match temp_attr_type.as_rule() {
+                                    Rule::base_attr_type => {
+                                        match AttributeType::from_str(temp_attr_type.as_span().as_str()) {
+                                            Ok(base_attr_type) => {
+                                                debug!("Attribute type: {:?}", base_attr_type);
+                                                attr_type = NestedAttrType::Value(base_attr_type);
+                                            }
+                                            Err(e) => {
+                                                panic!("Invalid attribute type {:?}", e);
+                                            }
+                                        }
                                     }
-                                    Err(e) => {
-                                        panic!("Invalid attribute type {:?}", e);
+                                    _ => {
+                                        if let Some((_, inner_type)) = extract_attribute_type(temp_attr_type.clone()) {
+                                            // TODO recursion needed
+                                            match inner_type {
+                                                NestedAttrType::Value(base_attr_type) => {
+                                                    attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Value(base_attr_type)));
+                                                }
+                                                NestedAttrType::Reference(ref_value) => {
+                                                    attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Reference(ref_value)));
+                                                }
+                                                NestedAttrType::Object(entries) => {
+                                                    attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Object(entries)));
+                                                }
+                                                NestedAttrType::Array(box_attr_type) => {
+                                                    attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Array(box_attr_type)));
+                                                },
+                                                NestedAttrType::Null => todo!(),
+                                            }
+                                        }
                                     }
                                 }
                             }
