@@ -73,8 +73,18 @@ pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType
                                 }
                             }
                         }
+                        Rule::object_attr_type => {
+                            debug!("Matching object attribute type from rule: {:?}", attr_type_rule);
+                            let mut entries = IndexMap::new();
+                            // TODO recurently parse nested objects
+                            // Currently extract_attribute_type fn does not handle nested objects,
+                            // ita always overwrites the attr
+                            let (entry_key, entry_value) = extract_attribute_type(attr_type_rule).unwrap();
+                            entries.insert(entry_key, entry_value);
+                            attr_type = NestedAttrType::Object(entries);
+                        }
                         _ => {
-                            panic!("Matching referance didn't worked");
+                            panic!("Matching attr type didn't worked");
                         }
                     }
                 }
