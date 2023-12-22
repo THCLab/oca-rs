@@ -180,7 +180,7 @@ remove_attribute = { ^"attribute" ~ (arg_ws ~ attr_key)* }
 remove_meta = { ^"meta" ~ arg_ws ~ lang ~ (arg_ws ~ props_key ~ prop_key+)? }
 remove_label = { ^"label" ~ arg_ws ~ lang ~ (arg_ws ~ attrs_key ~ attr_key+)? }
 
-attr_key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
+attr_key = ${ (ASCII_ALPHANUMERIC | "-" | "_" | ".")+ }
 prop_key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 key_value = ${ string | char+}
 key_pair = @{ attr_key ~ "=" ~ key_value }
