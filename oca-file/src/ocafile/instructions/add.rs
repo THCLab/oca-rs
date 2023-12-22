@@ -29,7 +29,6 @@ impl AddInstruction {
                                     {
                                         info!("Parsed attribute: {:?} = {:?}", key, value);
 
-                                        // TODO find out how to parse nested objects
                                         attributes.insert(key, value);
                                     } else {
                                         debug!("Attribute skipped");

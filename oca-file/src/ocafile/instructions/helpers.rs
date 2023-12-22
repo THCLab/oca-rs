@@ -2,9 +2,66 @@ use std::str::FromStr;
 
 use indexmap::IndexMap;
 use log::debug;
-use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, Content, RefValue};
+use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, Content, RefValue, attributes::NestedAttrTypeFrame};
+use recursion::ExpandableExt;
 use said::SelfAddressingIdentifier;
 use crate::ocafile::{Pair, Rule};
+
+fn extract(input: Pair) -> NestedAttrType {
+    NestedAttrType::expand_frames(input, |seed| {
+        match seed.as_rule() {
+            Rule::_attr_type => {
+                let mut inner = seed.into_inner();
+                let inner_pair = inner.next().unwrap();
+                match inner_pair.as_rule() {
+                    Rule::base_attr_type => {
+                        let attr_type = AttributeType::from_str(inner_pair.as_span().as_str()).unwrap();
+                        NestedAttrTypeFrame::Value(attr_type)
+                    },
+                    Rule::object_attr_type => {
+                        NestedAttrTypeFrame::Object(extract_object(inner_pair))
+                    },
+                    Rule::array_attr_type => {
+                        NestedAttrTypeFrame::Array(inner_pair.into_inner().next().unwrap())
+                    },
+                    _ => todo!()
+
+                }
+            },
+            Rule::base_attr_type => {
+                let attr_type = AttributeType::from_str(seed.as_span().as_str()).unwrap();
+                NestedAttrTypeFrame::Value(attr_type)
+            },
+            Rule::reference => {
+                NestedAttrTypeFrame::Reference(oca_ast::ast::RefValue::Name(seed.as_str().to_string()))
+            },
+            Rule::said => {
+                let said = SelfAddressingIdentifier::from_str(seed.as_str()).unwrap();
+                NestedAttrTypeFrame::Reference(RefValue::Said(said))
+            },
+            Rule::object_attr_type => {
+                NestedAttrTypeFrame::Object(extract_object(seed))
+            },
+            Rule::array_attr_type => {
+                NestedAttrTypeFrame::Array(seed)
+            },
+            r => {
+                panic!("Matching attr type didn't work. Unhandled Rule type: {:?}", r);
+            }
+        }
+    })
+}
+
+fn extract_object(input_pair: Pair) -> IndexMap<String, Pair> {
+    let mut object_fields = input_pair.into_inner();
+    let mut idmap = IndexMap::new();
+    while let Some(field) = object_fields.next() {
+        let key = field.as_span().as_str().to_owned();
+        let value = object_fields.next().unwrap();
+        idmap.insert(key, value);
+    };
+    idmap
+}
 
 pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType)> {
     let mut attr_name = String::new();
@@ -14,120 +71,12 @@ pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType
     for item in attr_pair.into_inner() {
         match item.as_rule() {
             Rule::attr_key => {
-                attr_name = item.as_str().to_string();
                 debug!("Extracting attribute key {:?}", attr_name);
-            },
-            Rule::object_attr_type => {
-                // TODO hack to make it work for ARRAY needs to be solved properly
-                debug!("Matching object attribute type from rule: {:?}", item);
-                let mut entries = IndexMap::new();
-                // TODO recurently parse nested objects
-                // Currently extract_attribute_type fn does not handle nested objects,
-                // ita always overwrites the attr
-                let (entry_key, entry_value) = extract_attribute_type(item).unwrap();
-                entries.insert(entry_key, entry_value);
-                attr_type = NestedAttrType::Object(entries);
-            },
-            Rule::_attr_type => {
-                debug!("Attribute type to parse: {:?}", item);
-                if let Some(attr_type_rule) = item.clone().into_inner().next() {
-                    match attr_type_rule.as_rule() {
-                        Rule::reference => {
-                            debug!("Matching referance {:?}", attr_type_rule);
-                            attr_type = NestedAttrType::Reference(oca_ast::ast::RefValue::Name(attr_type_rule.as_str().to_string()));
-                        },
-                        Rule::said => {
-                            debug!("Matching said reference: {:?}", attr_type_rule);
-                            let said = SelfAddressingIdentifier::from_str(attr_type_rule.as_str()).unwrap();
-                            attr_type = NestedAttrType::Reference(RefValue::Said(said));
-                        }
-                        Rule::base_attr_type => {
-                            debug!("Matching basic attribute type from rule: {}", attr_type_rule);
-                            match AttributeType::from_str(attr_type_rule.as_span().as_str()) {
-                                Ok(base_attr_type) => {
-                                    debug!("Attribute type: {:?}", base_attr_type);
-                                    attr_type = NestedAttrType::Value(base_attr_type);
-                                }
-                                Err(e) => {
-                                    panic!("Invalid attribute type {:?}", e);
-                                }
-                            }
-                        }
-                        Rule::array_attr_type => {
-                            debug!("Matching array attribute type from rule: {:?}", attr_type_rule);
-                            // TODO hack: First try basic type if doesn not work try to extract next level.
-                            for temp_attr_type in attr_type_rule.clone().into_inner() {
-                                match temp_attr_type.as_rule() {
-                                    Rule::base_attr_type => {
-                                        match AttributeType::from_str(temp_attr_type.as_span().as_str()) {
-                                            Ok(base_attr_type) => {
-                                                debug!("Attribute type: {:?}", base_attr_type);
-                                                attr_type = NestedAttrType::Value(base_attr_type);
-                                            }
-                                            Err(e) => {
-                                                panic!("Invalid attribute type {:?}", e);
-                                            }
-                                        }
-                                    }
-                                    _ => {
-                                        if let Some((_, inner_type)) = extract_attribute_type(temp_attr_type.clone()) {
-                                            // TODO recursion needed
-                                            match inner_type {
-                                                NestedAttrType::Value(base_attr_type) => {
-                                                    attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Value(base_attr_type)));
-                                                }
-                                                NestedAttrType::Reference(ref_value) => {
-                                                    attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Reference(ref_value)));
-                                                }
-                                                NestedAttrType::Object(entries) => {
-                                                    attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Object(entries)));
-                                                }
-                                                NestedAttrType::Array(box_attr_type) => {
-                                                    attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Array(box_attr_type)));
-                                                },
-                                                NestedAttrType::Null => todo!(),
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                        }
-                        Rule::ref_array => {
-                            debug!("Matching reference array type from rule: {:?}", attr_type_rule);
-                            if let Some(value) = attr_type_rule.clone().into_inner().next() {
-                                match value.as_rule() {
-                                    Rule::reference => {
-                                        attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Reference(oca_ast::ast::RefValue::Name(value.as_str().to_string()))));
-                                    },
-                                    Rule::said => {
-                                        let said = SelfAddressingIdentifier::from_str(value.as_str()).unwrap(); // TODO
-                                        attr_type = NestedAttrType::Array(Box::new(NestedAttrType::Reference(RefValue::Said(said))));
-                                    },
-                                    _ => {
-                                        panic!("Invalid reference array value in {:?}", value.as_rule());
-                                    }
-                                }
-                            }
-                        }
-                        Rule::object_attr_type => {
-                            debug!("Matching object attribute type from rule: {:?}", attr_type_rule);
-                            let mut entries = IndexMap::new();
-                            // TODO recurently parse nested objects
-                            // Currently extract_attribute_type fn does not handle nested objects,
-                            // ita always overwrites the attr
-                            let (entry_key, entry_value) = extract_attribute_type(attr_type_rule).unwrap();
-                            entries.insert(entry_key, entry_value);
-                            attr_type = NestedAttrType::Object(entries);
-                        }
-                        _ => {
-                            panic!("Matching attr type didn't worked");
-                        }
-                    }
-                }
+                attr_name = item.as_str().to_string();
             },
             _ => {
-                panic!("Invalid attribute in {:?}", item.as_rule());
+                debug!("Attribute type to parse: {:?}", item);
+                attr_type = extract(item);
             }
         }
     }

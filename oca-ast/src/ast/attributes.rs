@@ -22,11 +22,11 @@ use super::{AttributeType, RefValue};
 /// Object: can be inline object which can have nested attributes types
 /// Array: is an array of specific type (only one type allowed)
 pub enum NestedAttrType {
-    #[serde(serialize_with = "array_serializer")]
-    Array(Box<NestedAttrType>),
     Reference(RefValue),
     Value(AttributeType),
     Object(IndexMap<String, NestedAttrType>),
+    #[serde(serialize_with = "array_serializer")]
+    Array(Box<NestedAttrType>),
     /// Indicator that attribute was removed and does not need any type
     Null,
 }

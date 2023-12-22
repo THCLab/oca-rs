@@ -939,8 +939,6 @@ impl<'de> Deserialize<'de> for ObjectKind {
 
 #[cfg(test)]
 mod tests {
-    use log::debug;
-
     use super::*;
 
     #[test]
