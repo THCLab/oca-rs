@@ -166,11 +166,11 @@ fn oca_file_format(nested: NestedAttrType) -> String {
             format!("{}", value)
         }
         NestedAttrTypeFrame::Object(obj) => {
-            let start = "Object {".to_string();
-            let end = "}".to_string();
+            let start = "Object({".to_string();
+            let end = "})".to_string();
             let inner_data = obj
                 .into_iter()
-                .map(|(obj_key, obj_value)| format!(" {}={}", obj_key, obj_value));
+                .map(|(obj_key, obj_value)| format!("{}={}", obj_key, obj_value));
             let out = inner_data.collect::<Vec<_>>().join(", ");
             vec![start, out, end].join("")
         }
@@ -461,7 +461,7 @@ ADD ENTRY pl ATTRS radio={"o1": "etykieta1", "o2": "etykieta2", "o3": "etykieta3
     }
 
     #[test]
-    fn test_deserialization_ast_to_ocafile_attributes() {
+    fn test_attributes_from_ast_to_ocafile() {
         let unparsed_file = r#"ADD ATTRIBUTE name=Text age=Numeric
 ADD ATTRIBUTE list=Array[Text] el=Text
 "#;
@@ -474,6 +474,24 @@ ADD ATTRIBUTE list=Array[Text] el=Text
             ocafile, unparsed_file
         );
     }
+
+    #[test]
+    fn test_nested_attributes_from_ocafile_to_ast() {
+        let unparsed_file = 
+r#"ADD ATTRIBUTE name=Text age=Numeric car=Object({vin=Text, model=Text, year=Numeric})
+ADD ATTRIBUTE incidentals_spare_parts=Array[Object({part_number=Text, description=Text, unit=Text, quantity=Numeric})]
+"#;
+        let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
+
+        let ocafile = generate_from_ast(&oca_ast);
+        assert_eq!(
+            ocafile, unparsed_file,
+            "left:\n{} \n right:\n {}",
+            ocafile, unparsed_file
+        );
+
+    }
+
 
     #[test]
     fn test_oca_file_format() {
@@ -496,7 +514,6 @@ ADD ATTRIBUTE list=Array[Text] el=Text
         let attr = NestedAttrType::Array(Box::new(NestedAttrType::Object(object_example)));
 
         let out = oca_file_format(attr);
-        assert_eq!(out, "Array[Object { name=Text,  age=Numeric,  data=refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu}]");
-        println!("{}", out);
+        assert_eq!(out, "Array[Object({name=Text, age=Numeric, data=refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu})]");
     }
 }
