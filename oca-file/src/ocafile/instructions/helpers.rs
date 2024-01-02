@@ -7,9 +7,27 @@ use recursion::ExpandableExt;
 use said::SelfAddressingIdentifier;
 use crate::ocafile::{Pair, Rule};
 
-fn extract(input: Pair) -> NestedAttrType {
+fn extract_attr_type(input: Pair) -> NestedAttrType {
     NestedAttrType::expand_frames(input, |seed| {
         match seed.as_rule() {
+            Rule::array_attr_type => {
+                NestedAttrTypeFrame::Array(seed.into_inner().next().unwrap())
+            },
+            Rule::alias => {
+                NestedAttrTypeFrame::Reference(oca_ast::ast::RefValue::Name(seed.as_str().to_string()))
+            },
+            Rule::said => {
+                let said = SelfAddressingIdentifier::from_str(seed.as_str()).unwrap();
+                NestedAttrTypeFrame::Reference(RefValue::Said(said))
+            },
+
+            Rule::base_attr_type => {
+                let attr_type = AttributeType::from_str(seed.as_span().as_str()).unwrap();
+                NestedAttrTypeFrame::Value(attr_type)
+            },
+            Rule::object_attr_type => {
+                NestedAttrTypeFrame::Object(extract_object(seed))
+            },
             Rule::_attr_type => {
                 let mut inner = seed.into_inner();
                 let inner_pair = inner.next().unwrap();
@@ -27,23 +45,6 @@ fn extract(input: Pair) -> NestedAttrType {
                     _ => todo!()
 
                 }
-            },
-            Rule::base_attr_type => {
-                let attr_type = AttributeType::from_str(seed.as_span().as_str()).unwrap();
-                NestedAttrTypeFrame::Value(attr_type)
-            },
-            Rule::reference => {
-                NestedAttrTypeFrame::Reference(oca_ast::ast::RefValue::Name(seed.as_str().to_string()))
-            },
-            Rule::said => {
-                let said = SelfAddressingIdentifier::from_str(seed.as_str()).unwrap();
-                NestedAttrTypeFrame::Reference(RefValue::Said(said))
-            },
-            Rule::object_attr_type => {
-                NestedAttrTypeFrame::Object(extract_object(seed))
-            },
-            Rule::array_attr_type => {
-                NestedAttrTypeFrame::Array(seed)
             },
             r => {
                 panic!("Matching attr type didn't work. Unhandled Rule type: {:?}", r);
@@ -63,7 +64,7 @@ fn extract_object(input_pair: Pair) -> IndexMap<String, Pair> {
     idmap
 }
 
-pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType)> {
+pub fn extract_attribute(attr_pair: Pair) -> Option<(String, NestedAttrType)> {
     let mut attr_name = String::new();
     let mut attr_type = NestedAttrType::Value(AttributeType::Text);
 
@@ -74,9 +75,14 @@ pub fn extract_attribute_type(attr_pair: Pair) -> Option<(String, NestedAttrType
                 debug!("Extracting attribute key {:?}", attr_name);
                 attr_name = item.as_str().to_string();
             },
-            _ => {
+            Rule::_attr_type => {
                 debug!("Attribute type to parse: {:?}", item);
-                attr_type = extract(item);
+                let mut inner = item.into_inner();
+                let inner_pair = inner.next().unwrap();
+                attr_type = extract_attr_type(inner_pair);
+            }
+            _ => {
+                panic!("Invalid attribute in {:?}", item.as_rule());
             }
         }
     }

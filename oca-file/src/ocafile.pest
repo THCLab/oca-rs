@@ -212,16 +212,15 @@ base_attr_type = @{ ("Text" |
 object_attr_type = @{( "Object("~ arg_ws? ~ "{" ~ arg_ws? ~ (attr_key ~ "=" ~ _attr_type ~ ("," ~ arg_ws_maybe)?)+ ~ arg_ws_maybe ~ "})")}
 
 // TODO find out if we could have just array and then types
-array_attr_type = ${( "Array["~ (base_attr_type | object_attr_type) ~"]" )}
-ref_array = ${ "Array[" ~ reference_type ~ "]"}
-reference_type = _{ ref_said | ref_name }
-reference = @{ char+ }
+array_attr_type = ${( "Array["~ (base_attr_type | object_attr_type | reference_type ) ~"]" )}
+reference_type = _{ ref_said | ref_alias }
+alias = @{ char+ }
 said = @{ char+ }
 refs = _{^"refs:"}
 refn = _{^"refn:"}
 ref_said = _{ refs ~ said}
-ref_name = _{ refn ~ reference }
-_attr_type = ${ base_attr_type | array_attr_type | ref_said | ref_name | ref_array | object_attr_type }
+ref_alias = _{ refn ~ alias }
+_attr_type = ${ base_attr_type | array_attr_type | ref_said | ref_alias | object_attr_type }
 attr_pair = @{attr_key ~ "=" ~ _attr_type}
 attr_pairs = ${ (arg_ws ~ attr_pair)+}
 

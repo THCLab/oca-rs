@@ -25,7 +25,7 @@ impl AddInstruction {
                                 for attr in attr_pairs.into_inner() {
                                     debug!("Parsing attribute pair {:?}", attr);
                                     if let Some((key, value)) =
-                                        helpers::extract_attribute_type(attr)
+                                        helpers::extract_attribute(attr)
                                     {
                                         info!("Parsed attribute: {:?} = {:?}", key, value);
 
