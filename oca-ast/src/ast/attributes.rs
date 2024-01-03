@@ -12,7 +12,7 @@ use serde::{
 use wasm_bindgen::JsValue;
 use std::hash::Hash;
 
-use super::{AttributeType, RefValue};
+use super::{AttributeType, RefValue, error::AttributeError, nested_result::{NestedResult, NestedResultFrame}};
 
 #[derive(Debug, PartialEq, Clone, Eq, Serialize)]
 #[serde(untagged)]
@@ -147,12 +147,12 @@ impl<'de> Deserialize<'de> for NestedAttrType {
     {
         let input: serde_json::Value = serde_json::Value::deserialize(deserializer)?;
 
-        let expanded = NestedAttrType::expand_frames(input, |seed| match seed {
+        let expanded = NestedResult::expand_frames(input, |seed| match seed {
             serde_json::Value::String(text) => match text.parse::<RefValue>() {
-                Ok(ref_value) => NestedAttrTypeFrame::Reference(ref_value),
+                Ok(ref_value) => NestedResultFrame(Ok(NestedAttrTypeFrame::Reference(ref_value))),
                 Err(_) => match text.parse::<AttributeType>() {
-                    Ok(attribute_type) => NestedAttrTypeFrame::Value(attribute_type),
-                    Err(_) => todo!(),
+                    Ok(attribute_type) => NestedResultFrame(Ok(NestedAttrTypeFrame::Value(attribute_type))),
+                    Err(_) => NestedResultFrame(Err(AttributeError::General(format!("Can't parse attribute type: {}", text)))),
                 },
             },
             serde_json::Value::Object(obj) => {
@@ -160,12 +160,15 @@ impl<'de> Deserialize<'de> for NestedAttrType {
                 for (key, value) in obj {
                     idx_map.insert(key, value);
                 }
-                NestedAttrTypeFrame::Object(idx_map)
+                NestedResultFrame(Ok(NestedAttrTypeFrame::Object(idx_map)))
             }
-            serde_json::Value::Array(arr) => NestedAttrTypeFrame::Array(arr[0].clone()),
-            _ => todo!(),
+            serde_json::Value::Array(arr) => NestedResultFrame(Ok(NestedAttrTypeFrame::Array(arr[0].clone()))),
+            e => NestedResultFrame(Err(AttributeError::General(format!("Unexpected json value: {}", e.to_string())))),
         });
-        Ok(expanded)
+        match expanded.0 {
+            Ok(el) => Ok(el),
+            Err(er) => Err(er).map_err(serde::de::Error::custom),
+        }
     }
 }
 
@@ -228,6 +231,12 @@ mod tests {
             NestedAttrType::Array(Box::new(NestedAttrType::Value(AttributeType::Numeric))),
             deser
         );
+
+        let wrong_type = r#"["Wrong"]"#;
+        let deser = serde_json::from_str::<NestedAttrType>(&wrong_type);
+        println!("{:?}", deser);
+        assert!(deser.is_err());
+
 
         let serialized = r#"["refs:EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"]"#;
         let expected = NestedAttrType::Array(Box::new(NestedAttrType::Reference(RefValue::Said(
