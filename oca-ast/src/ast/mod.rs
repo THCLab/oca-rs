@@ -13,6 +13,8 @@ use wasm_bindgen::prelude::*;
 pub use self::attributes::NestedAttrType;
 
 pub mod attributes;
+pub mod error;
+pub mod nested_result;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct OCAAst {
