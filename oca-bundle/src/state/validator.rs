@@ -238,6 +238,7 @@ impl Validator {
                             AttributeType::Boolean => "true".to_string(),
                         }
                     }
+                    // TODO validate nested objects
                     NestedAttrType::Array(boxed_type) =>  {
                         match **boxed_type {
                             NestedAttrType::Value(base_type) => match base_type {
@@ -249,9 +250,6 @@ impl Validator {
                             },
                             _ => panic!("Invalid or not supported array type"),
                         }
-                    },
-                    NestedAttrType::Object(_) => {
-                        panic!("Invalid or not supported object type")
                     },
                     NestedAttrType::Reference(ref_value) => {
                         ref_value.to_string()

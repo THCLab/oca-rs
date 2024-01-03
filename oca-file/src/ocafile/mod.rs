@@ -165,15 +165,7 @@ fn oca_file_format(nested: NestedAttrType) -> String {
         NestedAttrTypeFrame::Value(value) => {
             format!("{}", value)
         }
-        NestedAttrTypeFrame::Object(obj) => {
-            let start = "Object({".to_string();
-            let end = "})".to_string();
-            let inner_data = obj
-                .into_iter()
-                .map(|(obj_key, obj_value)| format!("{}={}", obj_key, obj_value));
-            let out = inner_data.collect::<Vec<_>>().join(", ");
-            vec![start, out, end].join("")
-        }
+        // TODO how to convert nested arrays?
         NestedAttrTypeFrame::Array(arr) => {
             format!("Array[{}]", arr)
         }
@@ -411,8 +403,8 @@ mod tests {
         let unparsed_file = r#"
 -- version=0.0.1
 -- name=プラスウルトラ
-ADD ATTRIBUTE name=Text age=Numeric car=Object({vin=Text, model=Text, year=Numeric})
-ADD ATTRIBUTE incidentals_spare_parts=Array[Object({part_number=Text, description=Text, unit=Text, quantity=Numeric})]
+ADD ATTRIBUTE name=Text age=Numeric car=Array[refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu]
+ADD ATTRIBUTE incidentals_spare_parts=Array[Array[refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu]]
 ADD ATTRIBUTE d=Text i=Text passed=Boolean
 ADD META en PROPS description="Entrance credential" name="Entrance credential"
 ADD CHARACTER_ENCODING ATTRS d="utf-8" i="utf-8" passed="utf-8"
@@ -482,8 +474,8 @@ ADD ATTRIBUTE list=Array[Text] el=Text
     #[test]
     fn test_nested_attributes_from_ocafile_to_ast() {
         let unparsed_file =
-r#"ADD ATTRIBUTE name=Text age=Numeric car=Object({vin=Text, model=Text, year=Numeric})
-ADD ATTRIBUTE incidentals_spare_parts=Array[Object({part_number=Text, description=Text, unit=Text, quantity=Numeric})]
+r#"ADD ATTRIBUTE name=Text age=Numeric car=Array[Array[Text]]
+ADD ATTRIBUTE incidentals_spare_parts=Array[refs:EJVVlVSZJqVNnuAMLHLkeSQgwfxYLWTKBELi9e8j1PW0]
 "#;
         let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
 
@@ -499,25 +491,15 @@ ADD ATTRIBUTE incidentals_spare_parts=Array[Object({part_number=Text, descriptio
 
     #[test]
     fn test_oca_file_format() {
-        let mut object_example = IndexMap::new();
-        object_example.insert(
-            "name".to_string(),
-            NestedAttrType::Value(AttributeType::Text),
-        );
-        object_example.insert(
-            "age".to_string(),
-            NestedAttrType::Value(AttributeType::Numeric),
-        );
-        object_example.insert(
-            "data".to_string(),
-            NestedAttrType::Reference(RefValue::Said(
+        let text_type = NestedAttrType::Value(AttributeType::Text);
+        let numeric_type = NestedAttrType::Value(AttributeType::Numeric);
+        let ref_type = NestedAttrType::Reference(RefValue::Said(
                 HashFunction::from(HashFunctionCode::Blake3_256).derive("example".as_bytes()),
-            )),
-        );
+            ));
 
-        let attr = NestedAttrType::Array(Box::new(NestedAttrType::Object(object_example)));
+        let attr = NestedAttrType::Array(Box::new(NestedAttrType::Array(Box::new(ref_type))));
 
         let out = oca_file_format(attr);
-        assert_eq!(out, "Array[Object({name=Text, age=Numeric, data=refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu})]");
+        assert_eq!(out, "Array[Array[refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu]]");
     }
 }
