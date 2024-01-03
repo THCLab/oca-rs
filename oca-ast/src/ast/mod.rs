@@ -14,7 +14,7 @@ pub use self::attributes::NestedAttrType;
 
 pub mod attributes;
 pub mod error;
-pub mod nested_result;
+pub mod recursive_attributes;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct OCAAst {
