@@ -1,4 +1,3 @@
-use indexmap::IndexMap;
 use recursion::{
     Collapsible, Expandable, ExpandableExt, MappableFrame, PartiallyApplied,
 };
@@ -25,7 +24,6 @@ use super::{AttributeType, RefValue, error::AttributeError, nested_result::{Nest
 pub enum NestedAttrType {
     Reference(RefValue),
     Value(AttributeType),
-    Object(IndexMap<String, NestedAttrType>),
     #[serde(serialize_with = "array_serializer")]
     Array(Box<NestedAttrType>),
     /// Indicator that attribute was removed and does not need any type
@@ -68,12 +66,6 @@ impl Hash for NestedAttrType {
             NestedAttrType::Value(attr_type) => {
                 attr_type.hash(state);
             }
-            NestedAttrType::Object(object) => {
-                for (key, value) in object {
-                    key.hash(state);
-                    value.hash(state);
-                }
-            }
             NestedAttrType::Array(array) => {
                 array.hash(state);
             }
@@ -87,7 +79,6 @@ impl Hash for NestedAttrType {
 pub enum NestedAttrTypeFrame<A> {
     Reference(RefValue),
     Value(AttributeType),
-    Object(IndexMap<String, A>),
     Array(A),
     Null,
 }
@@ -99,13 +90,6 @@ impl MappableFrame for NestedAttrTypeFrame<PartiallyApplied> {
         match input {
             NestedAttrTypeFrame::Reference(reference) => NestedAttrTypeFrame::Reference(reference),
             NestedAttrTypeFrame::Value(val) => NestedAttrTypeFrame::Value(val),
-            NestedAttrTypeFrame::Object(obj) => {
-                let obj = obj
-                    .into_iter()
-                    .map(|(key, value)| (key, f(value)))
-                    .collect();
-                NestedAttrTypeFrame::Object(obj)
-            }
             NestedAttrTypeFrame::Array(t) => NestedAttrTypeFrame::Array(f(t)),
             NestedAttrTypeFrame::Null => NestedAttrTypeFrame::Null,
         }
@@ -119,7 +103,6 @@ impl Expandable for NestedAttrType {
         match val {
             NestedAttrTypeFrame::Reference(reference) => NestedAttrType::Reference(reference),
             NestedAttrTypeFrame::Value(v) => NestedAttrType::Value(v),
-            NestedAttrTypeFrame::Object(obj) => NestedAttrType::Object(obj),
             NestedAttrTypeFrame::Array(arr) => NestedAttrType::Array(Box::new(arr)),
             NestedAttrTypeFrame::Null => NestedAttrType::Null,
         }
@@ -133,7 +116,6 @@ impl Collapsible for NestedAttrType {
         match self {
             NestedAttrType::Reference(reference) => NestedAttrTypeFrame::Reference(reference),
             NestedAttrType::Value(val) => NestedAttrTypeFrame::Value(val),
-            NestedAttrType::Object(obj) => NestedAttrTypeFrame::Object(obj),
             NestedAttrType::Array(arr) => NestedAttrTypeFrame::Array(*arr),
             NestedAttrType::Null => NestedAttrTypeFrame::Null,
         }
@@ -155,13 +137,6 @@ impl<'de> Deserialize<'de> for NestedAttrType {
                     Err(_) => NestedResultFrame(Err(AttributeError::General(format!("Can't parse attribute type: {}", text)))),
                 },
             },
-            serde_json::Value::Object(obj) => {
-                let mut idx_map = IndexMap::new();
-                for (key, value) in obj {
-                    idx_map.insert(key, value);
-                }
-                NestedResultFrame(Ok(NestedAttrTypeFrame::Object(idx_map)))
-            }
             serde_json::Value::Array(arr) => NestedResultFrame(Ok(NestedAttrTypeFrame::Array(arr[0].clone()))),
             e => NestedResultFrame(Err(AttributeError::General(format!("Unexpected json value: {}", e.to_string())))),
         });
@@ -174,43 +149,23 @@ impl<'de> Deserialize<'de> for NestedAttrType {
 
 #[cfg(test)]
 mod tests {
-    use indexmap::IndexMap;
     use said::derivation::{HashFunction, HashFunctionCode};
 
     use crate::ast::{AttributeType, NestedAttrType, RefValue};
 
 
     #[test]
-    fn test_nested_attribute_serialize() {
-        let mut object_example = IndexMap::new();
-        let mut person = IndexMap::new();
-        person.insert(
-            "name".to_string(),
-            NestedAttrType::Value(AttributeType::Text),
-        );
+    fn test_nested_array_attribute_type_serialization() {
 
-        let arr = NestedAttrType::Array(Box::new(NestedAttrType::Value(AttributeType::Boolean)));
-        object_example.insert("allowed".to_string(), arr);
-
-        object_example.insert(
-            "test".to_string(),
-            NestedAttrType::Value(AttributeType::Text),
-        );
-        object_example.insert("person".to_string(), NestedAttrType::Object(person));
+        let arr = NestedAttrType::Array(Box::new(NestedAttrType::Array(Box::new(NestedAttrType::Value(AttributeType::Boolean)))));
         let said = HashFunction::from(HashFunctionCode::Blake3_256).derive("fff".as_bytes());
-        object_example.insert(
-            "ref".to_string(),
-            NestedAttrType::Reference(RefValue::Said(said.clone())),
-        );
 
-        let attributes = NestedAttrType::Object(object_example);
-
-        let serialized = serde_json::to_string(&attributes).unwrap();
-        let expected = r#"{"allowed":["Boolean"],"test":"Text","person":{"name":"Text"},"ref":"refs:EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"}"#;
+        let serialized = serde_json::to_string(&arr).unwrap();
+        let expected = r#"[["Boolean"]]"#;
         assert_eq!(expected, serialized);
 
         let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
-        assert_eq!(attributes, deser);
+        assert_eq!(arr, deser);
 
         let attributes =
             NestedAttrType::Array(Box::new(NestedAttrType::Reference(RefValue::Said(said))));

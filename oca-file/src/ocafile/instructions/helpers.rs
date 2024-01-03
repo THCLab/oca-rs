@@ -25,25 +25,11 @@ fn extract_attr_type(input: Pair) -> NestedAttrType {
                 let attr_type = AttributeType::from_str(seed.as_span().as_str()).unwrap();
                 NestedAttrTypeFrame::Value(attr_type)
             },
-            Rule::object_attr_type => {
-                NestedAttrTypeFrame::Object(extract_object(seed))
-            },
             r => {
                 panic!("Matching attr type didn't work. Unhandled Rule type: {:?}", r);
             }
         }
     })
-}
-
-fn extract_object(input_pair: Pair) -> IndexMap<String, Pair> {
-    let mut object_fields = input_pair.into_inner();
-    let mut idmap = IndexMap::new();
-    while let Some(field) = object_fields.next() {
-        let key = field.as_span().as_str().to_owned();
-        let value = object_fields.next().unwrap();
-        idmap.insert(key, value);
-    };
-    idmap
 }
 
 pub fn extract_attribute(attr_pair: Pair) -> Option<(String, NestedAttrType)> {

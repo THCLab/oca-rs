@@ -947,11 +947,6 @@ mod tests {
     fn test_ocaast_serialize() {
         let mut attributes = IndexMap::new();
         let mut properties = IndexMap::new();
-        let mut person = IndexMap::new();
-        person.insert(
-            "name".to_string(),
-            NestedAttrType::Value(AttributeType::Text),
-        );
 
         let arr = NestedAttrType::Array(Box::new(NestedAttrType::Value(AttributeType::Boolean)));
         attributes.insert("allowed".to_string(), arr);
@@ -959,7 +954,6 @@ mod tests {
             "test".to_string(),
             NestedAttrType::Value(AttributeType::Text),
         );
-        attributes.insert("person".to_string(), NestedAttrType::Object(person));
         properties.insert("test".to_string(), NestedValue::Value("test".to_string()));
         let command = Command {
             kind: CommandType::Add,
@@ -987,7 +981,7 @@ mod tests {
         let serialized = serde_json::to_string(&ocaast).unwrap();
         assert_eq!(
             serialized,
-            r#"{"version":"1.0.0","commands":[{"type":"Add","object_kind":"CaptureBase","content":{"attributes":{"allowed":["Boolean"],"test":"Text","person":{"name":"Text"}},"properties":{"test":"test"}}},{"type":"Add","object_kind":"Label","content":{}}],"commands_meta":{},"meta":{}}"# // r#"{"version":"1.0.0","commands":[{"type":"Add","object_kind":"CaptureBase","content":{"attributes":{"test":"Text","person":{"name":"Text"}},"properties":{"test":"test"}}},{"type":"Add","object_kind":"Label","content":{}}],"commands_meta":{},"meta":{}}"#
+            r#"{"version":"1.0.0","commands":[{"type":"Add","object_kind":"CaptureBase","content":{"attributes":{"allowed":["Boolean"],"test":"Text"},"properties":{"test":"test"}}},{"type":"Add","object_kind":"Label","content":{}}],"commands_meta":{},"meta":{}}"# 
         );
 
         let deser: OCAAst = serde_json::from_str(&serialized).unwrap();

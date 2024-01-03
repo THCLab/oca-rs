@@ -24,7 +24,6 @@ impl Expandable for NestedResult {
         let val = match val.0  {
             Ok(NestedAttrTypeFrame::Value(v)) => {NestedAttrType::Value(v)},
             Ok(NestedAttrTypeFrame::Reference(r)) => {NestedAttrType::Reference(r)},
-            Ok(NestedAttrTypeFrame::Object(o)) => todo!(),
             Ok(NestedAttrTypeFrame::Array(v)) => {
 				match v.0 {
 					Ok(ok) => NestedAttrType::Array(Box::new(ok)),
