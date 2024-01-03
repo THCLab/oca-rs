@@ -28,24 +28,6 @@ fn extract_attr_type(input: Pair) -> NestedAttrType {
             Rule::object_attr_type => {
                 NestedAttrTypeFrame::Object(extract_object(seed))
             },
-            Rule::_attr_type => {
-                let mut inner = seed.into_inner();
-                let inner_pair = inner.next().unwrap();
-                match inner_pair.as_rule() {
-                    Rule::base_attr_type => {
-                        let attr_type = AttributeType::from_str(inner_pair.as_span().as_str()).unwrap();
-                        NestedAttrTypeFrame::Value(attr_type)
-                    },
-                    Rule::object_attr_type => {
-                        NestedAttrTypeFrame::Object(extract_object(inner_pair))
-                    },
-                    Rule::array_attr_type => {
-                        NestedAttrTypeFrame::Array(inner_pair.into_inner().next().unwrap())
-                    },
-                    _ => todo!()
-
-                }
-            },
             r => {
                 panic!("Matching attr type didn't work. Unhandled Rule type: {:?}", r);
             }
