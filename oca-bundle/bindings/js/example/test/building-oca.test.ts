@@ -29,8 +29,9 @@ describe('OCA with attributes is built', () => {
         const dateTimeTypeJs = create_nested_attr_type_from_js("DateTime");
         const reference = "refs:EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs";
         const nestedAttrTypeJs = create_nested_attr_type_from_js(reference);
-        const arrayTypeWithNumericJs = create_nested_attr_type_from_js('["Numeric"]');
-        const arrayTypeWithRefJs = create_nested_attr_type_from_js("refs:EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs");
+        const arrayTypeWithNumericJs = create_nested_attr_type_from_js(["Numeric"]);
+        const arrayTypeWithRefJs = create_nested_attr_type_from_js(["refs:EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs"]);
+        const arrayOfArrayTypeWithRefJs = create_nested_attr_type_from_js([["refs:EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs"]]);
 
         const oca = new OCABox()
         .addMeta("name", {
@@ -98,17 +99,25 @@ describe('OCA with attributes is built', () => {
                 pol: "Tablica: "
             })
         )
+        .addAttribute(
+            new Attribute("attr6")
+            .setAttributeType(arrayOfArrayTypeWithRefJs)
+            .setLabel({
+                eng: "Array: ",
+                pol: "Tablica: "
+            })
+        )
         .generateBundle()
         describe("Capture Base", () => {
             const captureBase = oca.capture_base
 
             it('attributes properly added', () => {
-                expect(captureBase.attributes).to.have.keys("attr_name", "attr2", "attr3", "attr4", "attr5")
+                expect(captureBase.attributes).to.have.keys("attr_name", "attr2", "attr3", "attr4", "attr5", "attr6")
                 expect(captureBase.attributes).to.have.property("attr_name", "Numeric")
                 expect(captureBase.attributes).to.have.property("attr2", "DateTime")
                 expect(captureBase.attributes).to.have.property("attr3", "refs:EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs")
-                expect(captureBase.attributes).to.have.property("attr4", "Array[refs:EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs]")
-                expect(captureBase.attributes).to.have.property("attr5", "Array[Numeric]]")
+                expect(captureBase.attributes).to.deep.property("attr4", ["refs:EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs"])
+                expect(captureBase.attributes).to.deep.property("attr5", ["Numeric"])
                 expect(captureBase.flagged_attributes).to.eql(["attr_name"])
             })
         })
