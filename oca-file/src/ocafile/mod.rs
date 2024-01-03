@@ -340,6 +340,10 @@ pub fn generate_from_ast(ast: &OCAAst) -> String {
                                             line.push_str(
                                                 format!("{}={{{}}}", key, codes).as_str(),
                                             );
+                                        } else if let ast::NestedValue::Value(value) = value {
+                                            line.push_str(
+                                                format!(" {}=\"{}\"", key, value).as_str(),
+                                            );
                                         }
                                     });
                                 }
@@ -477,7 +481,7 @@ ADD ATTRIBUTE list=Array[Text] el=Text
 
     #[test]
     fn test_nested_attributes_from_ocafile_to_ast() {
-        let unparsed_file = 
+        let unparsed_file =
 r#"ADD ATTRIBUTE name=Text age=Numeric car=Object({vin=Text, model=Text, year=Numeric})
 ADD ATTRIBUTE incidentals_spare_parts=Array[Object({part_number=Text, description=Text, unit=Text, quantity=Numeric})]
 "#;

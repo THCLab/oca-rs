@@ -94,7 +94,6 @@ impl Facade {
             ).collect::<Vec<_>>()
         })?;
 
-
         #[cfg(feature = "local-references")]
         let schema_name = oca_ast.meta.get("name");
         #[cfg(feature = "local-references")]
