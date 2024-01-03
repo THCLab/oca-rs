@@ -12,13 +12,14 @@ use oca_bundle::state::oca::overlay::credential_layout::CredentialLayouts;
 use oca_bundle::state::oca::overlay::form_layout::FormLayouts;
 use isolang::Language;
 use oca_bundle::state::{
-    attribute::{Attribute as AttributeRaw, AttributeType},
+    attribute::Attribute as AttributeRaw,
     encoding::Encoding,
     entry_codes::EntryCodes as EntryCodesRaw,
     entries::EntriesElement as EntriesElementRaw,
     oca::{OCABundle as OCABundleRaw, OCABox as OCABoxRaw},
     validator,
 };
+use oca_ast::ast::NestedAttrType;
 use oca_bundle::Encode;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -256,6 +257,11 @@ pub struct Attribute {
 }
 
 #[wasm_bindgen]
+pub fn create_nested_attr_type_from_js(value: &JsValue) -> Result<JsValue, JsValue> {
+    NestedAttrType::from_js_value(value).map(|attr_type| attr_type.to_js_value())
+}
+
+#[wasm_bindgen]
 impl Attribute {
     #[wasm_bindgen(constructor)]
     pub fn new(name: String) -> Self {
@@ -265,20 +271,22 @@ impl Attribute {
     }
 
     #[wasm_bindgen(js_name = "setAttributeType")]
-    pub fn set_attribute_type(mut self, attr_type: AttributeType) -> Self {
-        self.raw.set_attribute_type(attr_type);
+    pub fn set_attribute_type(mut self, attr_type: JsValue) -> Self {
+        let attr_type = NestedAttrType::from_js_value(&attr_type);
+        match attr_type {
+            Ok(attr_type) => {
+                self.raw.set_attribute_type(attr_type);
+            }
+            Err(err) => {
+                panic!("Error setting attribute type: {:?}", err);
+            }
+        }
         self
     }
 
     #[wasm_bindgen(js_name = "setFlagged")]
     pub fn set_flagged(mut self) -> Self {
         self.raw.set_flagged();
-        self
-    }
-
-    #[wasm_bindgen(js_name = "setSai")]
-    pub fn set_sai(mut self, sai: String) -> Self {
-        self.raw.set_sai(sai);
         self
     }
 

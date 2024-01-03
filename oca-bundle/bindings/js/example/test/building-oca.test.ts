@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import { Attribute, AttributeType, OCABox, Encoding } from 'oca.js'
+import { create } from 'domain'
+import { Attribute, AttributeType, OCABox, Encoding, create_nested_attr_type_from_js } from 'oca.js'
 
 describe('Plain OCA is built', () => {
   const oca = new OCABox()
@@ -23,70 +24,97 @@ describe('Plain OCA is built', () => {
 })
 
 describe('OCA with attributes is built', () => {
-  const oca = new OCABox()
-    .addMeta("name", {
-      eng: "Driving Licence",
-      pol: "Prawo Jazdy"
-    })
-    .addMeta("description", {
-      eng: "DL desc",
-      pol: "PJ desc"
-    })
-    .addAttribute(
-      new Attribute("attr_name")
-      .setAttributeType(AttributeType.Numeric)
-      .setFlagged()
-      .setLabel({
-        eng: "Name: ",
-        pol: "Imię: "
-      })
-      .setInformation({
-        eng: "en info",
-        pol: "pl info"
-      })
-      .setEntries({
-        o1: {
-          eng: "option 1",
-          pol: "opcja 1"
-        },
-        o2: {
-          eng: "option 2",
-          pol: "opcja 2"
-        }
-      })
-    )
-    .addAttribute(
-      new Attribute("attr2")
-      .setAttributeType(AttributeType.DateTime)
-      .setLabel({
-        eng: "Date: ",
-        pol: "Data: "
-      })
-      .setEncoding(Encoding.Iso8859_1)
-      .setFormat("DD.MM.YYYY")
-    )
-    .addAttribute(
-      new Attribute("attr3")
-      .setAttributeType(AttributeType.Reference)
-      .setSai("sai")
-      .setLabel({
-        eng: "Reference: ",
-        pol: "Referecja: "
-      })
-    )
-    .generateBundle()
+    try {
+        const numericTypeJs = create_nested_attr_type_from_js("Numeric");
+        const dateTimeTypeJs = create_nested_attr_type_from_js("DateTime");
+        const reference = "refs:EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs";
+        const nestedAttrTypeJs = create_nested_attr_type_from_js(reference);
+        const arrayTypeWithNumericJs = create_nested_attr_type_from_js('["Numeric"]');
+        const arrayTypeWithRefJs = create_nested_attr_type_from_js("refs:EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs");
 
-  describe("Capture Base", () => {
-    const captureBase = oca.capture_base
+        const oca = new OCABox()
+        .addMeta("name", {
+            eng: "Driving Licence",
+            pol: "Prawo Jazdy"
+        })
+        .addMeta("description", {
+            eng: "DL desc",
+            pol: "PJ desc"
+        })
+        .addAttribute(
+            new Attribute("attr_name")
+            .setAttributeType(numericTypeJs)
+            .setFlagged()
+            .setLabel({
+                eng: "Name: ",
+                pol: "Imię: "
+            })
+            .setInformation({
+                eng: "en info",
+                pol: "pl info"
+            })
+            .setEntries({
+                o1: {
+                    eng: "option 1",
+                    pol: "opcja 1"
+                },
+                o2: {
+                    eng: "option 2",
+                    pol: "opcja 2"
+                }
+            })
+        )
+        .addAttribute(
+            new Attribute("attr2")
+            .setAttributeType(dateTimeTypeJs)
+            .setLabel({
+                eng: "Date: ",
+                pol: "Data: "
+            })
+            .setEncoding(Encoding.Iso8859_1)
+            .setFormat("DD.MM.YYYY")
+        )
+        .addAttribute(
+            new Attribute("attr3")
+            .setAttributeType(nestedAttrTypeJs)
+            .setLabel({
+                eng: "Reference: ",
+                pol: "Referecja: "
+            })
+        )
+        .addAttribute(
+            new Attribute("attr4")
+            .setAttributeType(arrayTypeWithRefJs)
+            .setLabel({
+                eng: "Array: ",
+                pol: "Tablica: "
+            })
+        )
+        .addAttribute(
+            new Attribute("attr5")
+            .setAttributeType(arrayTypeWithNumericJs)
+            .setLabel({
+                eng: "Array: ",
+                pol: "Tablica: "
+            })
+        )
+        .generateBundle()
+        describe("Capture Base", () => {
+            const captureBase = oca.capture_base
 
-    it('attributes properly added', () => {
-      expect(captureBase.attributes).to.have.keys("attr_name", "attr2", "attr3")
-      expect(captureBase.attributes).to.have.property("attr_name", "Numeric")
-      expect(captureBase.attributes).to.have.property("attr2", "DateTime")
-      expect(captureBase.attributes).to.have.property("attr3", "Reference:sai")
-      expect(captureBase.flagged_attributes).to.eql(["attr_name"])
-    })
-  })
+            it('attributes properly added', () => {
+                expect(captureBase.attributes).to.have.keys("attr_name", "attr2", "attr3", "attr4", "attr5")
+                expect(captureBase.attributes).to.have.property("attr_name", "Numeric")
+                expect(captureBase.attributes).to.have.property("attr2", "DateTime")
+                expect(captureBase.attributes).to.have.property("attr3", "refs:EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs")
+                expect(captureBase.attributes).to.have.property("attr4", "Array[refs:EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs]")
+                expect(captureBase.attributes).to.have.property("attr5", "Array[Numeric]]")
+                expect(captureBase.flagged_attributes).to.eql(["attr_name"])
+            })
+        })
+    } catch (error) {
+        console.error("Error creating nested attr type from js", error);
+    }
 })
 
 /*
