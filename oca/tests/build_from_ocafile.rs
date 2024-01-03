@@ -94,7 +94,7 @@ ADD ATTRIBUTE C=Array[refn:second]
 
         assert_eq!(
             result.said.unwrap().to_string(),
-            "EGeaFkSlbesMw5-ZpEGHG9hGhi9s1-ixI62Rf4cQquEX"
+            "EPJQXAl5fa9PKHjAtbX7EsdnFDXZCwcC7iYBt5YmdbqU"
         );
         let from_ocafile = r#"
 FROM EJ9jPoPyZxJNtQsWI_yiHowfbP1B9SDOvlsSxlHbn9oW
