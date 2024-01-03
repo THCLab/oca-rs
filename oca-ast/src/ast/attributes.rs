@@ -30,15 +30,14 @@ pub enum NestedAttrType {
     Null,
 }
 
-// TODO using from_serde is deprecated needs to be replaced with serd-wasm-bindgen
 impl NestedAttrType {
-    pub fn to_js_value(&self) -> JsValue {
-        JsValue::from_serde(self).unwrap()
+    pub fn to_js_value(&self) -> Result<JsValue, JsValue> {
+        Ok(serde_wasm_bindgen::to_value(self)?)
+
     }
 
-    pub fn from_js_value(value: &JsValue) -> Result<Self, JsValue> {
-        value.into_serde().map_err(|e| JsValue::from_str(&format!("Error converting JsValue to NestedAttrType: {:?}", e)))
-
+    pub fn from_js_value(value: JsValue) -> Result<Self, JsValue> {
+        Ok(serde_wasm_bindgen::from_value(value)?)
     }
 }
 
