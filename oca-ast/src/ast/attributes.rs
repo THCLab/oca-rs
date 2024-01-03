@@ -9,6 +9,7 @@ use serde::{
     Serialize,
     Serializer,
 };
+use wasm_bindgen::JsValue;
 use std::hash::Hash;
 
 use super::{AttributeType, RefValue};
@@ -30,6 +31,19 @@ pub enum NestedAttrType {
     /// Indicator that attribute was removed and does not need any type
     Null,
 }
+
+// TODO using from_serde is deprecated needs to be replaced with serd-wasm-bindgen
+impl NestedAttrType {
+    pub fn to_js_value(&self) -> JsValue {
+        JsValue::from_serde(self).unwrap()
+    }
+
+    pub fn from_js_value(value: &JsValue) -> Result<Self, JsValue> {
+        value.into_serde().map_err(|e| JsValue::from_str(&format!("Error converting JsValue to NestedAttrType: {:?}", e)))
+
+    }
+}
+
 
 fn array_serializer<S>(foo: &Box<NestedAttrType>, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -204,5 +218,23 @@ mod tests {
 
         let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
         assert_eq!(attributes, deser);
+    }
+
+    #[test]
+    fn test_nested_attribute_deserialize() {
+        let serialized = r#"["Numeric"]"#;
+        let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(
+            NestedAttrType::Array(Box::new(NestedAttrType::Value(AttributeType::Numeric))),
+            deser
+        );
+
+        let serialized = r#"["refs:EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"]"#;
+        let expected = NestedAttrType::Array(Box::new(NestedAttrType::Reference(RefValue::Said(
+            said::derivation::HashFunction::from(said::derivation::HashFunctionCode::Blake3_256)
+                .derive("fff".as_bytes()),
+        ))));
+        let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(expected, deser);
     }
 }

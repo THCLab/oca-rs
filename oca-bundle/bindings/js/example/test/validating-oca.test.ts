@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { Attribute, AttributeType, OCABox, OCABundle, Validator } from 'oca.js'
+import { Attribute, AttributeType, create_nested_attr_type_from_js, OCABox, OCABundle, Validator } from 'oca.js'
 
 describe('Plain OCA', () => {
   const oca = new OCABox()
@@ -51,10 +51,11 @@ describe('Missing enforced translation', () => {
 })
 
 describe('Missing overlay translation', () => {
+  const textType = create_nested_attr_type_from_js("Text");
   const oca = new OCABox()
     .addAttribute(
       new Attribute("attr1")
-        .setAttributeType(AttributeType.Text)
+        .setAttributeType(textType)
         .setLabel({ eng: "Attribute 1" })
         .setInformation({ eng: "Attribute 1 info" })
         .setEntries({
