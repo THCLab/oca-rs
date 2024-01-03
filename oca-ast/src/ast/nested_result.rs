@@ -36,3 +36,21 @@ impl Expandable for NestedResult {
         Self(Ok(val))
     }
 }
+
+impl From<AttributeError> for NestedResult {
+    fn from(value: AttributeError) -> Self {
+        NestedResult(Err(value))
+    }
+}
+
+impl<A> From<AttributeError> for NestedResultFrame<A> {
+    fn from(value: AttributeError) -> Self {
+        NestedResultFrame(Err(value))
+    }
+}
+
+impl<A> From<NestedAttrTypeFrame<A>> for NestedResultFrame<A> {
+    fn from(value: NestedAttrTypeFrame<A>) -> Self {
+        NestedResultFrame(Ok(value))
+    }
+}
