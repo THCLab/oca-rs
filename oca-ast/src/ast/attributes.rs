@@ -1,4 +1,3 @@
-use indexmap::IndexMap;
 use recursion::{
     Collapsible, Expandable, ExpandableExt, MappableFrame, PartiallyApplied,
 };
@@ -150,7 +149,6 @@ impl<'de> Deserialize<'de> for NestedAttrType {
 
 #[cfg(test)]
 mod tests {
-    use indexmap::IndexMap;
     use said::derivation::{HashFunction, HashFunctionCode};
 
     use crate::ast::{AttributeType, NestedAttrType, RefValue};
