@@ -1,6 +1,5 @@
 import { expect } from 'chai'
-import { create } from 'domain'
-import { Attribute, AttributeType, OCABox, Encoding, create_nested_attr_type_from_js } from 'oca.js'
+import { Attribute, OCABox, Encoding, create_nested_attr_type_from_js } from 'oca.js'
 
 describe('Plain OCA is built', () => {
   const oca = new OCABox()
