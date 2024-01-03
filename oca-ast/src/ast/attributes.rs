@@ -11,7 +11,7 @@ use serde::{
 use wasm_bindgen::JsValue;
 use std::hash::Hash;
 
-use super::{AttributeType, RefValue, error::AttributeError, nested_result::{NestedResult, NestedResultFrame}};
+use super::{AttributeType, RefValue, error::AttributeError, nested_result::NestedResult};
 
 #[derive(Debug, PartialEq, Clone, Eq, Serialize)]
 #[serde(untagged)]
@@ -130,14 +130,14 @@ impl<'de> Deserialize<'de> for NestedAttrType {
 
         let expanded = NestedResult::expand_frames(input, |seed| match seed {
             serde_json::Value::String(text) => match text.parse::<RefValue>() {
-                Ok(ref_value) => NestedResultFrame(Ok(NestedAttrTypeFrame::Reference(ref_value))),
+                Ok(ref_value) => NestedAttrTypeFrame::Reference(ref_value).into(),
                 Err(_) => match text.parse::<AttributeType>() {
-                    Ok(attribute_type) => NestedResultFrame(Ok(NestedAttrTypeFrame::Value(attribute_type))),
-                    Err(_) => NestedResultFrame(Err(AttributeError::General(format!("Can't parse attribute type: {}", text)))),
+                    Ok(attribute_type) => NestedAttrTypeFrame::Value(attribute_type).into(),
+                    Err(_) => AttributeError::UnknownAttributeType(text).into(),
                 },
             },
-            serde_json::Value::Array(arr) => NestedResultFrame(Ok(NestedAttrTypeFrame::Array(arr[0].clone()))),
-            e => NestedResultFrame(Err(AttributeError::General(format!("Unexpected json value: {}", e.to_string())))),
+            serde_json::Value::Array(arr) => NestedAttrTypeFrame::Array(arr[0].clone()).into(),
+            value => AttributeError::UnexpectedJsonValue(serde_json::to_string(&value).unwrap()).into(),
         });
         match expanded.0 {
             Ok(el) => Ok(el),
@@ -150,7 +150,7 @@ impl<'de> Deserialize<'de> for NestedAttrType {
 mod tests {
     use said::derivation::{HashFunction, HashFunctionCode};
 
-    use crate::ast::{AttributeType, NestedAttrType, RefValue};
+    use crate::ast::{AttributeType, NestedAttrType, RefValue, error::AttributeError};
 
 
     #[test]
@@ -188,8 +188,8 @@ mod tests {
 
         let wrong_type = r#"["Wrong"]"#;
         let deser = serde_json::from_str::<NestedAttrType>(&wrong_type);
-        println!("{:?}", deser);
         assert!(deser.is_err());
+        assert_eq!(deser.unwrap_err().to_string(), AttributeError::UnknownAttributeType("Wrong".to_string()).to_string());
 
 
         let serialized = r#"["refs:EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"]"#;
