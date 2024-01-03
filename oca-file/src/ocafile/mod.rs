@@ -1,8 +1,6 @@
 mod error;
 mod instructions;
 
-use std::{collections::HashMap, str::FromStr};
-
 use self::instructions::{add::AddInstruction, from::FromInstruction, remove::RemoveInstruction};
 use crate::ocafile::error::Error;
 use convert_case::{Case, Casing};
@@ -11,7 +9,6 @@ use oca_ast::{
     validator::{OCAValidator, Validator},
 };
 use pest::Parser;
-use said::SelfAddressingIdentifier;
 use recursion::CollapsibleExt;
 
 #[derive(pest_derive::Parser)]

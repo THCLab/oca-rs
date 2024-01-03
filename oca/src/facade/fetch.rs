@@ -13,6 +13,7 @@ use oca_bundle::state::oca::{
 };
 use said::SelfAddressingIdentifier;
 
+#[cfg(feature = "local-references")]
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::str::FromStr;
@@ -71,6 +72,12 @@ pub struct AllCaptureBaseResult {
 }
 
 #[derive(Debug, Serialize)]
+pub struct BundleWithDependencies {
+    pub bundle: OCABundle,
+    pub dependencies: Vec<OCABundle>,
+}
+
+#[derive(Debug, Serialize)]
 pub struct AllCaptureBaseMetadata {
     pub total: usize,
     pub page: usize,
@@ -94,7 +101,7 @@ impl Facade {
             .map(|record| SearchRecord {
                 // TODO
                 oca_bundle: self
-                    .get_oca_bundle(record.oca_bundle_said.clone(), false).unwrap().last().unwrap().clone(),
+                    .get_oca_bundle(record.oca_bundle_said.clone(), false).unwrap().bundle.clone(),
                 metadata: SearchRecordMetadata {
                     phrase: record.metadata.phrase.clone(),
                     scope: record.metadata.scope.clone(),
@@ -131,10 +138,9 @@ impl Facade {
     ///
     /// # Return
     /// * `Vec<String>` - Vector of all SAID references
-    /// TODO should take SAID not string
     fn get_all_references(&self, said: SelfAddressingIdentifier) -> Vec<SelfAddressingIdentifier> {
         // TODO
-        let bundle = self.get_oca_bundle(said, false).unwrap().last().unwrap().clone();
+        let bundle = self.get_oca_bundle(said, false).unwrap().bundle.clone();
 
         let mut refs: Vec<SelfAddressingIdentifier> = vec![];
 
@@ -299,8 +305,8 @@ impl Facade {
         Ok(result)
     }
 
-    pub fn get_oca_bundle(&self, said: SelfAddressingIdentifier, with_dep: bool) -> Result<Vec<OCABundle>, Vec<String>> {
-        let mut oca_bundles = vec![];
+    pub fn get_oca_bundle(&self, said: SelfAddressingIdentifier, with_dep: bool) -> Result<BundleWithDependencies, Vec<String>> {
+        let mut dep_bundles = vec![];
         if with_dep {
             let mut deps = self.get_all_references(said.clone());
             deps.retain(|dep| dep != &said);
@@ -309,20 +315,37 @@ impl Facade {
                 let oca_bundle_str = String::from_utf8(
                     r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?
                 ).unwrap();
-                let mut oca_bundle: Result<OCABundle, Vec<String>> = serde_json::from_str(&oca_bundle_str)
+                let oca_bundle: Result<OCABundle, Vec<String>> = serde_json::from_str(&oca_bundle_str)
                     .map_err(|e| vec![format!("Failed to parse oca bundle: {}", e)]);
-                oca_bundles.push(oca_bundle.unwrap());
+                match oca_bundle {
+                    Ok(oca_bundle) => {
+                        dep_bundles.push(oca_bundle);
+                    }
+                    Err(e) => {
+                        return Err(e);
+                    }
+                }
             }
         }
         let r = self.db_cache.get(Namespace::OCABundlesJSON, &said.to_string()).map_err(|e| vec![format!("{}", e)])?;
         let oca_bundle_str = String::from_utf8(
             r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?
         ).unwrap();
-        let mut oca_bundle: Result<OCABundle, Vec<String>> = serde_json::from_str(&oca_bundle_str)
+        let oca_bundle: Result<OCABundle, Vec<String>> = serde_json::from_str(&oca_bundle_str)
             .map_err(|e| vec![format!("Failed to parse oca bundle: {}", e)]);
-        oca_bundles.push(oca_bundle.unwrap());
 
-      Ok(oca_bundles)
+        match oca_bundle {
+            Ok(oca_bundle) => {
+                let result = BundleWithDependencies {
+                    bundle: oca_bundle,
+                    dependencies: dep_bundles,
+                };
+                Ok(result)
+            }
+            Err(e) => {
+                Err(e)
+            }
+        }
     }
 
     pub fn get_oca_bundle_steps(&self, said: SelfAddressingIdentifier) -> Result<Vec<OCABuildStep>, Vec<String>> {
@@ -357,7 +380,7 @@ impl Facade {
                 OCABuildStep {
                     parent_said: parent_said.clone().parse().ok(),
                     command,
-                    result: self.get_oca_bundle(s, false).unwrap().last().unwrap().clone(),
+                    result: self.get_oca_bundle(s, false).unwrap().bundle.clone(),
                 }
             );
             said = parent_said;

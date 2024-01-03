@@ -6,6 +6,7 @@ use crate::repositories::{
     CaptureBaseCacheRecord, CaptureBaseCacheRepo, OCABundleCacheRecord,
     OCABundleCacheRepo, OCABundleFTSRecord, OCABundleFTSRepo,
 };
+#[cfg(feature = "local-references")]
 use log::debug;
 use oca_ast::ast::{ObjectKind, RefValue, ReferenceAttrType};
 use oca_bundle::state::oca::OCABundle;
@@ -53,7 +54,7 @@ impl Facade {
                                 match self.get_oca_bundle(said, false) {
                                     Ok(oca_bundle) => {
                                         // TODO
-                                        base = Some(oca_bundle.last().unwrap().clone());
+                                        base = Some(oca_bundle.bundle.clone());
                                     },
                                     Err(e) => {
                                         let default_command_meta = oca_ast::ast::CommandMeta { line_number: 0, raw_line: "unknown".to_string() };
@@ -343,6 +344,7 @@ impl Facade {
     }
 
     // TODO should not be String but SAID
+    #[cfg(feature = "local-references")]
     fn store_reference(&mut self, refn: &String, bundle_said: String) {
         if !refn.is_empty() {
             self.db.insert(
