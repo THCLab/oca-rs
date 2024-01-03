@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use indexmap::IndexMap;
 use log::debug;
-use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, Content, RefValue, attributes::NestedAttrTypeFrame};
+use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, Content, RefValue, recursive_attributes::NestedAttrTypeFrame};
 use recursion::ExpandableExt;
 use said::SelfAddressingIdentifier;
 use crate::ocafile::{Pair, Rule};

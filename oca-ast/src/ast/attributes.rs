@@ -1,6 +1,5 @@
-use recursion::{
-    Collapsible, Expandable, ExpandableExt, MappableFrame, PartiallyApplied,
-};
+
+use recursion::ExpandableExt;
 use serde::{
     ser::SerializeSeq,
     Deserialize,
@@ -11,7 +10,7 @@ use serde::{
 use wasm_bindgen::JsValue;
 use std::hash::Hash;
 
-use super::{AttributeType, RefValue, error::AttributeError, nested_result::NestedResult};
+use super::{AttributeType, RefValue, error::AttributeError, recursive_attributes::{AttributeTypeResult, NestedAttrTypeFrame}};
 
 #[derive(Debug, PartialEq, Clone, Eq, Serialize)]
 #[serde(untagged)]
@@ -75,51 +74,6 @@ impl Hash for NestedAttrType {
     }
 }
 
-pub enum NestedAttrTypeFrame<A> {
-    Reference(RefValue),
-    Value(AttributeType),
-    Array(A),
-    Null,
-}
-
-impl MappableFrame for NestedAttrTypeFrame<PartiallyApplied> {
-    type Frame<X> = NestedAttrTypeFrame<X>;
-
-    fn map_frame<A, B>(input: Self::Frame<A>, mut f: impl FnMut(A) -> B) -> Self::Frame<B> {
-        match input {
-            NestedAttrTypeFrame::Reference(reference) => NestedAttrTypeFrame::Reference(reference),
-            NestedAttrTypeFrame::Value(val) => NestedAttrTypeFrame::Value(val),
-            NestedAttrTypeFrame::Array(t) => NestedAttrTypeFrame::Array(f(t)),
-            NestedAttrTypeFrame::Null => NestedAttrTypeFrame::Null,
-        }
-    }
-}
-
-impl Expandable for NestedAttrType {
-    type FrameToken = NestedAttrTypeFrame<PartiallyApplied>;
-
-    fn from_frame(val: <Self::FrameToken as MappableFrame>::Frame<Self>) -> Self {
-        match val {
-            NestedAttrTypeFrame::Reference(reference) => NestedAttrType::Reference(reference),
-            NestedAttrTypeFrame::Value(v) => NestedAttrType::Value(v),
-            NestedAttrTypeFrame::Array(arr) => NestedAttrType::Array(Box::new(arr)),
-            NestedAttrTypeFrame::Null => NestedAttrType::Null,
-        }
-    }
-}
-
-impl Collapsible for NestedAttrType {
-    type FrameToken = NestedAttrTypeFrame<PartiallyApplied>;
-
-    fn into_frame(self) -> <Self::FrameToken as MappableFrame>::Frame<Self> {
-        match self {
-            NestedAttrType::Reference(reference) => NestedAttrTypeFrame::Reference(reference),
-            NestedAttrType::Value(val) => NestedAttrTypeFrame::Value(val),
-            NestedAttrType::Array(arr) => NestedAttrTypeFrame::Array(*arr),
-            NestedAttrType::Null => NestedAttrTypeFrame::Null,
-        }
-    }
-}
 
 impl<'de> Deserialize<'de> for NestedAttrType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -128,7 +82,7 @@ impl<'de> Deserialize<'de> for NestedAttrType {
     {
         let input: serde_json::Value = serde_json::Value::deserialize(deserializer)?;
 
-        let expanded = NestedResult::expand_frames(input, |seed| match seed {
+        let expanded = AttributeTypeResult::expand_frames(input, |seed| match seed {
             serde_json::Value::String(text) => match text.parse::<RefValue>() {
                 Ok(ref_value) => NestedAttrTypeFrame::Reference(ref_value).into(),
                 Err(_) => match text.parse::<AttributeType>() {
