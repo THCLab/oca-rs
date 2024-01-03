@@ -257,8 +257,8 @@ pub struct Attribute {
 }
 
 #[wasm_bindgen]
-pub fn create_nested_attr_type_from_js(value: &JsValue) -> Result<JsValue, JsValue> {
-    NestedAttrType::from_js_value(value).map(|attr_type| attr_type.to_js_value())
+pub fn create_nested_attr_type_from_js(value: JsValue) -> Result<JsValue, JsValue> {
+    NestedAttrType::from_js_value(value).and_then(|attr_type| attr_type.to_js_value())
 }
 
 #[wasm_bindgen]
@@ -272,7 +272,7 @@ impl Attribute {
 
     #[wasm_bindgen(js_name = "setAttributeType")]
     pub fn set_attribute_type(mut self, attr_type: JsValue) -> Self {
-        let attr_type = NestedAttrType::from_js_value(&attr_type);
+        let attr_type = NestedAttrType::from_js_value(attr_type);
         match attr_type {
             Ok(attr_type) => {
                 self.raw.set_attribute_type(attr_type);
