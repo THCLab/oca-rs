@@ -174,16 +174,20 @@ fn rule_add_attr_if_not_exist(ast: &OCAAst, command_to_validate: Command) -> Res
         Some(content) => {
             let attrs_to_add = content.attributes.clone().unwrap_or(default_attrs);
             debug!("attrs_to_add: {:?}", attrs_to_add);
-            let valid = attrs_to_add
-                .keys()
-                .all(|key| !attributes.contains_key(key));
-                if valid {
-                    Ok(true)
-                } else {
-                    errors.push(Error::InvalidOperation(
-                    "Cannot add attribute if already exists".to_string(),
-                ));
+            println!("attrs_to_add: {:?}", attrs_to_add);
+
+            let existing_keys: Vec<_> = attrs_to_add.keys()
+                                   .filter(|key| attributes.contains_key(*key))
+                                   .collect();
+
+            if !existing_keys.is_empty() {
+                errors.push(Error::InvalidOperation(format!(
+                    "Cannot add attribute if already exists: {:?}",
+                    existing_keys
+                )));
                 Err(Error::Validation(errors))
+            } else {
+                Ok(true)
             }
         }
         None => {
