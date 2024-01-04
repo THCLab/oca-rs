@@ -52,7 +52,7 @@ impl Collapsible for NestedAttrType {
     }
 }
 
-pub struct AttributeTypeResult(pub(crate) Result<NestedAttrType, AttributeError>);
+pub struct AttributeTypeResult(Result<NestedAttrType, AttributeError>);
 pub struct AttributeTypeResultFrame<A>(Result<NestedAttrTypeFrame<A>, AttributeError>);
 
 impl MappableFrame for AttributeTypeResultFrame<PartiallyApplied> {
@@ -64,6 +64,12 @@ impl MappableFrame for AttributeTypeResultFrame<PartiallyApplied> {
             Err(e) => AttributeTypeResultFrame(Err(e)),
         }
     }
+}
+
+impl AttributeTypeResult {
+    pub fn value(self) -> Result<NestedAttrType, AttributeError> {
+        self.0
+    } 
 }
 
 impl Expandable for AttributeTypeResult {

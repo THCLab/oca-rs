@@ -2,37 +2,60 @@ use std::str::FromStr;
 
 use indexmap::IndexMap;
 use log::debug;
-use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, Content, RefValue, recursive_attributes::NestedAttrTypeFrame};
+use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, Content, RefValue, recursive_attributes::{NestedAttrTypeFrame, AttributeTypeResult}, error::AttributeError};
 use recursion::ExpandableExt;
 use said::SelfAddressingIdentifier;
-use crate::ocafile::{Pair, Rule};
+use crate::ocafile::{Pair, Rule, error::Error};
 
-fn extract_attr_type(input: Pair) -> NestedAttrType {
-    NestedAttrType::expand_frames(input, |seed| {
+fn extract_attr_type(input: Pair) -> Result<NestedAttrType, Error> {
+
+
+    let res = AttributeTypeResult::expand_frames(input, |seed| {
         match seed.as_rule() {
             Rule::array_attr_type => {
-                NestedAttrTypeFrame::Array(seed.into_inner().next().unwrap())
+                match seed.into_inner().next() {
+                    Some(next) => NestedAttrTypeFrame::Array(next).into(),
+                    None => AttributeError::ConvertingFailure("Missing Array elements".to_string()).into(),
+                }
             },
             Rule::alias => {
-                NestedAttrTypeFrame::Reference(oca_ast::ast::RefValue::Name(seed.as_str().to_string()))
+                NestedAttrTypeFrame::Reference(oca_ast::ast::RefValue::Name(seed.as_str().to_string())).into()
             },
             Rule::said => {
-                let said = SelfAddressingIdentifier::from_str(seed.as_str()).unwrap();
-                NestedAttrTypeFrame::Reference(RefValue::Said(said))
+                match SelfAddressingIdentifier::from_str(seed.as_str()) {
+                    Ok(said) => NestedAttrTypeFrame::Reference(RefValue::Said(said)).into(),
+                    Err(_e) => AttributeError::SaidError(seed.as_str().to_string()).into(),
+                }
             },
-
             Rule::base_attr_type => {
-                let attr_type = AttributeType::from_str(seed.as_span().as_str()).unwrap();
-                NestedAttrTypeFrame::Value(attr_type)
+                let seed_str = seed.as_span().as_str();
+                match AttributeType::from_str(seed_str) {
+                    Ok(attr_type) => NestedAttrTypeFrame::Value(attr_type).into(),
+                    Err(_) => AttributeError::UnknownAttributeType(seed_str.to_string()).into(),
+                }
             },
-            r => {
-                panic!("Matching attr type didn't work. Unhandled Rule type: {:?}", r);
+            _ => {
+                // panic!("Matching attr type didn't work. Unhandled Rule type: {:?}", r);
+                AttributeError::ConvertingFailure(seed.as_span().as_str().to_owned()).into()
             }
         }
-    })
+    });
+
+    match res.value() {
+        Ok(ok) => Ok(ok),
+        Err(AttributeError::UnknownAttributeType(info)) => Err(Error::UnexpectedToken(format!(
+                                    "Unknown attribute type {}",
+                                    info
+                                ))),
+        Err(AttributeError::SaidError(said)) => Err(Error::Parser(format!("Invalid said: {said}"))),
+        Err(AttributeError::ConvertingFailure(wrong_token)) => Err(Error::UnexpectedToken(format!(
+                                    "Unexpected token {}",
+                                    wrong_token
+                                ))),
+    }
 }
 
-pub fn extract_attribute(attr_pair: Pair) -> Option<(String, NestedAttrType)> {
+pub fn extract_attribute(attr_pair: Pair) -> Result<(String, NestedAttrType), Error> {
     let mut attr_name = String::new();
     let mut attr_type = NestedAttrType::Value(AttributeType::Text);
 
@@ -45,16 +68,23 @@ pub fn extract_attribute(attr_pair: Pair) -> Option<(String, NestedAttrType)> {
             },
             Rule::_attr_type => {
                 debug!("Attribute type to parse: {:?}", item);
+                let item_field_label = item.as_span().as_str();
                 let mut inner = item.into_inner();
-                let inner_pair = inner.next().unwrap();
-                attr_type = extract_attr_type(inner_pair);
+                let inner_pair = inner.next().ok_or(
+                        Error::UnexpectedToken(format!(
+                                    "Missing attribute type for {} field",
+                                    item_field_label
+                                )))?;
+                attr_type = extract_attr_type(inner_pair)?;
+
+            
             }
             _ => {
                 panic!("Invalid attribute in {:?}", item.as_rule());
             }
         }
     }
-    Some((attr_name, attr_type))
+    Ok((attr_name, attr_type))
 }
 
 

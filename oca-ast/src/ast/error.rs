@@ -5,6 +5,8 @@ use thiserror::Error;
 pub enum AttributeError {
     #[error("Attribute type {0} doesn't exist")]
     UnknownAttributeType(String),
-    #[error("Unexpected JSON value: {0}")]
-    UnexpectedJsonValue(String),
+    #[error("Error while converting {0} to attribute type")]
+    ConvertingFailure(String),
+    #[error("Invalid said: {0}")]
+    SaidError(String)
 }

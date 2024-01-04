@@ -24,15 +24,10 @@ impl AddInstruction {
                                 debug!("Attribute pairs: {:?}", attr_pairs);
                                 for attr in attr_pairs.into_inner() {
                                     debug!("Parsing attribute pair {:?}", attr);
-                                    if let Some((key, value)) =
-                                        helpers::extract_attribute(attr)
-                                    {
-                                        info!("Parsed attribute: {:?} = {:?}", key, value);
+                                    let (key, value) = helpers::extract_attribute(attr)?;
+                                    info!("Parsed attribute: {:?} = {:?}", key, value);
 
-                                        attributes.insert(key, value);
-                                    } else {
-                                        debug!("Attribute skipped");
-                                    }
+                                    attributes.insert(key, value);
                                 }
                             }
                             _ => {
