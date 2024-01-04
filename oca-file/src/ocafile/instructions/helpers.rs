@@ -15,7 +15,9 @@ fn extract_attr_type(input: Pair) -> Result<NestedAttrType, Error> {
             Rule::array_attr_type => {
                 match seed.into_inner().next() {
                     Some(next) => NestedAttrTypeFrame::Array(next).into(),
-                    None => AttributeError::ConvertingFailure("Missing Array elements".to_string()).into(),
+                    None => Error::UnexpectedToken(format!(
+                                    "Missing attribute type",
+                                )).into(),
                 }
             },
             Rule::alias => {
@@ -24,35 +26,28 @@ fn extract_attr_type(input: Pair) -> Result<NestedAttrType, Error> {
             Rule::said => {
                 match SelfAddressingIdentifier::from_str(seed.as_str()) {
                     Ok(said) => NestedAttrTypeFrame::Reference(RefValue::Said(said)).into(),
-                    Err(_e) => AttributeError::SaidError(seed.as_str().to_string()).into(),
+                    Err(_e) => Error::Parser(format!("Invalid said: {}", seed.as_str())).into(),
                 }
             },
             Rule::base_attr_type => {
                 let seed_str = seed.as_span().as_str();
                 match AttributeType::from_str(seed_str) {
                     Ok(attr_type) => NestedAttrTypeFrame::Value(attr_type).into(),
-                    Err(_) => AttributeError::UnknownAttributeType(seed_str.to_string()).into(),
+                    Err(_) => Error::UnexpectedToken(format!(
+                                    "Unknown attribute type {}",
+                                    seed_str
+                                )).into(),
                 }
             },
-            _ => {
-                // panic!("Matching attr type didn't work. Unhandled Rule type: {:?}", r);
-                AttributeError::ConvertingFailure(seed.as_span().as_str().to_owned()).into()
+            rule => {
+                Error::UnexpectedToken(format!(
+                                    "Invalid attribute type: {:?}",
+                                    rule
+                                )).into()
             }
         }
     });
-
-    match res.value() {
-        Ok(ok) => Ok(ok),
-        Err(AttributeError::UnknownAttributeType(info)) => Err(Error::UnexpectedToken(format!(
-                                    "Unknown attribute type {}",
-                                    info
-                                ))),
-        Err(AttributeError::SaidError(said)) => Err(Error::Parser(format!("Invalid said: {said}"))),
-        Err(AttributeError::ConvertingFailure(wrong_token)) => Err(Error::UnexpectedToken(format!(
-                                    "Unexpected token {}",
-                                    wrong_token
-                                ))),
-    }
+    res.value()
 }
 
 pub fn extract_attribute(attr_pair: Pair) -> Result<(String, NestedAttrType), Error> {
@@ -80,7 +75,10 @@ pub fn extract_attribute(attr_pair: Pair) -> Result<(String, NestedAttrType), Er
             
             }
             _ => {
-                panic!("Invalid attribute in {:?}", item.as_rule());
+                return Err(Error::UnexpectedToken(format!(
+                    "Invalid attribute in {:?}",
+                    item.as_rule()
+                )))
             }
         }
     }

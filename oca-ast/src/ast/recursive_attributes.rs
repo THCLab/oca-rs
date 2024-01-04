@@ -1,6 +1,8 @@
-use recursion::{Expandable, PartiallyApplied, MappableFrame, Collapsible};
+use std::error::Error;
 
-use super::{NestedAttrType, error::AttributeError, RefValue, AttributeType};
+use recursion::{Collapsible, Expandable, MappableFrame, PartiallyApplied};
+
+use super::{error::AttributeError, AttributeType, NestedAttrType, RefValue};
 
 /// This module includes structures for setting up the recursion crate. They
 /// enable usage of `expand_frames` and `collapse_frames` functions for
@@ -52,11 +54,11 @@ impl Collapsible for NestedAttrType {
     }
 }
 
-pub struct AttributeTypeResult(Result<NestedAttrType, AttributeError>);
-pub struct AttributeTypeResultFrame<A>(Result<NestedAttrTypeFrame<A>, AttributeError>);
+pub struct AttributeTypeResult<E: Error>(Result<NestedAttrType, E>);
+pub struct AttributeTypeResultFrame<A, E: Error>(Result<NestedAttrTypeFrame<A>, E>);
 
-impl MappableFrame for AttributeTypeResultFrame<PartiallyApplied> {
-    type Frame<X> = AttributeTypeResultFrame<X>;
+impl<E: Error> MappableFrame for AttributeTypeResultFrame<PartiallyApplied, E> {
+    type Frame<X> = AttributeTypeResultFrame<X, E>;
 
     fn map_frame<A, B>(input: Self::Frame<A>, f: impl FnMut(A) -> B) -> Self::Frame<B> {
         match input.0 {
@@ -66,24 +68,23 @@ impl MappableFrame for AttributeTypeResultFrame<PartiallyApplied> {
     }
 }
 
-impl AttributeTypeResult {
-    pub fn value(self) -> Result<NestedAttrType, AttributeError> {
+impl<E: Error> AttributeTypeResult<E> {
+    pub fn value(self) -> Result<NestedAttrType, E> {
         self.0
-    } 
+    }
 }
 
-impl Expandable for AttributeTypeResult {
-    type FrameToken = AttributeTypeResultFrame<PartiallyApplied>;
+impl<E: Error> Expandable for AttributeTypeResult<E> {
+    type FrameToken = AttributeTypeResultFrame<PartiallyApplied, E>;
 
     fn from_frame(val: <Self::FrameToken as MappableFrame>::Frame<Self>) -> Self {
-        let val = match val.0  {
+        let val = match val.0 {
             Ok(NestedAttrTypeFrame::Value(v)) => Ok(NestedAttrType::Value(v)),
             Ok(NestedAttrTypeFrame::Reference(r)) => Ok(NestedAttrType::Reference(r)),
-            Ok(NestedAttrTypeFrame::Array(v)) =>
-				match v.0 {
-					Ok(ok) => Ok(NestedAttrType::Array(Box::new(ok))),
-					Err(er) => Err(er),
-				},
+            Ok(NestedAttrTypeFrame::Array(v)) => match v.0 {
+                Ok(ok) => Ok(NestedAttrType::Array(Box::new(ok))),
+                Err(er) => Err(er),
+            },
             Ok(NestedAttrTypeFrame::Null) => Ok(NestedAttrType::Null),
             Err(er) => Err(er),
         };
@@ -91,19 +92,19 @@ impl Expandable for AttributeTypeResult {
     }
 }
 
-impl From<AttributeError> for AttributeTypeResult {
-    fn from(value: AttributeError) -> Self {
+impl<E: Error> From<E> for AttributeTypeResult<E> {
+    fn from(value: E) -> Self {
         AttributeTypeResult(Err(value))
     }
 }
 
-impl<A> From<AttributeError> for AttributeTypeResultFrame<A> {
-    fn from(value: AttributeError) -> Self {
+impl<A, E: Error> From<E> for AttributeTypeResultFrame<A, E> {
+    fn from(value: E) -> Self {
         AttributeTypeResultFrame(Err(value))
     }
 }
 
-impl<A> From<NestedAttrTypeFrame<A>> for AttributeTypeResultFrame<A> {
+impl<A, E: Error> From<NestedAttrTypeFrame<A>> for AttributeTypeResultFrame<A, E> {
     fn from(value: NestedAttrTypeFrame<A>) -> Self {
         AttributeTypeResultFrame(Ok(value))
     }
