@@ -72,14 +72,13 @@ impl OCABox {
     }
 
     #[wasm_bindgen(js_name = "load")]
-    pub fn load(mut self, oca_bundle: OCABundle) -> Self {
+    pub fn load(mut self, oca_bundle: OCABundle) -> Result<OCABox, JsValue> {
         self.raw = OCABoxRaw::from(
             serde_wasm_bindgen::from_value::<OCABundleRaw>(JsValue::from(
                 oca_bundle,
-            ))
-            .unwrap(),
+            ))?,
         );
-        self
+        Ok(self)
     }
 
     #[wasm_bindgen(js_name = "attributes")]
