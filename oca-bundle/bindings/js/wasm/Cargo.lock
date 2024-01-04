@@ -667,7 +667,7 @@ dependencies = [
 
 [[package]]
 name = "oca-ast"
-version = "0.3.7"
+version = "0.4.1-rc.2"
 dependencies = [
  "env_logger",
  "indexmap 1.9.3",
@@ -685,7 +685,7 @@ dependencies = [
 
 [[package]]
 name = "oca-bundle"
-version = "0.3.7"
+version = "0.4.1-rc.2"
 dependencies = [
  "cascade",
  "convert_case",
@@ -712,7 +712,7 @@ dependencies = [
 
 [[package]]
 name = "oca-js"
-version = "0.3.7"
+version = "0.4.1-rc.2"
 dependencies = [
  "isolang",
  "oca-ast",
