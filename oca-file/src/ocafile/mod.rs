@@ -5,7 +5,7 @@ use self::instructions::{add::AddInstruction, from::FromInstruction, remove::Rem
 use crate::ocafile::error::Error;
 use convert_case::{Case, Casing};
 use oca_ast::{
-    ast::{self, Command, CommandMeta, OCAAst, RefValue, NestedAttrType, attributes::NestedAttrTypeFrame},
+    ast::{self, Command, CommandMeta, OCAAst, RefValue, NestedAttrType, recursive_attributes::NestedAttrTypeFrame},
     validator::{OCAValidator, Validator},
 };
 use pest::Parser;

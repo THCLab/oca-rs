@@ -91,9 +91,9 @@ impl<'de> Deserialize<'de> for NestedAttrType {
                 },
             },
             serde_json::Value::Array(arr) => NestedAttrTypeFrame::Array(arr[0].clone()).into(),
-            value => AttributeError::UnexpectedJsonValue(serde_json::to_string(&value).unwrap()).into(),
+            value => AttributeError::ConvertingFailure(serde_json::to_string(&value).unwrap()).into(),
         });
-        match expanded.0 {
+        match expanded.value() {
             Ok(el) => Ok(el),
             Err(er) => Err(er).map_err(serde::de::Error::custom),
         }
