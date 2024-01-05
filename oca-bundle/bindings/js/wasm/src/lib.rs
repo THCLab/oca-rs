@@ -501,6 +501,11 @@ type AST = {
 
 #[wasm_bindgen(typescript_custom_section)]
 const OCA_TYPE: &'static str = r#"
+type BundleWithDeps = {
+  bundle: OCABundle,
+  dependencies: string[]
+}
+
 type OCABundle = {
   v: string,
   d: string,
