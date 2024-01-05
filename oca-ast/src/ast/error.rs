@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use super::RefValueParsingError;
+
 #[derive(Error, Debug)]
 
 pub enum AttributeError {
@@ -7,6 +9,6 @@ pub enum AttributeError {
     UnknownAttributeType(String),
     #[error("Error while converting {0} to attribute type")]
     ConvertingFailure(String),
-    #[error("Invalid said: {0}")]
-    SaidError(String)
+    #[error(transparent)]
+    ReferenceError(#[from] RefValueParsingError)
 }

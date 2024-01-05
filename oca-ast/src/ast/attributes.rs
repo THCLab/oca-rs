@@ -83,12 +83,24 @@ impl<'de> Deserialize<'de> for NestedAttrType {
         let input: serde_json::Value = serde_json::Value::deserialize(deserializer)?;
 
         let expanded = AttributeTypeResult::expand_frames(input, |seed| match seed {
-            serde_json::Value::String(text) => match text.parse::<RefValue>() {
-                Ok(ref_value) => NestedAttrTypeFrame::Reference(ref_value).into(),
-                Err(_) => match text.parse::<AttributeType>() {
-                    Ok(attribute_type) => NestedAttrTypeFrame::Value(attribute_type).into(),
-                    Err(_) => AttributeError::UnknownAttributeType(text).into(),
-                },
+            
+            serde_json::Value::String(text) => {
+                match &text[..5] {
+                    "refs:" | "refn:" => {
+                        let res = text.parse::<RefValue>();
+                        match res {
+                            Ok(ref_value) => NestedAttrTypeFrame::Reference(ref_value).into(),
+                            Err(e) => AttributeError::from(e).into(),
+                        }
+                    },
+                    _ => {
+                        let res = text.parse::<AttributeType>();
+                        match  res {
+                            Ok(attr_type) => NestedAttrTypeFrame::Value(attr_type).into(),
+                            Err(_) => AttributeError::UnknownAttributeType(text).into(),
+                        } 
+                    }
+                }
             },
             serde_json::Value::Array(arr) => NestedAttrTypeFrame::Array(arr[0].clone()).into(),
             value => AttributeError::ConvertingFailure(serde_json::to_string(&value).unwrap()).into(),
@@ -145,7 +157,6 @@ mod tests {
         assert!(deser.is_err());
         assert_eq!(deser.unwrap_err().to_string(), AttributeError::UnknownAttributeType("Wrong".to_string()).to_string());
 
-
         let serialized = r#"["refs:EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"]"#;
         let expected = NestedAttrType::Array(Box::new(NestedAttrType::Reference(RefValue::Said(
             said::derivation::HashFunction::from(said::derivation::HashFunctionCode::Blake3_256)
@@ -153,5 +164,23 @@ mod tests {
         ))));
         let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
         assert_eq!(expected, deser);
+
+        let serialized = r#"["refn:bob"]"#;
+        let expected = NestedAttrType::Array(Box::new(NestedAttrType::Reference(RefValue::Name(
+            "bob".to_string(),
+        ))));
+        let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(expected, deser);
+    }
+
+    #[test]
+    fn test_reference_attribute_deserialize() {
+        let wrong_said = r#"["refs:wrong_said"]"#;
+        let deser = serde_json::from_str::<NestedAttrType>(&wrong_said);
+        assert_eq!(deser.unwrap_err().to_string(), "Invalid said: Unknown code");
+
+        let missing_ref_tag = r#"["EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"]"#;
+        let deser = serde_json::from_str::<NestedAttrType>(&missing_ref_tag);
+        assert_eq!(deser.unwrap_err().to_string(), "Attribute type EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ doesn't exist");
     }
 }
