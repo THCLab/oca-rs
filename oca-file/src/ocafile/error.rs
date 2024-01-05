@@ -1,8 +1,31 @@
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(thiserror::Error, Debug, serde::Serialize)]
+#[serde(untagged)]
+pub enum ParseError {
+    #[error("Error at line {line_number} ({raw_line}): {message}")]
+    GrammarError {
+        #[serde(rename = "ln")]
+        line_number: usize,
+        #[serde(rename = "col")]
+        column_number: usize,
+        #[serde(rename = "c")]
+        raw_line: String,
+        #[serde(rename = "e")]
+        message: String,
+    },
+    #[error("Error parsing meta: {0}")]
+    MetaError(String),
 
-pub enum Error {
+    #[error("Error parsing instruction: {0}")]
+    InstructionError(#[from] InstructionError),
+
+    #[error("{0}")]
+    Custom(String),
+}
+
+#[derive(Error, Debug, serde::Serialize)]
+pub enum InstructionError {
     #[error("{0}")]
     UnexpectedToken(String),
 
@@ -16,12 +39,11 @@ pub enum Error {
     ExtractError(#[from] ExtractingAttributeError),
 }
 
-#[derive(Error, Debug)]
-
+#[derive(Error, Debug, serde::Serialize)]
 pub enum ExtractingAttributeError {
-    #[error(transparent)]
+    #[error("Said error: {0}")]
     SaidError(#[from] said::error::Error),
 
-    #[error("{0}")]
+    #[error("Unexpected error: {0}")]
     Unexpected(String),
 }

@@ -19,7 +19,7 @@ use std::rc::Rc;
 #[serde(untagged)]
 pub enum Error {
     #[error(transparent)]
-    OCAFileParse(#[from] oca_file::ocafile::ParseError),
+    OCAFileParse(#[from] oca_file::ocafile::error::ParseError),
     #[error(transparent)]
     OCABundleBuild(#[from] oca_bundle::build::Error),
     #[error("Error at line {line_number} ({raw_line}): {message}")]

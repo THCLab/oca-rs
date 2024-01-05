@@ -1,4 +1,4 @@
-use crate::ocafile::{error::Error, Pair, Rule};
+use crate::ocafile::{error::InstructionError, Pair, Rule};
 use log::debug;
 use oca_ast::ast::{Command, CommandType, ObjectKind, BundleContent, ReferenceAttrType, RefValue};
 use said::SelfAddressingIdentifier;
@@ -7,7 +7,7 @@ use said::SelfAddressingIdentifier;
 pub struct FromInstruction {}
 
 impl FromInstruction {
-    pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Command, Error> {
+    pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Command, InstructionError> {
         let mut said_pair = None;
 
         for field in record.into_inner() {
@@ -15,7 +15,7 @@ impl FromInstruction {
                 Rule::from_said => said_pair = Some(field),
                 Rule::comment => continue,
                 _ => {
-                    return Err(Error::UnexpectedToken(format!(
+                    return Err(InstructionError::UnexpectedToken(format!(
                         "unexpected token {:?}",
                         field.as_rule()
                     )))
@@ -25,7 +25,7 @@ impl FromInstruction {
 
         let said_str = said_pair.unwrap().as_str();
         let said: SelfAddressingIdentifier = said_str.parse()
-            .map_err(|_| Error::Parser(format!("Invalid said: {said_str}")))?;
+            .map_err(|_| InstructionError::Parser(format!("Invalid said: {said_str}")))?;
         debug!("Using oca bundle from: {:?}", said);
         let said = ReferenceAttrType::Reference(RefValue::Said(said));
         Ok(Command {
@@ -37,18 +37,18 @@ impl FromInstruction {
 
 #[cfg(test)]
 mod tests {
-    use crate::ocafile::{error::Error, OCAfileParser, Pair, Rule, self};
+    use crate::ocafile::{error::InstructionError, OCAfileParser, Pair, Rule, self};
     use oca_ast::ast::RefValue;
     use pest::Parser;
 
-    pub fn parse_direct<T, F>(input: &str, rule: Rule, func: F) -> Result<T, Error>
+    pub fn parse_direct<T, F>(input: &str, rule: Rule, func: F) -> Result<T, InstructionError>
     where
-        F: Fn(Pair) -> Result<T, Error>,
+        F: Fn(Pair) -> Result<T, InstructionError>,
     {
         let pair = OCAfileParser::parse(rule, input)
             .expect("unsuccessful parse")
             .next()
-            .ok_or(Error::UnexpectedToken("Unknown parser error".to_string()))?;
+            .ok_or(InstructionError::UnexpectedToken("Unknown parser error".to_string()))?;
 
         func(pair)
     }
@@ -56,7 +56,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_instruction() -> Result<(), Error> {
+    fn test_from_instruction() -> Result<(), InstructionError> {
         // test vector with example instruction and boolean if they should be valid or not
         let instructions = vec![
             ("FROM ENmwqnqVxonf_bNZ0hMipOJJY25dxlC8eSY5BbyMCfLJ", true),

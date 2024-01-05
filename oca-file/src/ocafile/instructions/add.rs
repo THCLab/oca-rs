@@ -1,4 +1,4 @@
-use crate::ocafile::{error::Error, instructions::helpers, Pair, Rule};
+use crate::ocafile::{error::InstructionError, instructions::helpers, Pair, Rule};
 use indexmap::IndexMap;
 use log::{debug, info};
 use oca_ast::ast::{Command, CommandType, NestedAttrType, ObjectKind, OverlayType, NestedValue, CaptureContent};
@@ -6,7 +6,7 @@ use oca_ast::ast::{Command, CommandType, NestedAttrType, ObjectKind, OverlayType
 pub struct AddInstruction {}
 
 impl AddInstruction {
-    pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Command, Error> {
+    pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Command, InstructionError> {
         let mut object_kind = None;
         let kind = CommandType::Add;
 
@@ -31,7 +31,7 @@ impl AddInstruction {
                                 }
                             }
                             _ => {
-                                return Err(Error::UnexpectedToken(format!(
+                                return Err(InstructionError::UnexpectedToken(format!(
                                     "Invalid attributes in ATTRIBUTE instruction {:?}",
                                     attr_pairs.as_rule()
                                 )))
@@ -98,7 +98,7 @@ impl AddInstruction {
                     }));
                 }
                 _ => {
-                    return Err(Error::UnexpectedToken(format!(
+                    return Err(InstructionError::UnexpectedToken(format!(
                         "Overlay: unexpected token {:?}",
                         object.as_rule()
                     )))

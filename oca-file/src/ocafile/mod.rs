@@ -1,8 +1,10 @@
-mod error;
+pub mod error;
 mod instructions;
 
-use self::instructions::{add::AddInstruction, from::FromInstruction, remove::RemoveInstruction};
-use crate::ocafile::error::Error;
+use std::{collections::HashMap, str::FromStr};
+
+use self::{instructions::{add::AddInstruction, from::FromInstruction, remove::RemoveInstruction}, error::ParseError};
+use crate::ocafile::error::InstructionError;
 use convert_case::{Case, Casing};
 use oca_ast::{
     ast::{self, Command, CommandMeta, OCAAst, RefValue, NestedAttrType, recursive_attributes::NestedAttrTypeFrame},
@@ -23,34 +25,16 @@ pub trait TryFromPair {
 }
 
 impl TryFromPair for Command {
-    type Error = Error;
+    type Error = InstructionError;
     fn try_from_pair(record: Pair) -> std::result::Result<Self, Self::Error> {
         let instruction: Command = match record.as_rule() {
             Rule::from => FromInstruction::from_record(record, 0)?,
             Rule::add => AddInstruction::from_record(record, 0)?,
             Rule::remove => RemoveInstruction::from_record(record, 0)?,
-            _ => return Err(Error::UnexpectedToken(record.to_string())),
+            _ => return Err(InstructionError::UnexpectedToken(record.to_string())),
         };
         Ok(instruction)
     }
-}
-
-#[derive(thiserror::Error, Debug, serde::Serialize)]
-#[serde(untagged)]
-pub enum ParseError {
-    #[error("Error at line {line_number} ({raw_line}): {message}")]
-    GrammarError {
-        #[serde(rename = "ln")]
-        line_number: usize,
-        #[serde(rename = "col")]
-        column_number: usize,
-        #[serde(rename = "c")]
-        raw_line: String,
-        #[serde(rename = "e")]
-        message: String,
-    },
-    #[error("{0}")]
-    Custom(String),
 }
 
 pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
@@ -93,22 +77,15 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
                         value = attr.as_str().to_string();
                     }
                     _ => {
-                        return Err(ParseError::Custom(format!(
-                            "Error parsing meta: {}",
-                            attr.as_str()
-                        )));
+                        return Err(ParseError::MetaError(attr.as_str().to_string()));
                     }
                 }
             }
             if key == "" {
-                return Err(ParseError::Custom(format!(
-                    "Error parsing meta: key is empty"
-                )));
+                return Err(ParseError::MetaError("key is empty".to_string()));
             }
             if value == "" {
-                return Err(ParseError::Custom(format!(
-                    "Error parsing meta: value is empty"
-                )));
+                return Err(ParseError::MetaError("value is empty".to_string()));
             }
             oca_ast.meta.insert(key, value);
             continue;
@@ -137,10 +114,7 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
                 }
             },
             Err(e) => {
-                return Err(ParseError::Custom(format!(
-                    "Error parsing instruction: {}",
-                    e
-                )));
+                return Err(ParseError::InstructionError(e));
             }
         };
     }
@@ -390,7 +364,7 @@ mod tests {
     use oca_ast::ast::AttributeType;
     use said::derivation::{HashFunction, HashFunctionCode};
 
-    use super::*;
+    use super::{*, error::ExtractingAttributeError};
 
     #[test]
     fn parse_from_string_valid() {
@@ -483,6 +457,18 @@ ADD ATTRIBUTE incidentals_spare_parts=Array[refs:EJVVlVSZJqVNnuAMLHLkeSQgwfxYLWT
             ocafile, unparsed_file
         );
 
+    }
+
+    #[test]
+    fn test_wrong_said() {
+        let unparsed_file = r#"ADD ATTRIBUTE said=refs:digest"#;
+        let oca_ast = parse_from_string(unparsed_file.to_string());
+        match oca_ast.unwrap_err() {
+            ParseError::InstructionError(InstructionError::ExtractError(ExtractingAttributeError::SaidError(e))) => {
+                assert_eq!(e.to_string(), "Unknown code")
+            },
+            _ => unreachable!()
+        }
     }
 
 
