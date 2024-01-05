@@ -2,22 +2,18 @@ use std::str::FromStr;
 
 use indexmap::IndexMap;
 use log::debug;
-use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, Content, RefValue, recursive_attributes::{NestedAttrTypeFrame, AttributeTypeResult}, error::AttributeError};
+use oca_ast::ast::{NestedValue, AttributeType, NestedAttrType, Content, RefValue, recursive_attributes::{NestedAttrTypeFrame, AttributeTypeResult}};
 use recursion::ExpandableExt;
 use said::SelfAddressingIdentifier;
-use crate::ocafile::{Pair, Rule, error::Error};
+use crate::ocafile::{Pair, Rule, error::ExtractingAttributeError};
 
-fn extract_attr_type(input: Pair) -> Result<NestedAttrType, Error> {
-
-
+fn extract_attr_type(input: Pair) -> Result<NestedAttrType, ExtractingAttributeError> {
     let res = AttributeTypeResult::expand_frames(input, |seed| {
         match seed.as_rule() {
             Rule::array_attr_type => {
                 match seed.into_inner().next() {
                     Some(next) => NestedAttrTypeFrame::Array(next).into(),
-                    None => Error::UnexpectedToken(format!(
-                                    "Missing attribute type",
-                                )).into(),
+                    None => ExtractingAttributeError::Unexpected("Missing attribute type".to_string()).into(),
                 }
             },
             Rule::alias => {
@@ -26,22 +22,22 @@ fn extract_attr_type(input: Pair) -> Result<NestedAttrType, Error> {
             Rule::said => {
                 match SelfAddressingIdentifier::from_str(seed.as_str()) {
                     Ok(said) => NestedAttrTypeFrame::Reference(RefValue::Said(said)).into(),
-                    Err(_e) => Error::Parser(format!("Invalid said: {}", seed.as_str())).into(),
+                    Err(e) => ExtractingAttributeError::SaidError(e).into(),
                 }
             },
             Rule::base_attr_type => {
                 let seed_str = seed.as_span().as_str();
                 match AttributeType::from_str(seed_str) {
                     Ok(attr_type) => NestedAttrTypeFrame::Value(attr_type).into(),
-                    Err(_) => Error::UnexpectedToken(format!(
+                    Err(_) => ExtractingAttributeError::Unexpected(format!(
                                     "Unknown attribute type {}",
                                     seed_str
                                 )).into(),
                 }
             },
             rule => {
-                Error::UnexpectedToken(format!(
-                                    "Invalid attribute type: {:?}",
+                ExtractingAttributeError::Unexpected(format!(
+                                    "Unexpected pest rule: {:?}",
                                     rule
                                 )).into()
             }
@@ -50,7 +46,7 @@ fn extract_attr_type(input: Pair) -> Result<NestedAttrType, Error> {
     res.value()
 }
 
-pub fn extract_attribute(attr_pair: Pair) -> Result<(String, NestedAttrType), Error> {
+pub fn extract_attribute(attr_pair: Pair) -> Result<(String, NestedAttrType), ExtractingAttributeError> {
     let mut attr_name = String::new();
     let mut attr_type = NestedAttrType::Value(AttributeType::Text);
 
@@ -66,7 +62,7 @@ pub fn extract_attribute(attr_pair: Pair) -> Result<(String, NestedAttrType), Er
                 let item_field_label = item.as_span().as_str();
                 let mut inner = item.into_inner();
                 let inner_pair = inner.next().ok_or(
-                        Error::UnexpectedToken(format!(
+                        ExtractingAttributeError::Unexpected(format!(
                                     "Missing attribute type for {} field",
                                     item_field_label
                                 )))?;
@@ -74,11 +70,11 @@ pub fn extract_attribute(attr_pair: Pair) -> Result<(String, NestedAttrType), Er
 
             
             }
-            _ => {
-                return Err(Error::UnexpectedToken(format!(
-                    "Invalid attribute in {:?}",
-                    item.as_rule()
-                )))
+            rule => {
+                return Err(ExtractingAttributeError::Unexpected(format!(
+                                    "Unexpected pest rule: {:?}",
+                                    rule
+                                )))
             }
         }
     }
