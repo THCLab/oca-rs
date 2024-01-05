@@ -11,4 +11,17 @@ pub enum Error {
 
     #[error("{0}")]
     Unknown(String),
+
+    #[error(transparent)]
+    ExtractError(#[from] ExtractingAttributeError),
+}
+
+#[derive(Error, Debug)]
+
+pub enum ExtractingAttributeError {
+    #[error(transparent)]
+    SaidError(#[from] said::error::Error),
+
+    #[error("{0}")]
+    Unexpected(String),
 }
