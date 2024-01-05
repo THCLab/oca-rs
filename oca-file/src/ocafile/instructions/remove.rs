@@ -1,4 +1,4 @@
-use crate::ocafile::{error::Error, Pair, Rule};
+use crate::ocafile::{error::InstructionError, Pair, Rule};
 use indexmap::IndexMap;
 use log::debug;
 use oca_ast::ast::{Command, CommandType, Content, NestedValue, ObjectKind, OverlayType, NestedAttrType, CaptureContent};
@@ -7,7 +7,7 @@ use oca_ast::ast::{Command, CommandType, Content, NestedValue, ObjectKind, Overl
 pub struct RemoveInstruction {}
 
 impl RemoveInstruction {
-    pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Command, Error> {
+    pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Command, InstructionError> {
         let mut object_kind = None;
 
         debug!("Parsing remove instruction: {:?}", record);
@@ -40,7 +40,7 @@ impl RemoveInstruction {
                     object_kind = Some(ObjectKind::CaptureBase(CaptureContent { attributes: Some(attributes), properties: None }));
                 }
                 _ => {
-                    return Err(Error::UnexpectedToken(format!(
+                    return Err(InstructionError::UnexpectedToken(format!(
                         "unexpected token {:?}",
                         object.as_rule()
                     )))
