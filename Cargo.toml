@@ -2,8 +2,6 @@
 
 members = [
   "oca-bundle",
-  # "oca-bundle/bindings/js/wasm",
-  # "oca-bundle/bindings/dart",
   "oca-file",
   "oca-ast",
   "oca-dag",
