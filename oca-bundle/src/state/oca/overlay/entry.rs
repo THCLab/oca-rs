@@ -1,12 +1,10 @@
-use crate::state::{
-    attribute::Attribute, entries::EntriesElement, oca::Overlay,
-};
-use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
+use crate::state::{attribute::Attribute, entries::EntriesElement, oca::Overlay};
+use isolang::Language;
+use oca_ast::ast::OverlayType;
+use said::{sad::SerializationFormats, sad::SAD};
+use serde::{ser::SerializeMap, Deserialize, Serialize, Serializer};
 use std::any::Any;
 use std::collections::HashMap;
-use isolang::Language;
-use said::{sad::SAD, sad::SerializationFormats};
-use oca_ast::ast::OverlayType;
 
 pub trait Entries {
     fn set_entry(&mut self, l: Language, entry: EntriesElement);
@@ -24,7 +22,10 @@ impl Entries for Attribute {
     }
 }
 
-pub fn serialize_attributes<S>(attributes: &HashMap<String, EntriesElement>, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_attributes<S>(
+    attributes: &HashMap<String, EntriesElement>,
+    s: S,
+) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {

@@ -25,21 +25,9 @@ impl Namespace {
 
 #[clonable]
 pub trait DataStorage: Clone {
-    fn get(
-        &self,
-        namespace: Namespace,
-        key: &str,
-    ) -> Result<Option<Vec<u8>>, String>;
-    fn get_all(
-        &self,
-        namespace: Namespace,
-    ) -> Result<HashMap<String, Vec<u8>>, String>;
-    fn insert(
-        &mut self,
-        namespace: Namespace,
-        key: &str,
-        value: &[u8],
-    ) -> Result<(), String>;
+    fn get(&self, namespace: Namespace, key: &str) -> Result<Option<Vec<u8>>, String>;
+    fn get_all(&self, namespace: Namespace) -> Result<HashMap<String, Vec<u8>>, String>;
+    fn insert(&mut self, namespace: Namespace, key: &str, value: &[u8]) -> Result<(), String>;
     fn new() -> Self
     where
         Self: Sized;
@@ -116,11 +104,7 @@ impl DataStorage for SledDataStorage {
         self.clone()
     }
 
-    fn get(
-        &self,
-        namespace: Namespace,
-        key: &str,
-    ) -> Result<Option<Vec<u8>>, String> {
+    fn get(&self, namespace: Namespace, key: &str) -> Result<Option<Vec<u8>>, String> {
         if let Some(ref db) = self.db {
             let tree = db.open_tree(namespace.as_str().as_bytes()).unwrap();
             match tree.get(key.as_bytes()).unwrap() {
@@ -132,19 +116,13 @@ impl DataStorage for SledDataStorage {
         }
     }
 
-    fn get_all(
-        &self,
-        namespace: Namespace,
-    ) -> Result<HashMap<String, Vec<u8>>, String> {
+    fn get_all(&self, namespace: Namespace) -> Result<HashMap<String, Vec<u8>>, String> {
         if let Some(ref db) = self.db {
             let mut all = HashMap::new();
             let tree = db.open_tree(namespace.as_str().as_bytes()).unwrap();
             let mut iter = tree.iter();
             while let Some(Ok((key, value))) = iter.next() {
-                all.insert(
-                    String::from_utf8(key.to_vec()).unwrap(),
-                    value.to_vec(),
-                );
+                all.insert(String::from_utf8(key.to_vec()).unwrap(), value.to_vec());
             }
 
             Ok(all)
@@ -153,12 +131,7 @@ impl DataStorage for SledDataStorage {
         }
     }
 
-    fn insert(
-        &mut self,
-        namespace: Namespace,
-        key: &str,
-        value: &[u8],
-    ) -> Result<(), String> {
+    fn insert(&mut self, namespace: Namespace, key: &str, value: &[u8]) -> Result<(), String> {
         if let Some(ref db) = self.db {
             let tree = db.open_tree(namespace.as_str().as_bytes()).unwrap();
             match tree.insert(key.as_bytes(), value) {
@@ -185,11 +158,7 @@ impl DataStorage for InMemoryDataStorage {
         self.clone()
     }
 
-    fn get(
-        &self,
-        namespace: Namespace,
-        key: &str,
-    ) -> Result<Option<Vec<u8>>, String> {
+    fn get(&self, namespace: Namespace, key: &str) -> Result<Option<Vec<u8>>, String> {
         let namespace_storage = match self.db.get(namespace.as_str()) {
             Some(namespace_storage) => namespace_storage,
             None => return Ok(None),
@@ -200,22 +169,14 @@ impl DataStorage for InMemoryDataStorage {
         }
     }
 
-    fn get_all(
-        &self,
-        namespace: Namespace,
-    ) -> Result<HashMap<String, Vec<u8>>, String> {
+    fn get_all(&self, namespace: Namespace) -> Result<HashMap<String, Vec<u8>>, String> {
         match self.db.get(namespace.as_str()) {
             Some(namespace_storage) => Ok(namespace_storage.clone()),
             None => Ok(HashMap::new()),
         }
     }
 
-    fn insert(
-        &mut self,
-        namespace: Namespace,
-        key: &str,
-        value: &[u8],
-    ) -> Result<(), String> {
+    fn insert(&mut self, namespace: Namespace, key: &str, value: &[u8]) -> Result<(), String> {
         let mut namespace_storage = match self.db.get(namespace.as_str()) {
             Some(namespace_storage) => namespace_storage.clone(),
             None => HashMap::new(),
@@ -290,11 +251,7 @@ impl DataStorage for FileSystemStorage {
         self.clone()
     }
 
-    fn get(
-        &self,
-        namespace: Namespace,
-        key: &str,
-    ) -> Result<Option<Vec<u8>>, String> {
+    fn get(&self, namespace: Namespace, key: &str) -> Result<Option<Vec<u8>>, String> {
         if let Some(ref dir) = self.dir {
             let mut path = dir.clone();
             path.push(namespace.as_str());
@@ -309,19 +266,11 @@ impl DataStorage for FileSystemStorage {
         }
     }
 
-    fn get_all(
-        &self,
-        _namespace:Namespace,
-    ) -> Result<HashMap<String, Vec<u8>>, String> {
+    fn get_all(&self, _namespace: Namespace) -> Result<HashMap<String, Vec<u8>>, String> {
         Err("Not implemented".to_string())
     }
 
-    fn insert(
-        &mut self,
-        namespace: Namespace,
-        key: &str,
-        value: &[u8],
-    ) -> Result<(), String> {
+    fn insert(&mut self, namespace: Namespace, key: &str, value: &[u8]) -> Result<(), String> {
         if let Some(ref dir) = self.dir {
             let mut path = dir.clone();
             path.push(namespace.as_str());

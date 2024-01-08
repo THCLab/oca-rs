@@ -1,10 +1,13 @@
 use crate::state::attribute::Attribute;
 use oca_ast::ast::NestedAttrType;
-use said::{sad::SAD, sad::SerializationFormats};
-use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap, ser::SerializeSeq};
+use said::{sad::SerializationFormats, sad::SAD};
+use serde::{ser::SerializeMap, ser::SerializeSeq, Deserialize, Serialize, Serializer};
 use std::collections::HashMap;
 
-pub fn serialize_attributes<S>(attributes: &HashMap<String, NestedAttrType>, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_attributes<S>(
+    attributes: &HashMap<String, NestedAttrType>,
+    s: S,
+) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -17,7 +20,6 @@ where
     }
     ser.end()
 }
-
 
 pub fn serialize_flagged_attributes<S>(attributes: &Vec<String>, s: S) -> Result<S::Ok, S::Error>
 where
@@ -83,7 +85,10 @@ impl CaptureBase {
             attr_type_str.push_str(attribute.reference_sai.as_ref().unwrap_or(&"".to_string()));
             attr_type_str.push(']');
         }*/
-        self.attributes.insert(attribute.name.clone(), attribute.attribute_type.clone().unwrap());
+        self.attributes.insert(
+            attribute.name.clone(),
+            attribute.attribute_type.clone().unwrap(),
+        );
         if attribute.is_flagged {
             self.flagged_attributes.push(attribute.name.clone());
         }

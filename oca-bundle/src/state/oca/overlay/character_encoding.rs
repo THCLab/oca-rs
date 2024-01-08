@@ -1,6 +1,6 @@
-use crate::state::oca::overlay::overlay;
 use crate::state::encoding::Encoding;
-use serde::{Serialize, ser::SerializeMap};
-use said::{sad::SAD, sad::SerializationFormats};
+use crate::state::oca::overlay::overlay;
+use said::{sad::SerializationFormats, sad::SAD};
+use serde::{ser::SerializeMap, Serialize};
 
 overlay!(CharacterEncoding, attribute_character_encoding, encoding: Encoding);

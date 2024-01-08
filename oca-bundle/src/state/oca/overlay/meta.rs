@@ -1,14 +1,10 @@
-use crate::state::{
-    attribute::Attribute,
-    oca::Overlay,
-    oca::OCABox,
-};
-use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
+use crate::state::{attribute::Attribute, oca::OCABox, oca::Overlay};
+use isolang::Language;
+use oca_ast::ast::OverlayType;
+use said::{sad::SerializationFormats, sad::SAD};
+use serde::{ser::SerializeMap, Deserialize, Serialize, Serializer};
 use std::any::Any;
 use std::collections::HashMap;
-use isolang::Language;
-use said::{sad::SAD, sad::SerializationFormats};
-use oca_ast::ast::OverlayType;
 
 pub trait Metas {
     fn add_meta(&mut self, language: Language, key: String, value: String);
@@ -17,18 +13,16 @@ pub trait Metas {
 impl Metas for OCABox {
     fn add_meta(&mut self, l: Language, key: String, value: String) {
         match &mut self.meta {
-            Some(ref mut meta) => {
-                match meta.get_mut(&l) {
-                    Some(attr_pairs) => {
-                        attr_pairs.insert(key, value);
-                    },
-                    None => {
-                        let mut attr_pairs = HashMap::new();
-                        attr_pairs.insert(key, value);
-                        meta.insert(l, attr_pairs);
-                    }
+            Some(ref mut meta) => match meta.get_mut(&l) {
+                Some(attr_pairs) => {
+                    attr_pairs.insert(key, value);
                 }
-            }
+                None => {
+                    let mut attr_pairs = HashMap::new();
+                    attr_pairs.insert(key, value);
+                    meta.insert(l, attr_pairs);
+                }
+            },
             None => {
                 let meta = HashMap::new();
                 self.meta = Some(meta);
@@ -38,7 +32,10 @@ impl Metas for OCABox {
     }
 }
 
-pub fn serialize_attributes<S>(attributes: &HashMap<String, String>, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_attributes<S>(
+    attributes: &HashMap<String, String>,
+    s: S,
+) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {

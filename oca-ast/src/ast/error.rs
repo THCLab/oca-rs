@@ -10,5 +10,5 @@ pub enum AttributeError {
     #[error("Error while converting {0} to attribute type")]
     ConvertingFailure(String),
     #[error(transparent)]
-    ReferenceError(#[from] RefValueParsingError)
+    ReferenceError(#[from] RefValueParsingError),
 }

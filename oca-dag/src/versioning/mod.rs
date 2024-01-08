@@ -9,15 +9,13 @@ pub struct Graph {
 #[allow(dead_code)]
 impl Graph {
     fn new(db: Box<dyn DataStorage>) -> Self {
-        Self {
-            db
-        }
+        Self { db }
     }
 
     pub fn add(&self, new: &str, to: Option<&str>) -> Result<(), String> {
         self.db.insert(
             &format!("{}.upscending", new),
-            &self.generate_parents_digests(to)
+            &self.generate_parents_digests(to),
         )?;
 
         if let Some(to) = to {
@@ -25,7 +23,7 @@ impl Graph {
             let children_digests: Option<Vec<u8>> = self.db.get(k)?;
             self.db.insert(
                 &format!("{}.downscending", to),
-                &self.update_children_digests(children_digests.as_deref(), new)
+                &self.update_children_digests(children_digests.as_deref(), new),
             )?;
         }
 
@@ -50,13 +48,12 @@ impl Graph {
         digests.extend(new.as_bytes());
         digests
     }
-
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::data_storage::{ DataStorage, SledDataStorage };
+    use crate::data_storage::{DataStorage, SledDataStorage};
 
     #[test]
     fn test_history() {

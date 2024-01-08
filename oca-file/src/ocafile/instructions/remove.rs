@@ -1,7 +1,10 @@
 use crate::ocafile::{error::InstructionError, Pair, Rule};
 use indexmap::IndexMap;
 use log::debug;
-use oca_ast::ast::{Command, CommandType, Content, NestedValue, ObjectKind, OverlayType, NestedAttrType, CaptureContent};
+use oca_ast::ast::{
+    CaptureContent, Command, CommandType, Content, NestedAttrType, NestedValue, ObjectKind,
+    OverlayType,
+};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct RemoveInstruction {}
@@ -14,7 +17,13 @@ impl RemoveInstruction {
         for object in record.into_inner() {
             match object.as_rule() {
                 Rule::remove_meta => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Meta, Content { properties: Some(extract_properties_pairs(object)), attributes: None }));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::Meta,
+                        Content {
+                            properties: Some(extract_properties_pairs(object)),
+                            attributes: None,
+                        },
+                    ));
                 }
                 Rule::classification => {
                     let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
@@ -22,22 +31,30 @@ impl RemoveInstruction {
                         "classification".to_string(),
                         NestedValue::Value("".to_string()),
                     );
-                    object_kind = Some(ObjectKind::CaptureBase(CaptureContent { attributes: None, properties: Some(properties) }));
+                    object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
+                        attributes: None,
+                        properties: Some(properties),
+                    }));
                 }
                 Rule::remove_label => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Label, Content {
-                        properties: Some(extract_properties_pairs(object.clone())),
-                        attributes: Some(extract_attribute_pairs(object))
-                    }));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::Label,
+                        Content {
+                            properties: Some(extract_properties_pairs(object.clone())),
+                            attributes: Some(extract_attribute_pairs(object)),
+                        },
+                    ));
                 }
                 Rule::remove_attribute => {
                     let mut attributes: IndexMap<String, NestedAttrType> = IndexMap::new();
                     for key in object.into_inner() {
                         debug!("Parsing key to remove: {:?}", key.as_str());
-                        attributes
-                            .insert(key.as_str().to_string(), NestedAttrType::Null);
+                        attributes.insert(key.as_str().to_string(), NestedAttrType::Null);
                     }
-                    object_kind = Some(ObjectKind::CaptureBase(CaptureContent { attributes: Some(attributes), properties: None }));
+                    object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
+                        attributes: Some(attributes),
+                        properties: None,
+                    }));
                 }
                 _ => {
                     return Err(InstructionError::UnexpectedToken(format!(

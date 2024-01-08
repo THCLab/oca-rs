@@ -14,16 +14,18 @@ impl Conditionals for Attribute {
         let re = regex::Regex::new(r"\$\{([^}]*)\}").unwrap();
         let mut dependencies = Vec::new();
 
-        let cond = re.replace_all(&condition, |caps: &regex::Captures| {
-            let i = dependencies
-                .iter()
-                .position(|d| d == &caps[1])
-                .unwrap_or_else(|| {
-                    dependencies.push(caps[1].to_string());
-                    dependencies.len() - 1
-                });
-            format!("${{{}}}", i)
-        }).to_string();
+        let cond = re
+            .replace_all(&condition, |caps: &regex::Captures| {
+                let i = dependencies
+                    .iter()
+                    .position(|d| d == &caps[1])
+                    .unwrap_or_else(|| {
+                        dependencies.push(caps[1].to_string());
+                        dependencies.len() - 1
+                    });
+                format!("${{{}}}", i)
+            })
+            .to_string();
 
         self.condition = Some(cond);
         self.dependencies = Some(dependencies);

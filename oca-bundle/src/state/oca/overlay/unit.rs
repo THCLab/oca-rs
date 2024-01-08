@@ -1,9 +1,9 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
-use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
+use oca_ast::ast::OverlayType;
+use said::{sad::SerializationFormats, sad::SAD};
+use serde::{ser::SerializeMap, Deserialize, Serialize, Serializer};
 use std::any::Any;
 use std::collections::HashMap;
-use said::{sad::SAD, sad::SerializationFormats};
-use oca_ast::ast::OverlayType;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, Hash, PartialEq)]
 #[serde(rename_all = "lowercase")]
@@ -184,7 +184,10 @@ impl Unit for Attribute {
     }
 }
 
-pub fn serialize_attributes<S>(attributes: &HashMap<String, MeasurementUnit>, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_attributes<S>(
+    attributes: &HashMap<String, MeasurementUnit>,
+    s: S,
+) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -277,11 +280,16 @@ mod tests {
             attribute.units,
             Some({
                 let mut units = HashMap::new();
-                units.insert(MeasurementSystem::Metric, MeasurementUnit::Metric(MetricUnit::Kilogram));
-                units.insert(MeasurementSystem::Imperial, MeasurementUnit::Imperial(ImperialUnit::Pound));
+                units.insert(
+                    MeasurementSystem::Metric,
+                    MeasurementUnit::Metric(MetricUnit::Kilogram),
+                );
+                units.insert(
+                    MeasurementSystem::Imperial,
+                    MeasurementUnit::Imperial(ImperialUnit::Pound),
+                );
                 units
             })
         );
-
     }
 }

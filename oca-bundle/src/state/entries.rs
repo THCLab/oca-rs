@@ -1,10 +1,11 @@
-use serde::{Deserialize, Serialize, ser::SerializeMap};
+use serde::{ser::SerializeMap, Deserialize, Serialize};
 use std::collections::HashMap;
 
 impl Serialize for EntriesElement {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer {
+        S: serde::Serializer,
+    {
         use std::collections::BTreeMap;
 
         match self {

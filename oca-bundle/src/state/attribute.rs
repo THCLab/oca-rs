@@ -3,12 +3,12 @@ use super::{
     standard::Standard,
 };
 use isolang::Language;
+pub use oca_ast::ast::AttributeType;
 use oca_ast::ast::NestedAttrType;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-pub use oca_ast::ast::AttributeType;
 
-use crate::state::{encoding::Encoding, entry_codes::EntryCodes, entries::EntriesElement};
+use crate::state::{encoding::Encoding, entries::EntriesElement, entry_codes::EntryCodes};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Attribute {
     pub name: String,
@@ -72,7 +72,6 @@ impl Attribute {
         self.attribute_type = Some(attribute_type);
     }
 
-
     // Merge assumption is that if `other` is not None then it would overwrite `self` or would be concatenated with `self`
     pub fn merge(&mut self, other: &Attribute) {
         if self.name != other.name {
@@ -132,7 +131,6 @@ impl Attribute {
             if other.standards.is_some() {
                 self.standards = other.standards.clone();
             }
-
         }
     }
 
@@ -141,10 +139,7 @@ impl Attribute {
             self.entries = other.entries.clone();
         } else if let Some(entries) = &other.entries {
             for (lang, entry) in entries {
-                self.entries
-                    .as_mut()
-                    .unwrap()
-                    .insert(*lang, entry.clone());
+                self.entries.as_mut().unwrap().insert(*lang, entry.clone());
             }
         }
     }
@@ -178,10 +173,7 @@ impl Attribute {
             self.labels = other.labels.clone();
         } else if let Some(labels) = &other.labels {
             for (lang, label) in labels {
-                self.labels
-                    .as_mut()
-                    .unwrap()
-                    .insert(*lang, label.clone());
+                self.labels.as_mut().unwrap().insert(*lang, label.clone());
             }
         }
     }

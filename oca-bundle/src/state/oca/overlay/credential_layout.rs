@@ -1,9 +1,9 @@
 use crate::state::oca::OCABox;
 use crate::state::{attribute::Attribute, oca::layout::credential::Layout, oca::Overlay};
+use oca_ast::ast::OverlayType;
+use said::{sad::SerializationFormats, sad::SAD};
 use serde::{Deserialize, Serialize};
 use std::any::Any;
-use said::{sad::SAD, sad::SerializationFormats};
-use oca_ast::ast::OverlayType;
 
 pub trait CredentialLayouts {
     fn add_credential_layout(&mut self, layout_str: String);

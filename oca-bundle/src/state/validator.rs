@@ -1,10 +1,13 @@
 use crate::state::oca::overlay::Overlay;
 use crate::state::oca::DynOverlay;
-use std::{collections::{HashSet, HashMap}, error::Error as StdError};
 use isolang::Language;
-use oca_ast::ast::{OverlayType, AttributeType, NestedAttrType};
+use oca_ast::ast::{AttributeType, NestedAttrType, OverlayType};
+use std::{
+    collections::{HashMap, HashSet},
+    error::Error as StdError,
+};
 
-use super::oca::{OCABundle, overlay};
+use super::oca::{overlay, OCABundle};
 use piccolo::{Closure, Lua, Thread};
 
 #[derive(Debug)]
@@ -70,8 +73,8 @@ impl Validator {
         let mut errors: Vec<Error> = vec![];
 
         /* let oca_bundle: OCABundle = serde_json::from_str(oca_str.as_str())
-            .map_err(|e| vec![Error::Custom(e.to_string())])?;
- */
+                   .map_err(|e| vec![Error::Custom(e.to_string())])?;
+        */
         let mut recalculated_oca_bundle = oca_bundle.clone();
         recalculated_oca_bundle.fill_said();
 
@@ -118,12 +121,11 @@ impl Validator {
         if let Some(conditional_overlay) = conditional_overlay {
             self.validate_conditional(
                 oca_bundle.capture_base.attributes.clone(),
-                conditional_overlay
+                conditional_overlay,
             )?;
         }
 
         if !enforced_langs.is_empty() {
-
             let meta_overlays = oca_bundle
                 .overlays
                 .iter()
@@ -131,9 +133,7 @@ impl Validator {
                 .collect::<Vec<_>>();
 
             if !meta_overlays.is_empty() {
-                if let Err(meta_errors) =
-                    self.validate_meta(&enforced_langs, meta_overlays)
-                {
+                if let Err(meta_errors) = self.validate_meta(&enforced_langs, meta_overlays) {
                     errors = errors
                         .into_iter()
                         .chain(meta_errors.into_iter().map(|e| {
@@ -160,7 +160,7 @@ impl Validator {
             for overlay_type in &[
                 OverlayType::Entry,
                 OverlayType::Information,
-                OverlayType::Label
+                OverlayType::Label,
             ] {
                 let typed_overlays: Vec<_> = oca_bundle
                     .overlays
@@ -229,31 +229,25 @@ impl Validator {
                 let dep_type = attr_types.get(dep).unwrap(); // todo
                 let value = match dep_type {
                     NestedAttrType::Null => "null".to_string(),
-                    NestedAttrType::Value(base_type) => {
-                        match base_type {
-                            AttributeType::Text => "'test'".to_string(),
-                            AttributeType::Numeric => "0".to_string(),
-                            AttributeType::DateTime => "'2020-01-01'".to_string(),
-                            AttributeType::Binary => "test".to_string(),
-                            AttributeType::Boolean => "true".to_string(),
-                        }
-                    }
-                    // TODO validate nested objects
-                    NestedAttrType::Array(boxed_type) =>  {
-                        match **boxed_type {
-                            NestedAttrType::Value(base_type) => match base_type {
-                                AttributeType::Text => "['test']".to_string(),
-                                AttributeType::Numeric => "[0]".to_string(),
-                                AttributeType::DateTime => "['2020-01-01']".to_string(),
-                                AttributeType::Binary => "[test]".to_string(),
-                                AttributeType::Boolean => "[true]".to_string(),
-                            },
-                            _ => panic!("Invalid or not supported array type"),
-                        }
+                    NestedAttrType::Value(base_type) => match base_type {
+                        AttributeType::Text => "'test'".to_string(),
+                        AttributeType::Numeric => "0".to_string(),
+                        AttributeType::DateTime => "'2020-01-01'".to_string(),
+                        AttributeType::Binary => "test".to_string(),
+                        AttributeType::Boolean => "true".to_string(),
                     },
-                    NestedAttrType::Reference(ref_value) => {
-                        ref_value.to_string()
-                    }
+                    // TODO validate nested objects
+                    NestedAttrType::Array(boxed_type) => match **boxed_type {
+                        NestedAttrType::Value(base_type) => match base_type {
+                            AttributeType::Text => "['test']".to_string(),
+                            AttributeType::Numeric => "[0]".to_string(),
+                            AttributeType::DateTime => "['2020-01-01']".to_string(),
+                            AttributeType::Binary => "[test]".to_string(),
+                            AttributeType::Boolean => "[true]".to_string(),
+                        },
+                        _ => panic!("Invalid or not supported array type"),
+                    },
+                    NestedAttrType::Reference(ref_value) => ref_value.to_string(),
                 };
                 attr_mocks.insert(dep.to_string(), value);
             });
@@ -261,11 +255,7 @@ impl Validator {
             let script = re
                 .replace_all(condition, |caps: &regex::Captures| {
                     attr_mocks
-                        .get(
-                            &condition_dependencies
-                                [caps[1].parse::<usize>().unwrap()]
-                            .clone(),
-                        )
+                        .get(&condition_dependencies[caps[1].parse::<usize>().unwrap()].clone())
                         .unwrap()
                         .to_string()
                 })
@@ -273,8 +263,7 @@ impl Validator {
 
             let mut lua = Lua::new();
             let thread_result = lua.try_run(|ctx| {
-                let closure =
-                    Closure::load(ctx, format!("return {script}").as_bytes())?;
+                let closure = Closure::load(ctx, format!("return {script}").as_bytes())?;
                 let thread = Thread::new(&ctx);
                 thread.start(ctx, closure.into(), ())?;
                 Ok(ctx.state.registry.stash(&ctx, thread))
@@ -311,7 +300,10 @@ impl Validator {
         meta_overlays: Vec<&overlay::Meta>,
     ) -> Result<(), Vec<Error>> {
         let mut errors: Vec<Error> = vec![];
-        let translation_langs: HashSet<_> = meta_overlays.iter().map(|o| o.language().unwrap()).collect();
+        let translation_langs: HashSet<_> = meta_overlays
+            .iter()
+            .map(|o| o.language().unwrap())
+            .collect();
 
         let missing_enforcement: HashSet<&_> =
             translation_langs.difference(enforced_langs).collect();
@@ -396,18 +388,17 @@ mod tests {
     use crate::controller::load_oca;
     use crate::state::{
         attribute::{Attribute, AttributeType},
-        oca::OCABox,
         encoding::Encoding,
-        oca::overlay::conditional::Conditionals,
-        oca::overlay::meta::Metas,
         oca::overlay::character_encoding::CharacterEncodings,
+        oca::overlay::conditional::Conditionals,
         oca::overlay::label::Labels,
+        oca::overlay::meta::Metas,
+        oca::OCABox,
     };
 
     #[test]
-     fn validate_valid_oca() {
-        let validator =
-            Validator::new().enforce_translations(vec![Language::Eng, Language::Pol]);
+    fn validate_valid_oca() {
+        let validator = Validator::new().enforce_translations(vec![Language::Eng, Language::Pol]);
 
         let mut oca = cascade! {
             OCABox::new();
@@ -448,8 +439,7 @@ mod tests {
 
     #[test]
     fn validate_oca_with_missing_name_translation() {
-         let validator =
-            Validator::new().enforce_translations(vec![Language::Eng, Language::Pol]);
+        let validator = Validator::new().enforce_translations(vec![Language::Eng, Language::Pol]);
 
         let mut oca = cascade! {
             OCABox::new();
@@ -468,7 +458,7 @@ mod tests {
 
     #[test]
     fn validate_oca_with_standards() {
-/*         let validator = Validator::new();
+        /*         let validator = Validator::new();
 
         let oca = OCABuilder::new(Encoding::Utf8)
             .add_attribute(
