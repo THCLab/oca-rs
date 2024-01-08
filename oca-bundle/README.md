@@ -51,22 +51,9 @@ Building local package:
 
 `cargo test`
 
-## JS WASM bindings
+## Bindings
 
-### Build
-
-Building local NPM package  
-in bindings/js/wasm directory:  
-`bash build-pkg.sh`  
-
-### Run [tests](bindings/js/example/test)
-
-Go to bindings/js/example directory and install dependencies  
-
-```
-yarn install
-yarn test
-```
+To use oca in other languages, checkout [oca-bindings](https://github.com/THCLab/oca-bindings).
 
 ## Releasing new version
 
