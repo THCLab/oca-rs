@@ -41,13 +41,13 @@ impl NestedAttrType {
 }
 
 
-fn array_serializer<S>(foo: &Box<NestedAttrType>, serializer: S) -> Result<S::Ok, S::Error>
+fn array_serializer<S>(arr: &NestedAttrType, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
     // Serialize the inner value as an array
     let mut seq = serializer.serialize_seq(Some(1))?;
-    seq.serialize_element(&foo)?;
+    seq.serialize_element(&arr)?;
     seq.end()
 
     // Serialize the inner value and combine it with "Array"
@@ -107,7 +107,7 @@ impl<'de> Deserialize<'de> for NestedAttrType {
         });
         match expanded.value() {
             Ok(el) => Ok(el),
-            Err(er) => Err(er).map_err(serde::de::Error::custom),
+            Err(er) => Err(serde::de::Error::custom(er)),
         }
     }
 }

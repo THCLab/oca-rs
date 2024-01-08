@@ -2,7 +2,7 @@ use std::error::Error;
 
 use recursion::{Collapsible, Expandable, MappableFrame, PartiallyApplied};
 
-use super::{error::AttributeError, AttributeType, NestedAttrType, RefValue};
+use super::{AttributeType, NestedAttrType, RefValue};
 
 /// This module includes structures for setting up the recursion crate. They
 /// enable usage of `expand_frames` and `collapse_frames` functions for

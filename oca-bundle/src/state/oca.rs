@@ -1235,7 +1235,7 @@ mod tests {
         oca.add_attribute(attr);
 
         let mut attr2 = Attribute::new("gender".to_string());
-        let entries = EntriesElement::Object(( hashmap! {}));
+        let entries = EntriesElement::Object(hashmap! {});
         attr2.set_entry(Language::Eng, entries);
 
         let mut attr = Attribute::new("last_name".to_string());

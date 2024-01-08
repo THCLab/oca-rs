@@ -119,7 +119,6 @@ mod tests {
 
     use super::*;
     use pest::Parser;
-    use said::SelfAddressingIdentifier;
 
     #[test]
     fn test_add_attribute_instruction() {

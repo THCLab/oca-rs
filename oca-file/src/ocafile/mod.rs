@@ -1,8 +1,6 @@
 pub mod error;
 mod instructions;
 
-use std::{collections::HashMap, str::FromStr};
-
 use self::{instructions::{add::AddInstruction, from::FromInstruction, remove::RemoveInstruction}, error::ParseError};
 use crate::ocafile::error::InstructionError;
 use convert_case::{Case, Casing};
@@ -81,10 +79,10 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
                     }
                 }
             }
-            if key == "" {
+            if key.is_empty() {
                 return Err(ParseError::MetaError("key is empty".to_string()));
             }
-            if value == "" {
+            if value.is_empty() {
                 return Err(ParseError::MetaError("value is empty".to_string()));
             }
             oca_ast.meta.insert(key, value);
@@ -360,7 +358,6 @@ pub fn generate_from_ast(ast: &OCAAst) -> String {
 
 #[cfg(test)]
 mod tests {
-    use indexmap::IndexMap;
     use oca_ast::ast::AttributeType;
     use said::derivation::{HashFunction, HashFunctionCode};
 
@@ -475,7 +472,11 @@ ADD ATTRIBUTE incidentals_spare_parts=Array[refs:EJVVlVSZJqVNnuAMLHLkeSQgwfxYLWT
     #[test]
     fn test_oca_file_format() {
         let text_type = NestedAttrType::Value(AttributeType::Text);
+        assert_eq!(oca_file_format(text_type), "Text");
+
         let numeric_type = NestedAttrType::Value(AttributeType::Numeric);
+        assert_eq!(oca_file_format(numeric_type), "Numeric");
+        
         let ref_type = NestedAttrType::Reference(RefValue::Said(
                 HashFunction::from(HashFunctionCode::Blake3_256).derive("example".as_bytes()),
             ));
