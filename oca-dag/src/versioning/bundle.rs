@@ -1,15 +1,13 @@
 use oca_bundle::state::oca::OCABundle;
 
 struct OCABundleDTO {
-    bundle: OCABundle
+    bundle: OCABundle,
 }
 
 #[allow(dead_code)]
 impl OCABundleDTO {
     fn new(bundle: OCABundle) -> Self {
-        Self {
-            bundle
-        }
+        Self { bundle }
     }
 }
 
@@ -58,6 +56,13 @@ mod tests {
 "#;
         let oca = oca_bundle::controller::load_oca(&mut oca_str.as_bytes()).unwrap();
         let digests: Vec<u8> = OCABundleDTO::new(oca).into();
-        assert_eq!(digests, vec![44, 69, 73, 74, 71, 74, 109, 83, 95, 80, 57, 106, 119, 90, 68, 97, 109, 66, 54, 99, 84, 71, 57, 77, 111, 88, 75, 82, 117, 50, 49, 109, 121, 106, 88, 115, 77, 105, 55, 71, 89, 100, 100, 68, 121])
+        assert_eq!(
+            digests,
+            vec![
+                44, 69, 73, 74, 71, 74, 109, 83, 95, 80, 57, 106, 119, 90, 68, 97, 109, 66, 54, 99,
+                84, 71, 57, 77, 111, 88, 75, 82, 117, 50, 49, 109, 121, 106, 88, 115, 77, 105, 55,
+                71, 89, 100, 100, 68, 121
+            ]
+        )
     }
 }

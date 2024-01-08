@@ -1,22 +1,22 @@
 use isolang::Language;
 use oca_bundle::state::{
     attribute::{Attribute, AttributeType},
-    entry_codes::EntryCodes as EntryCodesValue,
-    entries::EntriesElement,
     encoding::Encoding,
-    oca::OCABox,
-    oca::overlay::meta::Metas,
+    entries::EntriesElement,
+    entry_codes::EntryCodes as EntryCodesValue,
+    oca::overlay::cardinality::Cardinalitys,
     oca::overlay::character_encoding::CharacterEncodings,
     oca::overlay::conditional::Conditionals,
     oca::overlay::conformance::Conformances,
-    oca::overlay::cardinality::Cardinalitys,
-    oca::overlay::entry_code::EntryCodes,
     oca::overlay::entry::Entries,
-    oca::overlay::label::Labels,
+    oca::overlay::entry_code::EntryCodes,
     oca::overlay::information::Information,
-    oca::overlay::unit::{Unit, AttributeUnit, MeasurementSystem, MeasurementUnit, MetricUnit},
+    oca::overlay::label::Labels,
+    oca::overlay::meta::Metas,
+    oca::overlay::unit::{AttributeUnit, MeasurementSystem, MeasurementUnit, MetricUnit, Unit},
     /* oca::overlay::form_layout::FormLayouts,
     oca::overlay::credential_layout::CredentialLayouts; */
+    oca::OCABox,
 };
 
 #[cfg(feature = "format_overlay")]
@@ -28,17 +28,17 @@ use maplit::hashmap;
 #[test]
 fn create_oca() {
     /* let form_layout = r#"
-elements:
-    - type: "test"
-    "#;
-    let credential_layout = r#"
-version: "1.0"
-pages:
-    - config:
-        name: "test"
-      elements:
+    elements:
         - type: "test"
-    "#; */
+        "#;
+        let credential_layout = r#"
+    version: "1.0"
+    pages:
+        - config:
+            name: "test"
+          elements:
+            - type: "test"
+        "#; */
     let mut oca = cascade! {
         OCABox::new();
         ..add_meta(Language::Eng, "name".to_string(), "Test".to_string());
@@ -109,7 +109,7 @@ pages:
     let serialized_bundle = serde_json::to_string_pretty(&oca_bundle).unwrap();
 
     let expected = if cfg!(feature = "format_overlay") {
-r#"{
+        r#"{
   "d": "EDsnRN7SgxuXLDren6zKnLoivAF3Zn6jAWCI8IKyztx0",
   "capture_base": {
     "d": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
@@ -268,8 +268,7 @@ r#"{
   }
 }"#
     } else {
-
-r#"{
+        r#"{
   "d": "EFPeNUp47pVfrMoi_ioFV4dH63qQOWQGt5lM5EFted0c",
   "capture_base": {
     "d": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",

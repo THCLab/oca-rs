@@ -147,10 +147,7 @@ impl OCABundleFTSRepo {
                     }
                 }
                 snippet_regex = v.join("...");
-                let re = regex::Regex::new(&format!(
-                    "(?m)^([^:]+):{snippet_regex:}$"
-                ))
-                .unwrap();
+                let re = regex::Regex::new(&format!("(?m)^([^:]+):{snippet_regex:}$")).unwrap();
                 let hay = format!(
                     "\
 meta_overlay:{}
@@ -160,9 +157,7 @@ meta_overlay:{}
                     self.description.clone().unwrap()
                 );
                 let mut scope = String::new();
-                if let Some((_, [s])) =
-                    re.captures_iter(&hay).map(|c| c.extract()).next()
-                {
+                if let Some((_, [s])) = re.captures_iter(&hay).map(|c| c.extract()).next() {
                     scope = s.to_string();
                 }
                 scope
@@ -205,7 +200,10 @@ meta_overlay:{}
             };
 
             records.push(SearchRecord {
-                oca_bundle_said: SelfAddressingIdentifier::from_str(&record.oca_bundle_said.unwrap()).unwrap(), //TODO
+                oca_bundle_said: SelfAddressingIdentifier::from_str(
+                    &record.oca_bundle_said.unwrap(),
+                )
+                .unwrap(), //TODO
                 metadata: metdata,
             });
         }

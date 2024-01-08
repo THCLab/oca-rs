@@ -1,33 +1,35 @@
-use crate::state::oca::overlay::information::Information;
-use crate::state::oca::overlay::entry::Entries;
-use crate::state::oca::overlay::entry_code::EntryCodes;
-use crate::state::oca::overlay::unit::{Unit, AttributeUnit};
-#[cfg(feature = "format_overlay")]
-use crate::state::oca::overlay::format::Formats;
-use crate::state::oca::overlay::cardinality::Cardinalitys;
-use crate::state::oca::overlay::conditional::Conditionals;
-use crate::state::oca::overlay::conformance::Conformances;
-use crate::state::oca::overlay::meta::Metas;
-use crate::state::oca::overlay::character_encoding::CharacterEncodings;
-use crate::state::oca::overlay::label::Labels;
-use indexmap::IndexMap;
-use said::version::SerializationInfo;
-use said::sad::{SerializationFormats, SAD};
 use crate::state::oca::layout::credential::Layout as CredentialLayout;
 use crate::state::oca::layout::form::Layout as FormLayout;
-use serde::{Deserialize, Deserializer, Serialize, Serializer, ser::SerializeMap};
-use std::collections::HashMap;
+use crate::state::oca::overlay::cardinality::Cardinalitys;
+use crate::state::oca::overlay::character_encoding::CharacterEncodings;
+use crate::state::oca::overlay::conditional::Conditionals;
+use crate::state::oca::overlay::conformance::Conformances;
+use crate::state::oca::overlay::entry::Entries;
+use crate::state::oca::overlay::entry_code::EntryCodes;
+#[cfg(feature = "format_overlay")]
+use crate::state::oca::overlay::format::Formats;
+use crate::state::oca::overlay::information::Information;
+use crate::state::oca::overlay::label::Labels;
+use crate::state::oca::overlay::meta::Metas;
+use crate::state::oca::overlay::unit::{AttributeUnit, Unit};
+use indexmap::IndexMap;
 use linked_hash_map::LinkedHashMap;
+use said::sad::{SerializationFormats, SAD};
+use said::version::SerializationInfo;
+use serde::{ser::SerializeMap, Deserialize, Deserializer, Serialize, Serializer};
+use std::collections::HashMap;
 pub mod capture_base;
 mod layout;
 pub mod overlay;
-use isolang::Language;
 use crate::state::{
     attribute::Attribute,
     oca::{capture_base::CaptureBase, overlay::Overlay},
 };
-use oca_ast::ast::{OverlayType, NestedValue, OCAAst, Command, CommandType, ObjectKind, Content, CaptureContent};
 use convert_case::{Case, Casing};
+use isolang::Language;
+use oca_ast::ast::{
+    CaptureContent, Command, CommandType, Content, NestedValue, OCAAst, ObjectKind, OverlayType,
+};
 /// Internal representation of OCA objects in split between non-attributes values and attributes.
 /// It is used to build dynamically objects without knowing yet whole structure of the object.
 /// Used mainly as a container to hold information while parsing OCAfile.
@@ -128,10 +130,7 @@ impl OCABox {
         }
         if let Some(meta) = &self.meta {
             for (lang, attr_pairs) in meta {
-                let meta_ov = overlay::Meta::new(
-                    *lang,
-                    attr_pairs.clone()
-                );
+                let meta_ov = overlay::Meta::new(*lang, attr_pairs.clone());
                 overlays.push(Box::new(meta_ov));
             }
         }
@@ -217,14 +216,13 @@ impl OCABox {
 
             if let Some(units) = &attribute.units {
                 for measurement_system in units.keys() {
-                    let mut unit_ov = overlays
-                        .iter_mut()
-                        .find(|x| if let Some(x_unit) = x.as_any().downcast_ref::<overlay::Unit>() {
-
+                    let mut unit_ov = overlays.iter_mut().find(|x| {
+                        if let Some(x_unit) = x.as_any().downcast_ref::<overlay::Unit>() {
                             x_unit.measurement_system() == Some(measurement_system)
                         } else {
                             false
-                        });
+                        }
+                    });
                     if unit_ov.is_none() {
                         overlays.push(Box::new(overlay::Unit::new(measurement_system.clone())));
                         unit_ov = overlays.last_mut();
@@ -250,9 +248,9 @@ impl OCABox {
 
             if let Some(entries) = &attribute.entries {
                 for lang in entries.keys() {
-                    let mut entry_ov = overlays
-                        .iter_mut()
-                        .find(|x| x.overlay_type().eq(&OverlayType::Entry) && x.language() == Some(lang));
+                    let mut entry_ov = overlays.iter_mut().find(|x| {
+                        x.overlay_type().eq(&OverlayType::Entry) && x.language() == Some(lang)
+                    });
                     if entry_ov.is_none() {
                         overlays.push(Box::new(overlay::Entry::new(*lang)));
                         entry_ov = overlays.last_mut();
@@ -265,9 +263,9 @@ impl OCABox {
 
             if let Some(labels) = &attribute.labels {
                 for lang in labels.keys() {
-                    let mut label_ov = overlays
-                        .iter_mut()
-                        .find(|x| x.overlay_type().eq(&OverlayType::Label) && x.language() == Some(lang));
+                    let mut label_ov = overlays.iter_mut().find(|x| {
+                        x.overlay_type().eq(&OverlayType::Label) && x.language() == Some(lang)
+                    });
                     if label_ov.is_none() {
                         overlays.push(Box::new(overlay::Label::new(*lang)));
                         label_ov = overlays.last_mut();
@@ -280,9 +278,9 @@ impl OCABox {
 
             if let Some(information) = &attribute.informations {
                 for lang in information.keys() {
-                    let mut info_ov = overlays
-                        .iter_mut()
-                        .find(|x| x.overlay_type().eq(&OverlayType::Information) && x.language() == Some(lang));
+                    let mut info_ov = overlays.iter_mut().find(|x| {
+                        x.overlay_type().eq(&OverlayType::Information) && x.language() == Some(lang)
+                    });
                     if info_ov.is_none() {
                         overlays.push(Box::new(overlay::Information::new(*lang)));
                         info_ov = overlays.last_mut();
@@ -323,9 +321,10 @@ impl<'de> Deserialize<'de> for DynOverlay {
             if let Some(de_overlay_type) =
                 overlay.get(&serde_value::Value::String("type".to_string()))
             {
-                let overlay_type = de_overlay_type.clone().deserialize_into::<OverlayType>().map_err(|e| {
-                    serde::de::Error::custom(format!("Overlay type: {e}"))
-                })?;
+                let overlay_type = de_overlay_type
+                    .clone()
+                    .deserialize_into::<OverlayType>()
+                    .map_err(|e| serde::de::Error::custom(format!("Overlay type: {e}")))?;
 
                 match overlay_type {
                     OverlayType::AttributeMapping => {
@@ -342,8 +341,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                     OverlayType::CharacterEncoding => {
                         return Ok(Box::new(
                             de_overlay
-                                .deserialize_into::<overlay::CharacterEncoding>(
-                                )
+                                .deserialize_into::<overlay::CharacterEncoding>()
                                 .map_err(|e| {
                                     serde::de::Error::custom(format!(
                                         "Character Encoding overlay: {e}"
@@ -356,9 +354,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::Cardinality>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!(
-                                        "Cardinality overlay: {e}"
-                                    ))
+                                    serde::de::Error::custom(format!("Cardinality overlay: {e}"))
                                 })?,
                         ));
                     }
@@ -367,9 +363,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::Conformance>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!(
-                                        "Conformance overlay: {e}"
-                                    ))
+                                    serde::de::Error::custom(format!("Conformance overlay: {e}"))
                                 })?,
                         ));
                     }
@@ -378,9 +372,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::Conditional>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!(
-                                        "Conditional overlay: {e}"
-                                    ))
+                                    serde::de::Error::custom(format!("Conditional overlay: {e}"))
                                 })?,
                         ));
                     }
@@ -389,9 +381,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::Entry>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!(
-                                        "Entry overlay: {e}"
-                                    ))
+                                    serde::de::Error::custom(format!("Entry overlay: {e}"))
                                 })?,
                         ));
                     }
@@ -400,9 +390,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::EntryCode>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!(
-                                        "Entry Code overlay: {e}"
-                                    ))
+                                    serde::de::Error::custom(format!("Entry Code overlay: {e}"))
                                 })?,
                         ));
                     }
@@ -422,9 +410,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::Unit>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!(
-                                        "Unit overlay: {e}"
-                                    ))
+                                    serde::de::Error::custom(format!("Unit overlay: {e}"))
                                 })?,
                         ));
                     }
@@ -435,9 +421,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::Format>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!(
-                                        "Format overlay: {e}"
-                                    ))
+                                    serde::de::Error::custom(format!("Format overlay: {e}"))
                                 })?,
                         ));
                     }
@@ -447,9 +431,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::Information>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!(
-                                        "Information overlay: {e}"
-                                    ))
+                                    serde::de::Error::custom(format!("Information overlay: {e}"))
                                 })?,
                         ));
                     }
@@ -458,9 +440,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::Label>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!(
-                                        "Label overlay: {e}"
-                                    ))
+                                    serde::de::Error::custom(format!("Label overlay: {e}"))
                                 })?,
                         ));
                     }
@@ -469,9 +449,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::Meta>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!(
-                                        "Meta overlay: {e}"
-                                    ))
+                                    serde::de::Error::custom(format!("Meta overlay: {e}"))
                                 })?,
                         ));
                     }
@@ -499,9 +477,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::Subset>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!(
-                                        "Subset overlay: {e}"
-                                    ))
+                                    serde::de::Error::custom(format!("Subset overlay: {e}"))
                                 })?,
                         ));
                     }
@@ -510,9 +486,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::Standard>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!(
-                                        "Standard overlay: {e}"
-                                    ))
+                                    serde::de::Error::custom(format!("Standard overlay: {e}"))
                                 })?,
                         ));
                     }
@@ -573,21 +547,21 @@ where
             if overlay.overlay_type().eq(&o_type) {
                 match overlay.language() {
                     Some(_) => {
-                        if let Some(OverlayValue::Array(ov)) = overlays_map.get_mut(&Value::String(o_type_str.clone())) {
+                        if let Some(OverlayValue::Array(ov)) =
+                            overlays_map.get_mut(&Value::String(o_type_str.clone()))
+                        {
                             ov.push(overlay.clone());
                         } else {
                             overlays_map.insert(
                                 Value::String(o_type_str.clone()),
-                                OverlayValue::Array(vec![
-                                    overlay.clone()
-                                ])
+                                OverlayValue::Array(vec![overlay.clone()]),
                             );
                         }
-                    },
+                    }
                     None => {
                         overlays_map.insert(
                             Value::String(o_type_str),
-                            OverlayValue::Object(overlay.clone())
+                            OverlayValue::Object(overlay.clone()),
                         );
                     }
                 }
@@ -654,7 +628,12 @@ where
 
 impl std::fmt::Debug for DynOverlay {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "DynOverlay {{ overlay_type: {}, attributes: {:?} }}", self.overlay_type(), self.attributes())
+        write!(
+            f,
+            "DynOverlay {{ overlay_type: {}, attributes: {:?} }}",
+            self.overlay_type(),
+            self.attributes()
+        )
     }
 }
 
@@ -666,7 +645,10 @@ pub struct OCABundle {
     #[serde(rename = "d")]
     pub said: Option<said::SelfAddressingIdentifier>,
     pub capture_base: CaptureBase,
-    #[serde(serialize_with = "serialize_overlays", deserialize_with = "deserialize_overlays")]
+    #[serde(
+        serialize_with = "serialize_overlays",
+        deserialize_with = "deserialize_overlays"
+    )]
     pub overlays: Vec<DynOverlay>,
 }
 
@@ -681,7 +663,7 @@ impl From<OCABundle> for OCABox {
                 name: attr_name.clone(),
                 attribute_type: Some(attr_type),
                 // TODO find out how to make sure that said or Array said would be in a attr type
-               // reference_sai: ref_said,
+                // reference_sai: ref_said,
                 ..Default::default()
             };
             attributes.insert(attr_name.clone(), attr);
@@ -697,7 +679,11 @@ impl From<OCABundle> for OCABox {
             .collect::<Vec<_>>();
         for overlay in meta_overlays {
             for (meta_name, meta_value) in overlay.attr_pairs.iter() {
-                oca_box.add_meta(*overlay.language().unwrap(), meta_name.clone(), meta_value.clone());
+                oca_box.add_meta(
+                    *overlay.language().unwrap(),
+                    meta_name.clone(),
+                    meta_value.clone(),
+                );
             }
         }
 
@@ -738,16 +724,13 @@ impl From<OCABundle> for OCABox {
             let re = regex::Regex::new(r"\$\{(\d+)\}").unwrap();
 
             for (attr_name, condition) in overlay.attribute_conditions.iter() {
-                let condition_dependencies = overlay
-                    .attribute_dependencies
-                    .get(attr_name)
-                    .unwrap(); // todo
-                let cond = re.replace_all(condition, |caps: &regex::Captures| {
-                    let dep = condition_dependencies[
-                        caps[1].parse::<usize>().unwrap()
-                    ].clone();
-                    format!("${{{}}}", dep)
-                }).to_string();
+                let condition_dependencies = overlay.attribute_dependencies.get(attr_name).unwrap(); // todo
+                let cond = re
+                    .replace_all(condition, |caps: &regex::Captures| {
+                        let dep = condition_dependencies[caps[1].parse::<usize>().unwrap()].clone();
+                        format!("${{{}}}", dep)
+                    })
+                    .to_string();
 
                 attributes
                     .get_mut(attr_name)
@@ -794,10 +777,13 @@ impl From<OCABundle> for OCABox {
             .collect::<Vec<_>>();
         for overlay in unit_overlays {
             for (attr_name, unit) in overlay.attribute_units.iter() {
-                attributes.get_mut(attr_name).unwrap().set_unit(AttributeUnit {
-                    measurement_system: overlay.measurement_system().unwrap().clone(),
-                    unit: unit.clone(),
-                });
+                attributes
+                    .get_mut(attr_name)
+                    .unwrap()
+                    .set_unit(AttributeUnit {
+                        measurement_system: overlay.measurement_system().unwrap().clone(),
+                        unit: unit.clone(),
+                    });
             }
         }
 
@@ -878,21 +864,21 @@ impl OCABundle {
             properties = Some(IndexMap::new());
             properties.as_mut().unwrap().insert(
                 "classification".to_string(),
-                NestedValue::Value(self.capture_base.classification.clone())
+                NestedValue::Value(self.capture_base.classification.clone()),
             );
         }
 
         let mut attributes = IndexMap::new();
-        self.capture_base.attributes.iter().for_each(|(attr_name, attr_type)| {
-            attributes.insert(
-                attr_name.clone(),
-                attr_type.clone(),
-            );
-        });
+        self.capture_base
+            .attributes
+            .iter()
+            .for_each(|(attr_name, attr_type)| {
+                attributes.insert(attr_name.clone(), attr_type.clone());
+            });
 
         let command = Command {
             kind: CommandType::Add,
-            object_kind: ObjectKind::CaptureBase( CaptureContent {
+            object_kind: ObjectKind::CaptureBase(CaptureContent {
                 // TODO find out if we can use indexmap in capture base to simplify stuff
                 attributes: Some(self.capture_base.attributes.clone().into_iter().collect()),
                 properties,
@@ -903,21 +889,32 @@ impl OCABundle {
         self.overlays.iter().for_each(|overlay| {
             match overlay.overlay_type() {
                 OverlayType::CharacterEncoding => {
-                    let character_encoding = overlay.as_any().downcast_ref::<overlay::CharacterEncoding>().unwrap();
+                    let character_encoding = overlay
+                        .as_any()
+                        .downcast_ref::<overlay::CharacterEncoding>()
+                        .unwrap();
                     let mut attributes = IndexMap::new();
-                    for (attr_name, encoding) in character_encoding.attribute_character_encoding.iter() {
+                    for (attr_name, encoding) in
+                        character_encoding.attribute_character_encoding.iter()
+                    {
                         let encoding_val = serde_json::to_value(encoding).unwrap();
-                        attributes.insert(attr_name.clone(), NestedValue::Value(encoding_val.as_str().unwrap().to_string()));
+                        attributes.insert(
+                            attr_name.clone(),
+                            NestedValue::Value(encoding_val.as_str().unwrap().to_string()),
+                        );
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::CharacterEncoding, Content {
-                            attributes: Some(attributes),
-                            properties: None,
-                        }),
+                        object_kind: ObjectKind::Overlay(
+                            OverlayType::CharacterEncoding,
+                            Content {
+                                attributes: Some(attributes),
+                                properties: None,
+                            },
+                        ),
                     };
                     ast.commands.push(command);
-                },
+                }
                 #[cfg(feature = "format_overlay")]
                 OverlayType::Format => {
                     let format = overlay.as_any().downcast_ref::<overlay::Format>().unwrap();
@@ -927,52 +924,49 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Format, Content {
-                            attributes: Some(attributes),
-                            properties: None,
-                        }),
+                        object_kind: ObjectKind::Overlay(
+                            OverlayType::Format,
+                            Content {
+                                attributes: Some(attributes),
+                                properties: None,
+                            },
+                        ),
                     };
                     ast.commands.push(command);
-                },
+                }
                 OverlayType::Meta => {
                     let meta = overlay.as_any().downcast_ref::<overlay::Meta>().unwrap();
                     let mut properties = IndexMap::new();
                     properties.insert(
                         "lang".to_string(),
                         NestedValue::Value(
-                            meta
-                                .language()
-                                .unwrap()
-                                .to_639_1()
-                                .unwrap()
-                                .to_string()
-                        )
+                            meta.language().unwrap().to_639_1().unwrap().to_string(),
+                        ),
                     );
                     for (meta_name, meta_value) in meta.attr_pairs.iter() {
-                        properties.insert(meta_name.clone(), NestedValue::Value(meta_value.clone()));
+                        properties
+                            .insert(meta_name.clone(), NestedValue::Value(meta_value.clone()));
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Meta, Content {
-                            attributes: None,
-                            properties: Some(properties),
-                        }),
+                        object_kind: ObjectKind::Overlay(
+                            OverlayType::Meta,
+                            Content {
+                                attributes: None,
+                                properties: Some(properties),
+                            },
+                        ),
                     };
                     ast.commands.push(command);
-                },
+                }
                 OverlayType::Label => {
                     let label = overlay.as_any().downcast_ref::<overlay::Label>().unwrap();
                     let mut properties = IndexMap::new();
                     properties.insert(
                         "lang".to_string(),
                         NestedValue::Value(
-                            label
-                                .language()
-                                .unwrap()
-                                .to_639_1()
-                                .unwrap()
-                                .to_string()
-                        )
+                            label.language().unwrap().to_639_1().unwrap().to_string(),
+                        ),
                     );
                     let mut attributes = IndexMap::new();
                     for (attr_name, label) in label.attribute_labels.iter() {
@@ -980,15 +974,21 @@ impl OCABundle {
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Label, Content {
-                            attributes: Some(attributes),
-                            properties: Some(properties),
-                        }),
+                        object_kind: ObjectKind::Overlay(
+                            OverlayType::Label,
+                            Content {
+                                attributes: Some(attributes),
+                                properties: Some(properties),
+                            },
+                        ),
                     };
                     ast.commands.push(command);
-                },
+                }
                 OverlayType::Information => {
-                    let information = overlay.as_any().downcast_ref::<overlay::Information>().unwrap();
+                    let information = overlay
+                        .as_any()
+                        .downcast_ref::<overlay::Information>()
+                        .unwrap();
                     let mut properties = IndexMap::new();
                     properties.insert(
                         "lang".to_string(),
@@ -998,190 +998,215 @@ impl OCABundle {
                                 .unwrap()
                                 .to_639_1()
                                 .unwrap()
-                                .to_string()
-                        )
+                                .to_string(),
+                        ),
                     );
                     let mut attributes = IndexMap::new();
                     for (attr_name, information) in information.attribute_information.iter() {
-                        attributes.insert(attr_name.clone(), NestedValue::Value(information.clone()));
+                        attributes
+                            .insert(attr_name.clone(), NestedValue::Value(information.clone()));
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Information, Content {
-                            attributes: Some(attributes),
-                            properties: Some(properties),
-                        }),
+                        object_kind: ObjectKind::Overlay(
+                            OverlayType::Information,
+                            Content {
+                                attributes: Some(attributes),
+                                properties: Some(properties),
+                            },
+                        ),
                     };
                     ast.commands.push(command);
-                },
+                }
                 OverlayType::Conditional => {
-                    let conditional = overlay.as_any().downcast_ref::<overlay::Conditional>().unwrap();
+                    let conditional = overlay
+                        .as_any()
+                        .downcast_ref::<overlay::Conditional>()
+                        .unwrap();
                     let mut attributes = IndexMap::new();
                     let re = regex::Regex::new(r"\$\{(\d+)\}").unwrap();
                     for (attr_name, condition) in conditional.attribute_conditions.iter() {
-
-                        let condition_dependencies = conditional
-                            .attribute_dependencies
-                            .get(attr_name)
-                            .unwrap(); // todo
-                        let cond = re.replace_all(condition, |caps: &regex::Captures| {
-                            let dep = condition_dependencies[
-                                caps[1].parse::<usize>().unwrap()
-                            ].clone();
-                            format!("${{{}}}", dep)
-                        }).to_string();
+                        let condition_dependencies =
+                            conditional.attribute_dependencies.get(attr_name).unwrap(); // todo
+                        let cond = re
+                            .replace_all(condition, |caps: &regex::Captures| {
+                                let dep = condition_dependencies[caps[1].parse::<usize>().unwrap()]
+                                    .clone();
+                                format!("${{{}}}", dep)
+                            })
+                            .to_string();
 
                         attributes.insert(attr_name.clone(), NestedValue::Value(cond.clone()));
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Conditional, Content  {
-                            attributes: Some(attributes),
-                            properties: None,
-                        }),
+                        object_kind: ObjectKind::Overlay(
+                            OverlayType::Conditional,
+                            Content {
+                                attributes: Some(attributes),
+                                properties: None,
+                            },
+                        ),
                     };
                     ast.commands.push(command);
-                },
+                }
                 OverlayType::Conformance => {
-                    let conformance = overlay.as_any().downcast_ref::<overlay::Conformance>().unwrap();
+                    let conformance = overlay
+                        .as_any()
+                        .downcast_ref::<overlay::Conformance>()
+                        .unwrap();
                     let mut attributes = IndexMap::new();
                     for (attr_name, conformance) in conformance.attribute_conformance.iter() {
-                        attributes.insert(attr_name.clone(), NestedValue::Value(conformance.clone()));
+                        attributes
+                            .insert(attr_name.clone(), NestedValue::Value(conformance.clone()));
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Conformance, Content {
-                            attributes: Some(attributes),
-                            properties: None,
-                        }),
+                        object_kind: ObjectKind::Overlay(
+                            OverlayType::Conformance,
+                            Content {
+                                attributes: Some(attributes),
+                                properties: None,
+                            },
+                        ),
                     };
                     ast.commands.push(command);
-                },
+                }
                 OverlayType::EntryCode => {
-                    let entry_code = overlay.as_any().downcast_ref::<overlay::EntryCode>().unwrap();
+                    let entry_code = overlay
+                        .as_any()
+                        .downcast_ref::<overlay::EntryCode>()
+                        .unwrap();
                     let mut attributes = IndexMap::new();
                     for (attr_name, entry_code) in entry_code.attribute_entry_codes.iter() {
                         match entry_code {
                             crate::state::entry_codes::EntryCodes::Sai(said) => {
-                                attributes.insert(attr_name.clone(), NestedValue::Value(said.to_string()));
-                            },
+                                attributes.insert(
+                                    attr_name.clone(),
+                                    NestedValue::Value(said.to_string()),
+                                );
+                            }
                             crate::state::entry_codes::EntryCodes::Array(entry_codes) => {
                                 attributes.insert(
                                     attr_name.clone(),
                                     NestedValue::Array(
                                         entry_codes
                                             .iter()
-                                            .map(|code|
-                                                NestedValue::Value(
-                                                    code.clone()
-                                                )
-                                            ).collect()
-                                    )
+                                            .map(|code| NestedValue::Value(code.clone()))
+                                            .collect(),
+                                    ),
                                 );
                             }
                         }
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::EntryCode, Content {
-                            attributes: Some(attributes),
-                            properties: None,
-                        }),
+                        object_kind: ObjectKind::Overlay(
+                            OverlayType::EntryCode,
+                            Content {
+                                attributes: Some(attributes),
+                                properties: None,
+                            },
+                        ),
                     };
                     ast.commands.push(command);
-                },
+                }
                 OverlayType::Entry => {
                     let entry = overlay.as_any().downcast_ref::<overlay::Entry>().unwrap();
                     let mut properties = IndexMap::new();
                     properties.insert(
                         "lang".to_string(),
                         NestedValue::Value(
-                            entry
-                                .language()
-                                .unwrap()
-                                .to_639_1()
-                                .unwrap()
-                                .to_string()
-                        )
+                            entry.language().unwrap().to_639_1().unwrap().to_string(),
+                        ),
                     );
                     let mut attributes = IndexMap::new();
                     for (attr_name, entries) in entry.attribute_entries.iter() {
                         match entries {
                             crate::state::entries::EntriesElement::Sai(said) => {
-                                attributes.insert(attr_name.clone(), NestedValue::Value(said.to_string()));
-                            },
+                                attributes.insert(
+                                    attr_name.clone(),
+                                    NestedValue::Value(said.to_string()),
+                                );
+                            }
                             crate::state::entries::EntriesElement::Object(entries) => {
                                 attributes.insert(
                                     attr_name.clone(),
                                     NestedValue::Object(
                                         entries
                                             .iter()
-                                            .map(|(k, v)|
-                                                (
-                                                    k.clone(),
-                                                    NestedValue::Value(
-                                                        v.clone()
-                                                    )
-                                                )
-                                            ).collect()
-                                    )
+                                            .map(|(k, v)| {
+                                                (k.clone(), NestedValue::Value(v.clone()))
+                                            })
+                                            .collect(),
+                                    ),
                                 );
                             }
                         }
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Entry, Content {
-                            attributes: Some(attributes),
-                            properties: Some(properties),
-                        }),
+                        object_kind: ObjectKind::Overlay(
+                            OverlayType::Entry,
+                            Content {
+                                attributes: Some(attributes),
+                                properties: Some(properties),
+                            },
+                        ),
                     };
                     ast.commands.push(command);
-                },
+                }
                 OverlayType::Cardinality => {
-                    let cardinality = overlay.as_any().downcast_ref::<overlay::Cardinality>().unwrap();
+                    let cardinality = overlay
+                        .as_any()
+                        .downcast_ref::<overlay::Cardinality>()
+                        .unwrap();
                     let mut attributes = IndexMap::new();
                     for (attr_name, cardinality) in cardinality.attribute_cardinality.iter() {
-                        attributes.insert(attr_name.clone(), NestedValue::Value(cardinality.clone()));
+                        attributes
+                            .insert(attr_name.clone(), NestedValue::Value(cardinality.clone()));
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Cardinality, Content {
-                            attributes: Some(attributes),
-                            properties: None,
-                        }),
+                        object_kind: ObjectKind::Overlay(
+                            OverlayType::Cardinality,
+                            Content {
+                                attributes: Some(attributes),
+                                properties: None,
+                            },
+                        ),
                     };
                     ast.commands.push(command);
-                },
+                }
                 OverlayType::Unit => {
                     let unit_ov = overlay.as_any().downcast_ref::<overlay::Unit>().unwrap();
                     let mut properties = IndexMap::new();
-                    let unit_system_val = serde_json::to_value(unit_ov.measurement_system().unwrap()).unwrap();
+                    let unit_system_val =
+                        serde_json::to_value(unit_ov.measurement_system().unwrap()).unwrap();
                     properties.insert(
                         "unit_system".to_string(),
-                        NestedValue::Value(
-                            unit_system_val.as_str().unwrap().to_string()
-                        )
+                        NestedValue::Value(unit_system_val.as_str().unwrap().to_string()),
                     );
                     let mut attributes = IndexMap::new();
                     for (attr_name, unit) in unit_ov.attribute_units.iter() {
                         let unit_val = serde_json::to_value(unit).unwrap();
                         attributes.insert(
                             attr_name.clone(),
-                            NestedValue::Value(
-                                unit_val.as_str().unwrap().to_string()
-                            )
+                            NestedValue::Value(unit_val.as_str().unwrap().to_string()),
                         );
                     }
                     let command = Command {
                         kind: CommandType::Add,
-                        object_kind: ObjectKind::Overlay(OverlayType::Unit, Content {
-                            attributes: Some(attributes),
-                            properties: Some(properties),
-                        }),
+                        object_kind: ObjectKind::Overlay(
+                            OverlayType::Unit,
+                            Content {
+                                attributes: Some(attributes),
+                                properties: Some(properties),
+                            },
+                        ),
                     };
                     ast.commands.push(command);
-                },
+                }
                 _ => {}
             }
         });
@@ -1221,15 +1246,19 @@ mod tests {
     use oca_ast::ast::{NestedAttrType, RefValue};
     use said::SelfAddressingIdentifier;
 
-    use crate::state::{attribute::AttributeType, entries::EntriesElement};
     use super::*;
+    use crate::state::{attribute::AttributeType, entries::EntriesElement};
 
     #[test]
     fn build_oca_bundle() {
         let mut oca = OCABox::new();
         oca.add_classification("test".to_string());
         oca.add_meta(Language::Eng, "name".to_string(), "test name".to_string());
-        oca.add_meta(Language::Eng, "description".to_string(), "test desc".to_string());
+        oca.add_meta(
+            Language::Eng,
+            "description".to_string(),
+            "test desc".to_string(),
+        );
         let mut attr = Attribute::new("first_name".to_string());
         attr.set_attribute_type(NestedAttrType::Value(AttributeType::Text));
         oca.add_attribute(attr);
@@ -1257,7 +1286,11 @@ mod tests {
     fn load_oca_box_from_oca_bundle() {
         let mut oca = OCABox::new();
         oca.add_meta(Language::Eng, "name".to_string(), "test name".to_string());
-        oca.add_meta(Language::Eng, "description".to_string(), "test desc".to_string());
+        oca.add_meta(
+            Language::Eng,
+            "description".to_string(),
+            "test desc".to_string(),
+        );
         let mut attr = Attribute::new("first_name".to_string());
         attr.set_attribute_type(NestedAttrType::Value(AttributeType::Text));
         oca.add_attribute(attr);

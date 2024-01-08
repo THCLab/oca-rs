@@ -17,7 +17,6 @@ pub mod standard;
 pub mod subset;
 pub mod unit;
 
-pub use oca_ast::ast::OverlayType;
 pub use self::attribute_mapping::AttributeMappingOverlay as AttributeMapping;
 pub use self::cardinality::CardinalityOverlay as Cardinality;
 pub use self::character_encoding::CharacterEncodingOverlay as CharacterEncoding;
@@ -35,12 +34,13 @@ pub use self::label::LabelOverlay as Label;
 pub use self::meta::MetaOverlay as Meta;
 pub use self::standard::StandardOverlay as Standard;
 pub use self::subset::SubsetOverlay as Subset;
+pub use oca_ast::ast::OverlayType;
 
 pub use self::unit::UnitOverlay as Unit;
 use crate::state::attribute::Attribute;
+use isolang::Language;
 use said::sad::SAD;
 use std::any::Any;
-use isolang::Language;
 erased_serde::serialize_trait_object!(Overlay);
 
 use dyn_clonable::*;
@@ -61,7 +61,7 @@ pub trait Overlay: erased_serde::Serialize + Clone + SAD {
     fn add(&mut self, attribute: &Attribute);
 
     fn fill_said(&mut self) {
-        self.compute_digest();//HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+        self.compute_digest(); //HashFunctionCode::Blake3_256, SerializationFormats::JSON);
     }
 
     fn sign(&mut self, capture_base_sai: &said::SelfAddressingIdentifier) {

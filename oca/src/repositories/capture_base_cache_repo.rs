@@ -49,11 +49,7 @@ impl CaptureBaseCacheRepo {
             .execute(query, [&model.said, &model.capture_base]);
     }
 
-    pub fn fetch_all(
-        &self,
-        limit: usize,
-        page: usize,
-    ) -> Vec<AllCaptureBaseRecord> {
+    pub fn fetch_all(&self, limit: usize, page: usize) -> Vec<AllCaptureBaseRecord> {
         let offset = (page - 1) * limit;
         let mut results = vec![];
         let query = "
@@ -74,13 +70,13 @@ impl CaptureBaseCacheRepo {
         let mut statement = self.connection.prepare(query).unwrap();
         let models = statement
             .query_map([limit, offset], |row| {
-                let cache_record = row
-                    .get::<_, Option<String>>(0)
-                    .unwrap()
-                    .map(|said| CaptureBaseCacheRecord {
-                        said,
-                        capture_base: row.get(1).unwrap(),
-                    });
+                let cache_record =
+                    row.get::<_, Option<String>>(0)
+                        .unwrap()
+                        .map(|said| CaptureBaseCacheRecord {
+                            said,
+                            capture_base: row.get(1).unwrap(),
+                        });
                 Ok(AllCaptureBaseRecord {
                     cache_record,
                     total: row.get(2).unwrap(),

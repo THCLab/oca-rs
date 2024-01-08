@@ -11,8 +11,7 @@ impl OCABundleCacheRecord {
     pub fn new(oca_bundle: &OCABundle) -> Self {
         Self {
             said: oca_bundle.said.clone().unwrap().to_string(),
-            oca_bundle: String::from_utf8(oca_bundle.encode().unwrap())
-                .unwrap(),
+            oca_bundle: String::from_utf8(oca_bundle.encode().unwrap()).unwrap(),
         }
     }
 }
@@ -50,11 +49,7 @@ impl OCABundleCacheRepo {
             .execute(query, [&model.said, &model.oca_bundle]);
     }
 
-    pub fn fetch_all(
-        &self,
-        limit: usize,
-        page: usize,
-    ) -> Vec<AllOCABundleRecord> {
+    pub fn fetch_all(&self, limit: usize, page: usize) -> Vec<AllOCABundleRecord> {
         let offset = (page - 1) * limit;
         let mut results = vec![];
         let query = "
@@ -75,13 +70,13 @@ impl OCABundleCacheRepo {
         let mut statement = self.connection.prepare(query).unwrap();
         let models = statement
             .query_map([limit, offset], |row| {
-                let cache_record = row
-                    .get::<_, Option<String>>(0)
-                    .unwrap()
-                    .map(|said| OCABundleCacheRecord {
-                        said,
-                        oca_bundle: row.get(1).unwrap(),
-                    });
+                let cache_record =
+                    row.get::<_, Option<String>>(0)
+                        .unwrap()
+                        .map(|said| OCABundleCacheRecord {
+                            said,
+                            oca_bundle: row.get(1).unwrap(),
+                        });
                 Ok(AllOCABundleRecord {
                     cache_record,
                     total: row.get(2).unwrap(),

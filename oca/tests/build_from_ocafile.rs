@@ -22,8 +22,7 @@ ADD CONFORMANCE ATTRS d=M i=M passed=M
 ADD LABEL en ATTRS d="Schema digest" i="Credential Issuee" passed="Passed"
 ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables or disables passing"
 "#.to_string();
-        let mut facade =
-            Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
+        let mut facade = Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
 
         let result = facade.build_from_ocafile(ocafile)?;
 
@@ -39,8 +38,7 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
         let db = InMemoryDataStorage::new();
         let db_cache = InMemoryDataStorage::new();
         let cache_storage_config = SQLiteConfig::build().unwrap();
-        let mut facade =
-            Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
+        let mut facade = Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
         let other_ocafile = r#"
 ADD ATTRIBUTE d=Text i=Text passed=Boolean
 ADD META en PROPS name="Entrance credential" description="Entrance credential"
@@ -54,7 +52,8 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
         let ocafile = r#"
 FROM EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs
 ADD ATTRIBUTE x=Text
-"#.to_string();
+"#
+        .to_string();
         let result = facade.build_from_ocafile(ocafile)?;
 
         assert_eq!(
@@ -70,18 +69,19 @@ ADD ATTRIBUTE x=Text
         let db = InMemoryDataStorage::new();
         let db_cache = InMemoryDataStorage::new();
         let cache_storage_config = SQLiteConfig::build().unwrap();
-        let mut facade =
-            Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
+        let mut facade = Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
         let second_ocafile = r#"
 -- name=first
 ADD ATTRIBUTE b=Text
-"#.to_string();
+"#
+        .to_string();
         facade.build_from_ocafile(second_ocafile)?;
 
         let third_ocafile = r#"
 -- name=second
 ADD ATTRIBUTE c=Text
-"#.to_string();
+"#
+        .to_string();
 
         facade.build_from_ocafile(third_ocafile)?;
 
@@ -89,7 +89,8 @@ ADD ATTRIBUTE c=Text
 ADD ATTRIBUTE A=refs:EI_5ohTYptgOrXldUfZujgd7vcXK9zwa6aNqk4-UDWzq
 ADD ATTRIBUTE B=refn:first
 ADD ATTRIBUTE C=Array[refn:second]
-"#.to_string();
+"#
+        .to_string();
         let result = facade.build_from_ocafile(ocafile).unwrap();
 
         assert_eq!(
@@ -99,7 +100,8 @@ ADD ATTRIBUTE C=Array[refn:second]
         let from_ocafile = r#"
 FROM EJ9jPoPyZxJNtQsWI_yiHowfbP1B9SDOvlsSxlHbn9oW
 ADD ATTRIBUTE x=Text
-"#.to_string();
+"#
+        .to_string();
 
         let result = facade.build_from_ocafile(from_ocafile).unwrap();
 
@@ -110,7 +112,10 @@ ADD ATTRIBUTE x=Text
         let refs = facade.fetch_all_refs().unwrap();
 
         assert_eq!(refs.len(), 2);
-        assert_eq!(refs.get("second").unwrap(), "EJ9jPoPyZxJNtQsWI_yiHowfbP1B9SDOvlsSxlHbn9oW");
+        assert_eq!(
+            refs.get("second").unwrap(),
+            "EJ9jPoPyZxJNtQsWI_yiHowfbP1B9SDOvlsSxlHbn9oW"
+        );
 
         Ok(())
     }
@@ -122,15 +127,14 @@ ADD ATTRIBUTE x=Text
         let db = InMemoryDataStorage::new();
         let db_cache = InMemoryDataStorage::new();
         let cache_storage_config = SQLiteConfig::build().unwrap();
-        let mut facade =
-            Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
+        let mut facade = Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
 
         let ocafile = r#"
 ADD ATTRIBUTE A=refs:EI_5ohTYptgOrXldUfZujgd7vcXK9zwa6aNqk4-UDWzq
 ADD ATTRIBUTE B=refn:second
 ADD ATTRIBUTE C=Array[refn:third]
-"#.to_string();
+"#
+        .to_string();
         let _ = facade.build_from_ocafile(ocafile);
     }
-
 }

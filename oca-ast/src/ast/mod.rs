@@ -5,10 +5,10 @@ use serde::{
     ser::SerializeStruct,
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use thiserror::Error;
 use std::hash::Hash;
 use std::{collections::HashMap, fmt, str::FromStr};
 use strum_macros::Display;
+use thiserror::Error;
 use wasm_bindgen::prelude::*;
 
 pub use self::attributes::NestedAttrType;
@@ -385,7 +385,9 @@ impl FromStr for RefValue {
     type Err = RefValueParsingError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (tag, rest) = s.split_once(':').ok_or(RefValueParsingError::MissingColon)?;
+        let (tag, rest) = s
+            .split_once(':')
+            .ok_or(RefValueParsingError::MissingColon)?;
         match tag {
             "refs" => {
                 let said = SelfAddressingIdentifier::from_str(rest)?;
@@ -405,9 +407,8 @@ pub enum RefValueParsingError {
     #[error("Unknown tag `{0}`. Referece need to start with `refs` od `refn`")]
     UnknownTag(String),
     #[error("Invalid said: {0}")]
-    SaidError(#[from] said::error::Error)
+    SaidError(#[from] said::error::Error),
 }
-
 
 impl fmt::Display for RefValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -991,7 +992,7 @@ mod tests {
         let serialized = serde_json::to_string(&ocaast).unwrap();
         assert_eq!(
             serialized,
-            r#"{"version":"1.0.0","commands":[{"type":"Add","object_kind":"CaptureBase","content":{"attributes":{"allowed":["Boolean"],"test":"Text"},"properties":{"test":"test"}}},{"type":"Add","object_kind":"Label","content":{}}],"commands_meta":{},"meta":{}}"# 
+            r#"{"version":"1.0.0","commands":[{"type":"Add","object_kind":"CaptureBase","content":{"attributes":{"allowed":["Boolean"],"test":"Text"},"properties":{"test":"test"}}},{"type":"Add","object_kind":"Label","content":{}}],"commands_meta":{},"meta":{}}"#
         );
 
         let deser: OCAAst = serde_json::from_str(&serialized).unwrap();

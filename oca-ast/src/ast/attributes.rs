@@ -1,16 +1,13 @@
-
 use recursion::ExpandableExt;
-use serde::{
-    ser::SerializeSeq,
-    Deserialize,
-    Deserializer,
-    Serialize,
-    Serializer,
-};
-use wasm_bindgen::JsValue;
+use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
 use std::hash::Hash;
+use wasm_bindgen::JsValue;
 
-use super::{AttributeType, RefValue, error::AttributeError, recursive_attributes::{AttributeTypeResult, NestedAttrTypeFrame}};
+use super::{
+    error::AttributeError,
+    recursive_attributes::{AttributeTypeResult, NestedAttrTypeFrame},
+    AttributeType, RefValue,
+};
 
 #[derive(Debug, PartialEq, Clone, Eq, Serialize)]
 #[serde(untagged)]
@@ -32,14 +29,12 @@ pub enum NestedAttrType {
 impl NestedAttrType {
     pub fn to_js_value(&self) -> Result<JsValue, JsValue> {
         Ok(serde_wasm_bindgen::to_value(self)?)
-
     }
 
     pub fn from_js_value(value: JsValue) -> Result<Self, JsValue> {
         Ok(serde_wasm_bindgen::from_value(value)?)
     }
 }
-
 
 fn array_serializer<S>(arr: &NestedAttrType, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -74,7 +69,6 @@ impl Hash for NestedAttrType {
     }
 }
 
-
 impl<'de> Deserialize<'de> for NestedAttrType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -83,27 +77,26 @@ impl<'de> Deserialize<'de> for NestedAttrType {
         let input: serde_json::Value = serde_json::Value::deserialize(deserializer)?;
 
         let expanded = AttributeTypeResult::expand_frames(input, |seed| match seed {
-            
-            serde_json::Value::String(text) => {
-                match &text.get(..5) {
-                    Some("refs:") | Some("refn:") => {
-                        let res = text.parse::<RefValue>();
-                        match res {
-                            Ok(ref_value) => NestedAttrTypeFrame::Reference(ref_value).into(),
-                            Err(e) => AttributeError::from(e).into(),
-                        }
-                    },
-                    _ => {
-                        let res = text.parse::<AttributeType>();
-                        match  res {
-                            Ok(attr_type) => NestedAttrTypeFrame::Value(attr_type).into(),
-                            Err(_) => AttributeError::UnknownAttributeType(text).into(),
-                        } 
+            serde_json::Value::String(text) => match &text.get(..5) {
+                Some("refs:") | Some("refn:") => {
+                    let res = text.parse::<RefValue>();
+                    match res {
+                        Ok(ref_value) => NestedAttrTypeFrame::Reference(ref_value).into(),
+                        Err(e) => AttributeError::from(e).into(),
+                    }
+                }
+                _ => {
+                    let res = text.parse::<AttributeType>();
+                    match res {
+                        Ok(attr_type) => NestedAttrTypeFrame::Value(attr_type).into(),
+                        Err(_) => AttributeError::UnknownAttributeType(text).into(),
                     }
                 }
             },
             serde_json::Value::Array(arr) => NestedAttrTypeFrame::Array(arr[0].clone()).into(),
-            value => AttributeError::ConvertingFailure(serde_json::to_string(&value).unwrap()).into(),
+            value => {
+                AttributeError::ConvertingFailure(serde_json::to_string(&value).unwrap()).into()
+            }
         });
         match expanded.value() {
             Ok(el) => Ok(el),
@@ -116,13 +109,13 @@ impl<'de> Deserialize<'de> for NestedAttrType {
 mod tests {
     use said::derivation::{HashFunction, HashFunctionCode};
 
-    use crate::ast::{AttributeType, NestedAttrType, RefValue, error::AttributeError};
-
+    use crate::ast::{error::AttributeError, AttributeType, NestedAttrType, RefValue};
 
     #[test]
     fn test_nested_array_attribute_type_serialization() {
-
-        let arr = NestedAttrType::Array(Box::new(NestedAttrType::Array(Box::new(NestedAttrType::Value(AttributeType::Boolean)))));
+        let arr = NestedAttrType::Array(Box::new(NestedAttrType::Array(Box::new(
+            NestedAttrType::Value(AttributeType::Boolean),
+        ))));
         let said = HashFunction::from(HashFunctionCode::Blake3_256).derive("fff".as_bytes());
 
         let serialized = serde_json::to_string(&arr).unwrap();
@@ -155,7 +148,10 @@ mod tests {
         let wrong_type = r#"["Wrong"]"#;
         let deser = serde_json::from_str::<NestedAttrType>(&wrong_type);
         assert!(deser.is_err());
-        assert_eq!(deser.unwrap_err().to_string(), AttributeError::UnknownAttributeType("Wrong".to_string()).to_string());
+        assert_eq!(
+            deser.unwrap_err().to_string(),
+            AttributeError::UnknownAttributeType("Wrong".to_string()).to_string()
+        );
 
         let serialized = r#"["refs:EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"]"#;
         let expected = NestedAttrType::Array(Box::new(NestedAttrType::Reference(RefValue::Said(
@@ -181,6 +177,9 @@ mod tests {
 
         let missing_ref_tag = r#"["EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"]"#;
         let deser = serde_json::from_str::<NestedAttrType>(&missing_ref_tag);
-        assert_eq!(deser.unwrap_err().to_string(), "Attribute type EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ doesn't exist");
+        assert_eq!(
+            deser.unwrap_err().to_string(),
+            "Attribute type EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ doesn't exist"
+        );
     }
 }

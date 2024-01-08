@@ -1,9 +1,10 @@
-use serde::{Deserialize, Serialize, ser::SerializeSeq};
+use serde::{ser::SerializeSeq, Deserialize, Serialize};
 
 impl Serialize for EntryCodes {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer {
+        S: serde::Serializer,
+    {
         match self {
             Self::Sai(sai) => serializer.serialize_str(sai),
             Self::Array(codes) => {

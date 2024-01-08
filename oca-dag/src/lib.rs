@@ -19,9 +19,7 @@ impl CommandModel {
         }
     }
 
-    fn calculate_command_digest(
-        command: &ast::Command,
-    ) -> SelfAddressingIdentifier {
+    fn calculate_command_digest(command: &ast::Command) -> SelfAddressingIdentifier {
         let command_json = serde_json::to_string(command).unwrap();
         let hash_algorithm = HashFunction::from_str("E").unwrap();
         hash_algorithm.derive(command_json.as_bytes())
@@ -84,9 +82,7 @@ impl ResultModel {
     }
 }
 
-pub fn build_core_db_model(
-    oca_build: &oca_bundle::build::OCABuild,
-) -> Vec<ResultModel> {
+pub fn build_core_db_model(oca_build: &oca_bundle::build::OCABuild) -> Vec<ResultModel> {
     let mut state = State::new();
     let mut result_models = vec![];
 
@@ -99,10 +95,7 @@ pub fn build_core_db_model(
     result_models
 }
 
-fn apply_step(
-    state: State,
-    step: &oca_bundle::build::OCABuildStep,
-) -> (State, ResultModel) {
+fn apply_step(state: State, step: &oca_bundle::build::OCABuildStep) -> (State, ResultModel) {
     let mut current_state = state.clone();
     let mut result = ResultModel::new();
     let command_model = CommandModel::new(step.command.clone());
@@ -111,43 +104,30 @@ fn apply_step(
     match &step.command.object_kind {
         ast::ObjectKind::CaptureBase(_) => {
             let capture_base_model = CaptureBaseModel {
-                capture_base_said: step
-                    .result
-                    .capture_base
-                    .said
-                    .clone()
-                    .unwrap(),
+                capture_base_said: step.result.capture_base.said.clone().unwrap(),
                 parent: state.capture_base,
                 command_digest: command_model.digest,
             };
             result.capture_base = Some(capture_base_model.clone());
-            current_state.capture_base =
-                Some(capture_base_model.capture_base_said.clone());
+            current_state.capture_base = Some(capture_base_model.capture_base_said.clone());
         }
         ast::ObjectKind::Overlay(overlay_type, content) => {
             let mut lang = None;
             // match &content.properties {
             if let Some(properties) = &content.properties {
-                if let Some(ast::NestedValue::Value(lang_value)) =
-                    properties.get("lang")
-                {
+                if let Some(ast::NestedValue::Value(lang_value)) = properties.get("lang") {
                     lang = isolang::Language::from_639_1(lang_value);
                 }
             }
 
             let overlay = step.result.overlays.iter().find(|overlay| {
-                overlay.overlay_type().eq(overlay_type)
-                  && overlay.language() == lang.as_ref()
+                overlay.overlay_type().eq(overlay_type) && overlay.language() == lang.as_ref()
             });
 
             if let Some(overlay) = overlay {
                 let overlay_key = match overlay.language() {
                     Some(lang) => {
-                        format!(
-                            "{}-{}",
-                            &overlay.overlay_type(),
-                            lang.to_639_1().unwrap()
-                        )
+                        format!("{}-{}", &overlay.overlay_type(), lang.to_639_1().unwrap())
                     }
                     None => format!("{}", overlay.overlay_type()),
                 };
@@ -198,25 +178,28 @@ mod tests {
         // 1. ADD ATTR abc
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
-            object_kind: ast::ObjectKind::CaptureBase( ast::CaptureContent {
+            object_kind: ast::ObjectKind::CaptureBase(ast::CaptureContent {
                 attributes: Some(indexmap! {
                     "abc".to_string() => ast::NestedAttrType::Value(ast::AttributeType::Text)
                 }),
                 properties: None,
-            })
+            }),
         });
 
         // 2. add label en abc "ble"
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
-            object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Label, Content {
-                attributes: Some(indexmap! {
-                    "abc".to_string() => ast::NestedValue::Value("ble".to_string())
-                }),
-                properties: Some(indexmap! {
-                    "lang".to_string() => ast::NestedValue::Value("en".to_string())
-                }),
-            }),
+            object_kind: ast::ObjectKind::Overlay(
+                ast::OverlayType::Label,
+                Content {
+                    attributes: Some(indexmap! {
+                        "abc".to_string() => ast::NestedValue::Value("ble".to_string())
+                    }),
+                    properties: Some(indexmap! {
+                        "lang".to_string() => ast::NestedValue::Value("en".to_string())
+                    }),
+                },
+            ),
         });
 
         // 3. add attr def
@@ -227,20 +210,23 @@ mod tests {
                     "def".to_string() => ast::NestedAttrType::Value(ast::AttributeType::Text)
                 }),
                 properties: None,
-            })
+            }),
         });
 
         // 4. add label fr abc "ble"
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
-            object_kind: ast::ObjectKind::Overlay(ast::OverlayType::Label, Content {
-                attributes: Some(indexmap! {
-                    "abc".to_string() => ast::NestedValue::Value("ble".to_string())
-                }),
-                properties: Some(indexmap! {
-                    "lang".to_string() => ast::NestedValue::Value("fr".to_string())
-                }),
-            }),
+            object_kind: ast::ObjectKind::Overlay(
+                ast::OverlayType::Label,
+                Content {
+                    attributes: Some(indexmap! {
+                        "abc".to_string() => ast::NestedValue::Value("ble".to_string())
+                    }),
+                    properties: Some(indexmap! {
+                        "lang".to_string() => ast::NestedValue::Value("fr".to_string())
+                    }),
+                },
+            ),
         });
 
         // 5. update attr "en" abc "bererg"

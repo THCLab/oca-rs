@@ -1,11 +1,17 @@
 pub mod error;
 mod instructions;
 
-use self::{instructions::{add::AddInstruction, from::FromInstruction, remove::RemoveInstruction}, error::ParseError};
+use self::{
+    error::ParseError,
+    instructions::{add::AddInstruction, from::FromInstruction, remove::RemoveInstruction},
+};
 use crate::ocafile::error::InstructionError;
 use convert_case::{Case, Casing};
 use oca_ast::{
-    ast::{self, Command, CommandMeta, OCAAst, RefValue, NestedAttrType, recursive_attributes::NestedAttrTypeFrame},
+    ast::{
+        self, recursive_attributes::NestedAttrTypeFrame, Command, CommandMeta, NestedAttrType,
+        OCAAst, RefValue,
+    },
     validator::{OCAValidator, Validator},
 };
 use pest::Parser;
@@ -123,7 +129,7 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
 fn format_reference(ref_value: RefValue) -> String {
     match ref_value {
         RefValue::Said(said) => format!("refs:{}", said),
-        _ => panic!( "Unsupported reference type: {:?}", ref_value)
+        _ => panic!("Unsupported reference type: {:?}", ref_value),
     }
 }
 
@@ -361,11 +367,10 @@ mod tests {
     use oca_ast::ast::AttributeType;
     use said::derivation::{HashFunction, HashFunctionCode};
 
-    use super::{*, error::ExtractingAttributeError};
+    use super::{error::ExtractingAttributeError, *};
 
     #[test]
     fn parse_from_string_valid() {
-
         let _ = env_logger::builder().is_test(true).try_init();
 
         let unparsed_file = r#"
@@ -441,8 +446,7 @@ ADD ATTRIBUTE list=Array[Text] el=Text
 
     #[test]
     fn test_nested_attributes_from_ocafile_to_ast() {
-        let unparsed_file =
-r#"ADD ATTRIBUTE name=Text age=Numeric car=Array[Array[Text]]
+        let unparsed_file = r#"ADD ATTRIBUTE name=Text age=Numeric car=Array[Array[Text]]
 ADD ATTRIBUTE incidentals_spare_parts=Array[refs:EJVVlVSZJqVNnuAMLHLkeSQgwfxYLWTKBELi9e8j1PW0]
 "#;
         let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
@@ -453,7 +457,6 @@ ADD ATTRIBUTE incidentals_spare_parts=Array[refs:EJVVlVSZJqVNnuAMLHLkeSQgwfxYLWT
             "left:\n{} \n right:\n {}",
             ocafile, unparsed_file
         );
-
     }
 
     #[test]
@@ -461,13 +464,14 @@ ADD ATTRIBUTE incidentals_spare_parts=Array[refs:EJVVlVSZJqVNnuAMLHLkeSQgwfxYLWT
         let unparsed_file = r#"ADD ATTRIBUTE said=refs:digest"#;
         let oca_ast = parse_from_string(unparsed_file.to_string());
         match oca_ast.unwrap_err() {
-            ParseError::InstructionError(InstructionError::ExtractError(ExtractingAttributeError::SaidError(e))) => {
+            ParseError::InstructionError(InstructionError::ExtractError(
+                ExtractingAttributeError::SaidError(e),
+            )) => {
                 assert_eq!(e.to_string(), "Unknown code")
-            },
-            _ => unreachable!()
+            }
+            _ => unreachable!(),
         }
     }
-
 
     #[test]
     fn test_oca_file_format() {
@@ -476,14 +480,17 @@ ADD ATTRIBUTE incidentals_spare_parts=Array[refs:EJVVlVSZJqVNnuAMLHLkeSQgwfxYLWT
 
         let numeric_type = NestedAttrType::Value(AttributeType::Numeric);
         assert_eq!(oca_file_format(numeric_type), "Numeric");
-        
+
         let ref_type = NestedAttrType::Reference(RefValue::Said(
-                HashFunction::from(HashFunctionCode::Blake3_256).derive("example".as_bytes()),
-            ));
+            HashFunction::from(HashFunctionCode::Blake3_256).derive("example".as_bytes()),
+        ));
 
         let attr = NestedAttrType::Array(Box::new(NestedAttrType::Array(Box::new(ref_type))));
 
         let out = oca_file_format(attr);
-        assert_eq!(out, "Array[Array[refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu]]");
+        assert_eq!(
+            out,
+            "Array[Array[refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu]]"
+        );
     }
 }

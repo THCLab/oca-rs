@@ -1,7 +1,9 @@
 use crate::ocafile::{error::InstructionError, instructions::helpers, Pair, Rule};
 use indexmap::IndexMap;
 use log::{debug, info};
-use oca_ast::ast::{Command, CommandType, NestedAttrType, ObjectKind, OverlayType, NestedValue, CaptureContent};
+use oca_ast::ast::{
+    CaptureContent, Command, CommandType, NestedAttrType, NestedValue, ObjectKind, OverlayType,
+};
 
 pub struct AddInstruction {}
 
@@ -14,7 +16,10 @@ impl AddInstruction {
         for object in record.into_inner() {
             match object.as_rule() {
                 Rule::meta => {
-                    object_kind = Some(ObjectKind::Overlay(oca_ast::ast::OverlayType::Meta, helpers::extract_content(object)));
+                    object_kind = Some(ObjectKind::Overlay(
+                        oca_ast::ast::OverlayType::Meta,
+                        helpers::extract_content(object),
+                    ));
                 }
                 Rule::attribute => {
                     let mut attributes: IndexMap<String, NestedAttrType> = IndexMap::new();
@@ -59,37 +64,70 @@ impl AddInstruction {
                     }));
                 }
                 Rule::information => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Information, helpers::extract_content(object)));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::Information,
+                        helpers::extract_content(object),
+                    ));
                 }
                 Rule::character_encoding => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::CharacterEncoding, helpers::extract_content(object)));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::CharacterEncoding,
+                        helpers::extract_content(object),
+                    ));
                 }
                 Rule::character_encoding_props => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::CharacterEncoding, helpers::extract_content(object)));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::CharacterEncoding,
+                        helpers::extract_content(object),
+                    ));
                 }
                 Rule::label => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Label, helpers::extract_content(object)));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::Label,
+                        helpers::extract_content(object),
+                    ));
                 }
                 Rule::unit => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Unit, helpers::extract_content(object)));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::Unit,
+                        helpers::extract_content(object),
+                    ));
                 }
                 Rule::format => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Format, helpers::extract_content(object)));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::Format,
+                        helpers::extract_content(object),
+                    ));
                 }
                 Rule::conformance => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Conformance, helpers::extract_content(object)));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::Conformance,
+                        helpers::extract_content(object),
+                    ));
                 }
                 Rule::conditional => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Conditional, helpers::extract_content(object)));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::Conditional,
+                        helpers::extract_content(object),
+                    ));
                 }
                 Rule::cardinality => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Cardinality, helpers::extract_content(object)));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::Cardinality,
+                        helpers::extract_content(object),
+                    ));
                 }
                 Rule::entry_code => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::EntryCode, helpers::extract_content(object)));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::EntryCode,
+                        helpers::extract_content(object),
+                    ));
                 }
                 Rule::entry => {
-                    object_kind = Some(ObjectKind::Overlay(OverlayType::Entry, helpers::extract_content(object)));
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::Entry,
+                        helpers::extract_content(object),
+                    ));
                 }
                 Rule::flagged_attrs => {
                     object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
@@ -108,7 +146,7 @@ impl AddInstruction {
 
         Ok(Command {
             kind,
-            object_kind: object_kind.unwrap()
+            object_kind: object_kind.unwrap(),
         })
     }
 }
@@ -180,9 +218,7 @@ mod tests {
 
     #[test]
     fn test_add_overlay_instructions() {
-        let instructions = vec![
-            ("ADD ENTRY_CODE ATTRS radio=[\"o1\",\"o2\", \"o3\"]", true),
-        ];
+        let instructions = vec![("ADD ENTRY_CODE ATTRS radio=[\"o1\",\"o2\", \"o3\"]", true)];
 
         let _ = env_logger::builder().is_test(true).try_init();
 
@@ -205,12 +241,15 @@ mod tests {
                                 ObjectKind::Overlay(overlay_type, content) => {
                                     assert_eq!(overlay_type, OverlayType::EntryCode);
                                     let attr_array = NestedValue::Array(vec![
-                                            NestedValue::Value("o1".to_string()),
-                                            NestedValue::Value("o2".to_string()),
-                                            NestedValue::Value("o3".to_string())
+                                        NestedValue::Value("o1".to_string()),
+                                        NestedValue::Value("o2".to_string()),
+                                        NestedValue::Value("o3".to_string()),
                                     ]);
 
-                                    assert_eq!(content.attributes.unwrap().get("radio").unwrap(), &attr_array);
+                                    assert_eq!(
+                                        content.attributes.unwrap().get("radio").unwrap(),
+                                        &attr_array
+                                    );
                                 }
                                 _ => {
                                     assert!(!is_valid, "Instruction is not valid");
@@ -228,6 +267,5 @@ mod tests {
                 }
             }
         }
-
     }
 }

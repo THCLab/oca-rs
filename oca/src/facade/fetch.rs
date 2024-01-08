@@ -6,18 +6,16 @@ use crate::{
     data_storage::DataStorage,
     repositories::{OCABundleCacheRepo, OCABundleFTSRepo},
 };
-use oca_ast::ast::{ObjectKind, OCAAst, self, RefValue};
+use oca_ast::ast::{self, OCAAst, ObjectKind, RefValue};
 use oca_bundle::build::OCABuildStep;
-use oca_bundle::state::oca::{
-    capture_base::CaptureBase, DynOverlay, OCABundle,
-};
+use oca_bundle::state::oca::{capture_base::CaptureBase, DynOverlay, OCABundle};
 use said::SelfAddressingIdentifier;
 
+use serde::Serialize;
 #[cfg(feature = "local-references")]
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::str::FromStr;
-use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
@@ -91,17 +89,18 @@ impl Facade {
         limit: usize,
         page: usize,
     ) -> SearchResult {
-        let oca_bundle_fts_repo =
-            OCABundleFTSRepo::new(Rc::clone(&self.connection));
-        let search_result =
-            oca_bundle_fts_repo.search(language, query, limit, page);
+        let oca_bundle_fts_repo = OCABundleFTSRepo::new(Rc::clone(&self.connection));
+        let search_result = oca_bundle_fts_repo.search(language, query, limit, page);
         let records = search_result
             .records
             .iter()
             .map(|record| SearchRecord {
                 // TODO
                 oca_bundle: self
-                    .get_oca_bundle(record.oca_bundle_said.clone(), false).unwrap().bundle.clone(),
+                    .get_oca_bundle(record.oca_bundle_said.clone(), false)
+                    .unwrap()
+                    .bundle
+                    .clone(),
                 metadata: SearchRecordMetadata {
                     phrase: record.metadata.phrase.clone(),
                     scope: record.metadata.scope.clone(),
@@ -118,12 +117,11 @@ impl Facade {
         }
     }
     #[cfg(feature = "local-references")]
-    pub fn fetch_all_refs(
-        &self,
-        ) -> Result<HashMap<String, String>, String> {
-
+    pub fn fetch_all_refs(&self) -> Result<HashMap<String, String>, String> {
         let mut refs: HashMap<String, String> = HashMap::new();
-        self.db.get_all(Namespace::OCAReferences).unwrap()
+        self.db
+            .get_all(Namespace::OCAReferences)
+            .unwrap()
             .iter()
             .for_each(|(k, v)| {
                 refs.insert(k.clone(), String::from_utf8(v.to_vec()).unwrap());
@@ -167,10 +165,8 @@ impl Facade {
         let mut total: usize = 0;
         let mut errors = vec![];
 
-        let oca_bundle_cache_repo =
-            OCABundleCacheRepo::new(Rc::clone(&self.connection));
-        let all_oca_bundle_records =
-            oca_bundle_cache_repo.fetch_all(limit, page);
+        let oca_bundle_cache_repo = OCABundleCacheRepo::new(Rc::clone(&self.connection));
+        let all_oca_bundle_records = oca_bundle_cache_repo.fetch_all(limit, page);
         for all_oca_bundle_record in all_oca_bundle_records {
             if total == 0 {
                 total = all_oca_bundle_record.total;
@@ -181,8 +177,7 @@ impl Facade {
                         oca_bundles.push(oca_bundle);
                     }
                     Err(e) => {
-                        errors
-                            .push(format!("Failed to parse oca bundle: {}", e));
+                        errors.push(format!("Failed to parse oca bundle: {}", e));
                     }
                 }
             }
@@ -207,11 +202,8 @@ impl Facade {
         let mut errors = vec![];
 
         let capture_base_cache_repo =
-            crate::repositories::CaptureBaseCacheRepo::new(Rc::clone(
-                &self.connection,
-            ));
-        let all_capture_base_records =
-            capture_base_cache_repo.fetch_all(limit, page);
+            crate::repositories::CaptureBaseCacheRepo::new(Rc::clone(&self.connection));
+        let all_capture_base_records = capture_base_cache_repo.fetch_all(limit, page);
         for all_capture_base_record in all_capture_base_records {
             if total == 0 {
                 total = all_capture_base_record.total;
@@ -222,10 +214,7 @@ impl Facade {
                         capture_bases.push(capture_base);
                     }
                     Err(e) => {
-                        errors.push(format!(
-                            "Failed to parse capture base: {}",
-                            e
-                        ));
+                        errors.push(format!("Failed to parse capture base: {}", e));
                     }
                 }
             }
@@ -240,10 +229,7 @@ impl Facade {
         })
     }
 
-    pub fn get_oca_objects(
-        &self,
-        saids: Vec<String>,
-    ) -> Result<Vec<OCAObject>, Vec<String>> {
+    pub fn get_oca_objects(&self, saids: Vec<String>) -> Result<Vec<OCAObject>, Vec<String>> {
         let mut result: Vec<OCAObject> = vec![];
         let mut errors: Vec<String> = vec![];
 
@@ -270,25 +256,17 @@ impl Facade {
             let o_type: ObjectKind = (*r_type.unwrap().first().unwrap()).into();
             match o_type {
                 ObjectKind::CaptureBase(_) => result.push(OCAObject::CaptureBase(
-                    serde_json::from_str::<CaptureBase>(&object_str)
-                        .map_err(|e| {
-                            errors.push(format!(
-                                "Failed to parse OCA object: {}",
-                                e
-                            ));
+                    serde_json::from_str::<CaptureBase>(&object_str).map_err(|e| {
+                        errors.push(format!("Failed to parse OCA object: {}", e));
+                        errors.clone()
+                    })?,
+                )),
+                ObjectKind::Overlay(_, _) => {
+                    let oca_overlay = OCAObject::Overlay(
+                        serde_json::from_str::<DynOverlay>(&object_str).map_err(|e| {
+                            errors.push(format!("Failed to parse OCA object: {}", e));
                             errors.clone()
                         })?,
-                )),
-                ObjectKind::Overlay(_,_) => {
-                    let oca_overlay = OCAObject::Overlay(
-                        serde_json::from_str::<DynOverlay>(&object_str)
-                            .map_err(|e| {
-                                errors.push(format!(
-                                    "Failed to parse OCA object: {}",
-                                    e
-                                ));
-                                errors.clone()
-                            })?,
                     );
                     result.push(oca_overlay);
                 }
@@ -303,11 +281,19 @@ impl Facade {
         Ok(result)
     }
 
-    pub fn get_oca_bundle(&self, said: SelfAddressingIdentifier, with_dep: bool) -> Result<BundleWithDependencies, Vec<String>> {
-        let r = self.db_cache.get(Namespace::OCABundlesJSON, &said.to_string()).map_err(|e| vec![format!("{}", e)])?;
+    pub fn get_oca_bundle(
+        &self,
+        said: SelfAddressingIdentifier,
+        with_dep: bool,
+    ) -> Result<BundleWithDependencies, Vec<String>> {
+        let r = self
+            .db_cache
+            .get(Namespace::OCABundlesJSON, &said.to_string())
+            .map_err(|e| vec![format!("{}", e)])?;
         let oca_bundle_str = String::from_utf8(
-            r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?
-        ).unwrap();
+            r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?,
+        )
+        .unwrap();
         let oca_bundle: Result<OCABundle, Vec<String>> = serde_json::from_str(&oca_bundle_str)
             .map_err(|e| vec![format!("Failed to parse oca bundle: {}", e)]);
 
@@ -327,29 +313,34 @@ impl Facade {
                 };
                 Ok(result)
             }
-            Err(e) => {
-                Err(e)
-            }
+            Err(e) => Err(e),
         }
     }
 
-    pub fn get_oca_bundle_steps(&self, said: SelfAddressingIdentifier) -> Result<Vec<OCABuildStep>, Vec<String>> {
+    pub fn get_oca_bundle_steps(
+        &self,
+        said: SelfAddressingIdentifier,
+    ) -> Result<Vec<OCABuildStep>, Vec<String>> {
         let mut said = said.to_string();
         #[allow(clippy::borrowed_box)]
-        fn extract_operation(db: &Box<dyn DataStorage>, said: &String) -> Result<(String, oca_ast::ast::Command), Vec<String>> {
-            let r = db.get(Namespace::OCA, &format!("oca.{}.operation", said))
+        fn extract_operation(
+            db: &Box<dyn DataStorage>,
+            said: &String,
+        ) -> Result<(String, oca_ast::ast::Command), Vec<String>> {
+            let r = db
+                .get(Namespace::OCA, &format!("oca.{}.operation", said))
                 .map_err(|e| vec![format!("{}", e)])?
                 .ok_or_else(|| vec![format!("No history found for said: {}", said)])?;
 
             let said_length = r.first().unwrap();
             let parent_said = String::from_utf8_lossy(&r[1..*said_length as usize + 1]).to_string();
             let op_length = r.len() - *said_length as usize - 1;
-            let op = String::from_utf8_lossy(&r[*said_length as usize + 1..*said_length as usize + 1 + op_length as usize]).to_string();
+            let op = String::from_utf8_lossy(
+                &r[*said_length as usize + 1..*said_length as usize + 1 + op_length as usize],
+            )
+            .to_string();
 
-            Ok((
-                parent_said,
-                serde_json::from_str(&op).unwrap()
-            ))
+            Ok((parent_said, serde_json::from_str(&op).unwrap()))
         }
 
         let mut history: Vec<OCABuildStep> = vec![];
@@ -361,37 +352,41 @@ impl Facade {
                 return Err(vec![format!("Malformed history")]);
             }
             let s = SelfAddressingIdentifier::from_str(&said).unwrap(); // TODO
-            history.push(
-                OCABuildStep {
-                    parent_said: parent_said.clone().parse().ok(),
-                    command,
-                    result: self.get_oca_bundle(s, false).unwrap().bundle.clone(),
-                }
-            );
+            history.push(OCABuildStep {
+                parent_said: parent_said.clone().parse().ok(),
+                command,
+                result: self.get_oca_bundle(s, false).unwrap().bundle.clone(),
+            });
             said = parent_said;
 
             if said.is_empty() {
                 break;
             }
-        };
+        }
         history.reverse();
         Ok(history)
     }
 
     /// Retrive the ocafile for a given said
     /// If dereference is true, all local references will be dereferenced to SAID
-    pub fn get_oca_bundle_ocafile(&self, said: SelfAddressingIdentifier, dereference: bool) -> Result<String, Vec<String>> {
+    pub fn get_oca_bundle_ocafile(
+        &self,
+        said: SelfAddressingIdentifier,
+        dereference: bool,
+    ) -> Result<String, Vec<String>> {
         let oca_bundle_steps = self.get_oca_bundle_steps(said)?;
         let mut oca_ast = OCAAst::new();
         for step in oca_bundle_steps {
             oca_ast.commands.push(step.command);
-        };
+        }
 
         if dereference {
             #[cfg(feature = "local-references")]
             let mut local_refs = HashMap::new();
             #[cfg(feature = "local-references")]
-            self.db.get_all(Namespace::OCAReferences).unwrap()
+            self.db
+                .get_all(Namespace::OCAReferences)
+                .unwrap()
                 .iter()
                 .for_each(|(k, v)| {
                     local_refs.insert(k.clone(), String::from_utf8(v.to_vec()).unwrap());
@@ -405,7 +400,10 @@ impl Facade {
 
     /// Retrive steps (AST representation) for a given said
     ///
-    pub fn get_oca_bundle_ast(&self, said: SelfAddressingIdentifier) -> Result<OCAAst, Vec<String>> {
+    pub fn get_oca_bundle_ast(
+        &self,
+        said: SelfAddressingIdentifier,
+    ) -> Result<OCAAst, Vec<String>> {
         let oca_bundle_steps = self.get_oca_bundle_steps(said)?;
         let mut oca_ast = OCAAst::new();
         for step in oca_bundle_steps {
@@ -449,19 +447,17 @@ ADD ENTRY en ATTRS list="refs:ENrf7niTCnz7HD-Ci88rlxHlxkpQ2NIZNNv08fQnXANI" el={
         let oca_bundle = facade.build_from_ocafile(ocafile_input);
         let oca_bundle = oca_bundle.unwrap();
 
-
         let ocafile = facade.parse_oca_bundle_to_ocafile(&oca_bundle)?;
         let new_oca_bundle = facade.build_from_ocafile(ocafile);
-            match new_oca_bundle {
-                Ok(new_oca_bundle) => {
-                    assert_eq!(oca_bundle.said, new_oca_bundle.said);
-                }
-                Err(e) => {
-                    println!("{:#?}", e);
-                    assert!(false);
-                }
-
+        match new_oca_bundle {
+            Ok(new_oca_bundle) => {
+                assert_eq!(oca_bundle.said, new_oca_bundle.said);
             }
+            Err(e) => {
+                println!("{:#?}", e);
+                assert!(false);
+            }
+        }
 
         Ok(())
     }

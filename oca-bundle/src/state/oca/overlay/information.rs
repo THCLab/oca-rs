@@ -1,10 +1,10 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
-use serde::{Deserialize, Serialize, Serializer, ser::SerializeMap};
+use isolang::Language;
+use oca_ast::ast::OverlayType;
+use said::{sad::SerializationFormats, sad::SAD};
+use serde::{ser::SerializeMap, Deserialize, Serialize, Serializer};
 use std::any::Any;
 use std::collections::HashMap;
-use isolang::Language;
-use said::{sad::SAD, sad::SerializationFormats};
-use oca_ast::ast::OverlayType;
 
 pub trait Information {
     fn set_information(&mut self, l: Language, information: String);
@@ -22,7 +22,10 @@ impl Information for Attribute {
     }
 }
 
-pub fn serialize_attributes<S>(attributes: &HashMap<String, String>, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_attributes<S>(
+    attributes: &HashMap<String, String>,
+    s: S,
+) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {

@@ -1,6 +1,6 @@
 use crate::ocafile::{error::InstructionError, Pair, Rule};
 use log::debug;
-use oca_ast::ast::{Command, CommandType, ObjectKind, BundleContent, ReferenceAttrType, RefValue};
+use oca_ast::ast::{BundleContent, Command, CommandType, ObjectKind, RefValue, ReferenceAttrType};
 use said::SelfAddressingIdentifier;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -24,20 +24,21 @@ impl FromInstruction {
         }
 
         let said_str = said_pair.unwrap().as_str();
-        let said: SelfAddressingIdentifier = said_str.parse()
+        let said: SelfAddressingIdentifier = said_str
+            .parse()
             .map_err(|_| InstructionError::Parser(format!("Invalid said: {said_str}")))?;
         debug!("Using oca bundle from: {:?}", said);
         let said = ReferenceAttrType::Reference(RefValue::Said(said));
         Ok(Command {
             kind: CommandType::From,
-            object_kind: ObjectKind::OCABundle( BundleContent { said }),
+            object_kind: ObjectKind::OCABundle(BundleContent { said }),
         })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::ocafile::{error::InstructionError, OCAfileParser, Pair, Rule, self};
+    use crate::ocafile::{self, error::InstructionError, OCAfileParser, Pair, Rule};
     use oca_ast::ast::RefValue;
     use pest::Parser;
 
@@ -48,7 +49,9 @@ mod tests {
         let pair = OCAfileParser::parse(rule, input)
             .expect("unsuccessful parse")
             .next()
-            .ok_or(InstructionError::UnexpectedToken("Unknown parser error".to_string()))?;
+            .ok_or(InstructionError::UnexpectedToken(
+                "Unknown parser error".to_string(),
+            ))?;
 
         func(pair)
     }
@@ -78,16 +81,14 @@ mod tests {
                     let content = command.object_kind.oca_bundle_content().unwrap();
 
                     match content.clone().said {
-                        ocafile::ast::ReferenceAttrType::Reference(refs) => {
-                            match refs {
-                                RefValue::Said(_said) => {
-                                    assert!(is_valid, "Instruction should be valid");
-                                },
-                                RefValue::Name(_) => {
-                                    panic!("Refn not supported");
-                                }
+                        ocafile::ast::ReferenceAttrType::Reference(refs) => match refs {
+                            RefValue::Said(_said) => {
+                                assert!(is_valid, "Instruction should be valid");
                             }
-                        }
+                            RefValue::Name(_) => {
+                                panic!("Refn not supported");
+                            }
+                        },
                     }
                 }
                 Err(_e) => {
