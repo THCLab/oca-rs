@@ -1,0 +1,12 @@
+[package]
+name = "tests-integration"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dev-dependencies]
+oca-rs = {path = "../oca"}
+
+[[test]]
+name = "build_from_ocafile"
+path = "build_from_ocafile.rs"
