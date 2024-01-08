@@ -80,7 +80,7 @@ mod tests {
                     match content.clone().said {
                         ocafile::ast::ReferenceAttrType::Reference(refs) => {
                             match refs {
-                                RefValue::Said(said) => {
+                                RefValue::Said(_said) => {
                                     assert!(is_valid, "Instruction should be valid");
                                 },
                                 RefValue::Name(_) => {

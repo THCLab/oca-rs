@@ -548,8 +548,8 @@ impl<'de> Deserialize<'de> for Command {
             }
         }
 
-        const FIELDS: &'static [&'static str] = &["type", "object_kind", "content"];
-        const VARIANTS: &'static [&'static str] = &["CaptureBase", "OCABundle", "Overlay"];
+        const FIELDS: &[&str] = &["type", "object_kind", "content"];
+        const VARIANTS: &[&str] = &["CaptureBase", "OCABundle", "Overlay"];
         deserializer.deserialize_struct("Command", FIELDS, CommandVisitor)
     }
 }

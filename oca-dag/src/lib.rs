@@ -126,15 +126,13 @@ fn apply_step(
         }
         ast::ObjectKind::Overlay(overlay_type, content) => {
             let mut lang = None;
-            match &content.properties {
-                Some(properties) => {
-                    if let Some(ast::NestedValue::Value(lang_value)) =
-                        properties.get("lang")
-                    {
-                        lang = isolang::Language::from_639_1(lang_value);
-                    }
+            // match &content.properties {
+            if let Some(properties) = &content.properties {
+                if let Some(ast::NestedValue::Value(lang_value)) =
+                    properties.get("lang")
+                {
+                    lang = isolang::Language::from_639_1(lang_value);
                 }
-                _ => (),
             }
 
             let overlay = step.result.overlays.iter().find(|overlay| {
