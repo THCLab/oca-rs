@@ -85,8 +85,8 @@ impl<'de> Deserialize<'de> for NestedAttrType {
         let expanded = AttributeTypeResult::expand_frames(input, |seed| match seed {
             
             serde_json::Value::String(text) => {
-                match &text[..5] {
-                    "refs:" | "refn:" => {
+                match &text.get(..5) {
+                    Some("refs:") | Some("refn:") => {
                         let res = text.parse::<RefValue>();
                         match res {
                             Ok(ref_value) => NestedAttrTypeFrame::Reference(ref_value).into(),
