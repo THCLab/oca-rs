@@ -25,7 +25,7 @@ impl RemoveInstruction {
                         },
                     ));
                 }
-                Rule::classification => {
+                Rule::remove_classification => {
                     let mut properties: IndexMap<String, NestedValue> = IndexMap::new();
                     properties.insert(
                         "classification".to_string(),

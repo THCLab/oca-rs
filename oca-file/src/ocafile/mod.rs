@@ -162,63 +162,206 @@ pub fn generate_from_ast(ast: &OCAAst) -> String {
     ast.commands.iter().for_each(|command| {
         let mut line = String::new();
 
-        if let ast::CommandType::Add = command.kind {
-            line.push_str("ADD ");
-            match &command.object_kind {
-                ast::ObjectKind::CaptureBase(content) => {
-                    if let Some(attributes) = &content.attributes {
-                        line.push_str("ATTRIBUTE");
-                        for (key, value) in attributes {
-                            line.push_str(&format!(" {}=", key));
-                            // TODO avoid clone
-                            let out = oca_file_format(value.clone());
-                            line.push_str(&out);
+        match command.kind {
+            ast::CommandType::Add => {
+                line.push_str("ADD ");
+                match &command.object_kind {
+                    ast::ObjectKind::CaptureBase(content) => {
+                        if let Some(attributes) = &content.attributes {
+                            line.push_str("ATTRIBUTE");
+                            for (key, value) in attributes {
+                                line.push_str(&format!(" {}=", key));
+                                // TODO avoid clone
+                                let out = oca_file_format(value.clone());
+                                line.push_str(&out);
+                            }
                         }
-                    }
-                }
-                ast::ObjectKind::Overlay(o_type, _) => match o_type {
-                    ast::OverlayType::Meta => {
-                        line.push_str("META ");
-                        if let Some(content) = command.object_kind.overlay_content() {
-                            if let Some(ref properties) = content.properties {
-                                let mut properties = properties.clone();
-                                if let Some(ast::NestedValue::Value(lang)) =
-                                    properties.remove("lang")
-                                {
-                                    line.push_str(format!("{} ", lang).as_str());
-                                }
-                                if !properties.is_empty() {
-                                    line.push_str("PROPS ");
-                                    properties.iter().for_each(|(key, value)| {
-                                        if let ast::NestedValue::Value(value) = value {
-                                            line.push_str(
-                                                format!(" {}=\"{}\"", key, value).as_str(),
-                                            );
-                                        }
-                                    });
+                        if let Some(properties) = &content.properties {
+                            for (prop_name, prop_value) in properties {
+                                if prop_name.eq("classification") {
+                                    if let ast::NestedValue::Value(value) = prop_value {
+                                        line.push_str(format!("CLASSIFICATION {}", value).as_str());
+                                    }
                                 }
                             }
-                        };
+                        }
                     }
-                    ast::OverlayType::Unit => {
-                        line.push_str("UNIT ");
-                        if let Some(content) = command.object_kind.overlay_content() {
-                            if let Some(ref properties) = content.properties {
-                                let mut properties = properties.clone();
-                                if let Some(ast::NestedValue::Value(unit_system)) =
-                                    properties.remove("unit_system")
-                                {
-                                    line.push_str(format!("{} ", unit_system).as_str());
+                    ast::ObjectKind::Overlay(o_type, _) => match o_type {
+                        ast::OverlayType::Meta => {
+                            line.push_str("META ");
+                            if let Some(content) = command.object_kind.overlay_content() {
+                                if let Some(ref properties) = content.properties {
+                                    let mut properties = properties.clone();
+                                    if let Some(ast::NestedValue::Value(lang)) =
+                                        properties.remove("lang")
+                                    {
+                                        line.push_str(format!("{} ", lang).as_str());
+                                    }
+                                    if !properties.is_empty() {
+                                        line.push_str("PROPS ");
+                                        properties.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(
+                                                    format!(" {}=\"{}\"", key, value).as_str(),
+                                                );
+                                            }
+                                        });
+                                    }
                                 }
-                                if !properties.is_empty() {
-                                    line.push_str("PROPS ");
-                                    properties.iter().for_each(|(key, value)| {
-                                        if let ast::NestedValue::Value(value) = value {
+                            };
+                        }
+                        ast::OverlayType::Unit => {
+                            line.push_str("UNIT ");
+                            if let Some(content) = command.object_kind.overlay_content() {
+                                if let Some(ref properties) = content.properties {
+                                    let mut properties = properties.clone();
+                                    if let Some(ast::NestedValue::Value(unit_system)) =
+                                        properties.remove("unit_system")
+                                    {
+                                        line.push_str(format!("{} ", unit_system).as_str());
+                                    }
+                                    if !properties.is_empty() {
+                                        line.push_str("PROPS ");
+                                        properties.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(
+                                                    format!(" {}=\"{}\"", key, value).as_str(),
+                                                );
+                                            }
+                                        });
+                                    }
+                                    if let Some(ref attributes) = content.attributes {
+                                        line.push_str("ATTRS");
+                                        attributes.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(
+                                                    format!(" {}=\"{}\"", key, value).as_str(),
+                                                );
+                                            }
+                                        });
+                                    }
+                                }
+                            };
+                        }
+                        ast::OverlayType::EntryCode => {
+                            line.push_str("ENTRY_CODE ");
+                            if let Some(content) = command.object_kind.overlay_content() {
+                                if let Some(ref properties) = content.properties {
+                                    if !properties.is_empty() {
+                                        line.push_str("PROPS ");
+                                        properties.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(
+                                                    format!(" {}={}", key, value).as_str(),
+                                                );
+                                            }
+                                        });
+                                    }
+                                }
+                                if let Some(ref attributes) = content.attributes {
+                                    line.push_str("ATTRS");
+                                    attributes.iter().for_each(|(key, value)| {
+                                        if let ast::NestedValue::Array(values) = value {
+                                            let codes = values
+                                                .iter()
+                                                .filter_map(|value| {
+                                                    if let ast::NestedValue::Value(value) = value {
+                                                        Some(format!("\"{}\"", value))
+                                                    } else {
+                                                        None
+                                                    }
+                                                })
+                                                .collect::<Vec<String>>()
+                                                .join(", ");
+                                            line.push_str(format!(" {}=[{}]", key, codes).as_str());
+                                        } else if let ast::NestedValue::Value(said) = value {
                                             line.push_str(
-                                                format!(" {}=\"{}\"", key, value).as_str(),
+                                                format!(" {}=\"{}\"", key, said).as_str(),
                                             );
                                         }
                                     });
+                                }
+                            };
+                        }
+                        ast::OverlayType::Entry => {
+                            line.push_str("ENTRY ");
+                            if let Some(content) = command.object_kind.overlay_content() {
+                                if let Some(ref properties) = content.properties {
+                                    let mut properties = properties.clone();
+                                    if let Some(ast::NestedValue::Value(lang)) =
+                                        properties.remove("lang")
+                                    {
+                                        line.push_str(format!("{} ", lang).as_str());
+                                    }
+                                    if !properties.is_empty() {
+                                        line.push_str("PROPS ");
+                                        properties.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(
+                                                    format!(" {}={}", key, value).as_str(),
+                                                );
+                                            }
+                                        });
+                                    }
+                                    if let Some(ref attributes) = content.attributes {
+                                        line.push_str("ATTRS ");
+                                        attributes.iter().for_each(|(key, value)| {
+                                            // TODO there is no need for NestedValue here
+                                            if let ast::NestedValue::Object(values) = value {
+                                                let codes = values
+                                                    .iter()
+                                                    .filter_map(|(code, label)| {
+                                                        // TODO there is no need for NestedValue here
+                                                        if let ast::NestedValue::Value(label) =
+                                                            label
+                                                        {
+                                                            Some(format!(
+                                                                "\"{}\": \"{}\"",
+                                                                code, label
+                                                            ))
+                                                        } else {
+                                                            None
+                                                        }
+                                                    })
+                                                    .collect::<Vec<String>>()
+                                                    .join(", ");
+                                                line.push_str(
+                                                    format!("{}={{{}}}", key, codes).as_str(),
+                                                );
+                                            } else if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(
+                                                    format!(" {}=\"{}\"", key, value).as_str(),
+                                                );
+                                            }
+                                        });
+                                    }
+                                }
+                            };
+                        }
+                        _ => {
+                            line.push_str(
+                                format!("{} ", o_type.to_string().to_case(Case::UpperSnake))
+                                    .as_str(),
+                            );
+
+                            if let Some(content) = command.object_kind.overlay_content() {
+                                if let Some(ref properties) = content.properties {
+                                    let mut properties = properties.clone();
+                                    if let Some(ast::NestedValue::Value(lang)) =
+                                        properties.remove("lang")
+                                    {
+                                        line.push_str(format!("{} ", lang).as_str());
+                                    }
+                                    if !properties.is_empty() {
+                                        line.push_str("PROPS ");
+                                        properties.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(
+                                                    format!(" {}=\"{}\"", key, value).as_str(),
+                                                );
+                                            }
+                                        });
+                                    }
                                 }
                                 if let Some(ref attributes) = content.attributes {
                                     line.push_str("ATTRS");
@@ -230,130 +373,38 @@ pub fn generate_from_ast(ast: &OCAAst) -> String {
                                         }
                                     });
                                 }
-                            }
-                        };
-                    }
-                    ast::OverlayType::EntryCode => {
-                        line.push_str("ENTRY_CODE ");
-                        if let Some(content) = command.object_kind.overlay_content() {
-                            if let Some(ref properties) = content.properties {
-                                if !properties.is_empty() {
-                                    line.push_str("PROPS ");
-                                    properties.iter().for_each(|(key, value)| {
-                                        if let ast::NestedValue::Value(value) = value {
-                                            line.push_str(format!(" {}={}", key, value).as_str());
-                                        }
-                                    });
-                                }
-                            }
-                            if let Some(ref attributes) = content.attributes {
-                                line.push_str("ATTRS");
-                                attributes.iter().for_each(|(key, value)| {
-                                    if let ast::NestedValue::Array(values) = value {
-                                        let codes = values
-                                            .iter()
-                                            .filter_map(|value| {
-                                                if let ast::NestedValue::Value(value) = value {
-                                                    Some(format!("\"{}\"", value))
-                                                } else {
-                                                    None
-                                                }
-                                            })
-                                            .collect::<Vec<String>>()
-                                            .join(", ");
-                                        line.push_str(format!(" {}=[{}]", key, codes).as_str());
-                                    } else if let ast::NestedValue::Value(said) = value {
-                                        line.push_str(format!(" {}=\"{}\"", key, said).as_str());
-                                    }
-                                });
-                            }
-                        };
-                    }
-                    ast::OverlayType::Entry => {
-                        line.push_str("ENTRY ");
-                        if let Some(content) = command.object_kind.overlay_content() {
-                            if let Some(ref properties) = content.properties {
-                                let mut properties = properties.clone();
-                                if let Some(ast::NestedValue::Value(lang)) =
-                                    properties.remove("lang")
-                                {
-                                    line.push_str(format!("{} ", lang).as_str());
-                                }
-                                if !properties.is_empty() {
-                                    line.push_str("PROPS ");
-                                    properties.iter().for_each(|(key, value)| {
-                                        if let ast::NestedValue::Value(value) = value {
-                                            line.push_str(format!(" {}={}", key, value).as_str());
-                                        }
-                                    });
-                                }
-                                if let Some(ref attributes) = content.attributes {
-                                    line.push_str("ATTRS ");
-                                    attributes.iter().for_each(|(key, value)| {
-                                        // TODO there is no need for NestedValue here
-                                        if let ast::NestedValue::Object(values) = value {
-                                            let codes = values
-                                                .iter()
-                                                .filter_map(|(code, label)| {
-                                                    // TODO there is no need for NestedValue here
-                                                    if let ast::NestedValue::Value(label) = label {
-                                                        Some(format!("\"{}\": \"{}\"", code, label))
-                                                    } else {
-                                                        None
-                                                    }
-                                                })
-                                                .collect::<Vec<String>>()
-                                                .join(", ");
-                                            line.push_str(
-                                                format!("{}={{{}}}", key, codes).as_str(),
-                                            );
-                                        } else if let ast::NestedValue::Value(value) = value {
-                                            line.push_str(
-                                                format!(" {}=\"{}\"", key, value).as_str(),
-                                            );
-                                        }
-                                    });
-                                }
-                            }
-                        };
-                    }
-                    _ => {
-                        line.push_str(
-                            format!("{} ", o_type.to_string().to_case(Case::UpperSnake)).as_str(),
-                        );
-
-                        if let Some(content) = command.object_kind.overlay_content() {
-                            if let Some(ref properties) = content.properties {
-                                let mut properties = properties.clone();
-                                if let Some(ast::NestedValue::Value(lang)) =
-                                    properties.remove("lang")
-                                {
-                                    line.push_str(format!("{} ", lang).as_str());
-                                }
-                                if !properties.is_empty() {
-                                    line.push_str("PROPS ");
-                                    properties.iter().for_each(|(key, value)| {
-                                        if let ast::NestedValue::Value(value) = value {
-                                            line.push_str(
-                                                format!(" {}=\"{}\"", key, value).as_str(),
-                                            );
-                                        }
-                                    });
-                                }
-                            }
-                            if let Some(ref attributes) = content.attributes {
-                                line.push_str("ATTRS");
-                                attributes.iter().for_each(|(key, value)| {
-                                    if let ast::NestedValue::Value(value) = value {
-                                        line.push_str(format!(" {}=\"{}\"", key, value).as_str());
-                                    }
-                                });
-                            }
-                        };
-                    }
-                },
-                _ => {}
+                            };
+                        }
+                    },
+                    _ => {}
+                }
             }
+            ast::CommandType::Remove => match &command.object_kind {
+                ast::ObjectKind::CaptureBase(content) => {
+                    line.push_str("REMOVE ");
+                    if let Some(attributes) = &content.attributes {
+                        line.push_str("ATTRIBUTE");
+                        for (key, _) in attributes {
+                            line.push_str(&format!(" {}", key));
+                        }
+                    }
+                    if let Some(properties) = &content.properties {
+                        for (prop_name, _) in properties {
+                            if prop_name.eq("classification") {
+                                line.push_str("CLASSIFICATION");
+                            }
+                        }
+                    }
+                }
+                ast::ObjectKind::Overlay(_o_type, _) => {
+                    todo!()
+                }
+                _ => {}
+            },
+            ast::CommandType::From => {
+                line.push_str("FROM ");
+            }
+            ast::CommandType::Modify => todo!(),
         }
 
         ocafile.push_str(format!("{}\n", line).as_str());

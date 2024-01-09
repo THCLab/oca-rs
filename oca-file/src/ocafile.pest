@@ -140,7 +140,7 @@ remove_oca_object = _{
     remove_meta |
     remove_label |
     remove_attribute |
-    classification |
+    remove_classification |
     information |
     unit |
     character_encoding |
@@ -172,6 +172,7 @@ unit = {^"unit" ~ arg_ws ~ unit_system ~ arg_ws ~ attrs_key ~ attr_key_pairs}
 
 flagged_attrs = {^"flagged_attributes" ~ arg_ws ~ list_value}
 classification = { ^"classification" ~ arg_ws ~ classification_value}
+remove_classification = { ^"classification"}
 classification_value = { string | char+}
 
 //overlay_args = { ws* ~ ANY* }
