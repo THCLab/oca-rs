@@ -9,3 +9,5 @@ members = [
 
   "tests",
 ]
+
+resolver = "2"
