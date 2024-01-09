@@ -77,6 +77,7 @@ impl<'de> Deserialize<'de> for NestedAttrType {
         let input: serde_json::Value = serde_json::Value::deserialize(deserializer)?;
 
         let expanded = AttributeTypeResult::expand_frames(input, |seed| match seed {
+            serde_json::Value::Null => NestedAttrTypeFrame::Null.into(),
             serde_json::Value::String(text) => match &text.get(..5) {
                 Some("refs:") | Some("refn:") => {
                     let res = text.parse::<RefValue>();
