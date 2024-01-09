@@ -376,7 +376,9 @@ mod tests {
         let unparsed_file = r#"
 -- version=0.0.1
 -- name=プラスウルトラ
+ADD ATTRIBUTE remove=Text
 ADD ATTRIBUTE name=Text age=Numeric car=Array[refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu]
+REMOVE ATTRIBUTE remove
 ADD ATTRIBUTE incidentals_spare_parts=Array[Array[refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu]]
 ADD ATTRIBUTE d=Text i=Text passed=Boolean
 ADD META en PROPS description="Entrance credential" name="Entrance credential"

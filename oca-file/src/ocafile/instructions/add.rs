@@ -196,7 +196,7 @@ mod tests {
                             match instruction.object_kind {
                                 ObjectKind::CaptureBase(content) => {
                                     assert!(content.attributes.is_some());
-                                    assert!(content.attributes.unwrap().len() > 0);
+                                    assert!(!content.attributes.unwrap().is_empty());
                                 }
                                 _ => {
                                     assert!(!is_valid, "Instruction is not valid");

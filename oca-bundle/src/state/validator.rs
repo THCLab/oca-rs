@@ -517,7 +517,7 @@ mod tests {
             }
             Err(e) => {
                 println!("{:?}", e);
-                assert!(false);
+                panic!("Failed to load OCA bundle");
             }
         }
     }

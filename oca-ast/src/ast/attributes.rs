@@ -139,14 +139,14 @@ mod tests {
     #[test]
     fn test_nested_attribute_deserialize() {
         let serialized = r#"["Numeric"]"#;
-        let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
+        let deser: NestedAttrType = serde_json::from_str(serialized).unwrap();
         assert_eq!(
             NestedAttrType::Array(Box::new(NestedAttrType::Value(AttributeType::Numeric))),
             deser
         );
 
         let wrong_type = r#"["Wrong"]"#;
-        let deser = serde_json::from_str::<NestedAttrType>(&wrong_type);
+        let deser = serde_json::from_str::<NestedAttrType>(wrong_type);
         assert!(deser.is_err());
         assert_eq!(
             deser.unwrap_err().to_string(),
@@ -158,25 +158,25 @@ mod tests {
             said::derivation::HashFunction::from(said::derivation::HashFunctionCode::Blake3_256)
                 .derive("fff".as_bytes()),
         ))));
-        let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
+        let deser: NestedAttrType = serde_json::from_str(serialized).unwrap();
         assert_eq!(expected, deser);
 
         let serialized = r#"["refn:bob"]"#;
         let expected = NestedAttrType::Array(Box::new(NestedAttrType::Reference(RefValue::Name(
             "bob".to_string(),
         ))));
-        let deser: NestedAttrType = serde_json::from_str(&serialized).unwrap();
+        let deser: NestedAttrType = serde_json::from_str(serialized).unwrap();
         assert_eq!(expected, deser);
     }
 
     #[test]
     fn test_reference_attribute_deserialize() {
         let wrong_said = r#"["refs:wrong_said"]"#;
-        let deser = serde_json::from_str::<NestedAttrType>(&wrong_said);
+        let deser = serde_json::from_str::<NestedAttrType>(wrong_said);
         assert_eq!(deser.unwrap_err().to_string(), "Invalid said: Unknown code");
 
         let missing_ref_tag = r#"["EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ"]"#;
-        let deser = serde_json::from_str::<NestedAttrType>(&missing_ref_tag);
+        let deser = serde_json::from_str::<NestedAttrType>(missing_ref_tag);
         assert_eq!(
             deser.unwrap_err().to_string(),
             "Attribute type EEokfxxqwAM08iku7VHMaVFBaEGYVi2W-ctBKaTW6QdJ doesn't exist"

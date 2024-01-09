@@ -455,7 +455,7 @@ ADD ENTRY en ATTRS list="refs:ENrf7niTCnz7HD-Ci88rlxHlxkpQ2NIZNNv08fQnXANI" el={
             }
             Err(e) => {
                 println!("{:#?}", e);
-                assert!(false);
+                panic!("Faild to load oca bundle");
             }
         }
 
