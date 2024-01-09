@@ -340,7 +340,10 @@ impl Facade {
             )
             .to_string();
 
-            Ok((parent_said, serde_json::from_str(&op).unwrap()))
+            match serde_json::from_str::<oca_ast::ast::Command>(&op) {
+                Ok(command) => Ok((parent_said, command)),
+                Err(e) => Err(vec![format!("Failed to parse command: {}", e)]),
+            }
         }
 
         let mut history: Vec<OCABuildStep> = vec![];
