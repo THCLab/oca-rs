@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod test {
     use oca_rs::{
-    data_storage::{DataStorage, InMemoryDataStorage},
-    facade::build::Error,
-    repositories::SQLiteConfig,
-    Facade,
-};
+        data_storage::{DataStorage, InMemoryDataStorage},
+        facade::build::Error,
+        repositories::SQLiteConfig,
+        Facade,
+    };
 
     #[test]
     fn build_from_base() -> Result<(), Vec<Error>> {
