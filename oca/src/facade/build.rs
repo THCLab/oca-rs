@@ -42,7 +42,7 @@ impl Facade {
         let mut base: Option<OCABundle> = None;
         // TODO this should be avoided if the ast is passed for further processing, the base is
         // checked again in generate bundle
-        if let Some(first_command) = oca_ast.commands.get(0) {
+        if let Some(first_command) = oca_ast.commands.first() {
             if let (oca_ast::ast::CommandType::From, ObjectKind::OCABundle(content)) = (
                 first_command.clone().kind,
                 first_command.clone().object_kind,
