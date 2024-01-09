@@ -77,6 +77,11 @@ impl OCABox {
             classification: None,
         }
     }
+    /// Remove attribute from the OCA Bundle
+    /// if attribute does not exist, nothing will happen
+    pub fn remove_attribute(&mut self, attr_name: &String) {
+        self.attributes.remove(attr_name);
+    }
     /// Add an attribute to the OCA Bundle
     /// If the attribute already exists, it will be merged with the new attribute
     /// for simple types: the new value will overwrite the old value
@@ -100,6 +105,10 @@ impl OCABox {
     }
     pub fn add_classification(&mut self, classification: String) {
         self.classification = Some(classification);
+    }
+
+    pub fn remove_classification(&mut self) {
+        self.classification = None;
     }
 
     pub fn generate_bundle(&mut self) -> OCABundle {
@@ -1259,6 +1268,10 @@ mod tests {
             "description".to_string(),
             "test desc".to_string(),
         );
+        let mut attr_remove = Attribute::new("removeme".to_string());
+        attr_remove.set_attribute_type(NestedAttrType::Value(AttributeType::Text));
+        oca.add_attribute(attr_remove);
+
         let mut attr = Attribute::new("first_name".to_string());
         attr.set_attribute_type(NestedAttrType::Value(AttributeType::Text));
         oca.add_attribute(attr);
@@ -1266,6 +1279,7 @@ mod tests {
         let mut attr2 = Attribute::new("gender".to_string());
         let entries = EntriesElement::Object(hashmap! {});
         attr2.set_entry(Language::Eng, entries);
+        oca.remove_attribute(&"removeme".to_string());
 
         let mut attr = Attribute::new("last_name".to_string());
         attr.set_attribute_type(NestedAttrType::Value(AttributeType::Text));
@@ -1277,8 +1291,9 @@ mod tests {
         println!("{}", oca_bundle_json); */
         let said = oca_bundle.said;
         let oca_bundle = oca.generate_bundle();
+        let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
         let said2 = oca_bundle.said;
-        // let oca_bundle_json = serde_json::to_string_pretty(&oca_bundle).unwrap();
+        println!("{}", oca_bundle_json);
         assert_eq!(said, said2);
     }
 

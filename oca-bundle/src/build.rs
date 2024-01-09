@@ -458,7 +458,20 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
             }
         }
         (ast::CommandType::Add, ast::ObjectKind::OCABundle(_)) => todo!(),
-        (ast::CommandType::Remove, ast::ObjectKind::CaptureBase(_)) => todo!(),
+        (ast::CommandType::Remove, ast::ObjectKind::CaptureBase(content)) => {
+            if let Some(ref attributes) = content.attributes {
+                for (attr_name, _) in attributes {
+                    oca.remove_attribute(attr_name);
+                }
+            }
+            if let Some(ref properties) = content.properties {
+                for (prop_name, _) in properties {
+                    if prop_name.eq("classification") {
+                        oca.remove_classification()
+                    }
+                }
+            }
+        }
         (ast::CommandType::Remove, ast::ObjectKind::OCABundle(_)) => todo!(),
         (ast::CommandType::Remove, ast::ObjectKind::Overlay(_, _)) => todo!(),
         (ast::CommandType::Modify, ast::ObjectKind::CaptureBase(_)) => todo!(),
