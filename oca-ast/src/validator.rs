@@ -174,7 +174,6 @@ fn rule_add_attr_if_not_exist(ast: &OCAAst, command_to_validate: Command) -> Res
         Some(content) => {
             let attrs_to_add = content.attributes.clone().unwrap_or(default_attrs);
             debug!("attrs_to_add: {:?}", attrs_to_add);
-            println!("attrs_to_add: {:?}", attrs_to_add);
 
             let existing_keys: Vec<_> = attrs_to_add.keys()
                                    .filter(|key| attributes.contains_key(*key))
