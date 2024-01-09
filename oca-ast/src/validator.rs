@@ -1,5 +1,5 @@
 use crate::{
-    ast::{Command, CommandType, NestedAttrType, OCAAst, ObjectKind},
+    ast::{Command, CommandType, NestedAttrType, NestedValue, OCAAst, ObjectKind},
     errors::Error,
 };
 use indexmap::{indexmap, IndexMap};
@@ -124,30 +124,56 @@ fn rule_remove_attr_if_exist(ast: &OCAAst, command_to_validate: Command) -> Resu
     let mut errors = Vec::new();
 
     let attributes = extract_attributes(ast);
+    let properties = extract_properties(ast);
 
     let content = command_to_validate.object_kind.capture_content();
 
-    match content {
-        Some(content) => {
-            let attrs_to_remove = content.attributes.clone().unwrap();
+    println!("attributes: {:?}", attributes);
+    println!("properties: {:?}", properties);
+
+    match (
+        content,
+        content.as_ref().and_then(|c| c.attributes.as_ref()),
+    ) {
+        (Some(_content), Some(attrs_to_remove)) => {
+            println!("attr to remove: {:?}", attrs_to_remove);
             let valid = attrs_to_remove
                 .keys()
                 .all(|key| attributes.contains_key(key));
-            if valid {
-                Ok(true)
-            } else {
+            if !valid {
                 errors.push(Error::InvalidOperation(
                     "Cannot remove attribute if does not exists".to_string(),
                 ));
-                Err(Error::Validation(errors))
             }
         }
-        None => {
-            errors.push(Error::InvalidOperation(
-                "No attribtues specify to be removed".to_string(),
-            ));
-            Err(Error::Validation(errors))
+        (None, None) => (),
+        (None, Some(_)) => (),
+        (Some(_), None) => (),
+    }
+
+    match (
+        content,
+        content.as_ref().and_then(|c| c.properties.as_ref()),
+    ) {
+        (Some(_content), Some(props_to_remove)) => {
+            let valid = props_to_remove
+                .keys()
+                .all(|key| properties.contains_key(key));
+            if !valid {
+                errors.push(Error::InvalidOperation(
+                    "Cannot remove property if does not exists".to_string(),
+                ));
+                return Err(Error::Validation(errors));
+            }
         }
+        (None, None) => (),
+        (None, Some(_)) => (),
+        (Some(_), None) => (),
+    }
+    if errors.is_empty() {
+        Ok(true)
+    } else {
+        Err(Error::Validation(errors))
     }
 }
 
@@ -221,6 +247,31 @@ fn extract_attributes(ast: &OCAAst) -> CaptureAttributes {
         }
     }
     attributes
+}
+
+fn extract_properties(ast: &OCAAst) -> IndexMap<String, NestedValue> {
+    let default_attrs: IndexMap<String, NestedValue> = indexmap! {};
+    let mut properties: IndexMap<String, NestedValue> = indexmap! {};
+    for instruction in &ast.commands {
+        match (instruction.kind.clone(), instruction.object_kind.clone()) {
+            (CommandType::Remove, ObjectKind::CaptureBase(capture_content)) => {
+                let props = capture_content
+                    .properties
+                    .as_ref()
+                    .unwrap_or(&default_attrs);
+                properties.retain(|key, _value| !props.contains_key(key));
+            }
+            (CommandType::Add, ObjectKind::CaptureBase(capture_content)) => {
+                let props = capture_content
+                    .properties
+                    .as_ref()
+                    .unwrap_or(&default_attrs);
+                properties.extend(props.iter().map(|(k, v)| (k.clone(), v.clone())));
+            }
+            _ => {}
+        }
+    }
+    properties
 }
 
 #[cfg(test)]
