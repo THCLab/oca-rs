@@ -7,6 +7,7 @@ on:
       - "v*"
 env:
   CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-Dwarnings"
 
 jobs:
   check:
@@ -45,12 +46,13 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+          components: clippy
           override: true
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: --all-features --verbose
-
+          
   publish_oca-ast:
     runs-on: ubuntu-22.04
     if: github.ref_type == 'tag'

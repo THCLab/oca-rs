@@ -336,7 +336,7 @@ impl Facade {
             let parent_said = String::from_utf8_lossy(&r[1..*said_length as usize + 1]).to_string();
             let op_length = r.len() - *said_length as usize - 1;
             let op = String::from_utf8_lossy(
-                &r[*said_length as usize + 1..*said_length as usize + 1 + op_length as usize],
+                &r[*said_length as usize + 1..*said_length as usize + 1 + op_length],
             )
             .to_string();
 
