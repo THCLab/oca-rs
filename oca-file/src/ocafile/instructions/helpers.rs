@@ -334,8 +334,22 @@ pub fn extract_content(object: Pair) -> Content {
     }
 }
 
-pub(crate) fn extract_flagged_attrs(
-    _: pest::iterators::Pair<'_, Rule>,
-) -> IndexMap<String, NestedAttrType> {
-    todo!()
+/// Extract flagged attributes
+pub(crate) fn extract_flagged_attrs(object: pest::iterators::Pair<'_, Rule>) -> Vec<String> {
+    let mut flagged_attrs: Vec<String> = vec![];
+    debug!("Parsing flagged attribute");
+    for attr in object.into_inner() {
+        match attr.as_rule() {
+            Rule::list_value => {
+                flagged_attrs.push(attr.as_str().to_string());
+            }
+            _ => {
+                debug!(
+                    "Unexpected token: Invalid attribute in instruction {:?}",
+                    attr.as_rule()
+                );
+            }
+        }
+    }
+    flagged_attrs
 }

@@ -34,6 +34,7 @@ impl RemoveInstruction {
                     object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
                         attributes: None,
                         properties: Some(properties),
+                        flagged_attributes: None,
                     }));
                 }
                 Rule::remove_label => {
@@ -54,6 +55,7 @@ impl RemoveInstruction {
                     object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
                         attributes: Some(attributes),
                         properties: None,
+                        flagged_attributes: None,
                     }));
                 }
                 _ => {

@@ -47,6 +47,7 @@ impl AddInstruction {
                     object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
                         properties: None,
                         attributes: Some(attributes),
+                        flagged_attributes: None,
                     }));
                 }
                 Rule::comment => continue,
@@ -61,6 +62,7 @@ impl AddInstruction {
                     object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
                         properties: Some(properties),
                         attributes: None,
+                        flagged_attributes: None,
                     }));
                 }
                 Rule::information => {
@@ -132,7 +134,8 @@ impl AddInstruction {
                 Rule::flagged_attrs => {
                     object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
                         properties: None,
-                        attributes: Some(helpers::extract_flagged_attrs(object)),
+                        attributes: None,
+                        flagged_attributes: Some(helpers::extract_flagged_attrs(object)),
                     }));
                 }
                 _ => {
@@ -175,6 +178,7 @@ mod tests {
             ("ADD attribute name=Text", true),
             ("add attribute name=Text", true),
             ("add attribute name=Random", false),
+            ("add flagged_attributes name documentType", true),
         ];
         let _ = env_logger::builder().is_test(true).try_init();
 
@@ -195,8 +199,15 @@ mod tests {
                             assert_eq!(instruction.kind, CommandType::Add);
                             match instruction.object_kind {
                                 ObjectKind::CaptureBase(content) => {
-                                    assert!(content.attributes.is_some());
-                                    assert!(!content.attributes.unwrap().is_empty());
+                                    if content.attributes.is_some() {
+                                        assert!(!content.attributes.unwrap().is_empty());
+                                    }
+                                    if content.properties.is_some() {
+                                        assert!(!content.properties.unwrap().is_empty());
+                                    }
+                                    if content.flagged_attributes.is_some() {
+                                        assert!(!content.flagged_attributes.unwrap().is_empty());
+                                    }
                                 }
                                 _ => {
                                     assert!(!is_valid, "Instruction is not valid");
