@@ -296,6 +296,7 @@ mod tests {
                 properties: Some(indexmap! {
                     "classification".to_string() => NestedValue::Value("GICS:1234".to_string()),
                 }),
+                flagged_attributes: None,
             }),
         };
 
@@ -309,6 +310,7 @@ mod tests {
                 properties: Some(indexmap! {
                     "classification".to_string() => NestedValue::Value("GICS:1234".to_string()),
                 }),
+                flagged_attributes: None,
             }),
         };
 
@@ -320,6 +322,7 @@ mod tests {
                     "documentType".to_string() => NestedAttrType::Null,
                 }),
                 properties: Some(indexmap! {}),
+                flagged_attributes: None,
             }),
         };
 
@@ -330,6 +333,7 @@ mod tests {
                     "name".to_string() => NestedAttrType::Value(AttributeType::Text),
                 }),
                 properties: Some(indexmap! {}),
+                flagged_attributes: None,
             }),
         };
 
@@ -341,6 +345,7 @@ mod tests {
                     "issuer".to_string() => NestedAttrType::Null,
                 }),
                 properties: Some(indexmap! {}),
+                flagged_attributes: None,
             }),
         };
 
@@ -351,6 +356,7 @@ mod tests {
                     "documentType".to_string() => NestedAttrType::Null,
                 }),
                 properties: Some(indexmap! {}),
+                flagged_attributes: None,
             }),
         };
 
@@ -379,6 +385,7 @@ mod tests {
                 properties: Some(indexmap! {
                     "classification".to_string() => NestedValue::Value("GICS:1234".to_string()),
                 }),
+                flagged_attributes: None,
             }),
         };
 
@@ -390,6 +397,7 @@ mod tests {
                     "last_name".to_string() => NestedAttrType::Value(AttributeType::Binary),
                 }),
                 properties: Some(indexmap! {}),
+                flagged_attributes: None,
             }),
         };
 
@@ -401,6 +409,7 @@ mod tests {
                     "address".to_string() => NestedAttrType::Value(AttributeType::Text),
                 }),
                 properties: Some(indexmap! {}),
+                flagged_attributes: None,
             }),
         };
 
@@ -412,6 +421,7 @@ mod tests {
                     "phone".to_string() => NestedAttrType::Value(AttributeType::Text),
                 }),
                 properties: Some(indexmap! {}),
+                flagged_attributes: None,
             }),
         };
 
