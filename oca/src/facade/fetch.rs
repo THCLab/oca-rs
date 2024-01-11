@@ -302,9 +302,9 @@ impl Facade {
                 let mut dep_bundles = vec![];
                 if with_dep {
                     for refs in self.retrive_all_references(oca_bundle.clone()) {
-                        // TODO(recursion) retrive nested objects as well
-                        let dep_bundle = self.get_oca_bundle(refs, false)?;
+                        let dep_bundle = self.get_oca_bundle(refs, true)?;
                         dep_bundles.push(dep_bundle.bundle);
+                        dep_bundles.extend(dep_bundle.dependencies);
                     }
                 }
                 let result = BundleWithDependencies {
