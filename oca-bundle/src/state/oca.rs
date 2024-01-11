@@ -891,6 +891,7 @@ impl OCABundle {
                 // TODO find out if we can use indexmap in capture base to simplify stuff
                 attributes: Some(self.capture_base.attributes.clone().into_iter().collect()),
                 properties,
+                flagged_attributes: None,
             }),
         };
         ast.commands.push(command);

@@ -101,7 +101,6 @@ pub fn from_ast(
                 }
             }
             Err(mut err) => {
-                println!("Error applying command: {:?}", err);
                 errors.extend(err.iter_mut().map(|e| Error::FromASTError {
                     line_number: command_meta.line_number,
                     raw_line: command_meta.raw_line.clone(),
@@ -515,6 +514,7 @@ mod tests {
             object_kind: ast::ObjectKind::CaptureBase(CaptureContent {
                 attributes: Some(attributes),
                 properties: None,
+                flagged_attributes: None,
             }),
         });
 
@@ -676,11 +676,14 @@ mod tests {
             "passed".to_string(),
             ast::NestedAttrType::Value(AttributeType::Boolean),
         );
+
+        let flagged_attributes = vec!["d".to_string(), "i".to_string()];
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::CaptureBase(ast::CaptureContent {
                 attributes: Some(attributes),
                 properties: None,
+                flagged_attributes: Some(flagged_attributes.clone()),
             }),
         });
 
