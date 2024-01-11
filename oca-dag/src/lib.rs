@@ -183,6 +183,7 @@ mod tests {
                     "abc".to_string() => ast::NestedAttrType::Value(ast::AttributeType::Text)
                 }),
                 properties: None,
+                flagged_attributes: None,
             }),
         });
 
@@ -210,6 +211,7 @@ mod tests {
                     "def".to_string() => ast::NestedAttrType::Value(ast::AttributeType::Text)
                 }),
                 properties: None,
+                flagged_attributes: None,
             }),
         });
 

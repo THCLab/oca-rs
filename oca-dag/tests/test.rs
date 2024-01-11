@@ -11,6 +11,7 @@ fn generate_commands() -> Vec<ast::Command> {
         object_kind: ast::ObjectKind::CaptureBase(ast::CaptureContent {
             attributes: None,
             properties: None,
+            flagged_attributes: None,
         }),
     });
 
@@ -35,6 +36,7 @@ fn generate_commands() -> Vec<ast::Command> {
         object_kind: ast::ObjectKind::CaptureBase(ast::CaptureContent {
             attributes: Some(attributes),
             properties: Some(properties),
+            flagged_attributes: None,
         }),
     });
 
