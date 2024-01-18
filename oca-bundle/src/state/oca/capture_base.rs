@@ -1,11 +1,11 @@
 use crate::state::attribute::Attribute;
+use indexmap::IndexMap;
 use oca_ast::ast::NestedAttrType;
 use said::{sad::SerializationFormats, sad::SAD};
 use serde::{ser::SerializeMap, ser::SerializeSeq, Deserialize, Serialize, Serializer};
-use std::collections::HashMap;
 
 pub fn serialize_attributes<S>(
-    attributes: &HashMap<String, NestedAttrType>,
+    attributes: &IndexMap<String, NestedAttrType>,
     s: S,
 ) -> Result<S::Ok, S::Error>
 where
@@ -44,8 +44,7 @@ pub struct CaptureBase {
     pub schema_type: String,
     pub classification: String,
     #[serde(serialize_with = "serialize_attributes")]
-    /// TODO do we need here indexmap?
-    pub attributes: HashMap<String, NestedAttrType>,
+    pub attributes: IndexMap<String, NestedAttrType>,
     #[serde(serialize_with = "serialize_flagged_attributes")]
     pub flagged_attributes: Vec<String>,
 }
@@ -62,7 +61,7 @@ impl CaptureBase {
             schema_type: String::from("spec/capture_base/1.0"),
             said: None,
             classification: String::from(""),
-            attributes: HashMap::new(),
+            attributes: IndexMap::new(),
             flagged_attributes: Vec::new(),
         }
     }

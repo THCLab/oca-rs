@@ -1,5 +1,6 @@
 use crate::state::oca::overlay::Overlay;
 use crate::state::oca::DynOverlay;
+use indexmap::IndexMap;
 use isolang::Language;
 use oca_ast::ast::{AttributeType, NestedAttrType, OverlayType};
 use std::{
@@ -206,7 +207,7 @@ impl Validator {
 
     fn validate_conditional(
         &self,
-        attr_types: HashMap<String, NestedAttrType>,
+        attr_types: IndexMap<String, NestedAttrType>,
         overlay: &overlay::Conditional,
     ) -> Result<(), Vec<Error>> {
         let mut errors: Vec<Error> = vec![];
