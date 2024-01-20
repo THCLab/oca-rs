@@ -338,6 +338,33 @@ pub fn generate_from_ast(ast: &OCAAst) -> String {
                                 }
                             };
                         }
+                        ast::OverlayType::Conditional => {
+                            line.push_str("CONDITION ");
+                            if let Some(content) = command.object_kind.overlay_content() {
+                                if let Some(ref properties) = content.properties {
+                                    if !properties.is_empty() {
+                                        line.push_str("PROPS ");
+                                        properties.iter().for_each(|(key, value)| {
+                                            if let ast::NestedValue::Value(value) = value {
+                                                line.push_str(
+                                                    format!(" {}={}", key, value).as_str(),
+                                                );
+                                            }
+                                        });
+                                    }
+                                }
+                                if let Some(ref attributes) = content.attributes {
+                                    line.push_str("ATTRS");
+                                    attributes.iter().for_each(|(key, value)| {
+                                        if let ast::NestedValue::Value(value) = value {
+                                            line.push_str(
+                                                format!(" {}=\"{}\"", key, value).as_str(),
+                                            );
+                                        }
+                                    });
+                                }
+                            };
+                        }
                         _ => {
                             line.push_str(
                                 format!("{} ", o_type.to_string().to_case(Case::UpperSnake))
@@ -472,6 +499,7 @@ ADD CHARACTER_ENCODING ATTRS name="utf-8" age="utf-8"
 ADD ENTRY_CODE ATTRS radio=["o1", "o2", "o3"]
 ADD ENTRY eo ATTRS radio={"o1": "etikedo1", "o2": "etikedo2", "o3": "etikiedo3"}
 ADD ENTRY pl ATTRS radio={"o1": "etykieta1", "o2": "etykieta2", "o3": "etykieta3"}
+ADD CONDITION ATTRS radio="${age} > 18"
 "#;
         let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
 
