@@ -165,7 +165,7 @@ mod tests {
     fn test_add_attribute_instruction() {
         // test vector with example instruction and boolean if they should be valid or not
         let instructions = vec![
-            ("ADD ATTRIBUTE documentNumber=Array[refn:dokument]", true),
+            ("ADD ATTRIBUTE documentNumber = Array[refn:dokument]", true),
             ("ADD ATTRIBUTE documentNumber=Array[Array[Array[refn:dokument]]]", true),
             ("ADD ATTRIBUTE documentNumber=Array[ refs:ENyO7FUBx7oILUYt8FwmLaDVmvOZGETXWHICultMSEpW ]", true),
             ("ADD ATTRIBUTE documentNumber=Array[refn:klient, refs:ENyO7FUBx7oILUYt8FwmLaDVmvOZGETXWHICultMSEpW]", false),

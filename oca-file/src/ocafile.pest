@@ -6,7 +6,7 @@ ws = _{ " " | "\t" }
 
 meta_attr_key = ${ "name" | "version" }
 meta_attr_value = ${ string | char+}
-meta_key_pair = @{ meta_attr_key ~ "=" ~ meta_attr_value }
+meta_key_pair = @{ meta_attr_key ~ arg_ws? ~ "=" ~ arg_ws?  ~ meta_attr_value }
 meta_comment = @{ "--" ~ ws* ~ (!NEWLINE ~ meta_key_pair)* }
 meta_comment_line = _{ ws* ~ meta_comment ~ NEWLINE? }
 
@@ -184,7 +184,7 @@ remove_label = { ^"label" ~ arg_ws ~ lang ~ (arg_ws ~ attrs_key ~ attr_key+)? }
 attr_key = ${ (ASCII_ALPHANUMERIC | "-" | "_" )+ }
 prop_key = ${ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 key_value = ${ string | char+}
-key_pair = @{ attr_key ~ "=" ~ key_value }
+key_pair = @{ attr_key ~ arg_ws? ~ "=" ~ arg_ws? ~ key_value }
 attr_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
 prop_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
 
@@ -219,7 +219,7 @@ refn = _{^"refn:"}
 ref_said = _{ refs ~ said}
 ref_alias = _{ refn ~ alias }
 _attr_type = ${ base_attr_type | array_attr_type | ref_said | ref_alias }
-attr_pair = @{attr_key ~ "=" ~ _attr_type}
+attr_pair = @{attr_key ~ arg_ws? ~ "=" ~ arg_ws?  ~ _attr_type}
 attr_pairs = ${ (arg_ws ~ attr_pair)+}
 
 lang = ${ ASCII_ALPHA{2} ~ ("-" ~ ASCII_ALPHA{2})? }

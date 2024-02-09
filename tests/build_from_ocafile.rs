@@ -13,8 +13,8 @@ mod test {
         let db_cache = InMemoryDataStorage::new();
         let cache_storage_config = SQLiteConfig::build().unwrap();
         let ocafile = r#"
-ADD ATTRIBUTE d=Text i=Text passed=Boolean
-ADD META en PROPS name="Entrance credential" description="Entrance credential"
+ADD ATTRIBUTE d=Text i = Text passed=Boolean
+ADD META en PROPS name = "Entrance credential" description = "Entrance credential"
 ADD CHARACTER_ENCODING ATTRS d=utf-8 i=utf-8 passed=utf-8
 ADD CONFORMANCE ATTRS d=M i=M passed=M
 ADD LABEL en ATTRS d="Schema digest" i="Credential Issuee" passed="Passed"
