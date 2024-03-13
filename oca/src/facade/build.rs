@@ -31,6 +31,10 @@ pub enum Error {
         #[serde(rename = "e")]
         message: String,
     },
+    #[cfg(feature = "local-references")]
+    #[error("Reference {0} not found")]
+    UnknownRefn(String)
+    
 }
 
 impl Facade {
@@ -93,7 +97,7 @@ impl Facade {
         // Dereference (refn -> refs) the AST before it start processing bundle steps, otherwise the SAID would
         // not match.
         #[cfg(feature = "local-references")]
-        local_references::replace_refn_with_refs(&mut oca_ast, references);
+        local_references::replace_refn_with_refs(&mut oca_ast, references).map_err(|e| vec![e])?;
 
         let oca_build = oca_bundle::build::from_ast(base, &oca_ast).map_err(|e| {
             e.iter()

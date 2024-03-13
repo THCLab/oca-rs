@@ -395,7 +395,7 @@ impl Facade {
                     local_refs.insert(k.clone(), String::from_utf8(v.to_vec()).unwrap());
                 });
             #[cfg(feature = "local-references")]
-            local_references::replace_refn_with_refs(&mut oca_ast, local_refs);
+            local_references::replace_refn_with_refs(&mut oca_ast, local_refs).map_err(|e| vec![e.to_string()])?;
         }
 
         Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
