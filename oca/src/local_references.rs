@@ -3,9 +3,11 @@ use std::{collections::HashMap, str::FromStr};
 use oca_ast::ast::{CommandType, NestedAttrType, OCAAst, ObjectKind, RefValue};
 use said::SelfAddressingIdentifier;
 
+use crate::facade::build::Error;
+
 // Iterate over all commands and dereference all attribute references
-pub fn replace_refn_with_refs(oca_ast: &mut OCAAst, references: HashMap<String, String>) {
-    oca_ast.commands.iter_mut().for_each(|command| {
+pub fn replace_refn_with_refs(oca_ast: &mut OCAAst, references: HashMap<String, String>) -> Result<(), Error> {
+    for command in oca_ast.commands.iter_mut() {
         if let (CommandType::Add, ObjectKind::CaptureBase(content)) =
             (&command.kind, &mut command.object_kind)
         {
@@ -17,7 +19,7 @@ pub fn replace_refn_with_refs(oca_ast: &mut OCAAst, references: HashMap<String, 
                                 let said = SelfAddressingIdentifier::from_str(said).unwrap(); // todo
                                 *attr_type = NestedAttrType::Reference(RefValue::Said(said));
                             } else {
-                                panic!("Reference not found: {}", refn);
+                                return Err(Error::UnknownRefn(refn.clone()))
                             }
                         }
                         NestedAttrType::Array(box_attr_type) => {
@@ -29,7 +31,7 @@ pub fn replace_refn_with_refs(oca_ast: &mut OCAAst, references: HashMap<String, 
                                     **box_attr_type =
                                         NestedAttrType::Reference(RefValue::Said(said));
                                 } else {
-                                    panic!("Reference not found: {}", refn);
+                                    return Err(Error::UnknownRefn(refn.clone()))
                                 }
                             }
                         }
@@ -38,5 +40,6 @@ pub fn replace_refn_with_refs(oca_ast: &mut OCAAst, references: HashMap<String, 
                 }
             }
         }
-    });
+    };
+    Ok(())
 }
