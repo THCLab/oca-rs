@@ -3,9 +3,7 @@ use oca_ast::ast::OverlayType;
 use piccolo::{Closure, Lua, Thread};
 use said::{sad::SerializationFormats, sad::SAD};
 use serde::{Deserialize, Serialize};
-use std::{
-    any::Any, collections::BTreeMap, error::Error as StdError, fmt::Display,
-};
+use std::{any::Any, collections::BTreeMap, error::Error as StdError, fmt::Display};
 
 pub trait Conditionals {
     fn set_condition(&mut self, condition: String);
@@ -62,9 +60,7 @@ impl Conditionals for Attribute {
         }
         condition_dependencies.iter().for_each(|d| {
             if !dependency_values.contains_key(d) {
-                errors.push(Error::Custom(format!(
-                    "Missing dependency '{d}' value",
-                )));
+                errors.push(Error::Custom(format!("Missing dependency '{d}' value",)));
             }
         });
 
@@ -75,11 +71,7 @@ impl Conditionals for Attribute {
         let script = re
             .replace_all(condition, |caps: &regex::Captures| {
                 dependency_values
-                    .get(
-                        &condition_dependencies
-                            [caps[1].parse::<usize>().unwrap()]
-                        .clone(),
-                    )
+                    .get(&condition_dependencies[caps[1].parse::<usize>().unwrap()].clone())
                     .unwrap()
                     .to_string()
             })
@@ -87,8 +79,7 @@ impl Conditionals for Attribute {
 
         let mut lua = Lua::new();
         let thread_result = lua.try_run(|ctx| {
-            let closure =
-                Closure::load(ctx, format!("return {script}").as_bytes())?;
+            let closure = Closure::load(ctx, format!("return {script}").as_bytes())?;
             let thread = Thread::new(&ctx);
             thread.start(ctx, closure.into(), ())?;
             Ok(ctx.state.registry.stash(&ctx, thread))
@@ -258,10 +249,8 @@ mod tests {
                 ..set_condition(condition.to_string());
             };
 
-            let mut dependency_values: BTreeMap<
-                String,
-                Box<dyn Display + 'static>,
-            > = BTreeMap::new();
+            let mut dependency_values: BTreeMap<String, Box<dyn Display + 'static>> =
+                BTreeMap::new();
             let mut dependency_values_str = vec![];
             for value in values.into_iter() {
                 dependency_values_str.push(format!("{:?}", value));

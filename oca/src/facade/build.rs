@@ -11,7 +11,7 @@ use crate::repositories::{
 };
 #[cfg(feature = "local-references")]
 use log::debug;
-use oca_ast::ast::{ObjectKind, RefValue, ReferenceAttrType};
+use oca_ast::ast::{OCAAst, ObjectKind, RefValue, ReferenceAttrType};
 use oca_bundle::build::OCABuild;
 use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
@@ -23,8 +23,7 @@ use std::rc::Rc;
 #[serde(untagged)]
 pub enum Error {
     #[error("Validation error")]
-    ValidationError(Vec<ValidationError>)
-    
+    ValidationError(Vec<ValidationError>),
 }
 
 #[derive(thiserror::Error, Debug, serde::Serialize)]
@@ -45,40 +44,35 @@ pub enum ValidationError {
     },
     #[cfg(feature = "local-references")]
     #[error("Reference {0} not found")]
-    UnknownRefn(String)
-    
+    UnknownRefn(String),
 }
 
+#[cfg(feature = "local-references")]
 impl References for Box<dyn DataStorage> {
     fn find(&self, refn: &str) -> Option<String> {
-        self.get(Namespace::OCAReferences, refn).unwrap().map(|said| String::from_utf8(said).unwrap())
+        self.get(Namespace::OCAReferences, refn)
+            .unwrap()
+            .map(|said| String::from_utf8(said).unwrap())
     }
 
     fn save(&mut self, refn: &str, value: String) {
-        self
-            .insert(
-                Namespace::OCAReferences,
-                refn,
-                value.to_string().as_bytes(),
-            )
+        self.insert(Namespace::OCAReferences, refn, value.to_string().as_bytes())
             .unwrap()
-       
     }
 }
 
 impl Facade {
-    pub fn validate_ocafile<R: References>(storage: &Box<dyn DataStorage>, ocafile: String, references: &mut R) -> Result<OCABuild , Vec<ValidationError>> {
+    fn parse_and_check_base(
+        storage: &Box<dyn DataStorage>,
+        ocafile: String,
+    ) -> Result<(Option<OCABundle>, OCAAst), Vec<ValidationError>> {
         let mut errors: Vec<ValidationError> = vec![];
         let mut oca_ast = oca_file::ocafile::parse_from_string(ocafile)
             .map_err(|e| vec![ValidationError::OCAFileParse(e)])?;
 
-        
         if !errors.is_empty() {
             return Err(errors);
         }
-
-        // #[cfg(feature = "local-references")]
-        // debug!("References found in local db: {:?}", references);
 
         let mut base: Option<OCABundle> = None;
         // TODO this should be avoided if the ast is passed for further processing, the base is
@@ -122,12 +116,18 @@ impl Facade {
                 }
                 oca_ast.commands.remove(0);
             }
-        }
+        };
+        Ok((base, oca_ast))
+    }
 
-
+    #[cfg(feature = "local-references")]
+    fn oca_ast_to_oca_build_with_references<R: References>(
+        base: Option<OCABundle>,
+        mut oca_ast: OCAAst,
+        references: &mut R,
+    ) -> Result<OCABuild, Vec<ValidationError>> {
         // Dereference (refn -> refs) the AST before it start processing bundle steps, otherwise the SAID would
         // not match.
-        #[cfg(feature = "local-references")]
         local_references::replace_refn_with_refs(&mut oca_ast, references).map_err(|e| vec![e])?;
 
         let oca_build = oca_bundle::build::from_ast(base, &oca_ast).map_err(|e| {
@@ -136,25 +136,48 @@ impl Facade {
                 .collect::<Vec<_>>()
         })?;
 
-        #[cfg(feature = "local-references")]
         let schema_name = oca_ast.meta.get("name");
-        #[cfg(feature = "local-references")]
         debug!("Schema name found: {:?}", schema_name);
 
-        #[cfg(feature = "local-references")]
         if schema_name.is_some() {
             let schema_name = schema_name.unwrap();
             let said = oca_build.oca_bundle.said.clone().unwrap().to_string();
             references.save(&schema_name, said.clone());
-        }
-
+        };
         Ok(oca_build)
+    }
 
+    #[cfg(feature = "local-references")]
+    pub fn validate_ocafile<R: References>(
+        storage: &Box<dyn DataStorage>,
+        ocafile: String,
+        references: &mut R,
+    ) -> Result<OCABuild, Vec<ValidationError>> {
+        let (base, oca_ast) = Self::parse_and_check_base(storage, ocafile)?;
+        Self::oca_ast_to_oca_build_with_references(base, oca_ast, references)
+    }
+
+    #[cfg(not(feature = "local-references"))]
+    pub fn validate_ocafile(
+        storage: &Box<dyn DataStorage>,
+        ocafile: String,
+    ) -> Result<OCABuild, Vec<ValidationError>> {
+        let (base, oca_ast) = Self::parse_and_check_base(storage, ocafile)?;
+        oca_bundle::build::from_ast(base, &oca_ast).map_err(|e| {
+            e.iter()
+                .map(|e| ValidationError::OCABundleBuild(e.clone()))
+                .collect::<Vec<_>>()
+        })
     }
 
     pub fn build_from_ocafile(&mut self, ocafile: String) -> Result<OCABundle, Vec<Error>> {
-        let oca_build = Self::validate_ocafile(&self.db_cache, ocafile, &mut self.db)
-            .map_err(|errs| vec![Error::ValidationError(errs)])?;
+        let oca_build = Self::validate_ocafile(
+            &self.db_cache,
+            ocafile,
+            #[cfg(feature = "local-references")]
+            &mut self.db,
+        )
+        .map_err(|errs| vec![Error::ValidationError(errs)])?;
 
         let oca_bundle_cache_repo = OCABundleCacheRepo::new(Rc::clone(&self.connection));
         let oca_bundle_cache_record = OCABundleCacheRecord::new(&oca_build.oca_bundle);
