@@ -229,7 +229,11 @@ mod tests {
 
     #[test]
     fn test_add_overlay_instructions() {
-        let instructions = vec![("ADD ENTRY_CODE ATTRS radio=[\"o1\",\"o2\", \"o3\"]", true)];
+        let instructions = vec![
+            ("ADD ENTRY_CODE ATTRS radio=[\"o1\",\"o2\", \"o3\"]", true),
+            ("ADD FORMAT ATTRS name = \"^\\d+$\"", true),
+            ("ADD CHARACTER_ENCODING ATTRS name=\"utf-16le\"", true),
+        ];
 
         let _ = env_logger::builder().is_test(true).try_init();
 
@@ -249,22 +253,44 @@ mod tests {
 
                             assert_eq!(instruction.kind, CommandType::Add);
                             match instruction.object_kind {
-                                ObjectKind::Overlay(overlay_type, content) => {
-                                    assert_eq!(overlay_type, OverlayType::EntryCode);
-                                    let attr_array = NestedValue::Array(vec![
-                                        NestedValue::Value("o1".to_string()),
-                                        NestedValue::Value("o2".to_string()),
-                                        NestedValue::Value("o3".to_string()),
-                                    ]);
+                                ObjectKind::Overlay(overlay_type, content) => match overlay_type {
+                                    OverlayType::EntryCode => {
+                                        assert_eq!(overlay_type, OverlayType::EntryCode);
+                                        let attr_array = NestedValue::Array(vec![
+                                            NestedValue::Value("o1".to_string()),
+                                            NestedValue::Value("o2".to_string()),
+                                            NestedValue::Value("o3".to_string()),
+                                        ]);
 
-                                    assert_eq!(
-                                        content.attributes.unwrap().get("radio").unwrap(),
-                                        &attr_array
-                                    );
-                                }
-                                _ => {
-                                    assert!(!is_valid, "Instruction is not valid");
-                                }
+                                        assert_eq!(
+                                            content.attributes.unwrap().get("radio").unwrap(),
+                                            &attr_array
+                                        );
+                                    }
+                                    OverlayType::Format => {
+                                        assert_eq!(overlay_type, OverlayType::Format);
+                                        let attr_array = NestedValue::Value("^\\d+$".to_string());
+
+                                        assert_eq!(
+                                            content.attributes.unwrap().get("name").unwrap(),
+                                            &attr_array
+                                        );
+                                    }
+                                    OverlayType::CharacterEncoding => {
+                                        assert_eq!(overlay_type, OverlayType::CharacterEncoding);
+                                        let attr_array = NestedValue::Value("utf-16le".to_string());
+
+                                        assert_eq!(
+                                            content.attributes.unwrap().get("name").unwrap(),
+                                            &attr_array
+                                        );
+                                    }
+                                    _ => {
+                                        assert!(!is_valid, "Instruction is not valid");
+                                    }
+                                },
+                                ObjectKind::CaptureBase(_) => todo!(),
+                                ObjectKind::OCABundle(_) => todo!(),
                             }
                         }
                         None => {
