@@ -39,4 +39,8 @@ impl Facade {
             connection: Rc::new(conn),
         }
     }
+
+    pub fn storage<'a>(&self) -> &Box<dyn DataStorage> {
+        &self.db_cache
+    }
 }
