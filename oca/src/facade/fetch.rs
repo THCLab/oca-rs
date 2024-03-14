@@ -129,8 +129,6 @@ impl Facade {
         Ok(refs)
     }
 
-   
-
     pub fn fetch_all_oca_bundle(
         &self,
         limit: usize,
@@ -332,7 +330,8 @@ impl Facade {
 
         if dereference {
             #[cfg(feature = "local-references")]
-            local_references::replace_refn_with_refs(&mut oca_ast, &self.db).map_err(|e| vec![e.to_string()])?;
+            local_references::replace_refn_with_refs(&mut oca_ast, &self.db)
+                .map_err(|e| vec![e.to_string()])?;
         }
 
         Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
@@ -359,41 +358,41 @@ impl Facade {
 }
 
 pub fn get_oca_bundle(
-        storage: &Box<dyn DataStorage>,
-        said: SelfAddressingIdentifier,
-        with_dep: bool,
-    ) -> Result<BundleWithDependencies, Vec<String>> {
-        let r = storage
-            .get(Namespace::OCABundlesJSON, &said.to_string())
-            .map_err(|e| vec![format!("{}", e)])?;
-        let oca_bundle_str = String::from_utf8(
-            r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?,
-        )
-        .unwrap();
-        let oca_bundle: Result<OCABundle, Vec<String>> = serde_json::from_str(&oca_bundle_str)
-            .map_err(|e| vec![format!("Failed to parse oca bundle: {}", e)]);
+    storage: &Box<dyn DataStorage>,
+    said: SelfAddressingIdentifier,
+    with_dep: bool,
+) -> Result<BundleWithDependencies, Vec<String>> {
+    let r = storage
+        .get(Namespace::OCABundlesJSON, &said.to_string())
+        .map_err(|e| vec![format!("{}", e)])?;
+    let oca_bundle_str = String::from_utf8(
+        r.ok_or_else(|| vec![format!("No OCA Bundle found for said: {}", said)])?,
+    )
+    .unwrap();
+    let oca_bundle: Result<OCABundle, Vec<String>> = serde_json::from_str(&oca_bundle_str)
+        .map_err(|e| vec![format!("Failed to parse oca bundle: {}", e)]);
 
-        match oca_bundle {
-            Ok(oca_bundle) => {
-                let mut dep_bundles = vec![];
-                if with_dep {
-                    for refs in retrive_all_references(oca_bundle.clone()) {
-                        let dep_bundle = get_oca_bundle(&storage, refs, true)?;
-                        dep_bundles.push(dep_bundle.bundle);
-                        dep_bundles.extend(dep_bundle.dependencies);
-                    }
+    match oca_bundle {
+        Ok(oca_bundle) => {
+            let mut dep_bundles = vec![];
+            if with_dep {
+                for refs in retrive_all_references(oca_bundle.clone()) {
+                    let dep_bundle = get_oca_bundle(&storage, refs, true)?;
+                    dep_bundles.push(dep_bundle.bundle);
+                    dep_bundles.extend(dep_bundle.dependencies);
                 }
-                let result = BundleWithDependencies {
-                    bundle: oca_bundle,
-                    dependencies: dep_bundles,
-                };
-                Ok(result)
             }
-            Err(e) => Err(e),
+            let result = BundleWithDependencies {
+                bundle: oca_bundle,
+                dependencies: dep_bundles,
+            };
+            Ok(result)
         }
+        Err(e) => Err(e),
     }
+}
 
-    /// Retrive all existing references from given OCA Bundle
+/// Retrive all existing references from given OCA Bundle
 ///
 /// # Arguments
 /// * `said` - SAID of the OCA Bundle

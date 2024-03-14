@@ -11,7 +11,10 @@ pub trait References {
 }
 
 // Iterate over all commands and dereference all attribute references
-pub fn replace_refn_with_refs<R: References>(oca_ast: &mut OCAAst, references: &R) -> Result<(), ValidationError> {
+pub fn replace_refn_with_refs<R: References>(
+    oca_ast: &mut OCAAst,
+    references: &R,
+) -> Result<(), ValidationError> {
     for command in oca_ast.commands.iter_mut() {
         if let (CommandType::Add, ObjectKind::CaptureBase(content)) =
             (&command.kind, &mut command.object_kind)
@@ -24,7 +27,7 @@ pub fn replace_refn_with_refs<R: References>(oca_ast: &mut OCAAst, references: &
                                 let said = SelfAddressingIdentifier::from_str(&said).unwrap(); // todo
                                 *attr_type = NestedAttrType::Reference(RefValue::Said(said));
                             } else {
-                                return Err(ValidationError::UnknownRefn(refn.clone()))
+                                return Err(ValidationError::UnknownRefn(refn.clone()));
                             }
                         }
                         NestedAttrType::Array(box_attr_type) => {
@@ -36,7 +39,7 @@ pub fn replace_refn_with_refs<R: References>(oca_ast: &mut OCAAst, references: &
                                     **box_attr_type =
                                         NestedAttrType::Reference(RefValue::Said(said));
                                 } else {
-                                    return Err(ValidationError::UnknownRefn(refn.clone()))
+                                    return Err(ValidationError::UnknownRefn(refn.clone()));
                                 }
                             }
                         }
@@ -45,6 +48,6 @@ pub fn replace_refn_with_refs<R: References>(oca_ast: &mut OCAAst, references: &
                 }
             }
         }
-    };
+    }
     Ok(())
 }
