@@ -17,6 +17,7 @@ use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
 use oca_dag::build_core_db_model;
 
+use std::borrow::Borrow;
 use std::rc::Rc;
 
 #[derive(thiserror::Error, Debug, serde::Serialize)]
@@ -63,7 +64,7 @@ impl References for Box<dyn DataStorage> {
 
 impl Facade {
     fn parse_and_check_base(
-        storage: &Box<dyn DataStorage>,
+        storage: &dyn DataStorage,
         ocafile: String,
     ) -> Result<(Option<OCABundle>, OCAAst), Vec<ValidationError>> {
         let mut errors: Vec<ValidationError> = vec![];
@@ -149,7 +150,7 @@ impl Facade {
 
     #[cfg(feature = "local-references")]
     pub fn validate_ocafile<R: References>(
-        storage: &Box<dyn DataStorage>,
+        storage: &dyn DataStorage,
         ocafile: String,
         references: &mut R,
     ) -> Result<OCABuild, Vec<ValidationError>> {
@@ -159,7 +160,7 @@ impl Facade {
 
     #[cfg(not(feature = "local-references"))]
     pub fn validate_ocafile(
-        storage: &Box<dyn DataStorage>,
+        storage: &dyn DataStorage,
         ocafile: String,
     ) -> Result<OCABuild, Vec<ValidationError>> {
         let (base, oca_ast) = Self::parse_and_check_base(storage, ocafile)?;
@@ -172,7 +173,7 @@ impl Facade {
 
     pub fn build_from_ocafile(&mut self, ocafile: String) -> Result<OCABundle, Vec<Error>> {
         let oca_build = Self::validate_ocafile(
-            &self.db_cache,
+            self.db_cache.borrow(),
             ocafile,
             #[cfg(feature = "local-references")]
             &mut self.db,
