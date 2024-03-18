@@ -1,5 +1,6 @@
 use crate::data_storage::DataStorage;
 use crate::repositories::SQLiteConfig;
+use std::borrow::Borrow;
 use std::rc::Rc;
 
 pub mod build;
@@ -40,7 +41,7 @@ impl Facade {
         }
     }
 
-    pub fn storage<'a>(&self) -> &Box<dyn DataStorage> {
-        &self.db_cache
+    pub fn storage<'a>(&self) -> &dyn DataStorage {
+        self.db_cache.borrow()
     }
 }

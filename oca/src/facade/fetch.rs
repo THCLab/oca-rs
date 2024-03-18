@@ -14,7 +14,7 @@ use said::SelfAddressingIdentifier;
 use serde::Serialize;
 #[cfg(feature = "local-references")]
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::{borrow::Borrow, rc::Rc};
 use std::str::FromStr;
 
 #[derive(Debug, Serialize)]
@@ -259,7 +259,7 @@ impl Facade {
         said: SelfAddressingIdentifier,
         with_dep: bool,
     ) -> Result<BundleWithDependencies, Vec<String>> {
-        get_oca_bundle(&self.db_cache, said, with_dep)
+        get_oca_bundle(self.db_cache.borrow(), said, with_dep)
     }
 
     pub fn get_oca_bundle_steps(
@@ -358,7 +358,7 @@ impl Facade {
 }
 
 pub fn get_oca_bundle(
-    storage: &Box<dyn DataStorage>,
+    storage: &dyn DataStorage,
     said: SelfAddressingIdentifier,
     with_dep: bool,
 ) -> Result<BundleWithDependencies, Vec<String>> {
@@ -377,7 +377,7 @@ pub fn get_oca_bundle(
             let mut dep_bundles = vec![];
             if with_dep {
                 for refs in retrive_all_references(oca_bundle.clone()) {
-                    let dep_bundle = get_oca_bundle(&storage, refs, true)?;
+                    let dep_bundle = get_oca_bundle(storage, refs, true)?;
                     dep_bundles.push(dep_bundle.bundle);
                     dep_bundles.extend(dep_bundle.dependencies);
                 }
