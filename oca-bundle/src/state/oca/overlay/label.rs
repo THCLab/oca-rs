@@ -52,13 +52,13 @@ where
     ser.end()
 }
 
-pub fn serialize_categories<S>(attributes: &Vec<String>, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_categories<S>(attributes: &[String], s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
     let mut ser = s.serialize_seq(Some(attributes.len()))?;
 
-    let mut sorted_flagged_attributes = attributes.clone();
+    let mut sorted_flagged_attributes = attributes.to_owned();
     sorted_flagged_attributes.sort();
     for attr in sorted_flagged_attributes {
         ser.serialize_element(&attr)?;
