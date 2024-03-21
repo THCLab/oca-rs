@@ -41,7 +41,7 @@ impl Facade {
         }
     }
 
-    pub fn storage<'a>(&self) -> &dyn DataStorage {
+    pub fn storage(&self) -> &dyn DataStorage {
         self.db_cache.borrow()
     }
 }

@@ -14,8 +14,8 @@ use said::SelfAddressingIdentifier;
 use serde::Serialize;
 #[cfg(feature = "local-references")]
 use std::collections::HashMap;
-use std::{borrow::Borrow, rc::Rc};
 use std::str::FromStr;
+use std::{borrow::Borrow, rc::Rc};
 
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
