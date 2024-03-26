@@ -1,5 +1,5 @@
 use oca_bundle::{state::oca::OCABundle, Encode};
-use std::rc::Rc;
+use std::{rc::Rc, sync::Arc};
 
 #[derive(Debug)]
 pub struct OCABundleCacheRecord {
@@ -23,11 +23,11 @@ pub struct AllOCABundleRecord {
 }
 
 pub struct OCABundleCacheRepo {
-    connection: Rc<rusqlite::Connection>,
+    connection: Arc<rusqlite::Connection>,
 }
 
 impl OCABundleCacheRepo {
-    pub fn new(connection: Rc<rusqlite::Connection>) -> Self {
+    pub fn new(connection: Arc<rusqlite::Connection>) -> Self {
         let create_table_query = r#"
         CREATE TABLE IF NOT EXISTS oca_bundle_cache(
             said TEXT PRIMARY KEY,
@@ -36,7 +36,7 @@ impl OCABundleCacheRepo {
         connection.execute(create_table_query, ()).unwrap();
 
         Self {
-            connection: Rc::clone(&connection),
+            connection: Arc::clone(&connection),
         }
     }
 

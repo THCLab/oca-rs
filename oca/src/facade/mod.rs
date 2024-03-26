@@ -2,6 +2,7 @@ use crate::data_storage::DataStorage;
 use crate::repositories::SQLiteConfig;
 use std::borrow::Borrow;
 use std::rc::Rc;
+use std::sync::Arc;
 
 pub mod build;
 mod explore;
@@ -10,7 +11,7 @@ mod fetch;
 pub struct Facade {
     db: Box<dyn DataStorage>,
     db_cache: Box<dyn DataStorage>,
-    connection: Rc<rusqlite::Connection>,
+    connection: Arc<rusqlite::Connection>,
 }
 
 impl Facade {
@@ -37,7 +38,7 @@ impl Facade {
         Self {
             db,
             db_cache,
-            connection: Rc::new(conn),
+            connection: Arc::new(conn),
         }
     }
 

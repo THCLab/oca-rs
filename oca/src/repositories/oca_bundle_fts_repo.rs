@@ -1,4 +1,4 @@
-use std::{rc::Rc, str::FromStr};
+use std::{rc::Rc, str::FromStr, sync::Arc};
 
 use said::SelfAddressingIdentifier;
 
@@ -27,11 +27,11 @@ impl OCABundleFTSRecord {
 }
 
 pub struct OCABundleFTSRepo {
-    connection: Rc<rusqlite::Connection>,
+    connection: Arc<rusqlite::Connection>,
 }
 
 impl OCABundleFTSRepo {
-    pub fn new(connection: Rc<rusqlite::Connection>) -> Self {
+    pub fn new(connection: Arc<rusqlite::Connection>) -> Self {
         let create_table_query = r#"
         CREATE VIRTUAL TABLE IF NOT EXISTS oca_bundle_fts
         USING FTS5(
@@ -44,7 +44,7 @@ impl OCABundleFTSRepo {
         connection.execute(create_table_query, ()).unwrap();
 
         Self {
-            connection: Rc::clone(&connection),
+            connection: Arc::clone(&connection),
         }
     }
 
