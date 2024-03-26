@@ -1,17 +1,36 @@
+use rusqlite::Params;
+
 use crate::data_storage::DataStorage;
 use crate::repositories::SQLiteConfig;
 use std::borrow::Borrow;
-use std::rc::Rc;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 pub mod build;
 mod explore;
 mod fetch;
 
+#[derive(Clone)]
+pub struct Connection {
+    pub connection: Arc<Mutex<rusqlite::Connection>>
+}
+
+impl Connection {
+    pub fn new(path: &str) -> Self {
+        let conn = rusqlite::Connection::open(path).unwrap();
+        Self {connection: Arc::new(Mutex::new(conn))}
+    }
+
+    pub fn execute<P>(&self, sql: &str, params: P) where P: Params {
+        let connection = self.connection.lock().unwrap();
+        connection.execute(sql, params).unwrap();
+
+    }
+}
+
 pub struct Facade {
     db: Box<dyn DataStorage>,
     db_cache: Box<dyn DataStorage>,
-    connection: Arc<rusqlite::Connection>,
+    connection: Connection,
 }
 
 impl Facade {
@@ -34,12 +53,15 @@ impl Facade {
             None => ":memory:".to_string(),
         };
 
-        let conn = rusqlite::Connection::open(cache_path).unwrap();
         Self {
             db,
             db_cache,
-            connection: Arc::new(conn),
+            connection: Connection::new(&cache_path),
         }
+    }
+
+    pub(crate) fn connection(&self) -> Connection {
+        self.connection.clone()
     }
 
     pub fn storage(&self) -> &dyn DataStorage {

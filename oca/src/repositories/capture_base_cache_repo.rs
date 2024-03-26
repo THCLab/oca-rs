@@ -1,5 +1,6 @@
 use oca_bundle::state::oca::capture_base::CaptureBase;
-use std::{rc::Rc, sync::Arc};
+
+use crate::facade::Connection;
 
 #[derive(Debug)]
 pub struct CaptureBaseCacheRecord {
@@ -23,20 +24,20 @@ pub struct AllCaptureBaseRecord {
 }
 
 pub struct CaptureBaseCacheRepo {
-    connection: Arc<rusqlite::Connection>,
+    connection: Connection,
 }
 
 impl CaptureBaseCacheRepo {
-    pub fn new(connection: Arc<rusqlite::Connection>) -> Self {
+    pub fn new(connection: Connection) -> Self {
         let create_table_query = r#"
         CREATE TABLE IF NOT EXISTS capture_base_cache(
             said TEXT PRIMARY KEY,
             capture_base TEXT
         )"#;
-        connection.execute(create_table_query, ()).unwrap();
+        connection.execute(create_table_query, ());
 
         Self {
-            connection: Arc::clone(&connection),
+            connection,
         }
     }
 
@@ -67,7 +68,10 @@ impl CaptureBaseCacheRepo {
         ) AS results
         ON true
         GROUP BY said";
-        let mut statement = self.connection.prepare(query).unwrap();
+        
+        let connection = self.connection.connection.lock().unwrap();
+        let mut statement = connection.prepare(query).unwrap();
+
         let models = statement
             .query_map([limit, offset], |row| {
                 let cache_record =

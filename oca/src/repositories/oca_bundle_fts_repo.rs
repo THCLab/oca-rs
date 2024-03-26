@@ -1,6 +1,8 @@
-use std::{rc::Rc, str::FromStr, sync::Arc};
+use std::str::FromStr;
 
 use said::SelfAddressingIdentifier;
+
+use crate::facade::Connection;
 
 #[derive(Debug)]
 pub struct OCABundleFTSRecord {
@@ -27,11 +29,11 @@ impl OCABundleFTSRecord {
 }
 
 pub struct OCABundleFTSRepo {
-    connection: Arc<rusqlite::Connection>,
+    connection: Connection,
 }
 
 impl OCABundleFTSRepo {
-    pub fn new(connection: Arc<rusqlite::Connection>) -> Self {
+    pub fn new(connection: Connection) -> Self {
         let create_table_query = r#"
         CREATE VIRTUAL TABLE IF NOT EXISTS oca_bundle_fts
         USING FTS5(
@@ -41,10 +43,10 @@ impl OCABundleFTSRepo {
             oca_bundle_said UNINDEXED,
             tokenize="trigram"
         )"#;
-        connection.execute(create_table_query, ()).unwrap();
+        connection.execute(create_table_query, ());
 
         Self {
-            connection: Arc::clone(&connection),
+            connection,
         }
     }
 
@@ -164,7 +166,9 @@ meta_overlay:{}
             }
         }
 
-        let mut statement = self.connection.prepare(sql_query).unwrap();
+       
+        let connection = self.connection.connection.lock().unwrap();
+        let mut statement = connection.prepare(sql_query).unwrap();
 
         let rows = statement
             .query_map(

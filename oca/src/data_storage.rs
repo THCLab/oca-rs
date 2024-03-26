@@ -24,7 +24,7 @@ impl Namespace {
 }
 
 #[clonable]
-pub trait DataStorage: Clone {
+pub trait DataStorage: Clone + Send {
     fn get(&self, namespace: Namespace, key: &str) -> Result<Option<Vec<u8>>, String>;
     fn get_all(&self, namespace: Namespace) -> Result<HashMap<String, Vec<u8>>, String>;
     fn insert(&mut self, namespace: Namespace, key: &str, value: &[u8]) -> Result<(), String>;

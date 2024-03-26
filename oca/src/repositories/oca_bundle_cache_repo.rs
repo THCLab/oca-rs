@@ -1,5 +1,6 @@
 use oca_bundle::{state::oca::OCABundle, Encode};
-use std::{rc::Rc, sync::Arc};
+
+use crate::facade::Connection;
 
 #[derive(Debug)]
 pub struct OCABundleCacheRecord {
@@ -23,20 +24,20 @@ pub struct AllOCABundleRecord {
 }
 
 pub struct OCABundleCacheRepo {
-    connection: Arc<rusqlite::Connection>,
+    connection: Connection,
 }
 
 impl OCABundleCacheRepo {
-    pub fn new(connection: Arc<rusqlite::Connection>) -> Self {
+    pub fn new(connection: Connection) -> Self {
         let create_table_query = r#"
         CREATE TABLE IF NOT EXISTS oca_bundle_cache(
             said TEXT PRIMARY KEY,
             oca_bundle TEXT
         )"#;
-        connection.execute(create_table_query, ()).unwrap();
+        connection.execute(create_table_query, ());
 
         Self {
-            connection: Arc::clone(&connection),
+            connection,
         }
     }
 
@@ -67,7 +68,9 @@ impl OCABundleCacheRepo {
         ) AS results
         ON true
         GROUP BY said";
-        let mut statement = self.connection.prepare(query).unwrap();
+       
+        let connection = self.connection.connection.lock().unwrap();
+        let mut statement = connection.prepare(query).unwrap();
         let models = statement
             .query_map([limit, offset], |row| {
                 let cache_record =

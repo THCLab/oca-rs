@@ -14,8 +14,8 @@ use said::SelfAddressingIdentifier;
 use serde::Serialize;
 #[cfg(feature = "local-references")]
 use std::collections::HashMap;
-use std::{str::FromStr, sync::Arc};
-use std::{borrow::Borrow, rc::Rc};
+use std::str::FromStr;
+use std::borrow::Borrow;
 
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
@@ -89,7 +89,7 @@ impl Facade {
         limit: usize,
         page: usize,
     ) -> SearchResult {
-        let oca_bundle_fts_repo = OCABundleFTSRepo::new(Arc::clone(&self.connection));
+        let oca_bundle_fts_repo = OCABundleFTSRepo::new(self.connection());
         let search_result = oca_bundle_fts_repo.search(language, query, limit, page);
         let records = search_result
             .records
@@ -138,7 +138,7 @@ impl Facade {
         let mut total: usize = 0;
         let mut errors = vec![];
 
-        let oca_bundle_cache_repo = OCABundleCacheRepo::new(Arc::clone(&self.connection));
+        let oca_bundle_cache_repo = OCABundleCacheRepo::new(self.connection());
         let all_oca_bundle_records = oca_bundle_cache_repo.fetch_all(limit, page);
         for all_oca_bundle_record in all_oca_bundle_records {
             if total == 0 {
@@ -175,7 +175,7 @@ impl Facade {
         let mut errors = vec![];
 
         let capture_base_cache_repo =
-            crate::repositories::CaptureBaseCacheRepo::new(Arc::clone(&self.connection));
+            crate::repositories::CaptureBaseCacheRepo::new(self.connection());
         let all_capture_base_records = capture_base_cache_repo.fetch_all(limit, page);
         for all_capture_base_record in all_capture_base_records {
             if total == 0 {

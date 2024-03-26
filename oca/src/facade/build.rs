@@ -18,8 +18,6 @@ use oca_bundle::Encode;
 use oca_dag::build_core_db_model;
 
 use std::borrow::Borrow;
-use std::rc::Rc;
-use std::sync::Arc;
 
 #[derive(thiserror::Error, Debug, serde::Serialize)]
 #[serde(untagged)]
@@ -181,11 +179,11 @@ impl Facade {
         )
         .map_err(|errs| vec![Error::ValidationError(errs)])?;
 
-        let oca_bundle_cache_repo = OCABundleCacheRepo::new(Arc::clone(&self.connection));
+        let oca_bundle_cache_repo = OCABundleCacheRepo::new(self.connection());
         let oca_bundle_cache_record = OCABundleCacheRecord::new(&oca_build.oca_bundle);
         oca_bundle_cache_repo.insert(oca_bundle_cache_record);
 
-        let capture_base_cache_repo = CaptureBaseCacheRepo::new(Arc::clone(&self.connection));
+        let capture_base_cache_repo = CaptureBaseCacheRepo::new(self.connection());
         let capture_base_cache_record =
             CaptureBaseCacheRecord::new(&oca_build.oca_bundle.capture_base);
         capture_base_cache_repo.insert(capture_base_cache_record);
@@ -200,7 +198,7 @@ impl Facade {
             })
             .collect::<Vec<_>>();
         if !meta_overlays.is_empty() {
-            let oca_bundle_fts_repo = OCABundleFTSRepo::new(Arc::clone(&self.connection));
+            let oca_bundle_fts_repo = OCABundleFTSRepo::new(self.connection());
             for meta_overlay in meta_overlays {
                 let oca_bundle_fts_record = OCABundleFTSRecord::new(
                     oca_build.oca_bundle.said.clone().unwrap().to_string(),
