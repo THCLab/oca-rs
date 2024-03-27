@@ -43,11 +43,9 @@ impl OCABundleFTSRepo {
             oca_bundle_said UNINDEXED,
             tokenize="trigram"
         )"#;
-        connection.execute(create_table_query, ());
+        connection.execute(create_table_query, ()).unwrap();
 
-        Self {
-            connection,
-        }
+        Self { connection }
     }
 
     pub fn insert(&self, model: OCABundleFTSRecord) {
@@ -166,7 +164,6 @@ meta_overlay:{}
             }
         }
 
-       
         let connection = self.connection.connection.lock().unwrap();
         let mut statement = connection.prepare(sql_query).unwrap();
 

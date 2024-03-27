@@ -11,19 +11,23 @@ mod fetch;
 
 #[derive(Clone)]
 pub struct Connection {
-    pub connection: Arc<Mutex<rusqlite::Connection>>
+    pub connection: Arc<Mutex<rusqlite::Connection>>,
 }
 
 impl Connection {
     pub fn new(path: &str) -> Self {
         let conn = rusqlite::Connection::open(path).unwrap();
-        Self {connection: Arc::new(Mutex::new(conn))}
+        Self {
+            connection: Arc::new(Mutex::new(conn)),
+        }
     }
 
-    pub fn execute<P>(&self, sql: &str, params: P) where P: Params {
+    pub fn execute<P>(&self, sql: &str, params: P) -> rusqlite::Result<usize>
+    where
+        P: Params,
+    {
         let connection = self.connection.lock().unwrap();
-        connection.execute(sql, params).unwrap();
-
+        connection.execute(sql, params)
     }
 }
 

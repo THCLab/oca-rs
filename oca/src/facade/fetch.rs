@@ -12,10 +12,10 @@ use oca_bundle::state::oca::{capture_base::CaptureBase, DynOverlay, OCABundle};
 use said::SelfAddressingIdentifier;
 
 use serde::Serialize;
+use std::borrow::Borrow;
 #[cfg(feature = "local-references")]
 use std::collections::HashMap;
 use std::str::FromStr;
-use std::borrow::Borrow;
 
 #[derive(Debug, Serialize)]
 #[serde(untagged)]

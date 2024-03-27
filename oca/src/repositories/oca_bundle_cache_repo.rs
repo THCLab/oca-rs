@@ -34,11 +34,9 @@ impl OCABundleCacheRepo {
             said TEXT PRIMARY KEY,
             oca_bundle TEXT
         )"#;
-        connection.execute(create_table_query, ());
+        connection.execute(create_table_query, ()).unwrap();
 
-        Self {
-            connection,
-        }
+        Self { connection }
     }
 
     pub fn insert(&self, model: OCABundleCacheRecord) {
@@ -68,7 +66,7 @@ impl OCABundleCacheRepo {
         ) AS results
         ON true
         GROUP BY said";
-       
+
         let connection = self.connection.connection.lock().unwrap();
         let mut statement = connection.prepare(query).unwrap();
         let models = statement

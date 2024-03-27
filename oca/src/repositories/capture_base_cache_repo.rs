@@ -34,11 +34,9 @@ impl CaptureBaseCacheRepo {
             said TEXT PRIMARY KEY,
             capture_base TEXT
         )"#;
-        connection.execute(create_table_query, ());
+        let _ = connection.execute(create_table_query, ());
 
-        Self {
-            connection,
-        }
+        Self { connection }
     }
 
     pub fn insert(&self, model: CaptureBaseCacheRecord) {
@@ -68,7 +66,7 @@ impl CaptureBaseCacheRepo {
         ) AS results
         ON true
         GROUP BY said";
-        
+
         let connection = self.connection.connection.lock().unwrap();
         let mut statement = connection.prepare(query).unwrap();
 
