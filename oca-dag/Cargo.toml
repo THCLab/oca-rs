@@ -1,6 +1,6 @@
 [package]
 name = "oca-dag"
-version = "0.4.2"
+version = "0.4.3"
 edition = "2021"
 authors = [
   "Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>",
@@ -22,8 +22,8 @@ path = "src/lib.rs"
 dyn-clonable = "0.9.0"
 indexmap = { version = "1.9.3", features = ["serde"] }
 isolang = { version = "2.3.0", features = ["serde"] }
-oca-ast = { version = "0.4.2", path = "../oca-ast" }
-oca-bundle = { version = "0.4.2", path = "../oca-bundle", features = [
+oca-ast = { version = "0.4.3", path = "../oca-ast" }
+oca-bundle = { version = "0.4.3", path = "../oca-bundle", features = [
   "format_overlay",
 ] }
 said = { version = "0.3.0", features = ["macros"] }
