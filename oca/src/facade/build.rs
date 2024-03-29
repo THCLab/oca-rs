@@ -104,7 +104,7 @@ impl Facade {
 
         let _ = self.add_relations(oca_build.oca_bundle.clone());
 
-        self.build_models(&oca_build);
+        self.build_models(oca_build);
 
         Ok(oca_build.oca_bundle.clone())
     }
@@ -116,7 +116,7 @@ impl Facade {
 
         self.build(&oca_build)
     }
-    
+
     fn parse_and_check_base(
         storage: &dyn DataStorage,
         ocafile: String,
@@ -204,7 +204,7 @@ impl Facade {
 
     fn build_cache(&self, oca_bundle: &OCABundle) {
         let oca_bundle_cache_repo = OCABundleCacheRepo::new(self.connection());
-        let oca_bundle_cache_record = OCABundleCacheRecord::new(&oca_bundle);
+        let oca_bundle_cache_record = OCABundleCacheRecord::new(oca_bundle);
         oca_bundle_cache_repo.insert(oca_bundle_cache_record);
 
         let capture_base_cache_repo = CaptureBaseCacheRepo::new(self.connection());
@@ -295,7 +295,7 @@ impl Facade {
     }
 
     fn build_models(&mut self, oca_build: &OCABuild) {
-        let result_models = build_core_db_model(&oca_build);
+        let result_models = build_core_db_model(oca_build);
         result_models.iter().for_each(|model| {
             if let Some(command_model) = &model.command {
                 self.db
