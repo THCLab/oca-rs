@@ -189,7 +189,11 @@ attr_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
 prop_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
 
 entry_code_list = { "[" ~ "]" | "[" ~ string ~ ("," ~ " "* ~ string)* ~ "]" }
-entry_code_key_value = { key_value |  entry_code_list }
+entry_code_object = { "{" ~ "}" | "{" ~ " "* ~ entry_code_key_value_pair ~ ("," ~ " "* ~ entry_code_key_value_pair)* ~ " "* ~ "}" }
+entry_code_group_key = ${ string }
+entry_code_key_value_pair = { entry_code_group_key ~ ":" ~ " "* ~ entry_code_list }
+
+entry_code_key_value = { key_value | entry_code_list | entry_code_object }
 entry_code_key_pair = ${ attr_key ~ "=" ~ entry_code_key_value }
 attr_entry_code_key_pairs = ${ (arg_ws? ~ entry_code_key_pair ~ arg_ws?)+ }
 

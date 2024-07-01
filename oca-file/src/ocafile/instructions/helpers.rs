@@ -160,6 +160,15 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
                             }
                             value = NestedValue::Array(entry_codes);
                         }
+                        Rule::entry_code_object => {
+                            let mut entry_codes_grouped = IndexMap::new();
+                            for el in entry_code_item.clone().into_inner() {
+                                let (entry_key, entry_value) =
+                                    extract_attribute_key_pairs(el).unwrap();
+                                entry_codes_grouped.insert(entry_key, entry_value);
+                            }
+                            value = NestedValue::Object(entry_codes_grouped);
+                        }
                         _ => {
                             panic!(
                                 "Invalid entry code value in {:?}",
@@ -168,6 +177,42 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
                         }
                     }
                 }
+            }
+            Rule::entry_code_group_key => {
+                if let Some(nested_item) = item.clone().into_inner().next() {
+                    if let Rule::string = nested_item.as_rule() {
+                        key = nested_item
+                            .clone()
+                            .into_inner()
+                            .last()
+                            .unwrap()
+                            .as_span()
+                            .as_str()
+                            .to_string();
+                    }
+                }
+            }
+            Rule::entry_code_list => {
+                let mut entry_codes = Vec::new();
+                for el in item.clone().into_inner() {
+                    match el.as_rule() {
+                        Rule::string => {
+                            entry_codes.push(NestedValue::Value(
+                                el.clone()
+                                    .into_inner()
+                                    .last()
+                                    .unwrap()
+                                    .as_span()
+                                    .as_str()
+                                    .to_string(),
+                            ));
+                        }
+                        _ => {
+                            panic!("Invalid entry code value in {:?}", el.as_rule());
+                        }
+                    }
+                }
+                value = NestedValue::Array(entry_codes);
             }
             Rule::entry_key => {
                 if let Some(nested_item) = item.clone().into_inner().next() {

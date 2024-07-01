@@ -3,14 +3,16 @@ mod instructions;
 
 use self::{
     error::ParseError,
-    instructions::{add::AddInstruction, from::FromInstruction, remove::RemoveInstruction},
+    instructions::{
+        add::AddInstruction, from::FromInstruction, remove::RemoveInstruction,
+    },
 };
 use crate::ocafile::error::InstructionError;
 use convert_case::{Case, Casing};
 use oca_ast::{
     ast::{
-        self, recursive_attributes::NestedAttrTypeFrame, Command, CommandMeta, NestedAttrType,
-        OCAAst, RefValue,
+        self, recursive_attributes::NestedAttrTypeFrame, Command, CommandMeta,
+        NestedAttrType, OCAAst, RefValue,
     },
     validator::{OCAValidator, Validator},
 };
@@ -35,7 +37,11 @@ impl TryFromPair for Command {
             Rule::from => FromInstruction::from_record(record, 0)?,
             Rule::add => AddInstruction::from_record(record, 0)?,
             Rule::remove => RemoveInstruction::from_record(record, 0)?,
-            _ => return Err(InstructionError::UnexpectedToken(record.to_string())),
+            _ => {
+                return Err(InstructionError::UnexpectedToken(
+                    record.to_string(),
+                ))
+            }
         };
         Ok(instruction)
     }
@@ -45,8 +51,12 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
     let file = OCAfileParser::parse(Rule::file, &unparsed_file)
         .map_err(|e| {
             let (line_number, column_number) = match e.line_col {
-                pest::error::LineColLocation::Pos((line, column)) => (line, column),
-                pest::error::LineColLocation::Span((line, column), _) => (line, column),
+                pest::error::LineColLocation::Pos((line, column)) => {
+                    (line, column)
+                }
+                pest::error::LineColLocation::Span((line, column), _) => {
+                    (line, column)
+                }
             };
             ParseError::GrammarError {
                 line_number,
@@ -81,7 +91,9 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
                         value = attr.as_str().to_string();
                     }
                     _ => {
-                        return Err(ParseError::MetaError(attr.as_str().to_string()));
+                        return Err(ParseError::MetaError(
+                            attr.as_str().to_string(),
+                        ));
                     }
                 }
             }
@@ -89,7 +101,9 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
                 return Err(ParseError::MetaError("key is empty".to_string()));
             }
             if value.is_empty() {
-                return Err(ParseError::MetaError("value is empty".to_string()));
+                return Err(ParseError::MetaError(
+                    "value is empty".to_string(),
+                ));
             }
             oca_ast.meta.insert(key, value);
             continue;
@@ -99,24 +113,26 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
         }
 
         match Command::try_from_pair(line.clone()) {
-            Ok(command) => match validator.validate(&oca_ast, command.clone()) {
-                Ok(_) => {
-                    oca_ast.commands.push(command);
-                    oca_ast.commands_meta.insert(
-                        oca_ast.commands.len() - 1,
-                        CommandMeta {
-                            line_number: n + 1,
-                            raw_line: line.as_str().to_string(),
-                        },
-                    );
+            Ok(command) => {
+                match validator.validate(&oca_ast, command.clone()) {
+                    Ok(_) => {
+                        oca_ast.commands.push(command);
+                        oca_ast.commands_meta.insert(
+                            oca_ast.commands.len() - 1,
+                            CommandMeta {
+                                line_number: n + 1,
+                                raw_line: line.as_str().to_string(),
+                            },
+                        );
+                    }
+                    Err(e) => {
+                        return Err(ParseError::Custom(format!(
+                            "Error validating instruction: {}",
+                            e
+                        )));
+                    }
                 }
-                Err(e) => {
-                    return Err(ParseError::Custom(format!(
-                        "Error validating instruction: {}",
-                        e
-                    )));
-                }
-            },
+            }
             Err(e) => {
                 return Err(ParseError::InstructionError(e));
             }
@@ -136,7 +152,9 @@ fn format_reference(ref_value: RefValue) -> String {
 // Convert NestedAttrType to oca file syntax
 fn oca_file_format(nested: NestedAttrType) -> String {
     nested.collapse_frames(|frame| match frame {
-        NestedAttrTypeFrame::Reference(ref_value) => format_reference(ref_value),
+        NestedAttrTypeFrame::Reference(ref_value) => {
+            format_reference(ref_value)
+        }
         NestedAttrTypeFrame::Value(value) => {
             format!("{}", value)
         }
@@ -274,6 +292,31 @@ pub fn generate_from_ast(ast: &OCAAst) -> String {
                                                 .collect::<Vec<String>>()
                                                 .join(", ");
                                             line.push_str(format!(" {}=[{}]", key, codes).as_str());
+                                        } else if let ast::NestedValue::Object(values) = value {
+                                            let group_codes = values
+                                                .iter()
+                                                .filter_map(|(group, value)| {
+                                                    if let ast::NestedValue::Array(value) = value {
+
+                                            let codes = value
+                                                .iter()
+                                                .filter_map(|value| {
+                                                    if let ast::NestedValue::Value(value) = value {
+                                                        Some(format!("\"{}\"", value))
+                                                    } else {
+                                                        None
+                                                    }
+                                                })
+                                                .collect::<Vec<String>>()
+                                                .join(", ");
+                                                    Some(format!("\"{}\": [{}]", group, codes))
+                                                    } else {
+                                                        None
+                                                    }
+                                                })
+                                                .collect::<Vec<String>>()
+                                                .join(", ");
+                                            line.push_str(format!(" {}={{{}}}", key, group_codes).as_str());
                                         } else if let ast::NestedValue::Value(said) = value {
                                             line.push_str(
                                                 format!(" {}=\"{}\"", key, said).as_str(),
@@ -492,7 +535,7 @@ ADD attribute name=Text age=Numeric
 
     #[test]
     fn test_deserialization_ast_to_ocafile() {
-        let unparsed_file = r#"ADD ATTRIBUTE name=Text age=Numeric radio=Text
+        let unparsed_file = r#"ADD ATTRIBUTE name=Text age=Numeric radio=Text list=Text
 ADD LABEL eo ATTRS name="Nomo" age="aĝo" radio="radio"
 ADD INFORMATION en ATTRS name="Object" age="Object"
 ADD CHARACTER_ENCODING ATTRS name="utf-8" age="utf-8"
@@ -500,6 +543,8 @@ ADD ENTRY_CODE ATTRS radio=["o1", "o2", "o3"]
 ADD ENTRY eo ATTRS radio={"o1": "etikedo1", "o2": "etikedo2", "o3": "etikiedo3"}
 ADD ENTRY pl ATTRS radio={"o1": "etykieta1", "o2": "etykieta2", "o3": "etykieta3"}
 ADD CONDITION ATTRS radio="${age} > 18"
+ADD ENTRY_CODE ATTRS list={"g1": ["el1"], "g2": ["el2", "el3"]}
+ADD ENTRY pl ATTRS list={"el1": "element1", "el2": "element2", "el3": "element3", "g1": "grupa1", "g2": "grupa2"}
 "#;
         let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
 
@@ -564,10 +609,13 @@ ADD ATTRIBUTE incidentals_spare_parts=Array[refs:EJVVlVSZJqVNnuAMLHLkeSQgwfxYLWT
         assert_eq!(oca_file_format(numeric_type), "Numeric");
 
         let ref_type = NestedAttrType::Reference(RefValue::Said(
-            HashFunction::from(HashFunctionCode::Blake3_256).derive("example".as_bytes()),
+            HashFunction::from(HashFunctionCode::Blake3_256)
+                .derive("example".as_bytes()),
         ));
 
-        let attr = NestedAttrType::Array(Box::new(NestedAttrType::Array(Box::new(ref_type))));
+        let attr = NestedAttrType::Array(Box::new(NestedAttrType::Array(
+            Box::new(ref_type),
+        )));
 
         let out = oca_file_format(attr);
         assert_eq!(

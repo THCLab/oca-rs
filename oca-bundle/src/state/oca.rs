@@ -1107,6 +1107,23 @@ impl OCABundle {
                                     ),
                                 );
                             }
+                            crate::state::entry_codes::EntryCodes::Object(grouped_entry_codes) => {
+                                attributes.insert(
+                                    attr_name.clone(),
+                                    NestedValue::Object(
+                                        grouped_entry_codes
+                                            .iter()
+                                            .map(|(k, v)| {
+                                                let codes = v
+                                                    .iter()
+                                                    .map(|code| NestedValue::Value(code.clone()))
+                                                    .collect();
+                                                (k.clone(), NestedValue::Array(codes))
+                                            })
+                                            .collect(),
+                                    ),
+                                );
+                            }
                         }
                     }
                     let command = Command {

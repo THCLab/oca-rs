@@ -17,6 +17,7 @@ use crate::state::{
     attribute::Attribute, encoding::Encoding, entries::EntriesElement,
     entry_codes::EntryCodes as EntryCodesValue, oca::OCABox,
 };
+use indexmap::IndexMap;
 use oca_ast::ast;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -398,6 +399,28 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                                     }
                                     attribute.set_entry_codes(EntryCodesValue::Array(entry_codes));
                                 }
+                                ast::NestedValue::Object(attr_grouped_entry_codes) => {
+                                    let mut grouped_entry_codes = IndexMap::new();
+                                    for (group, attr_entry_codes) in attr_grouped_entry_codes {
+                                        if let ast::NestedValue::Array(entry_codes) = attr_entry_codes
+                                        {
+                                            let codes: Vec<String> = entry_codes
+                                                .iter()
+                                                .filter_map(|entry_code| {
+                                                    if let ast::NestedValue::Value(entry_code) =
+                                                        entry_code
+                                                    {
+                                                        Some(entry_code.clone())
+                                                    } else {
+                                                        None
+                                                    }
+                                                })
+                                                .collect();
+                                            grouped_entry_codes.insert(group.clone(), codes.clone());
+                                        }
+                                    }
+                                    attribute.set_entry_codes(EntryCodesValue::Object(grouped_entry_codes));
+                                }
                                 _ => (),
                             }
                             oca.add_attribute(attribute);
@@ -673,6 +696,10 @@ mod tests {
             ast::NestedAttrType::Value(AttributeType::Text),
         );
         attributes.insert(
+            "list".to_string(),
+            ast::NestedAttrType::Value(AttributeType::Text),
+        );
+        attributes.insert(
             "passed".to_string(),
             ast::NestedAttrType::Value(AttributeType::Boolean),
         );
@@ -804,6 +831,26 @@ mod tests {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
                 ast::OverlayType::Conformance,
+                ast::Content {
+                    attributes: Some(attributes),
+                    properties: None,
+                },
+            ),
+        });
+
+        let mut attributes = IndexMap::new();
+        let mut grouped_elements = IndexMap::new();
+        grouped_elements.insert("g1".to_string(), ast::NestedValue::Array(
+            vec![ast::NestedValue::Value("el1".to_string())]
+        ));
+        grouped_elements.insert("g2".to_string(), ast::NestedValue::Array(
+            vec![ast::NestedValue::Value("el2".to_string()), ast::NestedValue::Value("el3".to_string())]
+        ));
+        attributes.insert("list".to_string(), oca_ast::ast::NestedValue::Object(grouped_elements));
+        commands.push(ast::Command {
+            kind: ast::CommandType::Add,
+            object_kind: ast::ObjectKind::Overlay(
+                ast::OverlayType::EntryCode,
                 ast::Content {
                     attributes: Some(attributes),
                     properties: None,

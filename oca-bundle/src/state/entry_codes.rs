@@ -1,4 +1,5 @@
-use serde::{ser::SerializeSeq, Deserialize, Serialize};
+use indexmap::IndexMap;
+use serde::{ser::{SerializeSeq, SerializeMap}, Deserialize, Serialize};
 
 impl Serialize for EntryCodes {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -16,6 +17,14 @@ impl Serialize for EntryCodes {
                 }
                 seq.end()
             }
+            Self::Object(codes) => {
+                let mut map = serializer.serialize_map(Some(codes.len()))?;
+                let sorted_codes: IndexMap<_, _> = codes.iter().collect();
+                for (k, v) in sorted_codes {
+                    map.serialize_entry(k, v)?;
+                }
+                map.end()
+            }
         }
     }
 }
@@ -25,4 +34,5 @@ impl Serialize for EntryCodes {
 pub enum EntryCodes {
     Sai(String),
     Array(Vec<String>),
+    Object(IndexMap<String, Vec<String>>),
 }
