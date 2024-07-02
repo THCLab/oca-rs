@@ -78,7 +78,7 @@ impl Attribute {
             panic!("Cannot merge attributes with different names");
         } else {
             if other.attribute_type.is_some() {
-                self.attribute_type = other.attribute_type.clone();
+                self.attribute_type.clone_from(&other.attribute_type);
             }
 
             self.merge_labels(other);
@@ -86,57 +86,57 @@ impl Attribute {
             self.merge_category_labels(other);
 
             if other.mapping.is_some() {
-                self.mapping = other.mapping.clone();
+                self.mapping.clone_from(&other.mapping);
             }
 
             if other.encoding.is_some() {
-                self.encoding = other.encoding;
+                self.encoding.clone_from(&other.encoding);
             }
 
             #[cfg(feature = "format_overlay")]
             if other.format.is_some() {
-                self.format = other.format.clone();
+                self.format.clone_from(&other.format);
             }
 
             if self.units.is_none() {
-                self.units = other.units.clone();
+                self.units.clone_from(&other.units);
             }
 
             if self.entry_codes.is_none() {
-                self.entry_codes = other.entry_codes.clone();
+                self.entry_codes.clone_from(&other.entry_codes);
             }
 
             self.merge_entries(other);
 
             if self.entry_codes_mapping.is_none() {
-                self.entry_codes_mapping = other.entry_codes_mapping.clone();
+                self.entry_codes_mapping.clone_from(&other.entry_codes_mapping);
             }
 
             if other.condition.is_some() {
-                self.condition = other.condition.clone();
+                self.condition.clone_from(&other.condition);
 
                 if other.dependencies.is_some() {
-                    self.dependencies = other.dependencies.clone();
+                    self.dependencies.clone_from(&other.dependencies);
                 }
             }
 
             if other.cardinality.is_some() {
-                self.cardinality = other.cardinality.clone();
+                self.cardinality.clone_from(&other.cardinality);
             }
 
             if other.conformance.is_some() {
-                self.conformance = other.conformance.clone();
+                self.conformance.clone_from(&other.conformance);
             }
 
             if other.standards.is_some() {
-                self.standards = other.standards.clone();
+                self.standards.clone_from(&other.standards);
             }
         }
     }
 
     fn merge_entries(&mut self, other: &Attribute) {
         if self.entries.is_none() {
-            self.entries = other.entries.clone();
+            self.entries.clone_from(&other.entries);
         } else if let Some(entries) = &other.entries {
             for (lang, entry) in entries {
                 self.entries.as_mut().unwrap().insert(*lang, entry.clone());
@@ -146,7 +146,7 @@ impl Attribute {
 
     fn merge_category_labels(&mut self, other: &Attribute) {
         if self.category_labels.is_none() {
-            self.category_labels = other.category_labels.clone();
+            self.category_labels.clone_from(&other.category_labels);
         } else if let Some(category_labels) = &other.category_labels {
             for (lang, category_label) in category_labels {
                 self.category_labels
@@ -158,7 +158,7 @@ impl Attribute {
     }
     fn merge_information(&mut self, other: &Attribute) {
         if self.informations.is_none() {
-            self.informations = other.informations.clone();
+            self.informations.clone_from(&other.informations);
         } else if let Some(informations) = &other.informations {
             for (lang, information) in informations {
                 self.informations
@@ -170,7 +170,7 @@ impl Attribute {
     }
     fn merge_labels(&mut self, other: &Attribute) {
         if self.labels.is_none() {
-            self.labels = other.labels.clone();
+            self.labels.clone_from(&other.labels)
         } else if let Some(labels) = &other.labels {
             for (lang, label) in labels {
                 self.labels.as_mut().unwrap().insert(*lang, label.clone());

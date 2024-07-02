@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::HashMap;
 
+#[allow(dead_code)]
 pub(crate) trait StandardAttribute {
     fn add_standard(&mut self, standard: Standard);
 }

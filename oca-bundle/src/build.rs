@@ -97,7 +97,7 @@ pub fn from_ast(
                         command: command.clone(),
                         result: oca_bundle.clone(),
                     });
-                    parent_said = oca_bundle.said.clone();
+                    parent_said.clone_from(&oca_bundle.said);
                     base = Some(oca_box);
                 }
             }

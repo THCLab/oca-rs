@@ -325,7 +325,7 @@ impl Validator {
 
         for meta_overlay in meta_overlays {
             attributes.iter().for_each(|attr| {
-                if meta_overlay.attr_pairs.get(*attr).is_none() {
+                if !meta_overlay.attr_pairs.contains_key(*attr) {
                     errors.push(Error::MissingMetaTranslation(
                         *meta_overlay.language().unwrap(),
                         attr.to_string(),

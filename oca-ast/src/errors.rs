@@ -19,6 +19,7 @@ pub enum Error {
     Validation(Vec<Error>),
 }
 
+#[allow(dead_code)]
 struct Errors(Vec<Error>);
 
 impl std::fmt::Display for Errors {

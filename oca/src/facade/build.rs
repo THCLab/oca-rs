@@ -228,12 +228,12 @@ impl Facade {
                     oca_bundle.said.clone().unwrap().to_string(),
                     meta_overlay
                         .attr_pairs
-                        .get(&"name".to_string())
+                        .get("name")
                         .unwrap_or(&"".to_string())
                         .clone(),
                     meta_overlay
                         .attr_pairs
-                        .get(&"description".to_string())
+                        .get("description")
                         .unwrap_or(&"".to_string())
                         .clone(),
                     meta_overlay.language,
