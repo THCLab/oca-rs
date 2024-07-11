@@ -28,6 +28,9 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
             result.said.unwrap().to_string(),
             "EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs"
         );
+
+        let search_result = facade.search_oca_bundle(None, "Ent".to_string(), 10, 1);
+        assert_eq!(search_result.metadata.total, 1);
         Ok(())
     }
 

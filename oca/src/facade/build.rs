@@ -221,7 +221,7 @@ impl Facade {
                     .downcast_ref::<oca_bundle::state::oca::overlay::Meta>()
             })
             .collect::<Vec<_>>();
-        if meta_overlays.is_empty() {
+        if !meta_overlays.is_empty() {
             let oca_bundle_fts_repo = OCABundleFTSRepo::new(self.connection());
             for meta_overlay in meta_overlays {
                 let oca_bundle_fts_record = OCABundleFTSRecord::new(
