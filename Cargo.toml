@@ -1,11 +1,15 @@
 [workspace]
 
 members = [
-  "oca-bundle",
-  "oca-file",
-  "oca-ast",
-  "oca-dag",
+  "semantics/oca-bundle",
+  "semantics/oca-file",
+  "semantics/oca-ast",
+  "semantics/oca-dag",
   "oca",
+  "oca-file",
+  "transformation/ast",
+  "transformation/ocafile",
+  "transformation/transformation-file",
 
   "tests",
 ]

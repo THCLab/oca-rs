@@ -85,13 +85,13 @@ pub fn from_ast(
             Ok(oca_box) => {
                 let mut oca_box_mut = oca_box.clone();
                 let oca_bundle = oca_box_mut.generate_bundle();
-                if oca_bundle.said == parent_said {
+                /* if oca_bundle.said == parent_said {
                     errors.push(Error::FromASTError {
                         line_number: command_meta.line_number,
                         raw_line: command_meta.raw_line.clone(),
                         message: "Applying command failed".to_string(),
                     });
-                } else {
+                } else { */
                     steps.push(OCABuildStep {
                         parent_said: parent_said.clone(),
                         command: command.clone(),
@@ -99,7 +99,7 @@ pub fn from_ast(
                     });
                     parent_said.clone_from(&oca_bundle.said);
                     base = Some(oca_box);
-                }
+                //}
             }
             Err(mut err) => {
                 errors.extend(err.iter_mut().map(|e| Error::FromASTError {

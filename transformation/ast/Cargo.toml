@@ -1,0 +1,31 @@
+[package]
+name = "oca-ast-transformation"
+description = "Library for handling Abstract Syntax Tree of OCA bundle"
+version = "0.4.5"
+license = "EUPL-1.2"
+edition = "2021"
+authors = [
+  "Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>",
+  "Robert Mitwicki <robert.mitwicki@opensoftware.pl>",
+  "Michał Pietrus <michal.pietrus@opensoftware.pl>",
+]
+readme = "README.md"
+include = ["src/**/*", "LICENSE", "README.md"]
+
+[lib]
+name = "oca_ast_transformation"
+path = "src/lib.rs"
+
+[dependencies]
+env_logger = "0.10.0"
+indexmap = { version = "1.9.3", features = ["serde"] }
+log = "0.4.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+strum = "0.24"
+strum_macros = "0.24"
+thiserror = "1.0.38"
+wasm-bindgen = { version = "0.2.89" }
+said = { version = "0.3.0", features = ["macros"] }
+recursion = "0.5.1"
+serde-wasm-bindgen = "0.6.3"

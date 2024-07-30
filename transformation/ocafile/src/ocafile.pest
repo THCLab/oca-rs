@@ -1,0 +1,137 @@
+
+// BEGIN of GENERIC RULES
+
+// insignificant whitespace, not repeated
+ws = _{ " " | "\t" }
+
+meta_attr_key = ${ "name" | "version" | "precompiler" }
+meta_attr_value = ${ string | char+}
+meta_key_pair = @{ meta_attr_key ~ arg_ws? ~ "=" ~ arg_ws?  ~ meta_attr_value }
+meta_comment = @{ "--" ~ ws* ~ (!NEWLINE ~ meta_key_pair)* }
+meta_comment_line = _{ ws* ~ meta_comment ~ NEWLINE? }
+
+comment = @{ "#" ~ (!NEWLINE ~ ANY)* }
+comment_line = _{ ws* ~ comment ~ NEWLINE? }
+empty_line = @{ ws* ~ NEWLINE }
+
+double_quoted_string  = _{ "\"" ~ inner ~ "\"" }
+inner   = @{ (!("\"" | "\\" | "\u{0000}" | "\u{001F}") ~ ANY)* ~ (escape ~ inner)? }
+escape  = @{ "\\" ~ ("b" | "t" | "n" | "f" | "r" | "\"" | "\\" | "'" | unicode | NEWLINE)? }
+unicode = @{ "u" ~ ASCII_HEX_DIGIT{4} | "U" ~ ASCII_HEX_DIGIT{8} }
+
+single_quoted_string = _{ "'" ~ single_quoted_inner ~ "'" }
+single_quoted_inner  = @{ (!("'" | "\\" | "\u{0000}" | "\u{001F}") ~ ANY)* ~ (escape ~ single_quoted_inner)? }
+
+string = ${ single_quoted_string | double_quoted_string }
+
+// a line continuation, allowing an instruction to continue onto a new line
+line_continuation = _{ "\\" ~ ws* ~ NEWLINE }
+
+// whitespace that may appear between instruction arguments
+// this allows instructions to expand past a newline if escaped
+arg_ws = _{ (ws | line_continuation ~ (comment_line | empty_line)*)+ }
+
+// like arg_ws, but where whitespace is optional
+arg_ws_maybe = _{ (ws | line_continuation ~ (comment_line | empty_line)*)* }
+
+// continues consuming input beyond a newline, if the newline is preceeded by an
+// escape (\)
+// these tokens need to be preserved in the final tree so they can be handled
+// appropraitely; pest's ignore rules aren't sufficient for our needs
+any_content = @{
+  (
+    !NEWLINE ~
+    !line_continuation ~
+    ANY
+  )+
+}
+any_breakable = ${
+  (
+    // can be any comment string (no line continuation required)
+    comment_line ~ any_breakable?
+  ) | (
+    // ... OR some piece of content, requiring a continuation EXCEPT on the
+    // final line
+    any_content ~ (line_continuation ~ any_breakable)?
+  )
+}
+
+// consumes any character until the end of the line
+any_eol = _{ (!NEWLINE ~ ANY)* }
+
+// consumes all characters until the next whitespace
+until_whitespace = _{ (!(NEWLINE | EOI | arg_ws) ~ ANY)+ }
+
+// consumes identifier characters until the next whitespace
+identifier_whitespace = _{ (!ws ~ (ASCII_ALPHANUMERIC | "_" | "-"))+ }
+
+// consumes until whitespace or = (for key in key=value pairs)
+any_equals = _{ (!(NEWLINE | ws | "=") ~ ANY)+ }
+
+// END of GENERIC RULES
+
+commands = _{
+  (
+    from |
+    rename
+  ) ~ NEWLINE?
+}
+
+
+from = { ^"from" ~ ws* ~ from_said}
+rename = { ^"rename" ~ arg_ws* ~ rename_attributes }
+
+SCRIPTS = { ADLAM | AHOM | ANATOLIAN_HIEROGLYPHS | ARABIC | ARMENIAN | AVESTAN
+| BALINESE | BAMUM | BASSA_VAH | BATAK | BENGALI | BHAIKSUKI | BOPOMOFO |
+BRAHMI | BRAILLE | BUGINESE | BUHID | CANADIAN_ABORIGINAL | CARIAN |
+CAUCASIAN_ALBANIAN | CHAKMA | CHAM | CHEROKEE | CHORASMIAN | COPTIC |
+CUNEIFORM | CYPRIOT | CYPRO_MINOAN | CYRILLIC | DESERET | DEVANAGARI |
+DIVES_AKURU | DOGRA | DUPLOYAN | EGYPTIAN_HIEROGLYPHS | ELBASAN | ELYMAIC |
+ETHIOPIC | GEORGIAN | GLAGOLITIC | GOTHIC | GRANTHA | GREEK | GUJARATI |
+GUNJALA_GONDI | GURMUKHI | HAN | HANGUL | HANIFI_ROHINGYA | HANUNOO | HATRAN |
+HEBREW | HIRAGANA | IMPERIAL_ARAMAIC | INHERITED | INSCRIPTIONAL_PAHLAVI |
+INSCRIPTIONAL_PARTHIAN | JAVANESE | KAITHI | KANNADA | KATAKANA | KAWI |
+KAYAH_LI | KHAROSHTHI | KHITAN_SMALL_SCRIPT | KHMER | KHOJKI | KHUDAWADI | LAO
+| LATIN | LEPCHA | LIMBU | LINEAR_A | LINEAR_B | LISU | LYCIAN | LYDIAN |
+MAHAJANI | MAKASAR | MALAYALAM | MANDAIC | MANICHAEAN | MARCHEN | MASARAM_GONDI
+| MEDEFAIDRIN | MEETEI_MAYEK | MENDE_KIKAKUI | MEROITIC_CURSIVE |
+MEROITIC_HIEROGLYPHS | MIAO | MODI | MONGOLIAN | MRO | MULTANI | MYANMAR |
+NABATAEAN | NAG_MUNDARI | NANDINAGARI | NEW_TAI_LUE | NEWA | NKO | NUSHU |
+NYIAKENG_PUACHUE_HMONG | OGHAM | OL_CHIKI | OLD_HUNGARIAN | OLD_ITALIC |
+OLD_NORTH_ARABIAN | OLD_PERMIC | OLD_PERSIAN | OLD_SOGDIAN | OLD_SOUTH_ARABIAN
+| OLD_TURKIC | OLD_UYGHUR | ORIYA | OSAGE | OSMANYA | PAHAWH_HMONG | PALMYRENE
+| PAU_CIN_HAU | PHAGS_PA | PHOENICIAN | PSALTER_PAHLAVI | REJANG | RUNIC |
+SAMARITAN | SAURASHTRA | SHARADA | SHAVIAN | SIDDHAM | SIGNWRITING | SINHALA |
+SOGDIAN | SORA_SOMPENG | SOYOMBO | SUNDANESE | SYLOTI_NAGRI | SYRIAC | TAGALOG
+| TAGBANWA | TAI_LE | TAI_THAM | TAI_VIET | TAKRI | TAMIL | TANGSA | TANGUT |
+TELUGU | THAANA | THAI | TIBETAN | TIFINAGH | TIRHUTA | TOTO | UGARITIC | VAI |
+VITHKUQI | WANCHO | WARANG_CITI | YEZIDI | YI | ZANABAZAR_SQUARE }
+char = { LETTER | NUMBER | "." | "-" | "_" | "/" | ":" | SCRIPTS }
+
+from_said = { ws* ~ char+ }
+
+rename_attributes = { ^"attribute" ~ rename_attr_pairs+ }
+rename_attr_pair = @{attr_key ~ arg_ws? ~ "=" ~ arg_ws?  ~ attr_key}
+rename_attr_pairs = ${ (arg_ws ~ rename_attr_pair)+}
+
+attr_key = ${ (ASCII_ALPHANUMERIC | "-" | "_" )+ }
+key_value = ${ string | char+}
+key_pair = @{ attr_key ~ arg_ws? ~ "=" ~ arg_ws? ~ key_value }
+attr_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
+prop_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
+
+
+alias = @{ char+ }
+said = @{ char+ }
+refs = _{^"refs:"}
+refn = _{^"refn:"}
+ref_said = _{ refs ~ said}
+ref_alias = _{ refn ~ alias }
+
+lang = ${ ASCII_ALPHA{2} ~ ("-" ~ ASCII_ALPHA{2})? }
+
+file = {
+  SOI ~
+  (empty_line | meta_comment_line | comment_line | commands)*
+  ~ EOI
+}

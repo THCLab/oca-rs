@@ -8,6 +8,8 @@ use std::sync::{Arc, Mutex};
 pub mod build;
 mod explore;
 mod fetch;
+pub mod bundle;
+pub use said::version::Encode;
 
 #[derive(Clone)]
 pub struct Connection {
