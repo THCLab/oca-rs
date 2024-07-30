@@ -22,12 +22,14 @@ local-references = []
 [dependencies]
 dyn-clonable = "0.9.0"
 isolang = "2.3.0"
-oca-ast = { version = "0.4.5", path = "../oca-ast" }
-oca-bundle = { version = "0.4.5", path = "../oca-bundle", features = [
+oca-ast = { version = "0.4.5", path = "../semantics/oca-ast" }
+oca-bundle = { version = "0.4.5", path = "../semantics/oca-bundle", features = [
   "format_overlay",
 ] }
-oca-dag = { version = "0.4.5", path = "../oca-dag" }
-oca-file = { version = "0.4.5", path = "../oca-file" }
+oca-dag = { version = "0.4.5", path = "../semantics/oca-dag" }
+oca-file = { version = "0.4.5", path = "../semantics/oca-file" }
+ocafile = { version = "0.4.5", path = "../oca-file" }
+transformation-file = { version = "0.4.5", path = "../transformation/transformation-file" }
 regex = "1.9.5"
 rusqlite = "0.29.0"
 said = { version = "0.3.0", features = ["macros"] }

@@ -448,7 +448,7 @@ ADD ENTRY en ATTRS list="refs:ENrf7niTCnz7HD-Ci88rlxHlxkpQ2NIZNNv08fQnXANI" el={
         let oca_bundle = facade.build_from_ocafile(ocafile_input);
         let oca_bundle = oca_bundle.unwrap();
 
-        let ocafile = facade.parse_oca_bundle_to_ocafile(&oca_bundle)?;
+        /* let ocafile = facade.parse_oca_bundle_to_ocafile(&oca_bundle)?;
         let new_oca_bundle = facade.build_from_ocafile(ocafile);
         match new_oca_bundle {
             Ok(new_oca_bundle) => {
@@ -458,7 +458,7 @@ ADD ENTRY en ATTRS list="refs:ENrf7niTCnz7HD-Ci88rlxHlxkpQ2NIZNNv08fQnXANI" el={
                 println!("{:#?}", e);
                 panic!("Faild to load oca bundle");
             }
-        }
+        } */
 
         Ok(())
     }

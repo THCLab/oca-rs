@@ -1,4 +1,7 @@
 #[cfg(test)]
+pub mod dev;
+
+#[cfg(test)]
 mod test {
     use oca_rs::{
         data_storage::{DataStorage, InMemoryDataStorage},
@@ -24,14 +27,19 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
 
         let result = facade.build_from_ocafile(ocafile)?;
 
-        assert_eq!(
-            result.said.unwrap().to_string(),
-            "EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs"
-        );
+        assert!(matches!(result, oca_rs::facade::bundle::BundleElement::Mechanics(_)));
+        if let oca_rs::facade::bundle::BundleElement::Mechanics(result) = result {
+            assert_eq!(
+                result.said.unwrap().to_string(),
+                "EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs"
+            );
 
-        let search_result = facade.search_oca_bundle(None, "Ent".to_string(), 10, 1);
-        assert_eq!(search_result.metadata.total, 1);
-        Ok(())
+            let search_result = facade.search_oca_bundle(None, "Ent".to_string(), 10, 1);
+            assert_eq!(search_result.metadata.total, 1);
+            Ok(())
+        } else {
+            panic!("Expected BundleElement::Mechanics")
+        }
     }
 
     #[test]
@@ -57,11 +65,15 @@ ADD ATTRIBUTE x=Text
         .to_string();
         let result = facade.build_from_ocafile(ocafile)?;
 
-        assert_eq!(
-            result.said.unwrap().to_string(),
-            "EBBLFLhdLLgmVOLJO0G6Bqa4-JhFyP8-E0HikwjuRB6w"
-        );
-        Ok(())
+        if let oca_rs::facade::bundle::BundleElement::Mechanics(result) = result {
+            assert_eq!(
+                result.said.unwrap().to_string(),
+                "EBBLFLhdLLgmVOLJO0G6Bqa4-JhFyP8-E0HikwjuRB6w"
+            );
+            Ok(())
+        } else {
+            panic!("Expected BundleElement::Mechanics")
+        }
     }
 
     #[cfg(feature = "local-references")]

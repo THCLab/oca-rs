@@ -1,3 +1,4 @@
+use super::bundle::BundleElement;
 use super::Facade;
 use crate::data_storage::{DataStorage, Namespace};
 use crate::facade::fetch::get_oca_bundle;
@@ -28,9 +29,11 @@ pub enum Error {
 #[serde(untagged)]
 pub enum ValidationError {
     #[error(transparent)]
-    OCAFileParse(#[from] oca_file::ocafile::error::ParseError),
+    OCAFileParse(#[from] ocafile::ocafile::error::ParseError),
     #[error(transparent)]
     OCABundleBuild(#[from] oca_bundle::build::Error),
+    #[error(transparent)]
+    TransformationBuild(#[from] transformation_file::build::Error),
     #[error("Error at line {line_number} ({raw_line}): {message}")]
     InvalidCommand {
         #[serde(rename = "ln")]
@@ -109,12 +112,36 @@ impl Facade {
         Ok(oca_build.oca_bundle.clone())
     }
 
-    pub fn build_from_ocafile(&mut self, ocafile: String) -> Result<OCABundle, Vec<Error>> {
+    pub fn build_from_ocafile(&mut self, ocafile: String) -> Result<BundleElement, Vec<Error>> {
+        let ast = ocafile::ocafile::parse_from_string(ocafile.clone()).map_err(|e| {
+            vec![Error::ValidationError(vec![ValidationError::OCAFileParse(
+                e,
+            )])]
+        })?;
+        match ast {
+            ocafile::ocafile::OCAAst::TransformationAst(t_ast) => {
+                let transformation = transformation_file::build::from_ast(&t_ast).map_err(|e| { 
+                e.iter()
+                    .map(|e| ValidationError::TransformationBuild(e.clone()))
+                    .collect::<Vec<_>>()
+                })
+                .map_err(|errs| vec![Error::ValidationError(errs)])?;
+                Ok(BundleElement::Transformation(transformation))
+            },
+            ocafile::ocafile::OCAAst::SemanticsAst(_ast) => {
+                let oca_build = self
+                    .validate_ocafile(ocafile)
+                    .map_err(|errs| vec![Error::ValidationError(errs)])?;
+
+                Ok(BundleElement::Mechanics(self.build(&oca_build)?))
+            }
+        }
+/*
         let oca_build = self
             .validate_ocafile(ocafile)
             .map_err(|errs| vec![Error::ValidationError(errs)])?;
 
-        self.build(&oca_build)
+        self.build(&oca_build) */
     }
 
     fn parse_and_check_base(
@@ -123,7 +150,7 @@ impl Facade {
     ) -> Result<(Option<OCABundle>, OCAAst), Vec<ValidationError>> {
         let mut errors: Vec<ValidationError> = vec![];
         let mut oca_ast = oca_file::ocafile::parse_from_string(ocafile)
-            .map_err(|e| vec![ValidationError::OCAFileParse(e)])?;
+            .map_err(|e| vec![ValidationError::OCAFileParse(ocafile::ocafile::error::ParseError::SemanticsError(e))])?;
 
         if !errors.is_empty() {
             return Err(errors);

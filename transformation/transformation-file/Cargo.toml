@@ -1,0 +1,23 @@
+[package]
+name = "transformation-file"
+version = "0.4.5"
+edition = "2021"
+authors = ["Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>", "Robert Mitwicki <robert.mitwicki@opensoftware.pl>", "Michał Pietrus <michal.pietrus@opensoftware.pl>"]
+license = "EUPL-1.2"
+readme = "README.md"
+description = "Rust implementation of OCAFile"
+
+[lib]
+name = "transformation_file"
+path = "src/lib.rs"
+
+[dependencies]
+indexmap = { version = "1.8.0", features = ["serde"]}
+oca-ast-transformation = { version = "0.4.5", path = "../ast" }
+said = { version = "0.3.0", features = ["macros"] }
+serde = { version = "1.0", features = ["derive"] }
+serde-value = "0.7.0"
+serde_json = { version = "1.0", features = ["preserve_order"] }
+serde_yaml = "0.9"
+thiserror = "1.0.49"
+wasm-bindgen = { version = "0.2.89" }
