@@ -1,6 +1,10 @@
 # OCA Rust
 
-Collection of libraries and tools related with Overlays Capture Architecture (OCA) build in Rust
+Collection of libraries and tools related to Overlays Capture Architecture (OCA) built in Rust
+
+## What is OCA
+
+See the docs page https://oca.colossi.network/
 
 ## Usage
 
@@ -43,7 +47,7 @@ oca_facade.get_oca_bundle_ocafile(oca_bundle_said)?;
 
 ### oca-ast
 
-OCA AST lib allowing to generate and work with OCA bundle AST
+OCA AST lib allows to generate and work with OCA bundle AST
 
 ### ocafile
 
@@ -51,4 +55,4 @@ Lib and bin tool to deal with OCAFILE, parsing and creating ocafile
 
 ### oca-bundle
 
-Library allowing to build oca bundle
+A library allowing to build OCA bundle
