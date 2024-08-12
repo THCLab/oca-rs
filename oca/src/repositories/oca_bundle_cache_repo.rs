@@ -1,4 +1,5 @@
 use oca_bundle::{state::oca::OCABundle, Encode};
+use said::{derivation::HashFunctionCode, sad::SerializationFormats};
 
 use crate::facade::Connection;
 
@@ -10,9 +11,11 @@ pub struct OCABundleCacheRecord {
 
 impl OCABundleCacheRecord {
     pub fn new(oca_bundle: &OCABundle) -> Self {
+        let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
         Self {
             said: oca_bundle.said.clone().unwrap().to_string(),
-            oca_bundle: String::from_utf8(oca_bundle.encode().unwrap()).unwrap(),
+            oca_bundle: String::from_utf8(oca_bundle.encode(&code, &format).unwrap()).unwrap(),
         }
     }
 }

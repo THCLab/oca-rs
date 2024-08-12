@@ -1,7 +1,7 @@
 use crate::state::attribute::Attribute;
 use indexmap::IndexMap;
 use oca_ast::ast::NestedAttrType;
-use said::{sad::SerializationFormats, sad::SAD};
+use said::{derivation::HashFunctionCode, sad::{SerializationFormats, SAD}};
 use serde::{ser::SerializeMap, ser::SerializeSeq, Deserialize, Serialize, Serializer};
 
 pub fn serialize_attributes<S>(
@@ -94,7 +94,9 @@ impl CaptureBase {
     }
 
     pub fn fill_said(&mut self) {
-        self.compute_digest(); //HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+        let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
+        self.compute_digest(&code, &format);
     }
 
     pub fn sign(&mut self) {

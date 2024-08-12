@@ -17,6 +17,8 @@ use oca_bundle::build::{OCABuild, OCABuildStep};
 use oca_bundle::state::oca::OCABundle;
 use oca_bundle::Encode;
 use oca_dag::build_core_db_model;
+use said::derivation::HashFunctionCode;
+use said::sad::SerializationFormats;
 
 #[derive(thiserror::Error, Debug, serde::Serialize)]
 #[serde(untagged)]
@@ -294,11 +296,13 @@ impl Facade {
             )
             .unwrap();
 
+        let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
         self.db_cache
             .insert(
                 Namespace::OCABundlesJSON,
                 &result_bundle.said.clone().unwrap().to_string(),
-                &result_bundle.encode().unwrap(),
+                &result_bundle.encode(&code, &format).unwrap(),
             )
             .unwrap();
         self.db_cache

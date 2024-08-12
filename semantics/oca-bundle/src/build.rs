@@ -513,7 +513,7 @@ mod tests {
     use super::*;
     use indexmap::IndexMap;
     use oca_ast::ast::{AttributeType, CaptureContent};
-    use said::version::Encode;
+    use said::{derivation::HashFunctionCode, sad::SerializationFormats, version::Encode};
 
     #[test]
     fn test_add_step() {
@@ -868,7 +868,9 @@ mod tests {
         let build_result = from_ast(None, &oca_ast);
         match build_result {
             Ok(oca_build) => {
-                let oca_bundle_encoded = oca_build.oca_bundle.encode().unwrap();
+                let code = HashFunctionCode::Blake3_256;
+                let format = SerializationFormats::JSON;
+                let oca_bundle_encoded = oca_build.oca_bundle.encode(&code, &format).unwrap();
                 let oca_bundle_json = String::from_utf8(oca_bundle_encoded).unwrap();
                 println!("{}", oca_bundle_json);
             }

@@ -2,9 +2,7 @@
 mod test {
     use oca_rs::{
         data_storage::{DataStorage, InMemoryDataStorage},
-        facade::build::Error,
-        facade::bundle::Bundle,
-        facade::Encode,
+        facade::{build::Error, bundle::Bundle, Encode, HashFunctionCode, SerializationFormats},
         repositories::SQLiteConfig,
         Facade,
     };
@@ -40,9 +38,11 @@ RENAME ATTRIBUTE d=first_name
         bundle.add(result_rename);
         bundle.fill_said();
 
+        let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
         println!(
             "{:#?}",
-            String::from_utf8(bundle.encode().unwrap()).unwrap()
+            String::from_utf8(bundle.encode(&code, &format).unwrap()).unwrap()
         );
 
         Ok(())

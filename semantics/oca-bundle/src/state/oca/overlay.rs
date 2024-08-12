@@ -35,11 +35,12 @@ pub use self::meta::MetaOverlay as Meta;
 pub use self::standard::StandardOverlay as Standard;
 pub use self::subset::SubsetOverlay as Subset;
 pub use oca_ast::ast::OverlayType;
+use said::derivation::HashFunctionCode;
 
 pub use self::unit::UnitOverlay as Unit;
 use crate::state::attribute::Attribute;
 use isolang::Language;
-use said::sad::SAD;
+use said::sad::{SerializationFormats, SAD};
 use std::any::Any;
 erased_serde::serialize_trait_object!(Overlay);
 
@@ -61,7 +62,9 @@ pub trait Overlay: erased_serde::Serialize + Clone + SAD {
     fn add(&mut self, attribute: &Attribute);
 
     fn fill_said(&mut self) {
-        self.compute_digest(); //HashFunctionCode::Blake3_256, SerializationFormats::JSON);
+        let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
+        self.compute_digest(&code, &format);
     }
 
     fn sign(&mut self, capture_base_sai: &said::SelfAddressingIdentifier) {

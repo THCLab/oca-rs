@@ -90,7 +90,7 @@ mod tests {
 
     use super::*;
     use indexmap::IndexMap;
-    use said::version::Encode;
+    use said::{derivation::HashFunctionCode, sad::SerializationFormats, version::Encode};
 
     #[test]
     fn build_from_ast() {
@@ -116,7 +116,9 @@ mod tests {
         let build_result = from_ast(&ast);
         match build_result {
             Ok(transformation) => {
-                let transformation_encoded = transformation.encode().unwrap();
+                let code = HashFunctionCode::Blake3_256;
+                let format = SerializationFormats::JSON;
+                let transformation_encoded = transformation.encode(&code, &format).unwrap();
                 let transformation_json =
                     String::from_utf8(transformation_encoded).unwrap();
                 println!("{}", transformation_json);

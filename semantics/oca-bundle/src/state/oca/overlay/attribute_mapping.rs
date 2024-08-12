@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::BTreeMap;
 
+use said::derivation::HashFunctionCode;
 use said::{sad::SerializationFormats, sad::SAD};
 
 #[derive(SAD, Serialize, Deserialize, Debug, Clone)]

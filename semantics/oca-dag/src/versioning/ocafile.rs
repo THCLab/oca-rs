@@ -1,7 +1,7 @@
 use crate::data_storage::DataStorage;
 use oca_ast::ast::{self, RefValue};
 use oca_bundle::state::oca::{OCABox, OCABundle};
-use said::version::Encode;
+use said::{derivation::HashFunctionCode, sad::SerializationFormats, version::Encode};
 
 pub fn build_oca(
     db: Box<dyn DataStorage>,
@@ -56,9 +56,11 @@ pub fn build_oca(
                 &format!("oca.{}.operation", oca_bundle.clone().said.unwrap()),
                 &input,
             )?;
+            let code = HashFunctionCode::Blake3_256;
+            let format = SerializationFormats::JSON;
             db.insert(
                 &format!("oca.{}", oca_bundle.clone().said.unwrap()),
-                &oca_bundle.encode().unwrap(),
+                &oca_bundle.encode(&code, &format).unwrap(),
             )?;
 
             base = Some(oca_box);
@@ -272,9 +274,12 @@ mod tests {
 
         let db = SledDataStorage::open("db_test");
         let oca = build_oca(Box::new(db), commands);
+
+        let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
         println!(
             "{:?}",
-            String::from_utf8(oca.clone().unwrap().encode().unwrap())
+            String::from_utf8(oca.clone().unwrap().encode(&code, &format).unwrap())
         );
 
         let db_read = SledDataStorage::open("db_test");

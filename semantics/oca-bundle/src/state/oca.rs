@@ -14,6 +14,7 @@ use crate::state::oca::overlay::meta::Metas;
 use crate::state::oca::overlay::unit::{AttributeUnit, Unit};
 use indexmap::IndexMap;
 use linked_hash_map::LinkedHashMap;
+use said::derivation::HashFunctionCode;
 use said::sad::{SerializationFormats, SAD};
 use said::version::SerializationInfo;
 use serde::{ser::SerializeMap, Deserialize, Deserializer, Serialize, Serializer};
@@ -126,7 +127,7 @@ impl OCABox {
             overlays,
         };
 
-        oca_bundle.compute_digest();
+        oca_bundle.fill_said();
         oca_bundle
     }
 
@@ -862,7 +863,9 @@ impl From<OCABundle> for OCABox {
 
 impl OCABundle {
     pub fn fill_said(&mut self) {
-        self.compute_digest();
+        let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
+        self.compute_digest(&code, &format);
     }
 
     pub fn to_ast(&self) -> OCAAst {

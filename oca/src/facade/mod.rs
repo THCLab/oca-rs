@@ -9,7 +9,7 @@ pub mod build;
 mod explore;
 mod fetch;
 pub mod bundle;
-pub use said::version::Encode;
+pub use said::{derivation::HashFunctionCode, sad::SerializationFormats, version::Encode};
 
 #[derive(Clone)]
 pub struct Connection {

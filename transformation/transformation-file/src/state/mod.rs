@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use said::derivation::HashFunctionCode;
 use said::{sad::SerializationFormats, sad::SAD};
 use said::version::SerializationInfo;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -34,6 +35,8 @@ impl Transformation {
     }
 
     pub fn fill_said(&mut self) {
-        self.compute_digest();
+        let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
+        self.compute_digest(&code, &format);
     }
 }
