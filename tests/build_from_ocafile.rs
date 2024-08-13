@@ -5,7 +5,7 @@ pub mod dev;
 mod test {
     use oca_rs::{
         data_storage::{DataStorage, InMemoryDataStorage},
-        facade::build::Error,
+        facade::{build::Error, build::ValidationError, bundle::BundleElement},
         repositories::SQLiteConfig,
         Facade,
     };
@@ -27,8 +27,8 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
 
         let result = facade.build_from_ocafile(ocafile)?;
 
-        assert!(matches!(result, oca_rs::facade::bundle::BundleElement::Mechanics(_)));
-        if let oca_rs::facade::bundle::BundleElement::Mechanics(result) = result {
+        assert!(matches!(result, BundleElement::Mechanics(_)));
+        if let BundleElement::Mechanics(result) = result {
             assert_eq!(
                 result.said.unwrap().to_string(),
                 "EObIQDZX7SGy2oPOZue8qCdLWKSq10pXqMWdrXpBXIDa"
@@ -65,7 +65,7 @@ ADD ATTRIBUTE x=Text
         .to_string();
         let result = facade.build_from_ocafile(ocafile)?;
 
-        if let oca_rs::facade::bundle::BundleElement::Mechanics(result) = result {
+        if let BundleElement::Mechanics(result) = result {
             assert_eq!(
                 result.said.unwrap().to_string(),
                 "EFN-Tzpt-xT640208nKCvIaUrbhIfiI2g_basSsriJDU"
@@ -76,7 +76,6 @@ ADD ATTRIBUTE x=Text
         }
     }
 
-    #[cfg(feature = "local-references")]
     #[test]
     fn build_with_references() -> Result<(), Vec<Error>> {
         let db = InMemoryDataStorage::new();
@@ -106,37 +105,41 @@ ADD ATTRIBUTE C=Array[refn:second]
         .to_string();
         let result = facade.build_from_ocafile(ocafile).unwrap();
 
-        assert_eq!(
-            result.said.unwrap().to_string(),
-            "EPJQXAl5fa9PKHjAtbX7EsdnFDXZCwcC7iYBt5YmdbqU"
-        );
+        assert!(matches!(result, BundleElement::Mechanics(_)));
+        if let BundleElement::Mechanics(mechanics) = result {
+            assert_eq!(
+                mechanics.said.unwrap().to_string(),
+                "EK6bWLXxC3EqDHS64sRZLwIyE_ee4O7dU-siB2NM5_Vf"
+            );
+        }
+
         let from_ocafile = r#"
-FROM EJ9jPoPyZxJNtQsWI_yiHowfbP1B9SDOvlsSxlHbn9oW
+FROM ECqVjzB2YYgLhcbBEf49tWYuXLeSBND9LrA0fr78RTLH
 ADD ATTRIBUTE x=Text
 "#
         .to_string();
 
         let result = facade.build_from_ocafile(from_ocafile).unwrap();
-
-        assert_eq!(
-            result.said.unwrap().to_string(),
-            "ENyO7FUBx7oILUYt8FwmLaDVmvOZGETXWHICultMSEpW"
-        );
+        assert!(matches!(result, BundleElement::Mechanics(_)));
+        if let BundleElement::Mechanics(mechanics) = result {
+            assert_eq!(
+                mechanics.said.unwrap().to_string(),
+                "EGKzDtiH4nzNj7WKJA6I_LShk_biOc33yKi35k1X4VM3"
+            );
+        }
         let refs = facade.fetch_all_refs().unwrap();
 
         assert_eq!(refs.len(), 2);
         assert_eq!(
             refs.get("second").unwrap(),
-            "EJ9jPoPyZxJNtQsWI_yiHowfbP1B9SDOvlsSxlHbn9oW"
+            "ECqVjzB2YYgLhcbBEf49tWYuXLeSBND9LrA0fr78RTLH"
         );
 
         Ok(())
     }
 
-    #[cfg(feature = "local-references")]
     #[test]
-    #[should_panic(expected = "Reference not found")]
-    fn panic_while_building_from_unknown_reference() {
+    fn fail_while_building_from_unknown_reference() {
         let db = InMemoryDataStorage::new();
         let db_cache = InMemoryDataStorage::new();
         let cache_storage_config = SQLiteConfig::build().unwrap();
@@ -148,6 +151,17 @@ ADD ATTRIBUTE B=refn:second
 ADD ATTRIBUTE C=Array[refn:third]
 "#
         .to_string();
-        let _ = facade.build_from_ocafile(ocafile);
+        let result = facade.build_from_ocafile(ocafile);
+        assert!(result.is_err());
+        let errors = result.unwrap_err();
+        let error = errors.first().unwrap();
+        let Error::ValidationError(validation_errors) = error;
+        let validation_error = validation_errors.first().unwrap();
+        assert!(
+            matches!(
+                validation_error,
+                ValidationError::UnknownRefn(_)
+            )
+        );
     }
 }

@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dev-dependencies]
-oca-rs = {path = "../oca"}
+oca-rs = {path = "../oca", features = ["local-references"]}
 
 [[test]]
 name = "build_from_ocafile"
