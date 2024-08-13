@@ -115,12 +115,12 @@ mod tests {
                                         Some(&"document_number".to_string())
                                     );
                                 }
-                                _ => {
+                                /* _ => {
                                     assert!(
                                         !is_valid,
                                         "Instruction is not valid"
                                     );
-                                }
+                                } */
                             }
                         }
                         None => {

@@ -2,10 +2,10 @@ use indexmap::IndexMap;
 use said::derivation::HashFunctionCode;
 use said::{sad::SerializationFormats, sad::SAD};
 use said::version::SerializationInfo;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
 #[derive(SAD, Serialize, Debug, Deserialize, Clone)]
-#[version(protocol = "T", major = 1, minor = 0)]
+#[version(protocol = "OCAT", major = 1, minor = 0)]
 // #[said(format = "JSON")]
 pub struct Transformation {
     #[said]

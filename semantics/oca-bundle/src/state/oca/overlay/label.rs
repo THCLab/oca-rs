@@ -1,6 +1,6 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
 use isolang::Language;
-use oca_ast::ast::OverlayType;
+use oca_ast_semantics::ast::OverlayType;
 use said::derivation::HashFunctionCode;
 use said::{sad::SerializationFormats, sad::SAD};
 use serde::{ser::SerializeMap, ser::SerializeSeq, Deserialize, Serialize, Serializer};

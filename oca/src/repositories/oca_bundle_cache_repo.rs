@@ -1,4 +1,4 @@
-use oca_bundle::{state::oca::OCABundle, Encode};
+use oca_bundle_semantics::{state::oca::OCABundle, Encode};
 use said::{derivation::HashFunctionCode, sad::SerializationFormats};
 
 use crate::facade::Connection;

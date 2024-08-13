@@ -1,5 +1,5 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
-use oca_ast::ast::OverlayType;
+use oca_ast_semantics::ast::OverlayType;
 use piccolo::{Closure, Lua, Thread};
 use said::derivation::HashFunctionCode;
 use said::{sad::SerializationFormats, sad::SAD};
@@ -185,7 +185,7 @@ impl Default for ConditionalOverlay {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oca_ast::ast::{AttributeType, NestedAttrType};
+    use oca_ast_semantics::ast::{AttributeType, NestedAttrType};
 
     struct Dependency {
         name: String,

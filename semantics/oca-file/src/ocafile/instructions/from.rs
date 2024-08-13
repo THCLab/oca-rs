@@ -1,6 +1,6 @@
 use crate::ocafile::{error::InstructionError, Pair, Rule};
 use log::debug;
-use oca_ast::ast::{BundleContent, Command, CommandType, ObjectKind, RefValue, ReferenceAttrType};
+use oca_ast_semantics::ast::{BundleContent, Command, CommandType, ObjectKind, RefValue, ReferenceAttrType};
 use said::SelfAddressingIdentifier;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -39,7 +39,7 @@ impl FromInstruction {
 #[cfg(test)]
 mod tests {
     use crate::ocafile::{self, error::InstructionError, OCAfileParser, Pair, Rule};
-    use oca_ast::ast::RefValue;
+    use oca_ast_semantics::ast::RefValue;
     use pest::Parser;
 
     pub fn parse_direct<T, F>(input: &str, rule: Rule, func: F) -> Result<T, InstructionError>

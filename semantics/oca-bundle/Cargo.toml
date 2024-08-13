@@ -1,5 +1,5 @@
 [package]
-name = "oca-bundle"
+name = "oca-bundle-semantics"
 description = "Rust implementation of Overlays Capture Architecture bundle"
 version = "0.4.5"
 license = "EUPL-1.2"
@@ -15,7 +15,7 @@ include = ["src/**/*", "config/**/*", "README.md"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-name = "oca_bundle"
+name = "oca_bundle_semantics"
 path = "src/lib.rs"
 
 [features]
@@ -31,7 +31,7 @@ indexmap = { version = "1.8.0", features = ["serde"]}
 isolang = { version = "2.3.0", features = ["serde"] }
 lazy_static = "1.4.0"
 linked-hash-map = { version = "0.5.6", features = ["serde_impl"] }
-oca-ast = { version = "0.4.5", path = "../oca-ast" }
+oca-ast-semantics = { version = "0.4.5", path = "../oca-ast" }
 paste = "1.0.11"
 piccolo = "0.1.1"
 regex = "1.5.4"

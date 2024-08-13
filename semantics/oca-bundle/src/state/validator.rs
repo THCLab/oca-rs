@@ -2,7 +2,7 @@ use crate::state::oca::overlay::Overlay;
 use crate::state::oca::DynOverlay;
 use indexmap::IndexMap;
 use isolang::Language;
-use oca_ast::ast::{AttributeType, NestedAttrType, OverlayType};
+use oca_ast_semantics::ast::{AttributeType, NestedAttrType, OverlayType};
 use std::{
     collections::{HashMap, HashSet},
     error::Error as StdError,

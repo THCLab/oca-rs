@@ -1,4 +1,4 @@
-use oca_file::ocafile::error::ParseError as SemanticsParseError;
+use oca_file_semantics::ocafile::error::ParseError as SemanticsParseError;
 use oca_file_transformation::ocafile::error::ParseError as TransformationParseError;
 
 #[derive(thiserror::Error, Debug, serde::Serialize)]

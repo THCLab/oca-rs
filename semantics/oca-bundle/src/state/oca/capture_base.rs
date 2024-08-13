@@ -1,6 +1,6 @@
 use crate::state::attribute::Attribute;
 use indexmap::IndexMap;
-use oca_ast::ast::NestedAttrType;
+use oca_ast_semantics::ast::NestedAttrType;
 use said::{derivation::HashFunctionCode, sad::{SerializationFormats, SAD}};
 use serde::{ser::SerializeMap, ser::SerializeSeq, Deserialize, Serialize, Serializer};
 

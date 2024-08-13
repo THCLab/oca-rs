@@ -133,16 +133,16 @@ pub fn parse_from_string(unparsed_file: String) -> Result<TransformationAST, Par
 }
 
 pub fn generate_from_ast(ast: &TransformationAST) -> String {
-    let mut ocafile = String::new();
+    let ocafile = String::new();
 
     ast.commands.iter().for_each(|command| {
-        let mut line = String::new();
+        let _line = String::new();
 
         match command.kind {
             ast::CommandType::Rename => todo!(),
         }
 
-        ocafile.push_str(format!("{}\n", line).as_str());
+        // ocafile.push_str(format!("{}\n", line).as_str());
     });
 
     ocafile

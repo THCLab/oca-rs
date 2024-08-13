@@ -1,7 +1,7 @@
 use crate::ocafile::{error::InstructionError, Pair, Rule};
 use indexmap::IndexMap;
 use log::debug;
-use oca_ast::ast::{
+use oca_ast_semantics::ast::{
     CaptureContent, Command, CommandType, Content, NestedAttrType, NestedValue, ObjectKind,
     OverlayType,
 };

@@ -1,6 +1,6 @@
 use crate::data_storage::DataStorage;
-use oca_ast::ast::{self, RefValue};
-use oca_bundle::state::oca::{OCABox, OCABundle};
+use oca_ast_semantics::ast::{self, RefValue};
+use oca_bundle_semantics::state::oca::{OCABox, OCABundle};
 use said::{derivation::HashFunctionCode, sad::SerializationFormats, version::Encode};
 
 pub fn build_oca(
@@ -26,7 +26,7 @@ pub fn build_oca(
             let oca_b = serde_json::from_str::<OCABundle>(&oca_bundle_str).unwrap();
             base = Some(oca_b.into());
         } else {
-            let result = oca_bundle::build::apply_command(base.clone(), command.clone());
+            let result = oca_bundle_semantics::build::apply_command(base.clone(), command.clone());
             let mut oca_box: OCABox = OCABox::new();
             match result {
                 Ok(oca) => {
@@ -77,7 +77,7 @@ mod tests {
     use super::*;
     use crate::data_storage::{DataStorage, SledDataStorage};
     use indexmap::IndexMap;
-    use oca_ast::ast::{BundleContent, CaptureContent, Content};
+    use oca_ast_semantics::ast::{BundleContent, CaptureContent, Content};
     use said::SelfAddressingIdentifier;
 
     #[test]

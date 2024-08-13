@@ -1,5 +1,5 @@
 [package]
-name = "oca-dag"
+name = "oca-dag-semantics"
 version = "0.4.5"
 edition = "2021"
 authors = [
@@ -15,15 +15,15 @@ include = ["src/**/*", "LICENSE", "README.md"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-name = "oca_dag"
+name = "oca_dag_semantics"
 path = "src/lib.rs"
 
 [dependencies]
 dyn-clonable = "0.9.0"
 indexmap = { version = "1.9.3", features = ["serde"] }
 isolang = { version = "2.3.0", features = ["serde"] }
-oca-ast = { version = "0.4.5", path = "../oca-ast" }
-oca-bundle = { version = "0.4.5", path = "../oca-bundle", features = [
+oca-ast-semantics = { version = "0.4.5", path = "../oca-ast" }
+oca-bundle-semantics = { version = "0.4.5", path = "../oca-bundle", features = [
   "format_overlay",
 ] }
 said = { version = "0.4.1", features = ["macros"] }

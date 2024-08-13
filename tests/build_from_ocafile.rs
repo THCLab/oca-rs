@@ -31,7 +31,7 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
         if let oca_rs::facade::bundle::BundleElement::Mechanics(result) = result {
             assert_eq!(
                 result.said.unwrap().to_string(),
-                "EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs"
+                "EObIQDZX7SGy2oPOZue8qCdLWKSq10pXqMWdrXpBXIDa"
             );
 
             let search_result = facade.search_oca_bundle(None, "Ent".to_string(), 10, 1);
@@ -59,7 +59,7 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
         facade.build_from_ocafile(other_ocafile)?;
 
         let ocafile = r#"
-FROM EF5ERATRBBN_ewEo9buQbznirhBmvrSSC0O2GIR4Gbfs
+FROM EObIQDZX7SGy2oPOZue8qCdLWKSq10pXqMWdrXpBXIDa
 ADD ATTRIBUTE x=Text
 "#
         .to_string();
@@ -68,7 +68,7 @@ ADD ATTRIBUTE x=Text
         if let oca_rs::facade::bundle::BundleElement::Mechanics(result) = result {
             assert_eq!(
                 result.said.unwrap().to_string(),
-                "EBBLFLhdLLgmVOLJO0G6Bqa4-JhFyP8-E0HikwjuRB6w"
+                "EFN-Tzpt-xT640208nKCvIaUrbhIfiI2g_basSsriJDU"
             );
             Ok(())
         } else {

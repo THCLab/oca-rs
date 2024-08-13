@@ -1,4 +1,4 @@
-use oca_bundle::state::oca::capture_base::CaptureBase;
+use oca_bundle_semantics::state::oca::capture_base::CaptureBase;
 
 use crate::facade::Connection;
 

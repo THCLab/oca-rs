@@ -1,5 +1,5 @@
 use crate::state::{attribute::Attribute, oca::Overlay};
-use oca_ast::ast::OverlayType;
+use oca_ast_semantics::ast::OverlayType;
 use serde::{Deserialize, Serialize};
 use std::any::Any;
 use std::collections::BTreeMap;

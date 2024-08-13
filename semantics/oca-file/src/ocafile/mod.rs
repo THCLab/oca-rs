@@ -9,14 +9,14 @@ use self::{
 };
 use crate::ocafile::error::InstructionError;
 use convert_case::{Case, Casing};
-use oca_ast::{
+use oca_ast_semantics::{
     ast::{
         self, recursive_attributes::NestedAttrTypeFrame, Command, CommandMeta,
         NestedAttrType, RefValue,
     },
     validator::{OCAValidator, Validator},
 };
-pub use oca_ast::ast::OCAAst;
+pub use oca_ast_semantics::ast::OCAAst;
 use pest::Parser;
 use recursion::CollapsibleExt;
 
@@ -486,7 +486,7 @@ pub fn generate_from_ast(ast: &OCAAst) -> String {
 
 #[cfg(test)]
 mod tests {
-    use oca_ast::ast::AttributeType;
+    use oca_ast_semantics::ast::AttributeType;
     use said::derivation::{HashFunction, HashFunctionCode};
 
     use super::{error::ExtractingAttributeError, *};

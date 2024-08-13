@@ -1,6 +1,6 @@
 use crate::data_storage::Namespace;
-use oca_ast::ast::{BundleContent, CaptureContent, Content, ObjectKind, RefValue};
-use oca_bundle::state::oca::OCABundle;
+use oca_ast_semantics::ast::{BundleContent, CaptureContent, Content, ObjectKind, RefValue};
+use oca_bundle_semantics::state::oca::OCABundle;
 use serde::{ser::SerializeStruct, Serialize};
 use std::collections::HashSet;
 
@@ -27,7 +27,7 @@ impl Facade {
             Namespace::OCARelations,
             &format!("{}.metadata", oca_bundle.said.clone().unwrap()),
             &[ObjectKind::OCABundle(BundleContent {
-                said: oca_ast::ast::ReferenceAttrType::Reference(RefValue::Name("".to_string())),
+                said: oca_ast_semantics::ast::ReferenceAttrType::Reference(RefValue::Name("".to_string())),
             })
             .into()],
         )?;
@@ -169,7 +169,7 @@ impl From<Vec<u8>> for Relationship {
         let mut result = Relationship::new(OCAObject {
             said: "".to_string(),
             object_type: ObjectKind::OCABundle(BundleContent {
-                said: oca_ast::ast::ReferenceAttrType::Reference(RefValue::Name("".to_string())),
+                said: oca_ast_semantics::ast::ReferenceAttrType::Reference(RefValue::Name("".to_string())),
             }),
         });
 

@@ -3,7 +3,7 @@ pub mod error;
 use std::collections::HashMap;
 
 use self::error::ParseError;
-use oca_file::ocafile::{
+use oca_file_semantics::ocafile::{
     parse_from_string as semantics_parse_from_string, OCAAst as SemanticsAst,
 };
 use oca_file_transformation::ocafile::{

@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use oca_ast::ast::{CommandType, NestedAttrType, OCAAst, ObjectKind, RefValue};
+use oca_ast_semantics::ast::{CommandType, NestedAttrType, OCAAst, ObjectKind, RefValue};
 use said::SelfAddressingIdentifier;
 
 use crate::facade::build::ValidationError;

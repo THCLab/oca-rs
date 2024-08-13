@@ -1,10 +1,10 @@
 use crate::{
-    ast::{Command, NestedValue, TransformationAST},
+    ast::{Command, TransformationAST},
     errors::Error,
 };
-use indexmap::{indexmap, IndexMap};
+// use indexmap::{indexmap, IndexMap};
 
-type CaptureAttributes = IndexMap<String, String>;
+//type CaptureAttributes = IndexMap<String, String>;
 
 /// Validates given commands against existing valid OCA AST
 ///
@@ -49,7 +49,7 @@ impl Validator for OCAValidator {
     }
 }
 
-fn validate_1_0_0(ast: &TransformationAST, command: Command) -> Result<bool, Error> {
+fn validate_1_0_0(_ast: &TransformationAST, _command: Command) -> Result<bool, Error> {
     // Rules
     // Cannot remove if does not exist on stack
     // Cannot modify if does not exist on stack
@@ -57,11 +57,11 @@ fn validate_1_0_0(ast: &TransformationAST, command: Command) -> Result<bool, Err
     // Attributes must have valid type
     let valid = true;
     let errors = Vec::new();
-    match (&command.kind, &command.object_kind) {
+    /* match (&command.kind, &command.object_kind) {
         _ => {
             // TODO: Add support for FROM, MODIFY with combination of different object kinds
         }
-    }
+    } */
     // CommandType::Modify => {
     //     match rule_modify_if_exist(ast, command) {
     //         Ok(result) => {
@@ -83,7 +83,7 @@ fn validate_1_0_0(ast: &TransformationAST, command: Command) -> Result<bool, Err
     }
 }
 
-fn extract_attributes(ast: &TransformationAST) -> CaptureAttributes {
+/* fn extract_attributes(ast: &TransformationAST) -> CaptureAttributes {
     let default_attrs: IndexMap<String, String> = indexmap! {};
     let mut attributes: CaptureAttributes = indexmap! {};
     for instruction in &ast.commands {
@@ -103,7 +103,7 @@ fn extract_properties(ast: &TransformationAST) -> IndexMap<String, NestedValue> 
         }
     }
     properties
-}
+} */
 
 #[cfg(test)]
 mod tests {

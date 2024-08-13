@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
-use oca_ast::ast;
-use oca_bundle::state::oca::OCABundle;
-use oca_dag::data_storage::{DataStorage, SledDataStorage};
+use oca_ast_semantics::ast;
+use oca_bundle_semantics::state::oca::OCABundle;
+use oca_dag_semantics::data_storage::{DataStorage, SledDataStorage};
 
 fn generate_commands() -> Vec<ast::Command> {
     let mut commands: Vec<ast::Command> = vec![];

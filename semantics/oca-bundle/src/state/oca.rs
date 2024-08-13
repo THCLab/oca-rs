@@ -28,7 +28,7 @@ use crate::state::{
 };
 use convert_case::{Case, Casing};
 use isolang::Language;
-use oca_ast::ast::{
+use oca_ast_semantics::ast::{
     CaptureContent, Command, CommandType, Content, NestedValue, OCAAst, ObjectKind, OverlayType,
 };
 /// Internal representation of OCA objects in split between non-attributes values and attributes.
@@ -648,7 +648,7 @@ impl std::fmt::Debug for DynOverlay {
 }
 
 #[derive(SAD, Serialize, Debug, Deserialize, Clone)]
-#[version(protocol = "OCAB", major = 1, minor = 0)]
+#[version(protocol = "OCAM", major = 1, minor = 0)]
 // #[said(format = "JSON")]
 pub struct OCABundle {
     #[said]
@@ -1273,7 +1273,7 @@ impl AttributeLayoutValues {
 #[cfg(test)]
 mod tests {
     use maplit::hashmap;
-    use oca_ast::ast::{NestedAttrType, RefValue};
+    use oca_ast_semantics::ast::{NestedAttrType, RefValue};
     use said::SelfAddressingIdentifier;
 
     use super::*;

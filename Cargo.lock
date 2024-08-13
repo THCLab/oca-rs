@@ -831,7 +831,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oca-ast"
+name = "oca-ast-semantics"
 version = "0.4.5"
 dependencies = [
  "env_logger",
@@ -867,7 +867,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oca-bundle"
+name = "oca-bundle-semantics"
 version = "0.4.5"
 dependencies = [
  "cascade",
@@ -880,7 +880,7 @@ dependencies = [
  "lazy_static",
  "linked-hash-map",
  "maplit",
- "oca-ast",
+ "oca-ast-semantics",
  "paste",
  "piccolo",
  "regex",
@@ -895,14 +895,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "oca-dag"
+name = "oca-dag-semantics"
 version = "0.4.5"
 dependencies = [
  "dyn-clonable",
  "indexmap 1.9.3",
  "isolang",
- "oca-ast",
- "oca-bundle",
+ "oca-ast-semantics",
+ "oca-bundle-semantics",
  "said",
  "serde",
  "serde_json",
@@ -918,7 +918,29 @@ dependencies = [
  "env_logger",
  "indexmap 1.9.3",
  "log",
- "oca-ast",
+ "oca-file-semantics",
+ "oca-file-transformation",
+ "pest",
+ "pest_derive",
+ "pretty_assertions",
+ "recursion",
+ "said",
+ "serde",
+ "serde_json",
+ "sled",
+ "thiserror",
+]
+
+[[package]]
+name = "oca-file-semantics"
+version = "0.4.5"
+dependencies = [
+ "clap 4.4.8",
+ "convert_case",
+ "env_logger",
+ "indexmap 1.9.3",
+ "log",
+ "oca-ast-semantics",
  "pest",
  "pest_derive",
  "pretty_assertions",
@@ -958,11 +980,11 @@ dependencies = [
  "dyn-clonable",
  "isolang",
  "log",
- "oca-ast",
- "oca-bundle",
- "oca-dag",
+ "oca-ast-semantics",
+ "oca-bundle-semantics",
+ "oca-dag-semantics",
  "oca-file",
- "ocafile",
+ "oca-file-semantics",
  "regex",
  "rusqlite",
  "said",
@@ -971,28 +993,6 @@ dependencies = [
  "sled",
  "thiserror",
  "transformation-file",
-]
-
-[[package]]
-name = "ocafile"
-version = "0.4.5"
-dependencies = [
- "clap 4.4.8",
- "convert_case",
- "env_logger",
- "indexmap 1.9.3",
- "log",
- "oca-file",
- "oca-file-transformation",
- "pest",
- "pest_derive",
- "pretty_assertions",
- "recursion",
- "said",
- "serde",
- "serde_json",
- "sled",
- "thiserror",
 ]
 
 [[package]]

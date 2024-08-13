@@ -1,4 +1,4 @@
-use oca_bundle::state::oca::OCABundle;
+use oca_bundle_semantics::state::oca::OCABundle;
 use said::derivation::HashFunctionCode;
 use said::{sad::SerializationFormats, sad::SAD};
 use said::version::SerializationInfo;

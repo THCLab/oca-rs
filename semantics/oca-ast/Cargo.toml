@@ -1,5 +1,5 @@
 [package]
-name = "oca-ast"
+name = "oca-ast-semantics"
 description = "Library for handling Abstract Syntax Tree of OCA bundle"
 version = "0.4.5"
 license = "EUPL-1.2"
@@ -13,7 +13,7 @@ readme = "README.md"
 include = ["src/**/*", "LICENSE", "README.md"]
 
 [lib]
-name = "oca_ast"
+name = "oca_ast_semantics"
 path = "src/lib.rs"
 
 [dependencies]

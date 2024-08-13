@@ -8,7 +8,7 @@ members = [
   "oca",
   "oca-file",
   "transformation/ast",
-  "transformation/ocafile",
+  "transformation/oca-file",
   "transformation/transformation-file",
 
   "tests",

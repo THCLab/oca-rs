@@ -1,5 +1,5 @@
 use isolang::Language;
-use oca_bundle::state::{
+use oca_bundle_semantics::state::{
     attribute::{Attribute, AttributeType},
     encoding::Encoding,
     entries::EntriesElement,
@@ -20,7 +20,7 @@ use oca_bundle::state::{
 };
 
 #[cfg(feature = "format_overlay")]
-use oca_bundle::state::oca::overlay::format::Formats;
+use oca_bundle_semantics::state::oca::overlay::format::Formats;
 
 use cascade::cascade;
 use maplit::hashmap;
@@ -49,7 +49,7 @@ fn create_oca() {
 
     let mut attribute = cascade! {
         Attribute::new("name".to_string());
-        ..set_attribute_type(oca_ast::ast::NestedAttrType::Value(AttributeType::Text));
+        ..set_attribute_type(oca_ast_semantics::ast::NestedAttrType::Value(AttributeType::Text));
         ..set_flagged();
         ..set_encoding(Encoding::Utf8);
         ..set_cardinality("1".to_string());
@@ -74,7 +74,7 @@ fn create_oca() {
 
     let mut attribute_2 = cascade! {
         Attribute::new("age".to_string());
-        ..set_attribute_type(oca_ast::ast::NestedAttrType::Value(AttributeType::Numeric));
+        ..set_attribute_type(oca_ast_semantics::ast::NestedAttrType::Value(AttributeType::Numeric));
         ..set_flagged();
         ..set_encoding(Encoding::Utf8);
         ..set_cardinality("2".to_string());
@@ -110,7 +110,7 @@ fn create_oca() {
 
     let expected = if cfg!(feature = "format_overlay") {
         r#"{
-  "d": "EDsnRN7SgxuXLDren6zKnLoivAF3Zn6jAWCI8IKyztx0",
+  "d": "EG6q7g6y2WifcpJU9h-fXUD2WcQW1lG-o_OglhtWKKOa",
   "capture_base": {
     "d": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
     "type": "spec/capture_base/1.0",

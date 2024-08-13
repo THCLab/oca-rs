@@ -1,7 +1,7 @@
 pub mod data_storage;
 pub mod versioning;
 
-use oca_ast::ast;
+use oca_ast_semantics::ast;
 use said::{derivation::HashFunction, SelfAddressingIdentifier};
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -82,7 +82,7 @@ impl ResultModel {
     }
 }
 
-pub fn build_core_db_model(oca_build: &oca_bundle::build::OCABuild) -> Vec<ResultModel> {
+pub fn build_core_db_model(oca_build: &oca_bundle_semantics::build::OCABuild) -> Vec<ResultModel> {
     let mut state = State::new();
     let mut result_models = vec![];
 
@@ -95,7 +95,7 @@ pub fn build_core_db_model(oca_build: &oca_bundle::build::OCABuild) -> Vec<Resul
     result_models
 }
 
-fn apply_step(state: State, step: &oca_bundle::build::OCABuildStep) -> (State, ResultModel) {
+fn apply_step(state: State, step: &oca_bundle_semantics::build::OCABuildStep) -> (State, ResultModel) {
     let mut current_state = state.clone();
     let mut result = ResultModel::new();
     let command_model = CommandModel::new(step.command.clone());
@@ -169,7 +169,7 @@ fn apply_step(state: State, step: &oca_bundle::build::OCABuildStep) -> (State, R
 mod tests {
     use super::*;
     use indexmap::{indexmap, IndexMap};
-    use oca_ast::ast::Content;
+    use oca_ast_semantics::ast::Content;
 
     #[test]
     fn test_build_core_db_model() -> Result<(), Vec<String>> {
@@ -255,7 +255,7 @@ mod tests {
             commands_meta: IndexMap::new(),
             meta: HashMap::new(),
         };
-        let oca_build = oca_bundle::build::from_ast(None, &ast).unwrap();
+        let oca_build = oca_bundle_semantics::build::from_ast(None, &ast).unwrap();
 
         let result = build_core_db_model(&oca_build);
         assert_eq!(result.len(), 4);

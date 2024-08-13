@@ -3,7 +3,7 @@ use std::str::FromStr;
 use crate::ocafile::{error::ExtractingAttributeError, Pair, Rule};
 use indexmap::IndexMap;
 use log::debug;
-use oca_ast::ast::{
+use oca_ast_semantics::ast::{
     recursive_attributes::{AttributeTypeResult, NestedAttrTypeFrame},
     AttributeType, Content, NestedAttrType, NestedValue, RefValue,
 };
@@ -19,7 +19,7 @@ fn extract_attr_type(input: Pair) -> Result<NestedAttrType, ExtractingAttributeE
             }
         },
         Rule::alias => {
-            NestedAttrTypeFrame::Reference(oca_ast::ast::RefValue::Name(seed.as_str().to_string()))
+            NestedAttrTypeFrame::Reference(oca_ast_semantics::ast::RefValue::Name(seed.as_str().to_string()))
                 .into()
         }
         Rule::said => match SelfAddressingIdentifier::from_str(seed.as_str()) {

@@ -1,6 +1,6 @@
 use crate::state::oca::OCABox;
 use crate::state::{attribute::Attribute, oca::layout::form::Layout, oca::Overlay};
-use oca_ast::ast::OverlayType;
+use oca_ast_semantics::ast::OverlayType;
 use said::derivation::HashFunctionCode;
 use said::{sad::SerializationFormats, sad::SAD};
 use serde::{Deserialize, Serialize};

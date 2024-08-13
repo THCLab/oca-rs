@@ -63,7 +63,7 @@ pub fn apply_command(
     base: Option<Transformation>,
     op: ast::Command,
 ) -> Result<Transformation, Vec<String>> {
-    let mut errors = vec![];
+    let errors = vec![];
     let mut transformation: Transformation = match base {
         Some(transformation) => transformation,
         None => Transformation::new(),

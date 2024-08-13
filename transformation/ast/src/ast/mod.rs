@@ -124,7 +124,7 @@ pub enum NestedValue {
     Array(Vec<NestedValue>),
 }
 impl NestedValue {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    /* fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match self {
             NestedValue::Value(value) => {
                 value.hash(state);
@@ -141,7 +141,7 @@ impl NestedValue {
                 }
             }
         }
-    }
+    } */
 }
 // Implement Deserialize for Command
 impl<'de> Deserialize<'de> for Command {
@@ -218,18 +218,15 @@ impl<'de> Deserialize<'de> for Command {
                                 ));
                             }
                             let object_kind_str: String = map.next_value()?;
-                            match object_kind_str.as_str() {
-                                "Rename" => {
-                                    // take the key frist otherwise next value would not work
-                                    // properly
-                                    let _content_key: Option<String> =
-                                        map.next_key()?;
-                                    let content: RenameContent =
-                                        map.next_value()?;
-                                    object_kind =
-                                        Some(ObjectKind::Rename(content));
-                                }
-                                _ => {}
+                            if object_kind_str.as_str() == "Rename" {
+                                // take the key frist otherwise next value would not work
+                                // properly
+                                let _content_key: Option<String> =
+                                    map.next_key()?;
+                                let content: RenameContent =
+                                    map.next_value()?;
+                                object_kind =
+                                    Some(ObjectKind::Rename(content));
                             }
                         }
                     }
@@ -245,7 +242,7 @@ impl<'de> Deserialize<'de> for Command {
         }
 
         const FIELDS: &[&str] = &["type", "object_kind", "content"];
-        const VARIANTS: &[&str] = &["Rename"];
+        const _VARIANTS: &[&str] = &["Rename"];
         deserializer.deserialize_struct("Command", FIELDS, CommandVisitor)
     }
 }

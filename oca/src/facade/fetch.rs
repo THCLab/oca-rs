@@ -6,9 +6,9 @@ use crate::{
     data_storage::DataStorage,
     repositories::{OCABundleCacheRepo, OCABundleFTSRepo},
 };
-use oca_ast::ast::{self, OCAAst, ObjectKind, RefValue};
-use oca_bundle::build::OCABuildStep;
-use oca_bundle::state::oca::{capture_base::CaptureBase, DynOverlay, OCABundle};
+use oca_ast_semantics::ast::{self, OCAAst, ObjectKind, RefValue};
+use oca_bundle_semantics::build::OCABuildStep;
+use oca_bundle_semantics::state::oca::{capture_base::CaptureBase, DynOverlay, OCABundle};
 use said::SelfAddressingIdentifier;
 
 use serde::Serialize;
@@ -271,7 +271,7 @@ impl Facade {
         fn extract_operation(
             db: &Box<dyn DataStorage>,
             said: &String,
-        ) -> Result<(String, oca_ast::ast::Command), Vec<String>> {
+        ) -> Result<(String, oca_ast_semantics::ast::Command), Vec<String>> {
             let r = db
                 .get(Namespace::OCA, &format!("oca.{}.operation", said))
                 .map_err(|e| vec![format!("{}", e)])?
@@ -285,7 +285,7 @@ impl Facade {
             )
             .to_string();
 
-            match serde_json::from_str::<oca_ast::ast::Command>(&op) {
+            match serde_json::from_str::<oca_ast_semantics::ast::Command>(&op) {
                 Ok(command) => Ok((parent_said, command)),
                 Err(e) => Err(vec![format!("Failed to parse command: {}", e)]),
             }
@@ -334,7 +334,7 @@ impl Facade {
                 .map_err(|e| vec![e.to_string()])?;
         }
 
-        Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
+        Ok(oca_file_semantics::ocafile::generate_from_ast(&oca_ast))
     }
 
     /// Retrive steps (AST representation) for a given said
@@ -353,7 +353,7 @@ impl Facade {
 
     pub fn parse_oca_bundle_to_ocafile(&self, bundle: &OCABundle) -> Result<String, Vec<String>> {
         let oca_ast = bundle.to_ast();
-        Ok(oca_file::ocafile::generate_from_ast(&oca_ast))
+        Ok(oca_file_semantics::ocafile::generate_from_ast(&oca_ast))
     }
 }
 
@@ -423,6 +423,7 @@ fn retrive_all_references(bundle: OCABundle) -> Vec<SelfAddressingIdentifier> {
 mod test {
     use super::*;
     use crate::data_storage::InMemoryDataStorage;
+    use crate::facade::bundle::BundleElement;
     use crate::repositories::SQLiteConfig;
 
     #[test]
@@ -447,18 +448,25 @@ ADD ENTRY en ATTRS list="refs:ENrf7niTCnz7HD-Ci88rlxHlxkpQ2NIZNNv08fQnXANI" el={
 "#.to_string();
         let oca_bundle = facade.build_from_ocafile(ocafile_input);
         let oca_bundle = oca_bundle.unwrap();
+        if let BundleElement::Mechanics(mechanics) = oca_bundle {
+            let ocafile = facade.parse_oca_bundle_to_ocafile(&mechanics)?;
+            let new_mechanics = facade.build_from_ocafile(ocafile);
+            match new_mechanics {
+                Ok(BundleElement::Mechanics(new_mechanics)) => {
+                    assert_eq!(mechanics.said, new_mechanics.said);
+                }
+                Ok(_) => {
+                    panic!("Expected BundleElement::Mechanics")
+                }
+                Err(e) => {
+                    println!("{:#?}", e);
+                    panic!("Faild to load oca bundle");
+                }
+            }
+        } else {
+            panic!("Expected BundleElement::Mechanics")
+        }
 
-        /* let ocafile = facade.parse_oca_bundle_to_ocafile(&oca_bundle)?;
-        let new_oca_bundle = facade.build_from_ocafile(ocafile);
-        match new_oca_bundle {
-            Ok(new_oca_bundle) => {
-                assert_eq!(oca_bundle.said, new_oca_bundle.said);
-            }
-            Err(e) => {
-                println!("{:#?}", e);
-                panic!("Faild to load oca bundle");
-            }
-        } */
 
         Ok(())
     }
