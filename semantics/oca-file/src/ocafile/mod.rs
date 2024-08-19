@@ -232,33 +232,15 @@ pub fn generate_from_ast(ast: &OCAAst) -> String {
                         ast::OverlayType::Unit => {
                             line.push_str("UNIT ");
                             if let Some(content) = command.object_kind.overlay_content() {
-                                if let Some(ref properties) = content.properties {
-                                    let mut properties = properties.clone();
-                                    if let Some(ast::NestedValue::Value(unit_system)) =
-                                        properties.remove("unit_system")
-                                    {
-                                        line.push_str(format!("{} ", unit_system).as_str());
-                                    }
-                                    if !properties.is_empty() {
-                                        line.push_str("PROPS ");
-                                        properties.iter().for_each(|(key, value)| {
-                                            if let ast::NestedValue::Value(value) = value {
-                                                line.push_str(
-                                                    format!(" {}=\"{}\"", key, value).as_str(),
-                                                );
-                                            }
-                                        });
-                                    }
-                                    if let Some(ref attributes) = content.attributes {
-                                        line.push_str("ATTRS");
-                                        attributes.iter().for_each(|(key, value)| {
-                                            if let ast::NestedValue::Value(value) = value {
-                                                line.push_str(
-                                                    format!(" {}=\"{}\"", key, value).as_str(),
-                                                );
-                                            }
-                                        });
-                                    }
+                                if let Some(ref attributes) = content.attributes {
+                                    line.push_str("ATTRS");
+                                    attributes.iter().for_each(|(key, value)| {
+                                        if let ast::NestedValue::Value(value) = value {
+                                            line.push_str(
+                                                format!(" {}=\"{}\"", key, value).as_str(),
+                                            );
+                                        }
+                                    });
                                 }
                             };
                         }
@@ -509,7 +491,7 @@ ADD CONFORMANCE ATTRS d="M" i="M" passed="M"
 ADD LABEL en ATTRS d="Schema digest" i="Credential Issuee" passed="Passed"
 ADD INFORMATION en ATTRS d="Name" i="Credential Issuee" passed="Enables or disables passing"
 ADD FORMAT ATTRS d="image/jpeg"
-ADD UNIT si ATTRS i=m
+ADD UNIT ATTRS i=m
 ADD ATTRIBUTE list=Array[Text] el=Text
 ADD CARDINALITY ATTRS list="1-2"
 ADD ENTRY_CODE ATTRS list="entry_code_said" el=["o1", "o2", "o3"]

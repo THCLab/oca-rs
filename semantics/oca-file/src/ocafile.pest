@@ -168,7 +168,7 @@ conditional = {^"condition" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
 cardinality = {^"cardinality" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
 entry_code = {^"entry_code" ~ arg_ws ~ attrs_key ~ attr_entry_code_key_pairs}
 entry = {^"entry" ~ arg_ws ~ lang ~ arg_ws ~ attrs_key ~ attr_entry_key_pairs}
-unit = {^"unit" ~ arg_ws ~ unit_system ~ arg_ws ~ attrs_key ~ attr_key_pairs}
+unit = {^"unit" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
 
 flagged_attrs = {^"flagged_attributes" ~ arg_ws ~ list_value}
 classification = { ^"classification" ~ arg_ws ~ classification_value}

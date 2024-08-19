@@ -9,9 +9,7 @@ use crate::state::oca::overlay::format::Formats;
 use crate::state::oca::overlay::information::Information;
 use crate::state::oca::overlay::label::Labels;
 use crate::state::oca::overlay::meta::Metas;
-use crate::state::oca::overlay::unit::{
-    AttributeUnit, ImperialUnit, MeasurementSystem, MeasurementUnit, MetricUnit, Unit,
-};
+use crate::state::oca::overlay::unit::Units;
 use crate::state::oca::OCABundle;
 use crate::state::{
     attribute::Attribute, encoding::Encoding, entries::EntriesElement,
@@ -287,52 +285,20 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                     }
                 }
                 ast::OverlayType::Unit => {
-                    let mut unit_system_op = None;
-                    if let Some(ref properties) = content.properties {
-                        let mut mut_properties = properties.clone();
-                        let unit_system_prop = mut_properties.remove("unit_system");
-                        if let Some(ast::NestedValue::Value(unit_system_str)) = unit_system_prop {
-                            unit_system_op = MeasurementSystem::from_str(&unit_system_str).ok();
-                        }
-                    }
-                    if let Some(unit_system) = unit_system_op {
-                        if let Some(ref attributes) = content.attributes {
-                            for (attr_name, attr_type_value) in attributes {
-                                let mut attribute = oca
-                                    .attributes
-                                    .get(attr_name)
-                                    .ok_or_else(|| {
-                                        errors.push(format!("Undefined attribute: {attr_name}"));
-                                        errors.clone()
-                                    })?
-                                    .clone();
-                                if let ast::NestedValue::Value(attr_unit) = attr_type_value {
-                                    let unit = match unit_system {
-                                        MeasurementSystem::Metric => Some(MeasurementUnit::Metric(
-                                            MetricUnit::from_str(attr_unit).unwrap_or_else(|_| {
-                                                panic!("{}", "Invalid metric unit: {attr_unit}")
-                                            }),
-                                        )),
-                                        MeasurementSystem::Imperial => {
-                                            Some(MeasurementUnit::Imperial(
-                                                ImperialUnit::from_str(attr_unit).unwrap_or_else(
-                                                    |_| {
-                                                        panic!(
-                                                            "{}",
-                                                            "Invalid imperial unit: {attr_unit}"
-                                                        )
-                                                    },
-                                                ),
-                                            ))
-                                        }
-                                    };
-                                    attribute.set_unit(AttributeUnit {
-                                        measurement_system: unit_system.clone(),
-                                        unit: unit.unwrap(),
-                                    });
-                                }
-                                oca.add_attribute(attribute);
+                    if let Some(ref attributes) = content.attributes {
+                        for (attr_name, attr_type_value) in attributes {
+                            let mut attribute = oca
+                                .attributes
+                                .get(attr_name)
+                                .ok_or_else(|| {
+                                    errors.push(format!("Undefined attribute: {attr_name}"));
+                                    errors.clone()
+                                })?
+                                .clone();
+                            if let ast::NestedValue::Value(attr_unit) = attr_type_value {
+                                attribute.set_unit(attr_unit.clone());
                             }
+                            oca.add_attribute(attribute);
                         }
                     }
                 }

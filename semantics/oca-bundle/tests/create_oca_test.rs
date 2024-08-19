@@ -13,7 +13,7 @@ use oca_bundle_semantics::state::{
     oca::overlay::information::Information,
     oca::overlay::label::Labels,
     oca::overlay::meta::Metas,
-    oca::overlay::unit::{AttributeUnit, MeasurementSystem, MeasurementUnit, MetricUnit, Unit},
+    oca::overlay::unit::Units,
     /* oca::overlay::form_layout::FormLayouts,
     oca::overlay::credential_layout::CredentialLayouts; */
     oca::OCABox,
@@ -65,7 +65,7 @@ fn create_oca() {
             "a".to_string() => "Option A".to_string(),
             "b".to_string() => "Option B".to_string(),
         }));
-        ..set_unit(AttributeUnit { measurement_system: MeasurementSystem::Metric, unit: MeasurementUnit::Metric(MetricUnit::Kilogram) });
+        ..set_unit("kg".to_string());
     };
     #[cfg(feature = "format_overlay")]
     attribute.set_format("^[a-zA-Z]*$".to_string());
@@ -87,7 +87,7 @@ fn create_oca() {
             "a".to_string() => "Option A".to_string(),
             "b".to_string() => "Option B".to_string(),
         }));
-        ..set_unit(AttributeUnit { measurement_system: MeasurementSystem::Metric, unit: MeasurementUnit::Metric(MetricUnit::Kilogram) });
+        ..set_unit("kg".to_string());
     };
     #[cfg(feature = "format_overlay")]
     attribute_2.set_format("^[a-zA-Z]*$".to_string());
@@ -110,7 +110,7 @@ fn create_oca() {
 
     let expected = if cfg!(feature = "format_overlay") {
         r#"{
-  "d": "EG6q7g6y2WifcpJU9h-fXUD2WcQW1lG-o_OglhtWKKOa",
+  "d": "EDTFTeRDYSCPKg1U5xDXcJFqeU3vItsfXmxymdCP-G4K",
   "capture_base": {
     "d": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
     "type": "spec/capture_base/1.0",
@@ -256,20 +256,19 @@ fn create_oca() {
       }
     },
     "unit": {
-      "d": "EGeb2Uu_EKrMMaACGWSgHey5Ur8LJT6RlNatIeaPDZ31",
+      "d": "EI9WX2TU0_V60ZP9dxDM3zCaD9Z332P8F9lLPiuFnN4W",
       "type": "spec/overlays/unit/1.0",
       "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-      "measurement_system": "metric",
-      "attribute_units": {
-        "age": "kilogram",
-        "name": "kilogram"
+      "attribute_unit": {
+        "age": "kg",
+        "name": "kg"
       }
     }
   }
 }"#
     } else {
         r#"{
-  "d": "EFPeNUp47pVfrMoi_ioFV4dH63qQOWQGt5lM5EFted0c",
+  "d": "EO0BljbzMjgl4lFlxBYCWzGOuEUh67cDdxWG2iFU70YP",
   "capture_base": {
     "d": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
     "type": "spec/capture_base/1.0",
@@ -406,13 +405,12 @@ fn create_oca() {
       }
     },
     "unit": {
-      "d": "EGeb2Uu_EKrMMaACGWSgHey5Ur8LJT6RlNatIeaPDZ31",
+      "d": "EI9WX2TU0_V60ZP9dxDM3zCaD9Z332P8F9lLPiuFnN4W",
       "type": "spec/overlays/unit/1.0",
       "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-      "measurement_system": "metric",
-      "attribute_units": {
-        "age": "kilogram",
-        "name": "kilogram"
+      "attribute_unit": {
+        "age": "kg",
+        "name": "kg"
       }
     }
   }

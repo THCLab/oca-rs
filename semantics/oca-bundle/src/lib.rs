@@ -8,4 +8,4 @@ mod io;
 pub mod state;
 
 pub use dyn_clonable::dyn_clone;
-pub use said::version::Encode;
+pub use said::{derivation::HashFunctionCode, sad::SerializationFormats, version::Encode};

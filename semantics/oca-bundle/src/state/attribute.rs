@@ -1,7 +1,4 @@
-use super::{
-    oca::overlay::unit::{MeasurementSystem, MeasurementUnit},
-    standard::Standard,
-};
+use super::standard::Standard;
 use isolang::Language;
 pub use oca_ast_semantics::ast::AttributeType;
 use oca_ast_semantics::ast::NestedAttrType;
@@ -24,7 +21,7 @@ pub struct Attribute {
     pub encoding: Option<Encoding>,
     #[cfg(feature = "format_overlay")]
     pub format: Option<String>,
-    pub units: Option<HashMap<MeasurementSystem, MeasurementUnit>>,
+    pub unit: Option<String>,
     pub entry_codes_mapping: Option<Vec<String>>,
     pub condition: Option<String>,
     pub dependencies: Option<Vec<String>>,
@@ -52,7 +49,7 @@ impl Attribute {
             encoding: None,
             #[cfg(feature = "format_overlay")]
             format: None,
-            units: None,
+            unit: None,
             entry_codes: None,
             entries: None,
             entry_codes_mapping: None,
@@ -98,8 +95,8 @@ impl Attribute {
                 self.format.clone_from(&other.format);
             }
 
-            if self.units.is_none() {
-                self.units.clone_from(&other.units);
+            if self.unit.is_none() {
+                self.unit.clone_from(&other.unit);
             }
 
             if self.entry_codes.is_none() {

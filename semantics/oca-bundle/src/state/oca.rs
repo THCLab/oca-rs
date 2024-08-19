@@ -11,7 +11,7 @@ use crate::state::oca::overlay::format::Formats;
 use crate::state::oca::overlay::information::Information;
 use crate::state::oca::overlay::label::Labels;
 use crate::state::oca::overlay::meta::Metas;
-use crate::state::oca::overlay::unit::{AttributeUnit, Unit};
+use crate::state::oca::overlay::unit::Units;
 use indexmap::IndexMap;
 use linked_hash_map::LinkedHashMap;
 use said::derivation::HashFunctionCode;
@@ -224,22 +224,16 @@ impl OCABox {
                 }
             }
 
-            if let Some(units) = &attribute.units {
-                for measurement_system in units.keys() {
-                    let mut unit_ov = overlays.iter_mut().find(|x| {
-                        if let Some(x_unit) = x.as_any().downcast_ref::<overlay::Unit>() {
-                            x_unit.measurement_system() == Some(measurement_system)
-                        } else {
-                            false
-                        }
-                    });
-                    if unit_ov.is_none() {
-                        overlays.push(Box::new(overlay::Unit::new(measurement_system.clone())));
-                        unit_ov = overlays.last_mut();
-                    }
-                    if let Some(ov) = unit_ov {
-                        ov.add(attribute);
-                    }
+            if attribute.unit.is_some() {
+                let mut unit_ov = overlays
+                    .iter_mut()
+                    .find(|x| x.overlay_type().eq(&OverlayType::Unit));
+                if unit_ov.is_none() {
+                    overlays.push(Box::new(overlay::Unit::new()));
+                    unit_ov = overlays.last_mut();
+                }
+                if let Some(ov) = unit_ov {
+                    ov.add(attribute);
                 }
             }
 
@@ -786,14 +780,11 @@ impl From<OCABundle> for OCABox {
             .filter_map(|x| x.as_any().downcast_ref::<overlay::Unit>())
             .collect::<Vec<_>>();
         for overlay in unit_overlays {
-            for (attr_name, unit) in overlay.attribute_units.iter() {
+            for (attr_name, unit) in overlay.attribute_unit.iter() {
                 attributes
                     .get_mut(attr_name)
                     .unwrap()
-                    .set_unit(AttributeUnit {
-                        measurement_system: overlay.measurement_system().unwrap().clone(),
-                        unit: unit.clone(),
-                    });
+                    .set_unit(unit.clone());
             }
         }
 
@@ -1210,15 +1201,8 @@ impl OCABundle {
                 }
                 OverlayType::Unit => {
                     let unit_ov = overlay.as_any().downcast_ref::<overlay::Unit>().unwrap();
-                    let mut properties = IndexMap::new();
-                    let unit_system_val =
-                        serde_json::to_value(unit_ov.measurement_system().unwrap()).unwrap();
-                    properties.insert(
-                        "unit_system".to_string(),
-                        NestedValue::Value(unit_system_val.as_str().unwrap().to_string()),
-                    );
                     let mut attributes = IndexMap::new();
-                    for (attr_name, unit) in unit_ov.attribute_units.iter() {
+                    for (attr_name, unit) in unit_ov.attribute_unit.iter() {
                         let unit_val = serde_json::to_value(unit).unwrap();
                         attributes.insert(
                             attr_name.clone(),
@@ -1231,7 +1215,7 @@ impl OCABundle {
                             OverlayType::Unit,
                             Content {
                                 attributes: Some(attributes),
-                                properties: Some(properties),
+                                properties: None,
                             },
                         ),
                     };
