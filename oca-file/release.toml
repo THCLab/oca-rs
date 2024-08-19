@@ -1,0 +1,15 @@
+publish = false
+
+[[pre-release-replacements]]
+file = "Cargo.toml"
+search = "oca-file-semantics = . version = \"[a-z0-9\\.-]+\""
+replace = "oca-file-semantics = { version = \"{{version}}\""
+exactly = 1
+prerelease = true
+
+[[pre-release-replacements]]
+file = "Cargo.toml"
+search = "oca-file-transformation = . version = \"[a-z0-9\\.-]+\""
+replace = "oca-file-transformation = { version = \"{{version}}\""
+exactly = 1
+prerelease = true
