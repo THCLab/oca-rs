@@ -152,7 +152,7 @@ jobs:
           override: true
       - uses: katyo/publish-crates@v2
         with:
-          path: "./transformation/trasformation-file"
+          path: "./transformation/transformation-file"
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   publish_oca-file-transformation:
