@@ -124,7 +124,8 @@ jobs:
   publish_oca-ast-transformation:
     runs-on: ubuntu-22.04
     if: github.ref_type == 'tag'
-    needs: [check, test, clippy]
+    needs:
+      - publish_oca-ast-semantics
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1

@@ -1,3 +1,3 @@
-# OCA File
+# OCA File (Semantics)
 
-Rust implementation of OCAFile
+Rust implementation of OCAFile for semantics.
