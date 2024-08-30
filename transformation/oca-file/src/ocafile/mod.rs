@@ -1,7 +1,7 @@
 pub mod error;
 mod instructions;
 
-use self::{error::ParseError, instructions::rename::RenameInstruction};
+use self::{error::ParseError, instructions::{rename::RenameInstruction, link::LinkInstruction}};
 use crate::ocafile::error::InstructionError;
 use oca_ast_transformation::{
     ast::{
@@ -28,6 +28,7 @@ impl TryFromPair for Command {
     fn try_from_pair(record: Pair) -> std::result::Result<Self, Self::Error> {
         let instruction: Command = match record.as_rule() {
             Rule::rename => RenameInstruction::from_record(record, 0)?,
+            Rule::link => LinkInstruction::from_record(record, 0)?,
             _ => {
                 return Err(InstructionError::UnexpectedToken(
                     record.to_string(),
@@ -140,6 +141,7 @@ pub fn generate_from_ast(ast: &TransformationAST) -> String {
 
         match command.kind {
             ast::CommandType::Rename => todo!(),
+            ast::CommandType::Link => todo!(),
         }
 
         // ocafile.push_str(format!("{}\n", line).as_str());
@@ -158,8 +160,7 @@ mod tests {
 
         let unparsed_file = r#"
 -- version=0.0.1
--- name=Objekt
-RENAME ATTRIBUTE surname=last_name
+LINK ATTRIBUTE surname -> last_name
 "#;
         let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
         println!("{:#?}", oca_ast);

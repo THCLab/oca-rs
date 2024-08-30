@@ -11,6 +11,8 @@ pub struct Transformation {
     #[said]
     #[serde(rename = "d")]
     pub said: Option<said::SelfAddressingIdentifier>,
+    pub source: Option<String>,
+    pub target: Option<String>,
     pub attributes: IndexMap<String, String>,
 }
 
@@ -24,11 +26,26 @@ impl Transformation {
     pub fn new() -> Self {
         Self {
             said: None,
+            source: None,
+            target: None,
             attributes: IndexMap::new(),
         }
     }
 
+    pub fn set_source(&mut self, source: String) {
+        self.source = Some(source);
+    }
+    pub fn set_target(&mut self, target: String) {
+        self.target = Some(target);
+    }
+
     pub fn rename(&mut self, attributes: IndexMap<String, String>) {
+        attributes.into_iter().for_each(|(k, v)| {
+            self.attributes.insert(k, v);
+        });
+    }
+
+    pub fn link(&mut self, attributes: IndexMap<String, String>) {
         attributes.into_iter().for_each(|(k, v)| {
             self.attributes.insert(k, v);
         });

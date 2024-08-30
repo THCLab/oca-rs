@@ -4,35 +4,35 @@ use crate::ocafile::{
 use indexmap::IndexMap;
 use log::{debug, info};
 use oca_ast_transformation::ast::{
-    Command, CommandType, ObjectKind, RenameContent
+    Command, CommandType, ObjectKind, LinkContent
 };
 
-pub struct RenameInstruction {}
+pub struct LinkInstruction {}
 
-impl RenameInstruction {
+impl LinkInstruction {
     pub(crate) fn from_record(
         record: Pair,
         _index: usize,
     ) -> Result<Command, InstructionError> {
         let mut object_kind = None;
-        let kind = CommandType::Rename;
+        let kind = CommandType::Link;
 
-        debug!("Parsing rename instruction from the record: {:?}", record);
+        debug!("Parsing link instruction from the record: {:?}", record);
         for object in record.into_inner() {
             match object.as_rule() {
-                Rule::rename_attributes => {
-                    let mut rename_attributes: IndexMap<String, String> =
+                Rule::link_attributes => {
+                    let mut link_attributes: IndexMap<String, String> =
                         IndexMap::new();
                     for attr_pairs in object.into_inner() {
                         match attr_pairs.as_rule() {
-                            Rule::rename_attr_pairs => {
+                            Rule::link_attr_pairs => {
                                 debug!("Attribute pairs: {:?}", attr_pairs);
                                 for attr in attr_pairs.into_inner() {
                                     debug!("Parsing attribute pair {:?}", attr);
-                                    let (key, value) = helpers::extract_rename_attribute(attr)?;
+                                    let (key, value) = helpers::extract_link_attribute(attr)?;
                                     info!("Parsed attribute: {:?} = {:?}", key, value);
 
-                                    rename_attributes.insert(key, value);
+                                    link_attributes.insert(key, value);
                                 }
                             }
                             _ => {
@@ -43,14 +43,14 @@ impl RenameInstruction {
                             }
                         }
                     }
-                    debug!("Attributes: {:?}", rename_attributes);
+                    debug!("Attributes: {:?}", link_attributes);
 
-                    object_kind = Some(ObjectKind::Rename(RenameContent {
-                        attributes: Some(rename_attributes),
+                    object_kind = Some(ObjectKind::Link(LinkContent {
+                        attributes: Some(link_attributes),
                     }));
                     /* object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
                         properties: None,
-                        attributes: Some(rename_attributes),
+                        attributes: Some(link_attributes),
                         flagged_attributes: None,
                     })); */
                 }
@@ -78,11 +78,11 @@ mod tests {
     use pest::Parser;
 
     #[test]
-    fn test_rename_attribute_instruction() {
+    fn test_link_attribute_instruction() {
         // test vector with example instruction and boolean if they should be valid or not
         let instructions = vec![
-            ("RENAME ATTRIBUTE documentNumber=document_number", true),
-            ("RENAME ATTRIBUTE name", false),
+            ("LINK ATTRIBUTE documentNumber -> document_number", true),
+            ("LINK ATTRIBUTE name", false),
         ];
         let _ = env_logger::builder().is_test(true).try_init();
 
@@ -90,7 +90,7 @@ mod tests {
         for (instruction, is_valid) in instructions {
             debug!("Instruction: {:?}", instruction);
             let parsed_instruction =
-                OCAfileParser::parse(Rule::rename, instruction);
+                OCAfileParser::parse(Rule::link, instruction);
             debug!("Parsed instruction: {:?}", parsed_instruction);
 
             match parsed_instruction {
@@ -100,15 +100,15 @@ mod tests {
                     match instruction {
                         Some(instruction) => {
                             let instruction =
-                                RenameInstruction::from_record(instruction, 0)
+                                LinkInstruction::from_record(instruction, 0)
                                     .unwrap();
 
-                            assert_eq!(instruction.kind, CommandType::Rename);
+                            assert_eq!(instruction.kind, CommandType::Link);
                             println!("{:?}", instruction.object_kind);
                             match instruction.object_kind {
-                                ObjectKind::Rename(rename_content) => {
+                                ObjectKind::Link(link_content) => {
                                     assert_eq!(
-                                        rename_content
+                                        link_content
                                             .attributes
                                             .unwrap()
                                             .get("documentNumber"),

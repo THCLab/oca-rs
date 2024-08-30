@@ -26,6 +26,17 @@ pub fn from_ast(ast: &ast::TransformationAST) -> Result<Transformation, Vec<Erro
     let mut errors = vec![];
 
     let mut base: Option<Transformation> = None;
+    if !ast.meta.is_empty() {
+        let source = ast.meta.get("source").expect("missing source meta");
+        let source_said = source.replace("refs:", "");
+        let target = ast.meta.get("target").expect("missing target meta");
+        let target_said = target.replace("refs:", "");
+        let mut transformation = Transformation::new();
+        transformation.set_source(source_said);
+        transformation.set_target(target_said);
+        base = Some(transformation)
+    }
+
     let default_command_meta = ast::CommandMeta {
         line_number: 0,
         raw_line: "unknown".to_string(),
@@ -75,6 +86,12 @@ pub fn apply_command(
                 transformation.rename(attributes);
             }
         },
+        (ast::CommandType::Link, ast::ObjectKind::Link(content)) => {
+            if let Some(attributes) = content.attributes {
+                transformation.link(attributes);
+            }
+        },
+        _ => {}
     }
 
     if errors.is_empty() {

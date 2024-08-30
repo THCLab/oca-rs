@@ -4,7 +4,7 @@
 // insignificant whitespace, not repeated
 ws = _{ " " | "\t" }
 
-meta_attr_key = ${ "name" | "version" | "precompiler" }
+meta_attr_key = ${ "name" | "version" | "precompiler" | "source" | "target" }
 meta_attr_value = ${ string | char+}
 meta_key_pair = @{ meta_attr_key ~ arg_ws? ~ "=" ~ arg_ws?  ~ meta_attr_value }
 meta_comment = @{ "--" ~ ws* ~ (!NEWLINE ~ meta_key_pair)* }
@@ -73,13 +73,15 @@ any_equals = _{ (!(NEWLINE | ws | "=") ~ ANY)+ }
 commands = _{
   (
     from |
-    rename
+    rename |
+    link
   ) ~ NEWLINE?
 }
 
 
 from = { ^"from" ~ ws* ~ from_said}
 rename = { ^"rename" ~ arg_ws* ~ rename_attributes }
+link = { ^"link" ~ arg_ws* ~ link_attributes }
 
 SCRIPTS = { ADLAM | AHOM | ANATOLIAN_HIEROGLYPHS | ARABIC | ARMENIAN | AVESTAN
 | BALINESE | BAMUM | BASSA_VAH | BATAK | BENGALI | BHAIKSUKI | BOPOMOFO |
@@ -113,6 +115,10 @@ from_said = { ws* ~ char+ }
 rename_attributes = { ^"attribute" ~ rename_attr_pairs+ }
 rename_attr_pair = @{attr_key ~ arg_ws? ~ "=" ~ arg_ws?  ~ attr_key}
 rename_attr_pairs = ${ (arg_ws ~ rename_attr_pair)+}
+
+link_attributes = { ^"attribute" ~ link_attr_pairs+ }
+link_attr_pair = @{attr_key ~ arg_ws? ~ "->" ~ arg_ws?  ~ attr_key}
+link_attr_pairs = ${ (arg_ws ~ link_attr_pair)+}
 
 attr_key = ${ (ASCII_ALPHANUMERIC | "-" | "_" )+ }
 key_value = ${ string | char+}

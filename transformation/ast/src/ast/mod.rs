@@ -35,21 +35,30 @@ pub struct CommandMeta {
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub enum CommandType {
     Rename,
+    Link,
 }
 
 #[derive(Debug, PartialEq, Clone, Eq)]
 pub enum ObjectKind {
     // Transformation(TransformationType),
     Rename(RenameContent),
+    Link(LinkContent),
 }
 
 #[derive(Debug, PartialEq, Clone, Eq)]
 pub enum TransformationType {
     Rename(RenameContent),
+    Link(LinkContent),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq)]
 pub struct RenameContent {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attributes: Option<IndexMap<String, String>>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone, Eq)]
+pub struct LinkContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attributes: Option<IndexMap<String, String>>,
 }
@@ -59,12 +68,29 @@ impl Hash for ObjectKind {
         match self {
             ObjectKind::Rename(content) => {
                 content.hash(state);
+            },
+            ObjectKind::Link(content) => {
+                content.hash(state);
             }
         }
     }
 }
 
 impl Hash for RenameContent {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match &self.attributes {
+            Some(attributes) => {
+                for (key, value) in attributes {
+                    key.hash(state);
+                    value.hash(state);
+                }
+            }
+            None => {}
+        }
+    }
+}
+
+impl Hash for LinkContent {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match &self.attributes {
             Some(attributes) => {
@@ -109,6 +135,10 @@ impl Serialize for ObjectKind {
         match self {
             ObjectKind::Rename(content) => {
                 state.serialize_field("object_kind", "Rename")?;
+                state.serialize_field("content", content)?;
+            },
+            ObjectKind::Link(content) => {
+                state.serialize_field("object_kind", "Link")?;
                 state.serialize_field("content", content)?;
             }
         }
@@ -218,15 +248,28 @@ impl<'de> Deserialize<'de> for Command {
                                 ));
                             }
                             let object_kind_str: String = map.next_value()?;
-                            if object_kind_str.as_str() == "Rename" {
-                                // take the key frist otherwise next value would not work
-                                // properly
-                                let _content_key: Option<String> =
-                                    map.next_key()?;
-                                let content: RenameContent =
-                                    map.next_value()?;
-                                object_kind =
-                                    Some(ObjectKind::Rename(content));
+                            match object_kind_str.as_str() {
+                                "Rename" => {
+                                    // take the key frist otherwise next value would not work
+                                    // properly
+                                    let _content_key: Option<String> =
+                                        map.next_key()?;
+                                    let content: RenameContent =
+                                        map.next_value()?;
+                                    object_kind =
+                                        Some(ObjectKind::Rename(content));
+                                },
+                                "Link" => {
+                                    // take the key frist otherwise next value would not work
+                                    // properly
+                                    let _content_key: Option<String> =
+                                        map.next_key()?;
+                                    let content: LinkContent =
+                                        map.next_value()?;
+                                    object_kind =
+                                        Some(ObjectKind::Link(content));
+                                },
+                                _ => {}
                             }
                         }
                     }
@@ -287,6 +330,9 @@ impl From<u8> for ObjectKind {
             0 => ObjectKind::Rename(
                 RenameContent { attributes: None },
             ),
+            1 => ObjectKind::Link(
+                LinkContent { attributes: None },
+            ),
             _ => panic!("Unknown object type"),
         }
     }
@@ -296,6 +342,7 @@ impl From<ObjectKind> for u8 {
     fn from(val: ObjectKind) -> Self {
         match val {
             ObjectKind::Rename(_) => 0,
+            ObjectKind::Link(_) => 1,
         }
     }
 }
@@ -309,6 +356,9 @@ impl<'de> Deserialize<'de> for ObjectKind {
         match s.as_str() {
             "Rename" => Ok(ObjectKind::Rename(
                 RenameContent { attributes: None }),
+            ),
+            "Link" => Ok(ObjectKind::Link(
+                LinkContent { attributes: None }),
             ),
             _ => Err(serde::de::Error::custom(format!(
                 "unknown object kind: {}",

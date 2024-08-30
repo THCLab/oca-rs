@@ -38,3 +38,9 @@ pub fn extract_rename_attribute(
     }
     Ok((attr_name_opt.unwrap(), attr_new_name_opt.unwrap()))
 }
+
+pub fn extract_link_attribute(
+    attr_pair: Pair,
+) -> Result<(String, String), ExtractingAttributeError> {
+    extract_rename_attribute(attr_pair)
+}

@@ -17,9 +17,9 @@ pub struct Bundle {
     #[serde(rename = "d")]
     pub said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "m")]
-    mechanics: Option<OCABundle>,
+    pub mechanics: Option<OCABundle>,
     #[serde(rename = "t")]
-    transformations: Vec<transformation_file::state::Transformation>,
+    pub transformations: Vec<transformation_file::state::Transformation>,
 }
 
 impl Bundle {
