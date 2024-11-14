@@ -8,10 +8,10 @@ use std::collections::BTreeMap;
 
 #[derive(SAD, Serialize, Deserialize, Debug, Clone)]
 pub struct EntryCodeMappingOverlay {
-    capture_base: Option<said::SelfAddressingIdentifier>,
     #[said]
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
+    capture_base: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     overlay_type: OverlayType,
     pub attribute_entry_codes_mapping: BTreeMap<String, Vec<String>>,

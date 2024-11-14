@@ -55,10 +55,10 @@ pub struct MetaOverlay {
     #[said]
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
-    pub language: Language,
+    capture_base: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     overlay_type: OverlayType,
-    capture_base: Option<said::SelfAddressingIdentifier>,
+    pub language: Language,
     #[serde(flatten, serialize_with = "serialize_attributes")]
     pub attr_pairs: HashMap<String, String>,
 }

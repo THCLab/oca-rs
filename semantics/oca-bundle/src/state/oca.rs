@@ -13,7 +13,6 @@ use crate::state::oca::overlay::label::Labels;
 use crate::state::oca::overlay::meta::Metas;
 use crate::state::oca::overlay::unit::Units;
 use indexmap::IndexMap;
-use linked_hash_map::LinkedHashMap;
 use said::derivation::HashFunctionCode;
 use said::sad::{SerializationFormats, SAD};
 use said::version::SerializationInfo;
@@ -517,6 +516,8 @@ where
     S: Serializer,
 {
     use serde_value::Value;
+    use std::collections::BTreeMap;
+
     #[derive(Serialize)]
     #[serde(untagged)]
     enum OverlayValue {
@@ -524,52 +525,33 @@ where
         Object(Box<dyn Overlay + Send>),
     }
 
-    let mut overlays_map: LinkedHashMap<Value, OverlayValue> = LinkedHashMap::new();
-    let overlays_order = [
-        OverlayType::CharacterEncoding,
-        OverlayType::Format,
+    let overlays_many = [
         OverlayType::Meta,
+        OverlayType::Entry,
         OverlayType::Label,
         OverlayType::Information,
-        OverlayType::Standard,
-        OverlayType::Conditional,
-        OverlayType::Conformance,
-        OverlayType::EntryCode,
-        OverlayType::Entry,
-        OverlayType::Cardinality,
-        OverlayType::Unit,
-        OverlayType::AttributeMapping,
-        OverlayType::EntryCodeMapping,
-        OverlayType::UnitMapping,
-        OverlayType::Subset,
-        /* OverlayType::CredentialLayout,
-        OverlayType::FormLayout, */
     ];
-    for o_type in overlays_order {
-        for overlay in overlays {
-            let o_type_str = o_type.to_string().to_case(Case::Snake);
-            if overlay.overlay_type().eq(&o_type) {
-                match overlay.language() {
-                    Some(_) => {
-                        if let Some(OverlayValue::Array(ov)) =
-                            overlays_map.get_mut(&Value::String(o_type_str.clone()))
-                        {
-                            ov.push(overlay.clone());
-                        } else {
-                            overlays_map.insert(
-                                Value::String(o_type_str.clone()),
-                                OverlayValue::Array(vec![overlay.clone()]),
-                            );
-                        }
-                    }
-                    None => {
-                        overlays_map.insert(
-                            Value::String(o_type_str),
-                            OverlayValue::Object(overlay.clone()),
-                        );
-                    }
-                }
+
+    let mut overlays_map: BTreeMap<Value, OverlayValue> = BTreeMap::new();
+    for overlay in overlays {
+        let o_type_str = overlay.overlay_type().to_string().to_case(Case::Snake);
+
+        if overlays_many.contains(overlay.overlay_type()) {
+            if let Some(OverlayValue::Array(ov)) =
+                overlays_map.get_mut(&Value::String(o_type_str.clone()))
+            {
+                ov.push(overlay.clone());
+            } else {
+                overlays_map.insert(
+                    Value::String(o_type_str.clone()),
+                    OverlayValue::Array(vec![overlay.clone()]),
+                );
             }
+        } else {
+            overlays_map.insert(
+                Value::String(o_type_str),
+                OverlayValue::Object(overlay.clone()),
+            );
         }
     }
 
@@ -577,9 +559,9 @@ where
     for (ov_type, v) in overlays_map.iter_mut() {
         if let OverlayValue::Array(ov) = v {
             ov.sort_by(|a, b| {
-                if let Some(a_lang) = a.language() {
-                    if let Some(b_lang) = b.language() {
-                        a_lang.cmp(b_lang)
+                if let Some(a_said) = a.said() {
+                    if let Some(b_said) = b.said() {
+                        a_said.to_string().cmp(&b_said.to_string())
                     } else {
                         std::cmp::Ordering::Equal
                     }
@@ -642,8 +624,7 @@ impl std::fmt::Debug for DynOverlay {
 }
 
 #[derive(SAD, Serialize, Debug, Deserialize, Clone)]
-#[version(protocol = "OCAM", major = 1, minor = 0)]
-// #[said(format = "JSON")]
+#[version(protocol = "OCAS", major = 1, minor = 1)]
 pub struct OCABundle {
     #[said]
     #[serde(rename = "d")]

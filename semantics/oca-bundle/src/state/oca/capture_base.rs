@@ -42,9 +42,9 @@ pub struct CaptureBase {
     pub said: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     pub schema_type: String,
-    pub classification: String,
     #[serde(serialize_with = "serialize_attributes")]
     pub attributes: IndexMap<String, NestedAttrType>,
+    pub classification: String,
     #[serde(serialize_with = "serialize_flagged_attributes")]
     pub flagged_attributes: Vec<String>,
 }

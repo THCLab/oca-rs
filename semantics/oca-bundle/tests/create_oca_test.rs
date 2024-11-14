@@ -107,82 +107,47 @@ fn create_oca() {
     assert_eq!(oca_bundle.overlays.len(), 12);
 
     let serialized_bundle = serde_json::to_string_pretty(&oca_bundle).unwrap();
+    println!("{}", serialized_bundle);
 
     let expected = if cfg!(feature = "format_overlay") {
         r#"{
-  "d": "EDTFTeRDYSCPKg1U5xDXcJFqeU3vItsfXmxymdCP-G4K",
+  "d": "EPOgFUo_zOWuyYJqI7eOoXuWZFIxTaf-MlhcsEnU-B6N",
   "capture_base": {
-    "d": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
+    "d": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
     "type": "spec/capture_base/1.0",
-    "classification": "",
     "attributes": {
       "age": "Numeric",
       "name": "Text"
     },
+    "classification": "",
     "flagged_attributes": [
       "age",
       "name"
     ]
   },
   "overlays": {
+    "cardinality": {
+      "d": "EESpBo5wXPBEkFKtsmLL_Vj_1h9nufxvfF8O4eQWbIdR",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
+      "type": "spec/overlays/cardinality/1.0",
+      "attribute_cardinality": {
+        "age": "2",
+        "name": "1"
+      }
+    },
     "character_encoding": {
-      "d": "ECD2IVxrwPzTnGGZ9a21hC117X_txPZNNA3B1fp5AWUv",
+      "d": "EHIpSMAXHFoP2UiGbjDaMhlLgU9ggZPAsDsh-M9W1MgT",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
       "type": "spec/overlays/character_encoding/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
       "attribute_character_encoding": {
         "age": "utf-8",
         "name": "utf-8"
       }
     },
-    "format": {
-      "d": "EHCh4CCiNEjHnRKXt9Kmj1NhGv488Gdnh_HIQIAW8Joe",
-      "type": "spec/overlays/format/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-      "attribute_formats": {
-        "age": "^[a-zA-Z]*$",
-        "name": "^[a-zA-Z]*$"
-      }
-    },
-    "meta": [
-      {
-        "d": "EAHZWCJd_z91C4Q2gtdgTOM3ht1BmAfcCv_vAliD9gmI",
-        "language": "eng",
-        "type": "spec/overlays/meta/1.0",
-        "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-        "description": "Test case OCA",
-        "name": "Test"
-      }
-    ],
-    "label": [
-      {
-        "d": "EPFExRy1gpkJjkpUUI1HGdZk9OXp_vZG6kHw8dEJ5wwB",
-        "language": "eng",
-        "type": "spec/overlays/label/1.0",
-        "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-        "attribute_labels": {
-          "age": "Age",
-          "name": "Name"
-        },
-        "attribute_categories": [],
-        "category_labels": {}
-      }
-    ],
-    "information": [
-      {
-        "d": "EBcQK4EVV3T7jFhMQV1pWv27pvAHnO8fKamnVd9nXJ4P",
-        "language": "eng",
-        "type": "spec/overlays/information/1.0",
-        "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-        "attribute_information": {
-          "age": "age information",
-          "name": "name information"
-        }
-      }
-    ],
     "conditional": {
-      "d": "EAOz_gKx2AdkCySOoYwa_HUejInHuJjJvS_DMTJt1oQW",
+      "d": "EKds5IULUlcCnNq5o8DSBll3xSdSoI0AsWDpR-2V9-is",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
       "type": "spec/overlays/conditional/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
       "attribute_conditions": {
         "age": "${0} ~= nil and ${0} ~= ''"
       },
@@ -193,35 +158,20 @@ fn create_oca() {
       }
     },
     "conformance": {
-      "d": "EMhtk2tC1Molaq4n_LeEVuthTfrWzID91uXebjLxRSXj",
+      "d": "EMQIjOAGWkg5CVBhOpm6L_i82dndhSJ6anE1KnHtEYBy",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
       "type": "spec/overlays/conformance/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
       "attribute_conformance": {
         "age": "M",
         "name": "O"
       }
     },
-    "entry_code": {
-      "d": "EAk0iUaBlTgFseZtS7Um4-HoVSPCsVlAV1t8k-XVJ664",
-      "type": "spec/overlays/entry_code/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-      "attribute_entry_codes": {
-        "age": [
-          "a",
-          "b"
-        ],
-        "name": [
-          "a",
-          "b"
-        ]
-      }
-    },
     "entry": [
       {
-        "d": "EN1D4e4aFBECgnNrhmfxSO2xje8STURokBJ4mQ59Pj_a",
-        "language": "eng",
+        "d": "EB4lwWLx0giSMadcal043Uv2f7kAQNqAqp-Cnka03El4",
+        "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
         "type": "spec/overlays/entry/1.0",
-        "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
+        "language": "eng",
         "attribute_entries": {
           "age": {
             "a": "Option A",
@@ -234,10 +184,10 @@ fn create_oca() {
         }
       },
       {
-        "d": "EO-aHJSL_9gya59Am-qUPkZtWEqCBIHmXD2Nrtek3rd4",
-        "language": "pol",
+        "d": "EOVbtQZXFZv2lV7eG_1bUvKabGAolJQK_cy7PHB3nJqA",
+        "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
         "type": "spec/overlays/entry/1.0",
-        "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
+        "language": "pol",
         "attribute_entries": {
           "name": {
             "a": "Opcja A",
@@ -246,19 +196,70 @@ fn create_oca() {
         }
       }
     ],
-    "cardinality": {
-      "d": "EHO515sS5rv1sAiytFtATiAFHydLsQOLSZaTNCL5hKl8",
-      "type": "spec/overlays/cardinality/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-      "attribute_cardinality": {
-        "age": "2",
-        "name": "1"
+    "entry_code": {
+      "d": "EAax_SvkKilHfJ83UoZxCX6219om1_8_nMXrQCp8PSCg",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
+      "type": "spec/overlays/entry_code/1.0",
+      "attribute_entry_codes": {
+        "age": [
+          "a",
+          "b"
+        ],
+        "name": [
+          "a",
+          "b"
+        ]
       }
     },
+    "format": {
+      "d": "EDDxJu5ek2OCvxeT1sXRMyA7oH1ML6DoXSNGPA4Te0LK",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
+      "type": "spec/overlays/format/1.0",
+      "attribute_formats": {
+        "age": "^[a-zA-Z]*$",
+        "name": "^[a-zA-Z]*$"
+      }
+    },
+    "information": [
+      {
+        "d": "EEVT-1J1KbjV-B1IUSmSGuNd4buqCwT7MoslwCsGn4z2",
+        "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
+        "type": "spec/overlays/information/1.0",
+        "language": "eng",
+        "attribute_information": {
+          "age": "age information",
+          "name": "name information"
+        }
+      }
+    ],
+    "label": [
+      {
+        "d": "EC-Mwbd8PevoVTarSK1zcqDnlkfK1po-CyyM19da3SYw",
+        "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
+        "type": "spec/overlays/label/1.0",
+        "language": "eng",
+        "attribute_categories": [],
+        "attribute_labels": {
+          "age": "Age",
+          "name": "Name"
+        },
+        "category_labels": {}
+      }
+    ],
+    "meta": [
+      {
+        "d": "EHyoO8skj6nMW_gSbPcdlhUzbRS1SeefJCj4FDjXQXSZ",
+        "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
+        "type": "spec/overlays/meta/1.0",
+        "language": "eng",
+        "description": "Test case OCA",
+        "name": "Test"
+      }
+    ],
     "unit": {
-      "d": "EI9WX2TU0_V60ZP9dxDM3zCaD9Z332P8F9lLPiuFnN4W",
+      "d": "EPK3PAQ_ZP1Rd6xUyZlXMFBBXx4MzU1c_3yaC2iLsaqJ",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
       "type": "spec/overlays/unit/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
       "attribute_unit": {
         "age": "kg",
         "name": "kg"
@@ -268,70 +269,43 @@ fn create_oca() {
 }"#
     } else {
         r#"{
-  "d": "EO0BljbzMjgl4lFlxBYCWzGOuEUh67cDdxWG2iFU70YP",
+  "d": "ENPETKkN4WDazjnQykX-Bx3RmQ-slqwyoa0cwRYi_PfB",
   "capture_base": {
-    "d": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
+    "d": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
     "type": "spec/capture_base/1.0",
-    "classification": "",
     "attributes": {
       "age": "Numeric",
       "name": "Text"
     },
+    "classification": "",
     "flagged_attributes": [
       "age",
       "name"
     ]
   },
   "overlays": {
+    "cardinality": {
+      "d": "EESpBo5wXPBEkFKtsmLL_Vj_1h9nufxvfF8O4eQWbIdR",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
+      "type": "spec/overlays/cardinality/1.0",
+      "attribute_cardinality": {
+        "age": "2",
+        "name": "1"
+      }
+    },
     "character_encoding": {
-      "d": "ECD2IVxrwPzTnGGZ9a21hC117X_txPZNNA3B1fp5AWUv",
+      "d": "EHIpSMAXHFoP2UiGbjDaMhlLgU9ggZPAsDsh-M9W1MgT",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
       "type": "spec/overlays/character_encoding/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
       "attribute_character_encoding": {
         "age": "utf-8",
         "name": "utf-8"
       }
     },
-    "meta": [
-      {
-        "d": "EAHZWCJd_z91C4Q2gtdgTOM3ht1BmAfcCv_vAliD9gmI",
-        "language": "eng",
-        "type": "spec/overlays/meta/1.0",
-        "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-        "description": "Test case OCA",
-        "name": "Test"
-      }
-    ],
-    "label": [
-      {
-        "d": "EPFExRy1gpkJjkpUUI1HGdZk9OXp_vZG6kHw8dEJ5wwB",
-        "language": "eng",
-        "type": "spec/overlays/label/1.0",
-        "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-        "attribute_labels": {
-          "age": "Age",
-          "name": "Name"
-        },
-        "attribute_categories": [],
-        "category_labels": {}
-      }
-    ],
-    "information": [
-      {
-        "d": "EBcQK4EVV3T7jFhMQV1pWv27pvAHnO8fKamnVd9nXJ4P",
-        "language": "eng",
-        "type": "spec/overlays/information/1.0",
-        "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-        "attribute_information": {
-          "age": "age information",
-          "name": "name information"
-        }
-      }
-    ],
     "conditional": {
-      "d": "EAOz_gKx2AdkCySOoYwa_HUejInHuJjJvS_DMTJt1oQW",
+      "d": "EKds5IULUlcCnNq5o8DSBll3xSdSoI0AsWDpR-2V9-is",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
       "type": "spec/overlays/conditional/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
       "attribute_conditions": {
         "age": "${0} ~= nil and ${0} ~= ''"
       },
@@ -342,35 +316,20 @@ fn create_oca() {
       }
     },
     "conformance": {
-      "d": "EMhtk2tC1Molaq4n_LeEVuthTfrWzID91uXebjLxRSXj",
+      "d": "EMQIjOAGWkg5CVBhOpm6L_i82dndhSJ6anE1KnHtEYBy",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
       "type": "spec/overlays/conformance/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
       "attribute_conformance": {
         "age": "M",
         "name": "O"
       }
     },
-    "entry_code": {
-      "d": "EAk0iUaBlTgFseZtS7Um4-HoVSPCsVlAV1t8k-XVJ664",
-      "type": "spec/overlays/entry_code/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-      "attribute_entry_codes": {
-        "age": [
-          "a",
-          "b"
-        ],
-        "name": [
-          "a",
-          "b"
-        ]
-      }
-    },
     "entry": [
       {
-        "d": "EN1D4e4aFBECgnNrhmfxSO2xje8STURokBJ4mQ59Pj_a",
-        "language": "eng",
+        "d": "EB4lwWLx0giSMadcal043Uv2f7kAQNqAqp-Cnka03El4",
+        "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
         "type": "spec/overlays/entry/1.0",
-        "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
+        "language": "eng",
         "attribute_entries": {
           "age": {
             "a": "Option A",
@@ -383,10 +342,10 @@ fn create_oca() {
         }
       },
       {
-        "d": "EO-aHJSL_9gya59Am-qUPkZtWEqCBIHmXD2Nrtek3rd4",
-        "language": "pol",
+        "d": "EOVbtQZXFZv2lV7eG_1bUvKabGAolJQK_cy7PHB3nJqA",
+        "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
         "type": "spec/overlays/entry/1.0",
-        "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
+        "language": "pol",
         "attribute_entries": {
           "name": {
             "a": "Opcja A",
@@ -395,19 +354,61 @@ fn create_oca() {
         }
       }
     ],
-    "cardinality": {
-      "d": "EHO515sS5rv1sAiytFtATiAFHydLsQOLSZaTNCL5hKl8",
-      "type": "spec/overlays/cardinality/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
-      "attribute_cardinality": {
-        "age": "2",
-        "name": "1"
+    "entry_code": {
+      "d": "EAax_SvkKilHfJ83UoZxCX6219om1_8_nMXrQCp8PSCg",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
+      "type": "spec/overlays/entry_code/1.0",
+      "attribute_entry_codes": {
+        "age": [
+          "a",
+          "b"
+        ],
+        "name": [
+          "a",
+          "b"
+        ]
       }
     },
+    "information": [
+      {
+        "d": "EEVT-1J1KbjV-B1IUSmSGuNd4buqCwT7MoslwCsGn4z2",
+        "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
+        "type": "spec/overlays/information/1.0",
+        "language": "eng",
+        "attribute_information": {
+          "age": "age information",
+          "name": "name information"
+        }
+      }
+    ],
+    "label": [
+      {
+        "d": "EC-Mwbd8PevoVTarSK1zcqDnlkfK1po-CyyM19da3SYw",
+        "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
+        "type": "spec/overlays/label/1.0",
+        "language": "eng",
+        "attribute_categories": [],
+        "attribute_labels": {
+          "age": "Age",
+          "name": "Name"
+        },
+        "category_labels": {}
+      }
+    ],
+    "meta": [
+      {
+        "d": "EHyoO8skj6nMW_gSbPcdlhUzbRS1SeefJCj4FDjXQXSZ",
+        "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
+        "type": "spec/overlays/meta/1.0",
+        "language": "eng",
+        "description": "Test case OCA",
+        "name": "Test"
+      }
+    ],
     "unit": {
-      "d": "EI9WX2TU0_V60ZP9dxDM3zCaD9Z332P8F9lLPiuFnN4W",
+      "d": "EPK3PAQ_ZP1Rd6xUyZlXMFBBXx4MzU1c_3yaC2iLsaqJ",
+      "capture_base": "EFOnwfWsPxeHq27ToWKFdFjhawS8j_Ol29ULkvPw4uFg",
       "type": "spec/overlays/unit/1.0",
-      "capture_base": "EEDq_Ml2WZox89ROgdZXOWUf2Q3Dsv9xB198uJs5ZjZF",
       "attribute_unit": {
         "age": "kg",
         "name": "kg"

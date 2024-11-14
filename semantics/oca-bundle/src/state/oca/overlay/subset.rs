@@ -10,9 +10,9 @@ pub struct SubsetOverlay {
     #[said]
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
+    capture_base: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     overlay_type: OverlayType,
-    capture_base: Option<said::SelfAddressingIdentifier>,
     pub attributes: Vec<String>,
 }
 

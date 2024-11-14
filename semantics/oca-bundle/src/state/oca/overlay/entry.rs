@@ -45,10 +45,10 @@ pub struct EntryOverlay {
     #[said]
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
-    language: Language,
+    capture_base: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     overlay_type: OverlayType,
-    capture_base: Option<said::SelfAddressingIdentifier>,
+    language: Language,
     #[serde(serialize_with = "serialize_attributes")]
     pub attribute_entries: HashMap<String, EntriesElement>,
 }

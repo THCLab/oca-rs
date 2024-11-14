@@ -8,6 +8,7 @@ mod test {
         facade::{build::Error, build::ValidationError, bundle::BundleElement},
         repositories::SQLiteConfig,
         Facade,
+        HashFunctionCode, SerializationFormats, EncodeBundle
     };
 
     #[test]
@@ -30,9 +31,17 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
         assert!(matches!(result, BundleElement::Mechanics(_)));
         if let BundleElement::Mechanics(result) = result {
             assert_eq!(
-                result.said.unwrap().to_string(),
-                "EObIQDZX7SGy2oPOZue8qCdLWKSq10pXqMWdrXpBXIDa"
+                result.said.clone().unwrap().to_string(),
+                "EKHBds6myKVIsQuT7Zr23M8Xk_gwq-2SaDRUprvqOXxa"
             );
+
+            let code = HashFunctionCode::Blake3_256;
+            let format = SerializationFormats::JSON;
+            let oca_bundle_encoded = result.encode(&code, &format).unwrap();
+            let oca_bundle_version = String::from_utf8(
+                oca_bundle_encoded[6..23].to_vec()
+            ).unwrap();
+            assert_eq!(oca_bundle_version, "OCAS11JSON000646_");
 
             let search_result = facade.search_oca_bundle(None, "Ent".to_string(), 10, 1);
             assert_eq!(search_result.metadata.total, 1);
@@ -68,7 +77,7 @@ ADD ATTRIBUTE x=Text
         if let BundleElement::Mechanics(result) = result {
             assert_eq!(
                 result.said.unwrap().to_string(),
-                "EFN-Tzpt-xT640208nKCvIaUrbhIfiI2g_basSsriJDU"
+                "EAMguWL--P5gad3xZoT2fd-qjoBDVkK82pb7KET1lrS1"
             );
             Ok(())
         } else {
@@ -109,12 +118,12 @@ ADD ATTRIBUTE C=Array[refn:second]
         if let BundleElement::Mechanics(mechanics) = result {
             assert_eq!(
                 mechanics.said.unwrap().to_string(),
-                "EK6bWLXxC3EqDHS64sRZLwIyE_ee4O7dU-siB2NM5_Vf"
+                "EGv65yGtFZG5CSRaS4q46dC3UWsW3vycbMFOqPFPvhWi"
             );
         }
 
         let from_ocafile = r#"
-FROM ECqVjzB2YYgLhcbBEf49tWYuXLeSBND9LrA0fr78RTLH
+FROM EE15xNvWNy89ZBFhMBukb2kovfO2Y73y1Si2oFFkWFpy
 ADD ATTRIBUTE x=Text
 "#
         .to_string();
@@ -124,7 +133,7 @@ ADD ATTRIBUTE x=Text
         if let BundleElement::Mechanics(mechanics) = result {
             assert_eq!(
                 mechanics.said.unwrap().to_string(),
-                "EGKzDtiH4nzNj7WKJA6I_LShk_biOc33yKi35k1X4VM3"
+                "EE-Ru8mxNWhql7Q2ibY2-uuK9cIKxR2S9rc-eRkEeBwO"
             );
         }
         let refs = facade.fetch_all_refs().unwrap();
@@ -132,7 +141,7 @@ ADD ATTRIBUTE x=Text
         assert_eq!(refs.len(), 2);
         assert_eq!(
             refs.get("second").unwrap(),
-            "ECqVjzB2YYgLhcbBEf49tWYuXLeSBND9LrA0fr78RTLH"
+            "EE15xNvWNy89ZBFhMBukb2kovfO2Y73y1Si2oFFkWFpy"
         );
 
         Ok(())

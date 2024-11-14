@@ -9,7 +9,12 @@ use crate::{
 use oca_ast_semantics::ast::{self, OCAAst, ObjectKind, RefValue};
 use oca_bundle_semantics::build::OCABuildStep;
 use oca_bundle_semantics::state::oca::{capture_base::CaptureBase, DynOverlay, OCABundle};
-use said::SelfAddressingIdentifier;
+use said::{
+    derivation::HashFunctionCode,
+    sad::{SerializationFormats, SAD},
+    version::SerializationInfo,
+    SelfAddressingIdentifier,
+};
 
 use serde::Serialize;
 use std::borrow::Borrow;
@@ -69,7 +74,8 @@ pub struct AllCaptureBaseResult {
     pub metadata: AllCaptureBaseMetadata,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(SAD, Debug, Serialize)]
+#[version(protocol = "OCAA", major = 1, minor = 1)]
 pub struct BundleWithDependencies {
     pub bundle: OCABundle,
     pub dependencies: Vec<OCABundle>,

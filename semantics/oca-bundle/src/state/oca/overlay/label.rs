@@ -72,14 +72,14 @@ pub struct LabelOverlay {
     #[said]
     #[serde(rename = "d")]
     said: Option<said::SelfAddressingIdentifier>,
-    language: Language,
+    capture_base: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     overlay_type: OverlayType,
-    capture_base: Option<said::SelfAddressingIdentifier>,
-    #[serde(serialize_with = "serialize_labels")]
-    pub attribute_labels: HashMap<String, String>,
+    language: Language,
     #[serde(serialize_with = "serialize_categories")]
     pub attribute_categories: Vec<String>, // TODO find out if we need duplicated structure to hold keys if we have hashmap with those keys
+    #[serde(serialize_with = "serialize_labels")]
+    pub attribute_labels: HashMap<String, String>,
     #[serde(serialize_with = "serialize_labels")]
     pub category_labels: HashMap<String, String>,
     #[serde(skip)]

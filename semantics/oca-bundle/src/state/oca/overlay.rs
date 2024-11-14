@@ -105,9 +105,9 @@ macro_rules! overlay {
                 #[said]
                 #[serde(rename = "d")]
                 said: Option<said::SelfAddressingIdentifier>,
+                capture_base: Option<said::SelfAddressingIdentifier>,
                 #[serde(rename = "type")]
                 overlay_type: oca_ast_semantics::ast::OverlayType,
-                capture_base: Option<said::SelfAddressingIdentifier>,
                 #[serde(serialize_with = "serialize_attributes")]
                 pub $field1: std::collections::HashMap<String, $field2_type>
             }
