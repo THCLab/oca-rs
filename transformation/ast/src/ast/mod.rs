@@ -78,28 +78,22 @@ impl Hash for ObjectKind {
 
 impl Hash for RenameContent {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        match &self.attributes {
-            Some(attributes) => {
-                for (key, value) in attributes {
-                    key.hash(state);
-                    value.hash(state);
-                }
+        if let Some(attributes) = &self.attributes {
+            for (key, value) in attributes {
+                key.hash(state);
+                value.hash(state);
             }
-            None => {}
         }
     }
 }
 
 impl Hash for LinkContent {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        match &self.attributes {
-            Some(attributes) => {
-                for (key, value) in attributes {
-                    key.hash(state);
-                    value.hash(state);
-                }
+        if let Some(attributes) = &self.attributes {
+            for (key, value) in attributes {
+                key.hash(state);
+                value.hash(state);
             }
-            None => {}
         }
     }
 }

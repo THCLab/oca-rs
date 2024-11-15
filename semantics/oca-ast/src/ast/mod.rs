@@ -73,23 +73,17 @@ impl Hash for ObjectKind {
 
 impl Hash for CaptureContent {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        match &self.attributes {
-            Some(attributes) => {
-                for (key, value) in attributes {
-                    key.hash(state);
-                    value.hash(state);
-                }
+        if let Some(attributes) = &self.attributes {
+            for (key, value) in attributes {
+                key.hash(state);
+                value.hash(state);
             }
-            None => {}
         }
-        match &self.properties {
-            Some(properties) => {
-                for (key, value) in properties {
-                    key.hash(state);
-                    value.hash(state);
-                }
+        if let Some(properties) = &self.properties {
+            for (key, value) in properties {
+                key.hash(state);
+                value.hash(state);
             }
-            None => {}
         }
     }
 }
