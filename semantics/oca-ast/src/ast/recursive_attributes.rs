@@ -7,7 +7,6 @@ use super::{AttributeType, NestedAttrType, RefValue};
 /// This module includes structures for setting up the recursion crate. They
 /// enable usage of `expand_frames` and `collapse_frames` functions for
 /// NestedAttrType.
-
 pub enum NestedAttrTypeFrame<A> {
     Reference(RefValue),
     Value(AttributeType),

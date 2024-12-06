@@ -174,7 +174,6 @@ fn oca_file_format(nested: NestedAttrType) -> String {
 /// * `references` - Optional references names and thier saids for dereferencing
 ///
 /// If references are present, ast would be trevers and all refn would be replaced with refs
-
 pub fn generate_from_ast(ast: &OCAAst) -> String {
     let mut ocafile = String::new();
 
