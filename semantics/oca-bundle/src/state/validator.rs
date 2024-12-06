@@ -43,6 +43,19 @@ impl std::fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
+pub enum SemanticValidationStatus {
+    Valid,
+    Invalid(Vec<Error>),
+}
+
+pub fn validate(oca_bundle: &OCABundle) -> Result<SemanticValidationStatus, String> {
+    let validator = Validator::new();
+    match validator.validate(oca_bundle) {
+        Ok(_) => Ok(SemanticValidationStatus::Valid),
+        Err(errors) => Ok(SemanticValidationStatus::Invalid(errors)),
+    }
+}
+
 pub struct Validator {
     enforced_translations: Vec<Language>,
 }
