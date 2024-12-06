@@ -1,7 +1,7 @@
 [package]
 name = "oca-ast-semantics"
 description = "Library for handling Abstract Syntax Tree of OCA bundle"
-version = "0.6.0"
+version = "0.6.1"
 license = "EUPL-1.2"
 edition = "2021"
 authors = [

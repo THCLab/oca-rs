@@ -1,6 +1,6 @@
 [package]
 name = "transformation-file"
-version = "0.6.0"
+version = "0.6.1"
 edition = "2021"
 authors = ["Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>", "Robert Mitwicki <robert.mitwicki@opensoftware.pl>", "Michał Pietrus <michal.pietrus@opensoftware.pl>"]
 license = "EUPL-1.2"
@@ -13,7 +13,7 @@ path = "src/lib.rs"
 
 [dependencies]
 indexmap = { version = "1.8.0", features = ["serde"]}
-oca-ast-transformation = { version = "0.6.0", path = "../ast" }
+oca-ast-transformation = { version = "0.6.1", path = "../ast" }
 said = { version = "0.4.1", features = ["macros"] }
 serde = { version = "1.0", features = ["derive"] }
 serde-value = "0.7.0"
