@@ -135,7 +135,7 @@ impl Facade {
                     .validate_ocafile(ocafile)
                     .map_err(|errs| vec![Error::ValidationError(errs)])?;
 
-                Ok(BundleElement::Mechanics(self.build(&oca_build)?))
+                Ok(BundleElement::Structural(self.build(&oca_build)?))
             }
         }
 /*

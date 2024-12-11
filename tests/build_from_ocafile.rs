@@ -28,8 +28,8 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
 
         let result = facade.build_from_ocafile(ocafile)?;
 
-        assert!(matches!(result, BundleElement::Mechanics(_)));
-        if let BundleElement::Mechanics(result) = result {
+        assert!(matches!(result, BundleElement::Structural(_)));
+        if let BundleElement::Structural(result) = result {
             assert_eq!(
                 result.said.clone().unwrap().to_string(),
                 "EKHBds6myKVIsQuT7Zr23M8Xk_gwq-2SaDRUprvqOXxa"
@@ -47,7 +47,7 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
             assert_eq!(search_result.metadata.total, 1);
             Ok(())
         } else {
-            panic!("Expected BundleElement::Mechanics")
+            panic!("Expected BundleElement::Structural")
         }
     }
 
@@ -74,14 +74,14 @@ ADD ATTRIBUTE x=Text
         .to_string();
         let result = facade.build_from_ocafile(ocafile)?;
 
-        if let BundleElement::Mechanics(result) = result {
+        if let BundleElement::Structural(result) = result {
             assert_eq!(
                 result.said.unwrap().to_string(),
                 "EAMguWL--P5gad3xZoT2fd-qjoBDVkK82pb7KET1lrS1"
             );
             Ok(())
         } else {
-            panic!("Expected BundleElement::Mechanics")
+            panic!("Expected BundleElement::Structural")
         }
     }
 
@@ -114,10 +114,10 @@ ADD ATTRIBUTE C=Array[refn:second]
         .to_string();
         let result = facade.build_from_ocafile(ocafile).unwrap();
 
-        assert!(matches!(result, BundleElement::Mechanics(_)));
-        if let BundleElement::Mechanics(mechanics) = result {
+        assert!(matches!(result, BundleElement::Structural(_)));
+        if let BundleElement::Structural(structural) = result {
             assert_eq!(
-                mechanics.said.unwrap().to_string(),
+                structural.said.unwrap().to_string(),
                 "EGv65yGtFZG5CSRaS4q46dC3UWsW3vycbMFOqPFPvhWi"
             );
         }
@@ -129,10 +129,10 @@ ADD ATTRIBUTE x=Text
         .to_string();
 
         let result = facade.build_from_ocafile(from_ocafile).unwrap();
-        assert!(matches!(result, BundleElement::Mechanics(_)));
-        if let BundleElement::Mechanics(mechanics) = result {
+        assert!(matches!(result, BundleElement::Structural(_)));
+        if let BundleElement::Structural(structural) = result {
             assert_eq!(
-                mechanics.said.unwrap().to_string(),
+                structural.said.unwrap().to_string(),
                 "EE-Ru8mxNWhql7Q2ibY2-uuK9cIKxR2S9rc-eRkEeBwO"
             );
         }

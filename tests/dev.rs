@@ -84,15 +84,15 @@ ADD CHARACTER_ENCODING ATTRS first_name="utf-8" last_name="utf-8" hgt="utf-8" wg
 
         let result_source = facade.build_from_ocafile(ocafile_source)?;
         let mut source_said: Option<_> = None;
-        if let BundleElement::Mechanics(ref mechanics) = result_source {
-            source_said = mechanics.said.clone();
+        if let BundleElement::Structural(ref structural) = result_source {
+            source_said = structural.said.clone();
         }
         bundle.add(result_source);
 
         let result_target = facade.build_from_ocafile(ocafile_target)?;
         let mut target_said: Option<_> = None;
-        if let BundleElement::Mechanics(ref mechanics) = result_target {
-            target_said = mechanics.said.clone();
+        if let BundleElement::Structural(ref structural) = result_target {
+            target_said = structural.said.clone();
         }
 
         let ocafile_link = format!(r#"
