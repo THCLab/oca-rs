@@ -1,8 +1,17 @@
+use std::io::Read;
+
 use oca_bundle_semantics::state::oca::OCABundle as StructuralBundle;
 use said::derivation::HashFunctionCode;
 use said::{sad::SerializationFormats, sad::SAD};
 use said::version::SerializationInfo;
 use serde::{Deserialize, Serialize};
+
+pub type GenericError = Box<dyn std::error::Error + Sync + Send>;
+
+pub fn load_oca(source: &mut dyn Read) -> Result<Bundle, GenericError> {
+    let oca: Bundle = serde_json::from_reader(source)?;
+    Ok(oca)
+}
 
 #[derive(Debug)]
 pub enum BundleElement {
