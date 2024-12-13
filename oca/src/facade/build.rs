@@ -64,6 +64,35 @@ impl References for Box<dyn DataStorage> {
     }
 }
 
+pub fn build_from_ocafile(ocafile: String) -> Result<BundleElement, Vec<Error>> {
+    let ast = oca_file::ocafile::parse_from_string(ocafile.clone()).map_err(|e| {
+        vec![Error::ValidationError(vec![ValidationError::OCAFileParse(
+            e,
+        )])]
+    })?;
+    match ast {
+        oca_file::ocafile::OCAAst::TransformationAst(t_ast) => {
+            let transformation = transformation_file::build::from_ast(&t_ast).map_err(|e| {
+            e.iter()
+                .map(|e| ValidationError::TransformationBuild(e.clone()))
+                .collect::<Vec<_>>()
+            })
+            .map_err(|errs| vec![Error::ValidationError(errs)])?;
+            Ok(BundleElement::Transformation(transformation))
+        },
+        oca_file::ocafile::OCAAst::SemanticsAst(ast) => {
+            let oca_build = oca_bundle_semantics::build::from_ast(None, &ast).map_err(|e| {
+                e.iter()
+                    .map(|e| ValidationError::OCABundleBuild(e.clone()))
+                    .collect::<Vec<_>>()
+            })
+            .map_err(|errs| vec![Error::ValidationError(errs)])?;
+
+            Ok(BundleElement::Structural(oca_build.oca_bundle))
+        }
+    }
+}
+
 impl Facade {
     #[cfg(not(feature = "local-references"))]
     pub fn validate_ocafile(&self, ocafile: String) -> Result<OCABuild, Vec<ValidationError>> {
