@@ -14,8 +14,6 @@ use oca_bundle_semantics::state::{
     oca::overlay::label::Labels,
     oca::overlay::meta::Metas,
     oca::overlay::unit::Units,
-    /* oca::overlay::form_layout::FormLayouts,
-    oca::overlay::credential_layout::CredentialLayouts; */
     oca::OCABox,
 };
 
@@ -27,24 +25,10 @@ use maplit::hashmap;
 
 #[test]
 fn create_oca() {
-    /* let form_layout = r#"
-    elements:
-        - type: "test"
-        "#;
-        let credential_layout = r#"
-    version: "1.0"
-    pages:
-        - config:
-            name: "test"
-          elements:
-            - type: "test"
-        "#; */
     let mut oca = cascade! {
         OCABox::new();
         ..add_meta(Language::Eng, "name".to_string(), "Test".to_string());
         ..add_meta(Language::Eng, "description".to_string(), "Test case OCA".to_string());
-        /* ..add_form_layout(form_layout.to_string());
-        ..add_credential_layout(credential_layout.to_string()); */
     };
 
     let mut attribute = cascade! {

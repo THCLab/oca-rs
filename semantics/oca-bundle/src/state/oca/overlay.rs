@@ -3,11 +3,9 @@ pub mod cardinality;
 pub mod character_encoding;
 pub mod conditional;
 pub mod conformance;
-pub mod credential_layout;
 pub mod entry;
 pub mod entry_code;
 pub mod entry_code_mapping;
-pub mod form_layout;
 #[cfg(feature = "format_overlay")]
 pub mod format;
 pub mod information;
@@ -22,11 +20,9 @@ pub use self::cardinality::CardinalityOverlay as Cardinality;
 pub use self::character_encoding::CharacterEncodingOverlay as CharacterEncoding;
 pub use self::conditional::ConditionalOverlay as Conditional;
 pub use self::conformance::ConformanceOverlay as Conformance;
-pub use self::credential_layout::CredentialLayoutOverlay as CredentialLayout;
 pub use self::entry::EntryOverlay as Entry;
 pub use self::entry_code::EntryCodeOverlay as EntryCode;
 pub use self::entry_code_mapping::EntryCodeMappingOverlay as EntryCodeMapping;
-pub use self::form_layout::FormLayoutOverlay as FormLayout;
 #[cfg(feature = "format_overlay")]
 pub use self::format::FormatOverlay as Format;
 pub use self::information::InformationOverlay as Information;

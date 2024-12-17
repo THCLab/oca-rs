@@ -1,5 +1,3 @@
-use crate::state::oca::layout::credential::Layout as CredentialLayout;
-use crate::state::oca::layout::form::Layout as FormLayout;
 use crate::state::oca::overlay::cardinality::Cardinalitys;
 use crate::state::oca::overlay::character_encoding::CharacterEncodings;
 use crate::state::oca::overlay::conditional::Conditionals;
@@ -19,7 +17,6 @@ use said::version::SerializationInfo;
 use serde::{ser::SerializeMap, Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;
 pub mod capture_base;
-mod layout;
 pub mod overlay;
 use crate::state::{
     attribute::Attribute,
@@ -53,8 +50,6 @@ use oca_ast_semantics::ast::{
 #[derive(Clone)]
 pub struct OCABox {
     pub attributes: HashMap<String, Attribute>,
-    pub credential_layouts: Option<Vec<CredentialLayout>>,
-    pub form_layouts: Option<Vec<FormLayout>>,
     pub mappings: Option<Vec<overlay::AttributeMapping>>,
     pub meta: Option<HashMap<Language, HashMap<String, String>>>,
     pub classification: Option<String>,
@@ -70,8 +65,6 @@ impl OCABox {
     pub fn new() -> Self {
         OCABox {
             attributes: HashMap::new(),
-            credential_layouts: None,
-            form_layouts: None,
             mappings: None,
             meta: None,
             classification: None,
@@ -141,18 +134,6 @@ impl OCABox {
             for (lang, attr_pairs) in meta {
                 let meta_ov = overlay::Meta::new(*lang, attr_pairs.clone());
                 overlays.push(Box::new(meta_ov));
-            }
-        }
-        if let Some(layouts) = &self.form_layouts {
-            for layout in layouts {
-                let layout_ov = overlay::FormLayout::new(layout.clone());
-                overlays.push(Box::new(layout_ov));
-            }
-        }
-        if let Some(layouts) = &self.credential_layouts {
-            for layout in layouts {
-                let layout_ov = overlay::CredentialLayout::new(layout.clone());
-                overlays.push(Box::new(layout_ov));
             }
         }
 
@@ -1415,166 +1396,5 @@ mod tests {
         assert_eq!(oca.capture_base.attributes.len(), 0);
         assert_eq!(oca.capture_base.classification, "GICS:35102020");
     }
-    /*
-        #[test]
-        fn build_oca_with_attributes() {
-            let oca_builder = OCABuilder::new(Encoding::Utf8)
-                .add_form_layout(
-                    "
-                    config:
-                        css:
-                            style: >-
-                                form { background-color: white; }
-                    elements:
-                        - type: meta
-                          config:
-                              css:
-                                  style: >-
-                                      justify-content: space-between;
-                          parts:
-                              - name: language
-                              - name: name
-                              - name: description
-                        - type: category
-                          id: _cat-1_
-                        - type: attribute
-                          name: n1
-                          parts:
-                              - name: label
-                              - name: input
-                              - name: information
-                        - type: attribute
-                          name: n2
-                          parts:
-                              - name: label
-                              - name: input
-                              - name: information
-                "
-                    .to_string(),
-                )
-                .add_credential_layout(
-                    "
-    version: beta-1
-    config:
-      css:
-        width: 200px
-        height: 100px
-        style: >-
-          @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@700&display=swap');
-    pages:
-      - config:
-          name: Page 0
-        elements:
-          - type: row
-            config:
-              css:
-                style: >-
-                  height: 32px;
-            elements:
-          - type: row
-            elements:
-              - type: col
-                size: 4
-                config:
-                  css:
-                    style: >-
-                      padding-right: 0;
-                elements:
-                  - type: row
-                    elements:
-                      - type: col
-                        size: 8
-                        elements:
-                          - type: row
-                            elements:
-                              - type: col
-                                elements:
-                                - type: attribute
-                                  name: n1
-    labels:
-      passport:
-        en: Passport
-        fr: Passeport
-                                       "
-                    .to_string(),
-                )
-                .add_name(hashmap! {
-                    "En".to_string() => "Driving Licence".to_string(),
-                    "Pl".to_string() => "Prawo Jazdy".to_string(),
-                })
-                .add_description(hashmap! {
-                    "En".to_string() => "DL desc".to_string(),
-                    "Pl".to_string() => "PJ desc".to_string(),
-                });
-
-            let attr1 = AttributeBuilder::new(String::from("n1"), AttributeType::Text)
-                .set_flagged()
-                .add_label(hashmap! {
-                    "En".to_string() => "Name: ".to_string(),
-                    "Pl".to_string() => "Imię: ".to_string(),
-                })
-                .add_entry_codes(EntryCodes::Array(vec![
-                    "op1".to_string(),
-                    "op2".to_string(),
-                ]))
-                .add_entries(Entries::Object(vec![
-                    Entry::new(
-                        "op1".to_string(),
-                        hashmap! {
-                            "En".to_string() => "Option 1".to_string(),
-                            "Pl".to_string() => "Opcja 1".to_string(),
-                        },
-                    ),
-                    Entry::new(
-                        "op2".to_string(),
-                        hashmap! {
-                            "En".to_string() => "Option 2".to_string(),
-                            "Pl".to_string() => "Opcja 2".to_string(),
-                        },
-                    ),
-                ]))
-                .add_information(hashmap! {
-                    "En".to_string() => "info en".to_string(),
-                    "Pl".to_string() => "info pl".to_string(),
-                })
-                .add_unit("SI".to_string(), "cm".to_string())
-                .build();
-
-            let attr2 = AttributeBuilder::new(String::from("n2"), AttributeType::DateTime)
-                .add_label(hashmap! {
-                    "En".to_string() => "Date: ".to_string(),
-                    "Pl".to_string() => "Data: ".to_string(),
-                })
-                .add_condition("${0} == 'op1'".to_string(), vec!["n1".to_string()])
-                .add_encoding(Encoding::Iso8859_1)
-                .add_format("DD/MM/YYYY".to_string())
-                .build();
-
-            let attr3 = AttributeBuilder::new(String::from("n3"), AttributeType::Reference)
-                .add_sai("sai".to_string())
-                .add_label(hashmap! {
-                    "En".to_string() => "Reference: ".to_string(),
-                    "Pl".to_string() => "Referecja: ".to_string(),
-                })
-                .build();
-
-            let oca = oca_builder
-                .add_attribute(attr1)
-                .add_attribute(attr2)
-                .add_attribute(attr3)
-                .finalize();
-
-            // println!(
-            //     "{}",
-            //     serde_json::to_string_pretty(&serde_json::to_value(&oca).unwrap()).unwrap()
-            // );
-
-            assert_eq!(
-                oca.capture_base.attributes.get(&"n3".to_string()),
-                Some(&"Reference:sai".to_string())
-            );
-            assert_eq!(oca.capture_base.attributes.len(), 3);
-            assert_eq!(oca.capture_base.flagged_attributes.len(), 1);
-        } */
 }
 */
