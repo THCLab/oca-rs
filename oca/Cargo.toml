@@ -1,7 +1,7 @@
 [package]
 name = "oca-rs"
 description = "OCA rust ecosytem facade"
-version = "0.6.3"
+version = "0.6.4"
 license = "EUPL-1.2"
 edition = "2021"
 authors = [
@@ -22,14 +22,14 @@ local-references = []
 [dependencies]
 dyn-clonable = "0.9.0"
 isolang = "2.3.0"
-oca-ast-semantics = { version = "0.6.3", path = "../semantics/oca-ast" }
-oca-bundle-semantics = { version = "0.6.3", path = "../semantics/oca-bundle", features = [
+oca-ast-semantics = { version = "0.6.4", path = "../semantics/oca-ast" }
+oca-bundle-semantics = { version = "0.6.4", path = "../semantics/oca-bundle", features = [
   "format_overlay",
 ] }
-oca-dag-semantics = { version = "0.6.3", path = "../semantics/oca-dag" }
-oca-file-semantics = { version = "0.6.3", path = "../semantics/oca-file" }
-oca-file = { version = "0.6.3", path = "../oca-file" }
-transformation-file = { version = "0.6.3", path = "../transformation/transformation-file" }
+oca-dag-semantics = { version = "0.6.4", path = "../semantics/oca-dag" }
+oca-file-semantics = { version = "0.6.4", path = "../semantics/oca-file" }
+oca-file = { version = "0.6.4", path = "../oca-file" }
+transformation-file = { version = "0.6.4", path = "../transformation/transformation-file" }
 regex = "1.9.5"
 rusqlite = "0.29.0"
 said = { version = "0.4.1", features = ["macros"] }
