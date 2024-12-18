@@ -429,7 +429,6 @@ fn retrive_all_references(bundle: OCABundle) -> Vec<SelfAddressingIdentifier> {
 mod test {
     use super::*;
     use crate::data_storage::InMemoryDataStorage;
-    use crate::facade::bundle::BundleElement;
     use crate::repositories::SQLiteConfig;
 
     #[test]
@@ -454,25 +453,17 @@ ADD ENTRY en ATTRS list="refs:ENrf7niTCnz7HD-Ci88rlxHlxkpQ2NIZNNv08fQnXANI" el={
 "#.to_string();
         let oca_bundle = facade.build_from_ocafile(ocafile_input);
         let oca_bundle = oca_bundle.unwrap();
-        if let BundleElement::Structural(structural) = oca_bundle {
-            let ocafile = facade.parse_oca_bundle_to_ocafile(&structural)?;
-            let new_structural = facade.build_from_ocafile(ocafile);
-            match new_structural {
-                Ok(BundleElement::Structural(new_structural)) => {
-                    assert_eq!(structural.said, new_structural.said);
-                }
-                Ok(_) => {
-                    panic!("Expected BundleElement::Structural")
-                }
-                Err(e) => {
-                    println!("{:#?}", e);
-                    panic!("Faild to load oca bundle");
-                }
+        let ocafile = facade.parse_oca_bundle_to_ocafile(&oca_bundle)?;
+        let new_bundle = facade.build_from_ocafile(ocafile);
+        match new_bundle {
+            Ok(new_bundle) => {
+                assert_eq!(oca_bundle.said, new_bundle.said);
             }
-        } else {
-            panic!("Expected BundleElement::Structural")
+            Err(e) => {
+                println!("{:#?}", e);
+                panic!("Faild to load oca bundle");
+            }
         }
-
 
         Ok(())
     }

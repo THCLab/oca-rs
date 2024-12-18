@@ -1,11 +1,8 @@
 #[cfg(test)]
-pub mod dev;
-
-#[cfg(test)]
 mod test {
     use oca_rs::{
         data_storage::{DataStorage, InMemoryDataStorage},
-        facade::{build::Error, build::ValidationError, bundle::BundleElement},
+        facade::{build::Error, build::ValidationError},
         repositories::SQLiteConfig,
         Facade,
         HashFunctionCode, SerializationFormats, EncodeBundle
@@ -28,27 +25,22 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
 
         let result = facade.build_from_ocafile(ocafile)?;
 
-        assert!(matches!(result, BundleElement::Structural(_)));
-        if let BundleElement::Structural(result) = result {
-            assert_eq!(
-                result.said.clone().unwrap().to_string(),
-                "EKHBds6myKVIsQuT7Zr23M8Xk_gwq-2SaDRUprvqOXxa"
-            );
+        assert_eq!(
+            result.said.clone().unwrap().to_string(),
+            "EKHBds6myKVIsQuT7Zr23M8Xk_gwq-2SaDRUprvqOXxa"
+        );
 
-            let code = HashFunctionCode::Blake3_256;
-            let format = SerializationFormats::JSON;
-            let oca_bundle_encoded = result.encode(&code, &format).unwrap();
-            let oca_bundle_version = String::from_utf8(
-                oca_bundle_encoded[6..23].to_vec()
-            ).unwrap();
-            assert_eq!(oca_bundle_version, "OCAS11JSON000646_");
+        let code = HashFunctionCode::Blake3_256;
+        let format = SerializationFormats::JSON;
+        let oca_bundle_encoded = result.encode(&code, &format).unwrap();
+        let oca_bundle_version = String::from_utf8(
+            oca_bundle_encoded[6..23].to_vec()
+        ).unwrap();
+        assert_eq!(oca_bundle_version, "OCAS11JSON000646_");
 
-            let search_result = facade.search_oca_bundle(None, "Ent".to_string(), 10, 1);
-            assert_eq!(search_result.metadata.total, 1);
-            Ok(())
-        } else {
-            panic!("Expected BundleElement::Structural")
-        }
+        let search_result = facade.search_oca_bundle(None, "Ent".to_string(), 10, 1);
+        assert_eq!(search_result.metadata.total, 1);
+        Ok(())
     }
 
     #[test]
@@ -74,15 +66,11 @@ ADD ATTRIBUTE x=Text
         .to_string();
         let result = facade.build_from_ocafile(ocafile)?;
 
-        if let BundleElement::Structural(result) = result {
-            assert_eq!(
-                result.said.unwrap().to_string(),
-                "EAMguWL--P5gad3xZoT2fd-qjoBDVkK82pb7KET1lrS1"
-            );
-            Ok(())
-        } else {
-            panic!("Expected BundleElement::Structural")
-        }
+        assert_eq!(
+            result.said.unwrap().to_string(),
+            "EAMguWL--P5gad3xZoT2fd-qjoBDVkK82pb7KET1lrS1"
+        );
+        Ok(())
     }
 
     #[test]
@@ -112,15 +100,12 @@ ADD ATTRIBUTE B=refn:first
 ADD ATTRIBUTE C=Array[refn:second]
 "#
         .to_string();
-        let result = facade.build_from_ocafile(ocafile).unwrap();
+        let result = facade.build_from_ocafile(ocafile)?;
 
-        assert!(matches!(result, BundleElement::Structural(_)));
-        if let BundleElement::Structural(structural) = result {
-            assert_eq!(
-                structural.said.unwrap().to_string(),
-                "EGv65yGtFZG5CSRaS4q46dC3UWsW3vycbMFOqPFPvhWi"
-            );
-        }
+        assert_eq!(
+            result.said.unwrap().to_string(),
+            "EGv65yGtFZG5CSRaS4q46dC3UWsW3vycbMFOqPFPvhWi"
+        );
 
         let from_ocafile = r#"
 FROM EE15xNvWNy89ZBFhMBukb2kovfO2Y73y1Si2oFFkWFpy
@@ -128,14 +113,11 @@ ADD ATTRIBUTE x=Text
 "#
         .to_string();
 
-        let result = facade.build_from_ocafile(from_ocafile).unwrap();
-        assert!(matches!(result, BundleElement::Structural(_)));
-        if let BundleElement::Structural(structural) = result {
-            assert_eq!(
-                structural.said.unwrap().to_string(),
-                "EE-Ru8mxNWhql7Q2ibY2-uuK9cIKxR2S9rc-eRkEeBwO"
-            );
-        }
+        let result = facade.build_from_ocafile(from_ocafile)?;
+        assert_eq!(
+            result.said.unwrap().to_string(),
+            "EE-Ru8mxNWhql7Q2ibY2-uuK9cIKxR2S9rc-eRkEeBwO"
+        );
         let refs = facade.fetch_all_refs().unwrap();
 
         assert_eq!(refs.len(), 2);
@@ -164,13 +146,18 @@ ADD ATTRIBUTE C=Array[refn:third]
         assert!(result.is_err());
         let errors = result.unwrap_err();
         let error = errors.first().unwrap();
-        let Error::ValidationError(validation_errors) = error;
-        let validation_error = validation_errors.first().unwrap();
-        assert!(
-            matches!(
-                validation_error,
-                ValidationError::UnknownRefn(_)
-            )
-        );
+        assert!(matches!(
+            error,
+            Error::ValidationError(_)
+        ));
+        if let Error::ValidationError(validation_errors) = error {
+            let validation_error = validation_errors.first().unwrap();
+            assert!(
+                matches!(
+                    validation_error,
+                    ValidationError::UnknownRefn(_)
+                )
+            );
+        }
     }
 }
