@@ -155,6 +155,7 @@ pub enum OverlayType {
     UnitMapping,
     Layout,
     Sensitivity,
+    Link,
 }
 
 impl Serialize for OverlayType {
@@ -186,6 +187,7 @@ impl Serialize for OverlayType {
             OverlayType::UnitMapping => serializer.serialize_str("spec/overlays/unit_mapping/1.0"),
             OverlayType::Layout => serializer.serialize_str("spec/overlays/layout/1.0"),
             OverlayType::Sensitivity => serializer.serialize_str("spec/overlays/sensitivity/1.0"),
+            OverlayType::Link => serializer.serialize_str("spec/overlays/link/1.0"),
         }
     }
 }
@@ -240,6 +242,7 @@ impl FromStr for OverlayType {
             "UnitMapping" => Ok(OverlayType::UnitMapping),
             "Layout" => Ok(OverlayType::Layout),
             "Sensitivity" => Ok(OverlayType::Sensitivity),
+            "Link" => Ok(OverlayType::Link),
             _ => Err(()),
         }
     }
@@ -267,6 +270,7 @@ impl fmt::Display for OverlayType {
             OverlayType::UnitMapping => write!(f, "UnitMapping"),
             OverlayType::Layout => write!(f, "Layout"),
             OverlayType::Sensitivity => write!(f, "Sensitivity"),
+            OverlayType::Link => write!(f, "Link"),
         }
     }
 }
@@ -297,6 +301,7 @@ impl<'de> Deserialize<'de> for OverlayType {
             "spec/overlays/unit_mapping/1.0" => Ok(OverlayType::UnitMapping),
             "spec/overlays/layout/1.0" => Ok(OverlayType::Layout),
             "spec/overlays/sensitivity/1.0" => Ok(OverlayType::Sensitivity),
+            "spec/overlays/link/1.0" => Ok(OverlayType::Link),
             _ => Err(serde::de::Error::custom(format!(
                 "unknown overlay type: {}",
                 s
@@ -759,6 +764,13 @@ impl From<u8> for ObjectKind {
                     properties: None,
                 },
             ),
+            21 => ObjectKind::Overlay(
+                OverlayType::Link,
+                Content {
+                    attributes: None,
+                    properties: None,
+                },
+            ),
             _ => panic!("Unknown object type"),
         }
     }
@@ -788,6 +800,7 @@ impl From<ObjectKind> for u8 {
             ObjectKind::Overlay(OverlayType::UnitMapping, _) => 18,
             ObjectKind::Overlay(OverlayType::Layout, _) => 19,
             ObjectKind::Overlay(OverlayType::Sensitivity, _) => 20,
+            ObjectKind::Overlay(OverlayType::Link, _) => 21,
         }
     }
 }
@@ -935,6 +948,13 @@ impl<'de> Deserialize<'de> for ObjectKind {
             )),
             "Sensitivity" => Ok(ObjectKind::Overlay(
                 OverlayType::Sensitivity,
+                Content {
+                    attributes: None,
+                    properties: None,
+                },
+            )),
+            "Link" => Ok(ObjectKind::Overlay(
+                OverlayType::Link,
                 Content {
                     attributes: None,
                     properties: None,

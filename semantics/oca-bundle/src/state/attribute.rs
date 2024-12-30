@@ -28,6 +28,7 @@ pub struct Attribute {
     pub cardinality: Option<String>,
     pub conformance: Option<String>,
     pub standards: Option<Vec<Standard>>,
+    pub links: Option<HashMap<String, String>>,
 }
 
 impl Default for Attribute {
@@ -58,6 +59,7 @@ impl Attribute {
             cardinality: None,
             conformance: None,
             standards: None,
+            links: None,
         }
     }
 
@@ -127,6 +129,10 @@ impl Attribute {
 
             if other.standards.is_some() {
                 self.standards.clone_from(&other.standards);
+            }
+
+            if other.links.is_some() {
+                self.links.clone_from(&other.links);
             }
         }
     }

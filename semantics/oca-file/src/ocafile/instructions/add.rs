@@ -131,6 +131,12 @@ impl AddInstruction {
                         helpers::extract_content(object),
                     ));
                 }
+                Rule::link => {
+                    object_kind = Some(ObjectKind::Overlay(
+                        OverlayType::Link,
+                        helpers::extract_content(object),
+                    ));
+                }
                 Rule::flagged_attrs => {
                     object_kind = Some(ObjectKind::CaptureBase(CaptureContent {
                         properties: None,

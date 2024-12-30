@@ -348,6 +348,22 @@ pub fn extract_properites_key_pairs(object: Pair) -> Option<IndexMap<String, Nes
                     NestedValue::Value(attr.as_str().to_string()),
                 );
             }
+            Rule::alias => {
+                debug!("Parsing target alias: {:?}", attr.as_str());
+                properties.insert(
+                    "target".to_string(),
+                    NestedValue::Reference(RefValue::Name(attr.as_str().to_string()))
+                );
+            }
+            Rule::said => {
+                debug!("Parsing target said: {:?}", attr.as_str());
+                if let Ok(said) = SelfAddressingIdentifier::from_str(attr.as_str()) {
+                    properties.insert(
+                        "target".to_string(),
+                        NestedValue::Reference(RefValue::Said(said)),
+                    );
+                }
+            },
             Rule::unit_system => {
                 debug!("Parsing unit system: {:?}", attr.as_str());
                 properties.insert(

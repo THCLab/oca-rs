@@ -130,6 +130,36 @@ ADD ATTRIBUTE x=Text
     }
 
     #[test]
+    fn build_with_link() -> Result<(), Vec<Error>> {
+        let db = InMemoryDataStorage::new();
+        let db_cache = InMemoryDataStorage::new();
+        let cache_storage_config = SQLiteConfig::build().unwrap();
+        let mut facade = Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
+        let first_ocafile = r#"
+-- name=first
+ADD ATTRIBUTE a=Text
+"#
+        .to_string();
+        facade.build_from_ocafile(first_ocafile)?;
+
+        let second_ocafile = r#"
+-- name=second
+ADD ATTRIBUTE b=Text
+ADD LINK refn:first ATTRS b=a
+"#
+        .to_string();
+
+        let result = facade.build_from_ocafile(second_ocafile)?;
+
+        assert_eq!(
+            result.said.unwrap().to_string(),
+            "EPRLZDmCOMfUw4KE-BnRctyLmFhYrpSL0BlONgoKhgcR"
+        );
+
+        Ok(())
+    }
+
+    #[test]
     fn fail_while_building_from_unknown_reference() {
         let db = InMemoryDataStorage::new();
         let db_cache = InMemoryDataStorage::new();

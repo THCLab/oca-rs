@@ -274,6 +274,26 @@ impl OCABox {
                     }
                 }
             }
+
+            if let Some(links) = &attribute.links {
+                for target_bundle in links.keys() {
+                    let mut link_ov = overlays.iter_mut().find(|x| {
+                        match x.as_any().downcast_ref::<overlay::Link>() {
+                            Some(o) => o.target_bundle == *target_bundle,
+                            None => false,
+                        }
+                    });
+
+                    if link_ov.is_none() {
+                        overlays
+                            .push(Box::new(overlay::Link::new(target_bundle.clone())));
+                        link_ov = overlays.last_mut();
+                    }
+                    if let Some(ov) = link_ov {
+                        ov.add(attribute);
+                    }
+                }
+            }
         }
 
         overlays
@@ -474,6 +494,15 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
+                    OverlayType::Link => {
+                        return Ok(Box::new(
+                            de_overlay
+                                .deserialize_into::<overlay::Link>()
+                                .map_err(|e| {
+                                    serde::de::Error::custom(format!("Link overlay: {e}"))
+                                })?,
+                        ));
+                    }
                     _ => {
                         return Err(serde::de::Error::custom(format!(
                             "Overlay type not supported: {:?}",
@@ -511,6 +540,7 @@ where
         OverlayType::Entry,
         OverlayType::Label,
         OverlayType::Information,
+        OverlayType::Link,
     ];
 
     let mut overlays_map: BTreeMap<Value, OverlayValue> = BTreeMap::new();
