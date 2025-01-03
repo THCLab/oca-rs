@@ -88,6 +88,10 @@ pub fn build_from_ocafile(ocafile: String) -> Result<OCABundle, Vec<Error>> {
     }
 }
 
+pub fn parse_oca_bundle_to_ocafile(bundle: &OCABundle) -> String {
+    oca_file_semantics::ocafile::generate_from_ast(&bundle.to_ast())
+}
+
 impl Facade {
     #[cfg(not(feature = "local-references"))]
     pub fn validate_ocafile(&self, ocafile: String) -> Result<OCABuild, Vec<ValidationError>> {

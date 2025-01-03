@@ -390,6 +390,29 @@ pub fn generate_from_ast(ast: &OCAAst) -> String {
                                 }
                             };
                         }
+                        ast::OverlayType::Link => {
+                            line.push_str("LINK ");
+                            if let Some(content) = command.object_kind.overlay_content() {
+                                if let Some(ref properties) = content.properties {
+                                    let target = properties.get("target");
+                                    if let Some(ast::NestedValue::Reference(RefValue::Said(target_said))) = target {
+                                        line.push_str(
+                                            format!("refs:{} ", target_said).as_str(),
+                                        );
+                                    }
+                                }
+                                if let Some(ref attributes) = content.attributes {
+                                    line.push_str("ATTRS");
+                                    attributes.iter().for_each(|(key, value)| {
+                                        if let ast::NestedValue::Value(value) = value {
+                                            line.push_str(
+                                                format!(" {}=\"{}\"", key, value).as_str(),
+                                            );
+                                        }
+                                    });
+                                }
+                            };
+                        }
                         _ => {
                             line.push_str(
                                 format!("{} ", o_type.to_string().to_case(Case::UpperSnake))
@@ -527,6 +550,7 @@ ADD ENTRY pl ATTRS radio={"o1": "etykieta1", "o2": "etykieta2", "o3": "etykieta3
 ADD CONDITION ATTRS radio="${age} > 18"
 ADD ENTRY_CODE ATTRS list={"g1": ["el1"], "g2": ["el2", "el3"]}
 ADD ENTRY pl ATTRS list={"el1": "element1", "el2": "element2", "el3": "element3", "g1": "grupa1", "g2": "grupa2"}
+ADD LINK refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu ATTRS name="n"
 "#;
         let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
 
