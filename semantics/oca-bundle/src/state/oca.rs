@@ -716,9 +716,9 @@ impl From<OCABundle> for OCABox {
             .iter()
             .filter_map(|x| x.as_any().downcast_ref::<overlay::Conditional>())
             .collect::<Vec<_>>();
-        for overlay in conditional_overlays {
-            let re = regex::Regex::new(r"\$\{(\d+)\}").unwrap();
 
+        let re = regex::Regex::new(r"\$\{(\d+)\}").unwrap();
+        for overlay in conditional_overlays {
             for (attr_name, condition) in overlay.attribute_conditions.iter() {
                 let condition_dependencies = overlay.attribute_dependencies.get(attr_name).unwrap(); // todo
                 let cond = re

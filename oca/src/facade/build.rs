@@ -293,7 +293,7 @@ impl Facade {
         let mut input: Vec<u8> = vec![];
         match &step.parent_said {
             Some(said) => {
-                input.push(said.to_string().as_bytes().len().try_into().unwrap());
+                input.push(said.to_string().len().try_into().unwrap());
                 input.extend(said.to_string().as_bytes());
             }
             None => {
@@ -358,7 +358,7 @@ impl Facade {
                 let mut input: Vec<u8> = vec![];
                 match &capture_base_model.parent {
                     Some(said) => {
-                        input.push(said.to_string().as_bytes().len().try_into().unwrap());
+                        input.push(said.to_string().len().try_into().unwrap());
                         input.extend(said.to_string().as_bytes());
                     }
                     None => {
@@ -369,9 +369,7 @@ impl Facade {
                 input.push(
                     capture_base_model
                         .command_digest
-                        .to_string()
-                        .as_bytes()
-                        .len()
+                        .to_string().len()
                         .try_into()
                         .unwrap(),
                 );
@@ -390,7 +388,7 @@ impl Facade {
                 let mut input: Vec<u8> = vec![];
                 match &overlay_model.parent {
                     Some(said) => {
-                        input.push(said.to_string().as_bytes().len().try_into().unwrap());
+                        input.push(said.to_string().len().try_into().unwrap());
                         input.extend(said.to_string().as_bytes());
                     }
                     None => {
@@ -401,9 +399,7 @@ impl Facade {
                 input.push(
                     overlay_model
                         .command_digest
-                        .to_string()
-                        .as_bytes()
-                        .len()
+                        .to_string().len()
                         .try_into()
                         .unwrap(),
                 );
@@ -422,7 +418,7 @@ impl Facade {
                 let mut input: Vec<u8> = vec![];
                 match &oca_bundle_model.parent {
                     Some(said) => {
-                        input.push(said.to_string().as_bytes().len().try_into().unwrap());
+                        input.push(said.to_string().len().try_into().unwrap());
                         input.extend(said.to_string().as_bytes());
                     }
                     None => {
@@ -433,16 +429,14 @@ impl Facade {
                 input.push(
                     oca_bundle_model
                         .capture_base_said
-                        .to_string()
-                        .as_bytes()
-                        .len()
+                        .to_string().len()
                         .try_into()
                         .unwrap(),
                 );
                 input.extend(oca_bundle_model.capture_base_said.to_string().as_bytes());
 
                 for said in &oca_bundle_model.overlays_said {
-                    input.push(said.to_string().as_bytes().len().try_into().unwrap());
+                    input.push(said.to_string().len().try_into().unwrap());
                     input.extend(said.to_string().as_bytes());
                 }
 

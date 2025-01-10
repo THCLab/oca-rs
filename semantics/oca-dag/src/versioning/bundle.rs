@@ -15,13 +15,13 @@ impl From<OCABundleDTO> for Vec<u8> {
     fn from(val: OCABundleDTO) -> Self {
         let mut digests: Vec<u8> = Vec::new();
         if let Some(ref said) = val.bundle.capture_base.said {
-            digests.push(said.to_string().as_bytes().len().try_into().unwrap());
+            digests.push(said.to_string().len().try_into().unwrap());
             digests.extend(said.to_string().as_bytes());
         }
 
         val.bundle.overlays.iter().for_each(|overlay| {
             if let Some(ref said) = overlay.said() {
-                digests.push(said.to_string().as_bytes().len().try_into().unwrap());
+                digests.push(said.to_string().len().try_into().unwrap());
                 // digests.push(overlay.overlay_type().into());
                 digests.extend(said.to_string().as_bytes());
             }

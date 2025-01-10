@@ -43,14 +43,14 @@ pub fn build_oca(
             match base {
                 Some(ref mut base) => {
                     let base_said = base.generate_bundle().said.unwrap().to_string();
-                    input.push(base_said.as_bytes().len().try_into().unwrap());
+                    input.push(base_said.len().try_into().unwrap());
                     input.extend(base_said.as_bytes());
                 }
                 None => {
                     input.push(0);
                 }
             }
-            input.push(command_str.as_bytes().len().try_into().unwrap());
+            input.push(command_str.len().try_into().unwrap());
             input.extend(command_str.as_bytes());
             db.insert(
                 &format!("oca.{}.operation", oca_bundle.clone().said.unwrap()),

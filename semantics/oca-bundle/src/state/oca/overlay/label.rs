@@ -237,32 +237,28 @@ mod tests {
 
         assert!(overlay
             .category_labels
-            .get(&"_cat-1_".to_string())
-            .is_some());
-        if let Some(cat1) = overlay.category_labels.get(&"_cat-1_".to_string()) {
+            .contains_key("_cat-1_"));
+        if let Some(cat1) = overlay.category_labels.get("_cat-1_") {
             assert_eq!(*cat1, "Cat 1".to_string());
         }
         assert!(overlay
             .category_labels
-            .get(&"_cat-2_".to_string())
-            .is_some());
-        if let Some(cat2) = overlay.category_labels.get(&"_cat-2_".to_string()) {
+            .contains_key("_cat-2_"));
+        if let Some(cat2) = overlay.category_labels.get("_cat-2_") {
             assert_eq!(*cat2, "Cat 2".to_string());
         }
 
         assert!(overlay
             ._category_attributes
-            .get(&"_cat-1_".to_string())
-            .is_some());
-        if let Some(cat1_attrs) = overlay._category_attributes.get(&"_cat-1_".to_string()) {
+            .contains_key("_cat-1_"));
+        if let Some(cat1_attrs) = overlay._category_attributes.get("_cat-1_") {
             assert_eq!(cat1_attrs.len(), 1);
             assert!(cat1_attrs.contains(&"attr1".to_string()));
         }
         assert!(overlay
             ._category_attributes
-            .get(&"_cat-2_".to_string())
-            .is_some());
-        if let Some(cat2_attrs) = overlay._category_attributes.get(&"_cat-2_".to_string()) {
+            .contains_key("_cat-2_"));
+        if let Some(cat2_attrs) = overlay._category_attributes.get("_cat-2_") {
             assert_eq!(cat2_attrs.len(), 1);
             assert!(cat2_attrs.contains(&"attr2".to_string()));
         }
