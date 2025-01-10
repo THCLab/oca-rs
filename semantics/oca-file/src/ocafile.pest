@@ -170,7 +170,7 @@ conditional = {^"condition" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
 cardinality = {^"cardinality" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
 entry_code = {^"entry_code" ~ arg_ws ~ attrs_key ~ attr_entry_code_key_pairs}
 entry = {^"entry" ~ arg_ws ~ lang ~ arg_ws ~ attrs_key ~ attr_entry_key_pairs}
-unit = {^"unit" ~ arg_ws ~ attrs_key ~ attr_key_pairs}
+unit = {^"unit" ~ arg_ws ~ attrs_key ~ unit_attr_key_pairs}
 link = {^"link" ~ arg_ws ~ reference_type ~ arg_ws ~ attrs_key ~ attr_key_pairs}
 
 flagged_attrs = {^"flagged_attributes" ~ arg_ws ~ list_value}
@@ -190,6 +190,11 @@ key_value = ${ string | char+}
 key_pair = @{ attr_key ~ arg_ws? ~ "=" ~ arg_ws? ~ key_value }
 attr_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
 prop_key_pairs = ${ (arg_ws? ~ key_pair ~ arg_ws?)+ }
+
+unit_char = ${ !" " ~ !NEWLINE ~ ANY }
+unit_value = ${ string | unit_char+ }
+unit_key_pair = @{ attr_key ~ arg_ws? ~ "=" ~ arg_ws? ~ unit_value }
+unit_attr_key_pairs = ${ (arg_ws? ~ unit_key_pair ~ arg_ws?)+ }
 
 entry_code_list = { "[" ~ "]" | "[" ~ string ~ ("," ~ " "* ~ string)* ~ "]" }
 entry_code_object = { "{" ~ "}" | "{" ~ " "* ~ entry_code_key_value_pair ~ ("," ~ " "* ~ entry_code_key_value_pair)* ~ " "* ~ "}" }

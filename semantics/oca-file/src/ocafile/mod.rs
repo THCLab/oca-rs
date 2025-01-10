@@ -513,7 +513,7 @@ ADD CONFORMANCE ATTRS d="M" i="M" passed="M"
 ADD LABEL en ATTRS d="Schema digest" i="Credential Issuee" passed="Passed"
 ADD INFORMATION en ATTRS d="Name" i="Credential Issuee" passed="Enables or disables passing"
 ADD FORMAT ATTRS d="image/jpeg"
-ADD UNIT ATTRS i=m
+ADD UNIT ATTRS i=m^2 d=°
 ADD ATTRIBUTE list=Array[Text] el=Text
 ADD CARDINALITY ATTRS list="1-2"
 ADD ENTRY_CODE ATTRS list="entry_code_said" el=["o1", "o2", "o3"]

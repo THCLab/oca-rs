@@ -93,7 +93,8 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
                 key = item.as_str().to_string();
                 debug!("Extracting attribute key {:?}", key);
             }
-            Rule::key_value => {
+            Rule::key_value |
+            Rule::unit_value => {
                 if let Some(nested_item) = item.clone().into_inner().next() {
                     match nested_item.as_rule() {
                         Rule::string => {
@@ -298,7 +299,10 @@ pub fn extract_attributes_key_paris(object: Pair) -> Option<IndexMap<String, Nes
     for attr in object.into_inner() {
         debug!("Inside the object: {:?}", attr);
         match attr.as_rule() {
-            Rule::attr_key_pairs | Rule::attr_entry_code_key_pairs | Rule::attr_entry_key_pairs => {
+            Rule::attr_key_pairs |
+            Rule::attr_entry_code_key_pairs |
+            Rule::attr_entry_key_pairs |
+            Rule::unit_attr_key_pairs => {
                 for attr in attr.into_inner() {
                     debug!("Parsing attribute {:?}", attr);
                     if let Some((key, value)) = extract_attribute_key_pairs(attr) {
