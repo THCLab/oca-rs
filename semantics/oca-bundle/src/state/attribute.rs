@@ -5,7 +5,7 @@ use oca_ast_semantics::ast::NestedAttrType;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::state::{encoding::Encoding, entries::EntriesElement, entry_codes::EntryCodes};
+use crate::state::{encoding::Encoding, entries::EntriesElement, entry_codes::EntryCodes, oca::overlay::attribute_framing::Framing};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Attribute {
     pub name: String,
@@ -29,6 +29,7 @@ pub struct Attribute {
     pub conformance: Option<String>,
     pub standards: Option<Vec<Standard>>,
     pub links: Option<HashMap<String, String>>,
+    pub framings: Option<HashMap<String, Framing>>,
 }
 
 impl Default for Attribute {
@@ -60,6 +61,7 @@ impl Attribute {
             conformance: None,
             standards: None,
             links: None,
+            framings: None,
         }
     }
 
@@ -133,6 +135,10 @@ impl Attribute {
 
             if other.links.is_some() {
                 self.links.clone_from(&other.links);
+            }
+
+            if other.framings.is_some() {
+                self.framings.clone_from(&other.framings);
             }
         }
     }

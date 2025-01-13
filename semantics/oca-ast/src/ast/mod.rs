@@ -156,6 +156,7 @@ pub enum OverlayType {
     Layout,
     Sensitivity,
     Link,
+    AttributeFraming
 }
 
 impl Serialize for OverlayType {
@@ -188,6 +189,7 @@ impl Serialize for OverlayType {
             OverlayType::Layout => serializer.serialize_str("spec/overlays/layout/1.0"),
             OverlayType::Sensitivity => serializer.serialize_str("spec/overlays/sensitivity/1.0"),
             OverlayType::Link => serializer.serialize_str("spec/overlays/link/1.0"),
+            OverlayType::AttributeFraming => serializer.serialize_str("spec/overlays/attribute_framing/1.0"),
         }
     }
 }
@@ -243,6 +245,7 @@ impl FromStr for OverlayType {
             "Layout" => Ok(OverlayType::Layout),
             "Sensitivity" => Ok(OverlayType::Sensitivity),
             "Link" => Ok(OverlayType::Link),
+            "AttributeFraming" => Ok(OverlayType::AttributeFraming),
             _ => Err(()),
         }
     }
@@ -271,6 +274,7 @@ impl fmt::Display for OverlayType {
             OverlayType::Layout => write!(f, "Layout"),
             OverlayType::Sensitivity => write!(f, "Sensitivity"),
             OverlayType::Link => write!(f, "Link"),
+            OverlayType::AttributeFraming => write!(f, "AttributeFraming"),
         }
     }
 }
@@ -302,6 +306,7 @@ impl<'de> Deserialize<'de> for OverlayType {
             "spec/overlays/layout/1.0" => Ok(OverlayType::Layout),
             "spec/overlays/sensitivity/1.0" => Ok(OverlayType::Sensitivity),
             "spec/overlays/link/1.0" => Ok(OverlayType::Link),
+            "spec/overlays/attribute_framing/1.0" => Ok(OverlayType::AttributeFraming),
             _ => Err(serde::de::Error::custom(format!(
                 "unknown overlay type: {}",
                 s
@@ -771,6 +776,13 @@ impl From<u8> for ObjectKind {
                     properties: None,
                 },
             ),
+            22 => ObjectKind::Overlay(
+                OverlayType::AttributeFraming,
+                Content {
+                    attributes: None,
+                    properties: None,
+                },
+            ),
             _ => panic!("Unknown object type"),
         }
     }
@@ -801,6 +813,7 @@ impl From<ObjectKind> for u8 {
             ObjectKind::Overlay(OverlayType::Layout, _) => 19,
             ObjectKind::Overlay(OverlayType::Sensitivity, _) => 20,
             ObjectKind::Overlay(OverlayType::Link, _) => 21,
+            ObjectKind::Overlay(OverlayType::AttributeFraming, _) => 22,
         }
     }
 }
@@ -955,6 +968,13 @@ impl<'de> Deserialize<'de> for ObjectKind {
             )),
             "Link" => Ok(ObjectKind::Overlay(
                 OverlayType::Link,
+                Content {
+                    attributes: None,
+                    properties: None,
+                },
+            )),
+            "AttributeFraming" => Ok(ObjectKind::Overlay(
+                OverlayType::AttributeFraming,
                 Content {
                     attributes: None,
                     properties: None,
