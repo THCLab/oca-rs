@@ -12,6 +12,7 @@ use crate::state::oca::overlay::meta::Metas;
 use crate::state::oca::overlay::unit::Units;
 use indexmap::IndexMap;
 use overlay::attribute_framing::Framings;
+use overlay::link::Links;
 use said::derivation::HashFunctionCode;
 use said::sad::{SerializationFormats, SAD};
 use said::version::SerializationInfo;
@@ -867,6 +868,20 @@ impl From<OCABundle> for OCABox {
             }
         }
 
+        let link_overlays = oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| x.as_any().downcast_ref::<overlay::Link>())
+            .collect::<Vec<_>>();
+        for overlay in link_overlays {
+            for (attr_name, mapping) in overlay.attribute_mapping.iter() {
+                attributes
+                    .get_mut(attr_name)
+                    .unwrap()
+                    .set_link(overlay.target_bundle.clone(), mapping.clone());
+            }
+        }
+
         let framing_overlays = oca_bundle
             .overlays
             .iter()
@@ -1304,7 +1319,7 @@ impl AttributeLayoutValues {
 mod tests {
     use maplit::hashmap;
     use oca_ast_semantics::ast::{NestedAttrType, RefValue};
-    use overlay::attribute_framing::{FramingScope, Framings};
+    use overlay::{attribute_framing::{FramingScope, Framings}, link::Links};
     use said::SelfAddressingIdentifier;
 
     use super::*;
@@ -1370,6 +1385,7 @@ mod tests {
         let mut attr = Attribute::new("ref".to_string());
         let said = SelfAddressingIdentifier::default();
         attr.set_attribute_type(NestedAttrType::Reference(RefValue::Said(said)));
+        attr.set_link("target_bundle".to_string(), "linked_attr".to_string());
         let mut framing = HashMap::new();
         framing.insert("url".to_string(), FramingScope {
             predicate_id: "skos:exactMatch".to_string(),
