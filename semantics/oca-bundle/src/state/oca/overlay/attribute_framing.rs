@@ -13,6 +13,8 @@ pub type Framing = HashMap<String, FramingScope>;
 pub struct FramingScope {
     pub predicate_id: String,
     pub framing_justification: String,
+    #[serde(skip)]
+    pub frame_meta: HashMap<String, String>,
 }
 
 pub trait Framings {
@@ -36,6 +38,23 @@ impl Framings for Attribute {
             }
         }
     }
+}
+
+pub fn serialize_metadata<S>(
+    metadata: &HashMap<String, String>,
+    s: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    use std::collections::BTreeMap;
+
+    let mut ser = s.serialize_map(Some(metadata.len()))?;
+    let sorted_metadata: BTreeMap<_, _> = metadata.iter().collect();
+    for (k, v) in sorted_metadata {
+        ser.serialize_entry(k, v)?;
+    }
+    ser.end()
 }
 
 pub fn serialize_framing<S>(
@@ -64,7 +83,7 @@ pub struct AttributeFramingOverlay {
     capture_base: Option<said::SelfAddressingIdentifier>,
     #[serde(rename = "type")]
     overlay_type: OverlayType,
-    #[serde(rename = "framing_metadata")]
+    #[serde(rename = "framing_metadata", serialize_with = "serialize_metadata")]
     pub metadata: HashMap<String, String>,
     #[serde(serialize_with = "serialize_framing")]
     pub attribute_framing: HashMap<String, Framing>,
@@ -100,6 +119,12 @@ impl Overlay for AttributeFramingOverlay {
                 if let Some(value) = framing.get(id) {
                     self.attribute_framing
                         .insert(attribute.name.clone(), value.clone());
+
+                    for framing_scope in value.values() {
+                        for (k, v) in framing_scope.frame_meta.iter() {
+                            self.metadata.insert(k.clone(), v.clone());
+                        }
+                    }
                 }
             }
         }
@@ -134,6 +159,7 @@ mod tests {
                 predicate_id: "skos:exactMatch".to_string(),
                 framing_justification: "semapv:ManualMappingCuration"
                     .to_string(),
+                frame_meta: HashMap::new(),
             },
         );
         let mut loc2 = HashMap::new();
@@ -143,6 +169,7 @@ mod tests {
                 predicate_id: "skos:exactMatch".to_string(),
                 framing_justification: "semapv:ManualMappingCuration"
                     .to_string(),
+                frame_meta: HashMap::new(),
             },
         );
         let attr = cascade! {

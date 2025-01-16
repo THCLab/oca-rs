@@ -20,6 +20,29 @@ ADD CHARACTER_ENCODING ATTRS d=utf-8 i=utf-8 passed=utf-8
 ADD CONFORMANCE ATTRS d=M i=M passed=M
 ADD LABEL en ATTRS d="Schema digest" i="Credential Issuee" passed="Passed"
 ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables or disables passing"
+
+ADD ATTR_FRAMING \
+        id=SNOMEDCT \
+        label="Systematized Nomenclature of Medicine Clinical Terms" \
+        location="https://bioportal.bioontology.org/ontologies/SNOMEDCT" \
+        version=2023AA \
+    ATTRS \
+        d = {
+            "http://purl.bioontology.org/ontology/SNOMEDCT/703503000": {
+                "Predicate_id": "skos:exactMatch",
+                "Framing_justification": "semapv:ManualMappingCuration"
+            },
+            "http://purl.bioontology.org/ontology/SNOMEDCT/703503001": {
+                "Predicate_id": "skos:exactMatch",
+                "Framing_justification": "semapv:ManualMappingCuration"
+            }
+        }
+        i = {
+            "http://purl.bioontology.org/ontology/SNOMEDCT/397669002": {
+                "Predicate_id": "skos:exactMatch",
+                "Framing_justification": "semapv:ManualMappingCuration"
+            }
+        }
 "#.to_string();
         let mut facade = Facade::new(Box::new(db), Box::new(db_cache), cache_storage_config);
 
@@ -27,7 +50,7 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
 
         assert_eq!(
             result.said.clone().unwrap().to_string(),
-            "EKHBds6myKVIsQuT7Zr23M8Xk_gwq-2SaDRUprvqOXxa"
+            "EHP1RKZeYhIO7zTb9JJDfsNeTLaOp84GE9oDaEj9XlFk"
         );
 
         let code = HashFunctionCode::Blake3_256;
@@ -36,7 +59,7 @@ ADD INFORMATION en ATTRS d="Schema digest" i="Credential Issuee" passed="Enables
         let oca_bundle_version = String::from_utf8(
             oca_bundle_encoded[6..23].to_vec()
         ).unwrap();
-        assert_eq!(oca_bundle_version, "OCAS11JSON000646_");
+        assert_eq!(oca_bundle_version, "OCAS11JSON0009ac_");
 
         let search_result = facade.search_oca_bundle(None, "Ent".to_string(), 10, 1);
         assert_eq!(search_result.metadata.total, 1);

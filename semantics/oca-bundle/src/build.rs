@@ -1,3 +1,4 @@
+use crate::state::oca::overlay::attribute_framing::{FramingScope, Framings};
 use crate::state::oca::overlay::cardinality::Cardinalitys;
 use crate::state::oca::overlay::character_encoding::CharacterEncodings;
 use crate::state::oca::overlay::conditional::Conditionals;
@@ -466,6 +467,59 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                                 .clone();
                             if let ast::NestedValue::Value(linked_attr) = attr_type_value {
                                 attribute.set_link(target_bundle.clone().unwrap(), linked_attr.clone());
+                            }
+                            oca.add_attribute(attribute);
+                        }
+                    }
+                }
+                ast::OverlayType::AttributeFraming => {
+                    let mut frame_id = None;
+                    let mut frame_meta = HashMap::new();
+                    if let Some(ref properties) = content.properties {
+                        for prop in properties {
+                            if let (prop_name, ast::NestedValue::Value(prop_value)) = prop {
+                                if prop_name.eq("id") {
+                                    frame_id = Some(prop_value.clone());
+                                } else {
+                                    frame_meta.insert(format!("frame_{}", prop_name), prop_value.clone());
+                                }
+                            }
+                        }
+                    }
+                    if frame_id.is_none() {
+                        errors.push("Undefined frame id".to_string());
+                    }
+
+                    if let Some(ref attributes) = content.attributes {
+                        for (attr_name, attr_framing_value) in attributes {
+                            let mut attribute = oca
+                                .attributes
+                                .get(attr_name)
+                                .ok_or_else(|| {
+                                    errors.push(format!("Undefined attribute: {attr_name}"));
+                                    errors.clone()
+                                })?
+                                .clone();
+                            if let ast::NestedValue::Object(attr_framing) = attr_framing_value {
+                                let mut framing = HashMap::new();
+                                for (framing_key, framing_value) in attr_framing {
+                                    if let ast::NestedValue::Object(framing_value) = framing_value {
+                                        if let Some(ast::NestedValue::Value(predicate_id)) = framing_value.get("predicate_id") {
+                                            if let Some(ast::NestedValue::Value(framing_justification)) = framing_value.get("framing_justification") {
+                                                let framing_scope = FramingScope {
+                                                    predicate_id: predicate_id.to_string(),
+                                                    framing_justification: framing_justification.to_string(),
+                                                    frame_meta: frame_meta.clone(),
+                                                };
+                                                framing.insert(
+                                                    framing_key.clone(),
+                                                    framing_scope
+                                                );
+                                            }
+                                        }
+                                    }
+                                }
+                                attribute.set_framing(frame_id.clone().unwrap(), framing.clone());
                             }
                             oca.add_attribute(attribute);
                         }

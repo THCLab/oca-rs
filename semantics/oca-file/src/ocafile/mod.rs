@@ -413,6 +413,58 @@ pub fn generate_from_ast(ast: &OCAAst) -> String {
                                 }
                             };
                         }
+                        ast::OverlayType::AttributeFraming => {
+                            line.push_str("ATTR_FRAMING \\\n");
+                            if let Some(content) = command.object_kind.overlay_content() {
+                                if let Some(ref properties) = content.properties {
+                                    for (prop_name, prop_value) in properties {
+                                        let key = prop_name.replace("frame_", "");
+                                        if let ast::NestedValue::Value(value) = prop_value {
+                                            line.push_str(format!("        {}=\"{}\" \\\n", key, value).as_str());
+                                        }
+                                    }
+                                }
+                                if let Some(ref attributes) = content.attributes {
+                                    line.push_str("    ATTRS \\");
+                                    attributes.iter().for_each(|(key, value)| {
+                                        if let ast::NestedValue::Object(object) = value {
+                                            let mut frames_str = "".to_string();
+                                            for (f_key, f_value) in object.iter() {
+                                                let mut frame_str = "\n            ".to_string();
+                                                frame_str.push_str(
+                                                    format!(
+                                                        "\"{}\": {{",
+                                                        f_key
+                                                    ).as_str()
+                                                );
+
+                                                if let ast::NestedValue::Object(frame) = f_value {
+                                                    frame.iter().for_each(|(frame_key, frame_value)| {
+                                                        if let ast::NestedValue::Value(frame_value) = frame_value {
+                                                            frame_str.push_str(
+                                                                format!(
+                                                                    "\n                \"{}\": \"{}\",",
+                                                                    frame_key,
+                                                                    frame_value
+                                                                ).as_str()
+                                                            );
+                                                        }
+
+                                                    });
+                                                }
+
+                                                frame_str.push_str("\n            },");
+
+                                                frames_str.push_str(frame_str.as_str());
+                                            }
+                                            line.push_str(
+                                                format!("\n        {}={{{}\n        }}", key, frames_str).as_str(),
+                                            );
+                                        }
+                                    });
+                                }
+                            };
+                        }
                         _ => {
                             line.push_str(
                                 format!("{} ", o_type.to_string().to_case(Case::UpperSnake))
@@ -519,6 +571,24 @@ ADD CARDINALITY ATTRS list="1-2"
 ADD ENTRY_CODE ATTRS list="entry_code_said" el=["o1", "o2", "o3"]
 ADD ENTRY en ATTRS list="entry_said" el={"o1": "o1_label", "o2": "o2_label", "o3": "o3_label"}
 ADD FLAGGED_ATTRIBUTES name age
+ADD ATTR_FRAMING \
+        id=SNOMEDCT \
+        label="Systematized Nomenclature of Medicine Clinical Terms" \
+        location="https://bioportal.bioontology.org/ontologies/SNOMEDCT" \
+        version=2023AA \
+    ATTRS \
+        name = {
+            "http://purl.bioontology.org/ontology/SNOMEDCT/703503000": {
+                "Predicate_id": "skos:exactMatch",
+                "Framing_justification": "semapv:ManualMappingCuration"
+            }
+        }
+        age = {
+            "http://purl.bioontology.org/ontology/SNOMEDCT/397669002": {
+                "Predicate_id": "skos:exactMatch",
+                "Framing_justification": "semapv:ManualMappingCuration"
+            }
+        }
 "#;
         let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
         assert_eq!(oca_ast.meta.get("version").unwrap(), "0.0.1");
@@ -551,6 +621,28 @@ ADD CONDITION ATTRS radio="${age} > 18"
 ADD ENTRY_CODE ATTRS list={"g1": ["el1"], "g2": ["el2", "el3"]}
 ADD ENTRY pl ATTRS list={"el1": "element1", "el2": "element2", "el3": "element3", "g1": "grupa1", "g2": "grupa2"}
 ADD LINK refs:EJeWVGxkqxWrdGi0efOzwg1YQK8FrA-ZmtegiVEtAVcu ATTRS name="n"
+ADD ATTR_FRAMING \
+        id="SNOMEDCT" \
+        label="Systematized Nomenclature of Medicine Clinical Terms" \
+        location="https://bioportal.bioontology.org/ontologies/SNOMEDCT" \
+        version="2023AA" \
+    ATTRS \
+        name={
+            "http://purl.bioontology.org/ontology/snomedct/703503000": {
+                "predicate_id": "skos:exactMatch",
+                "framing_justification": "semapv:ManualMappingCuration",
+            },
+            "http://purl.bioontology.org/ontology/snomedct/703503001": {
+                "predicate_id": "skos:exactMatch",
+                "framing_justification": "semapv:ManualMappingCuration",
+            },
+        }
+        age={
+            "http://purl.bioontology.org/ontology/snomedct/397669002": {
+                "predicate_id": "skos:exactMatch",
+                "framing_justification": "semapv:ManualMappingCuration",
+            },
+        }
 "#;
         let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
 

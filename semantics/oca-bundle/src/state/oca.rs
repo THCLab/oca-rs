@@ -11,6 +11,7 @@ use crate::state::oca::overlay::label::Labels;
 use crate::state::oca::overlay::meta::Metas;
 use crate::state::oca::overlay::unit::Units;
 use indexmap::IndexMap;
+use overlay::attribute_framing::Framings;
 use said::derivation::HashFunctionCode;
 use said::sad::{SerializationFormats, SAD};
 use said::version::SerializationInfo;
@@ -294,6 +295,26 @@ impl OCABox {
                     }
                 }
             }
+
+            if let Some(framings) = &attribute.framings {
+                for frame_id in framings.keys() {
+                    let mut framing_ov = overlays.iter_mut().find(|x| {
+                        match x.as_any().downcast_ref::<overlay::AttributeFraming>() {
+                            Some(o) => o.metadata.get("frame_id") == Some(frame_id),
+                            None => false,
+                        }
+                    });
+
+                    if framing_ov.is_none() {
+                        overlays
+                            .push(Box::new(overlay::AttributeFraming::new(frame_id.clone())));
+                        framing_ov = overlays.last_mut();
+                    }
+                    if let Some(ov) = framing_ov {
+                        ov.add(attribute);
+                    }
+                }
+            }
         }
 
         overlays
@@ -503,6 +524,15 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
+                    OverlayType::AttributeFraming => {
+                        return Ok(Box::new(
+                            de_overlay
+                                .deserialize_into::<overlay::AttributeFraming>()
+                                .map_err(|e| {
+                                    serde::de::Error::custom(format!("AttributeFraming overlay: {e}"))
+                                })?,
+                        ));
+                    }
                     _ => {
                         return Err(serde::de::Error::custom(format!(
                             "Overlay type not supported: {:?}",
@@ -541,6 +571,7 @@ where
         OverlayType::Label,
         OverlayType::Information,
         OverlayType::Link,
+        OverlayType::AttributeFraming,
     ];
 
     let mut overlays_map: BTreeMap<Value, OverlayValue> = BTreeMap::new();
@@ -833,6 +864,29 @@ impl From<OCABundle> for OCABox {
                     .get_mut(attr_name)
                     .unwrap()
                     .set_information(*overlay.language().unwrap(), information.clone());
+            }
+        }
+
+        let framing_overlays = oca_bundle
+            .overlays
+            .iter()
+            .filter_map(|x| x.as_any().downcast_ref::<overlay::AttributeFraming>())
+            .collect::<Vec<_>>();
+        for overlay in framing_overlays {
+            let frame_id = overlay.metadata.get("frame_id").unwrap();
+            let mut frame_meta = overlay.metadata.clone();
+            frame_meta.remove("frame_id");
+
+            for (attr_name, attr_framing) in overlay.attribute_framing.iter() {
+                let framing = attr_framing.clone().iter_mut().map(|(f, scope)| {
+                    scope.frame_meta = frame_meta.clone();
+                    (f.clone(), scope.clone())
+                }).collect::<HashMap<_, _>>();
+
+                attributes
+                    .get_mut(attr_name)
+                    .unwrap()
+                    .set_framing(frame_id.to_string(), framing);
             }
         }
 
@@ -1250,6 +1304,7 @@ impl AttributeLayoutValues {
 mod tests {
     use maplit::hashmap;
     use oca_ast_semantics::ast::{NestedAttrType, RefValue};
+    use overlay::attribute_framing::{FramingScope, Framings};
     use said::SelfAddressingIdentifier;
 
     use super::*;
@@ -1315,6 +1370,13 @@ mod tests {
         let mut attr = Attribute::new("ref".to_string());
         let said = SelfAddressingIdentifier::default();
         attr.set_attribute_type(NestedAttrType::Reference(RefValue::Said(said)));
+        let mut framing = HashMap::new();
+        framing.insert("url".to_string(), FramingScope {
+            predicate_id: "skos:exactMatch".to_string(),
+            framing_justification: "semapv:ManualMappingCuration".to_string(),
+            frame_meta: HashMap::new()
+        });
+        attr.set_framing("frame_id".to_string(), framing);
         oca.add_attribute(attr);
 
         let oca_bundle = oca.generate_bundle();
