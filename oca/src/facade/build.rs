@@ -65,15 +65,15 @@ impl References for Box<dyn DataStorage> {
     }
 }
 
-pub fn build_from_ocafile(ocafile: String) -> Result<OCABundle, Vec<Error>> {
+pub fn build_from_ocafile(ocafile: String) -> Result<OCABundle, Error> {
     let ast = oca_file::ocafile::parse_from_string(ocafile.clone()).map_err(|e| {
-        vec![Error::ValidationError(vec![ValidationError::OCAFileParse(
+        Error::ValidationError(vec![ValidationError::OCAFileParse(
             e,
-        )])]
+        )])
     })?;
     match ast {
         oca_file::ocafile::OCAAst::TransformationAst(_) => {
-            Err(vec![Error::Deprecated])
+            Err(Error::Deprecated)
         },
         oca_file::ocafile::OCAAst::SemanticsAst(ast) => {
             let oca_build = oca_bundle_semantics::build::from_ast(None, &ast).map_err(|e| {
@@ -81,7 +81,7 @@ pub fn build_from_ocafile(ocafile: String) -> Result<OCABundle, Vec<Error>> {
                     .map(|e| ValidationError::OCABundleBuild(e.clone()))
                     .collect::<Vec<_>>()
             })
-            .map_err(|errs| vec![Error::ValidationError(errs)])?;
+            .map_err(Error::ValidationError)?;
 
             Ok(oca_build.oca_bundle)
         }
@@ -125,7 +125,7 @@ impl Facade {
         Self::oca_ast_to_oca_build_with_references(base, oca_ast, &mut self.db)
     }
 
-    pub fn build(&mut self, oca_build: &OCABuild) -> Result<OCABundle, Vec<Error>> {
+    pub fn build(&mut self, oca_build: &OCABuild) -> Result<OCABundle, Error> {
         self.build_cache(&oca_build.oca_bundle);
 
         self.build_meta(&oca_build.oca_bundle);
@@ -142,20 +142,20 @@ impl Facade {
         Ok(oca_build.oca_bundle.clone())
     }
 
-    pub fn build_from_ocafile(&mut self, ocafile: String) -> Result<OCABundle, Vec<Error>> {
+    pub fn build_from_ocafile(&mut self, ocafile: String) -> Result<OCABundle, Error> {
         let ast = oca_file::ocafile::parse_from_string(ocafile.clone()).map_err(|e| {
-            vec![Error::ValidationError(vec![ValidationError::OCAFileParse(
+            Error::ValidationError(vec![ValidationError::OCAFileParse(
                 e,
-            )])]
+            )])
         })?;
         match ast {
             oca_file::ocafile::OCAAst::TransformationAst(_) => {
-                Err(vec![Error::Deprecated])
+                Err(Error::Deprecated)
             },
             oca_file::ocafile::OCAAst::SemanticsAst(_ast) => {
                 let oca_build = self
                     .validate_ocafile(ocafile)
-                    .map_err(|errs| vec![Error::ValidationError(errs)])?;
+                    .map_err(Error::ValidationError)?;
 
                 self.build(&oca_build)
             }

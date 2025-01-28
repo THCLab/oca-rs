@@ -9,7 +9,7 @@ mod test {
     };
 
     #[test]
-    fn build_from_base() -> Result<(), Vec<Error>> {
+    fn build_from_base() -> Result<(), Error> {
         let db = InMemoryDataStorage::new();
         let db_cache = InMemoryDataStorage::new();
         let cache_storage_config = SQLiteConfig::build().unwrap();
@@ -67,7 +67,7 @@ ADD ATTR_FRAMING \
     }
 
     #[test]
-    fn build_from_other_bundle() -> Result<(), Vec<Error>> {
+    fn build_from_other_bundle() -> Result<(), Error> {
         let db = InMemoryDataStorage::new();
         let db_cache = InMemoryDataStorage::new();
         let cache_storage_config = SQLiteConfig::build().unwrap();
@@ -97,7 +97,7 @@ ADD ATTRIBUTE x=Text
     }
 
     #[test]
-    fn build_with_references() -> Result<(), Vec<Error>> {
+    fn build_with_references() -> Result<(), Error> {
         let db = InMemoryDataStorage::new();
         let db_cache = InMemoryDataStorage::new();
         let cache_storage_config = SQLiteConfig::build().unwrap();
@@ -153,7 +153,7 @@ ADD ATTRIBUTE x=Text
     }
 
     #[test]
-    fn build_with_link() -> Result<(), Vec<Error>> {
+    fn build_with_link() -> Result<(), Error> {
         let db = InMemoryDataStorage::new();
         let db_cache = InMemoryDataStorage::new();
         let cache_storage_config = SQLiteConfig::build().unwrap();
@@ -197,8 +197,7 @@ ADD ATTRIBUTE C=Array[refn:third]
         .to_string();
         let result = facade.build_from_ocafile(ocafile);
         assert!(result.is_err());
-        let errors = result.unwrap_err();
-        let error = errors.first().unwrap();
+        let error = result.unwrap_err();
         assert!(matches!(
             error,
             Error::ValidationError(_)
