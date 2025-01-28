@@ -655,6 +655,20 @@ ADD ATTR_FRAMING \
     }
 
     #[test]
+    fn test_attributes_with_special_names() {
+        let unparsed_file = r#"ADD ATTRIBUTE person.name=Text Experiment...Range..original.values.=Array[Text]
+"#;
+        let oca_ast = parse_from_string(unparsed_file.to_string()).unwrap();
+
+        let ocafile = generate_from_ast(&oca_ast);
+        assert_eq!(
+            ocafile, unparsed_file,
+            "left:\n{} \n right:\n {}",
+            ocafile, unparsed_file
+        );
+    }
+
+    #[test]
     fn test_attributes_from_ast_to_ocafile() {
         let unparsed_file = r#"ADD ATTRIBUTE name=Text age=Numeric
 ADD ATTRIBUTE list=Array[Text] el=Text
