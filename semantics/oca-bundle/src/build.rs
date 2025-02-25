@@ -9,9 +9,9 @@ use crate::state::oca::overlay::entry_code::EntryCodes;
 use crate::state::oca::overlay::format::Formats;
 use crate::state::oca::overlay::information::Information;
 use crate::state::oca::overlay::label::Labels;
+use crate::state::oca::overlay::link::Links;
 use crate::state::oca::overlay::meta::Metas;
 use crate::state::oca::overlay::unit::Units;
-use crate::state::oca::overlay::link::Links;
 use crate::state::oca::OCABundle;
 use crate::state::{
     attribute::Attribute, encoding::Encoding, entries::EntriesElement,
@@ -92,13 +92,13 @@ pub fn from_ast(
                         message: "Applying command failed".to_string(),
                     });
                 } else { */
-                    steps.push(OCABuildStep {
-                        parent_said: parent_said.clone(),
-                        command: command.clone(),
-                        result: oca_bundle.clone(),
-                    });
-                    parent_said.clone_from(&oca_bundle.said);
-                    base = Some(oca_box);
+                steps.push(OCABuildStep {
+                    parent_said: parent_said.clone(),
+                    command: command.clone(),
+                    result: oca_bundle.clone(),
+                });
+                parent_said.clone_from(&oca_bundle.said);
+                base = Some(oca_box);
                 //}
             }
             Err(mut err) => {
@@ -370,7 +370,8 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                                 ast::NestedValue::Object(attr_grouped_entry_codes) => {
                                     let mut grouped_entry_codes = IndexMap::new();
                                     for (group, attr_entry_codes) in attr_grouped_entry_codes {
-                                        if let ast::NestedValue::Array(entry_codes) = attr_entry_codes
+                                        if let ast::NestedValue::Array(entry_codes) =
+                                            attr_entry_codes
                                         {
                                             let codes: Vec<String> = entry_codes
                                                 .iter()
@@ -384,10 +385,13 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                                                     }
                                                 })
                                                 .collect();
-                                            grouped_entry_codes.insert(group.clone(), codes.clone());
+                                            grouped_entry_codes
+                                                .insert(group.clone(), codes.clone());
                                         }
                                     }
-                                    attribute.set_entry_codes(EntryCodesValue::Object(grouped_entry_codes));
+                                    attribute.set_entry_codes(EntryCodesValue::Object(
+                                        grouped_entry_codes,
+                                    ));
                                 }
                                 _ => (),
                             }
@@ -447,7 +451,9 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                 ast::OverlayType::Link => {
                     let mut target_bundle = None;
                     if let Some(ref properties) = content.properties {
-                        if let Some(ast::NestedValue::Reference(ast::RefValue::Said(target_said))) = properties.get("target") {
+                        if let Some(ast::NestedValue::Reference(ast::RefValue::Said(target_said))) =
+                            properties.get("target")
+                        {
                             target_bundle = Some(target_said.to_string());
                         }
                     }
@@ -466,7 +472,8 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                                 })?
                                 .clone();
                             if let ast::NestedValue::Value(linked_attr) = attr_type_value {
-                                attribute.set_link(target_bundle.clone().unwrap(), linked_attr.clone());
+                                attribute
+                                    .set_link(target_bundle.clone().unwrap(), linked_attr.clone());
                             }
                             oca.add_attribute(attribute);
                         }
@@ -481,7 +488,8 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                                 if prop_name.eq("id") {
                                     frame_id = Some(prop_value.clone());
                                 } else {
-                                    frame_meta.insert(format!("frame_{}", prop_name), prop_value.clone());
+                                    frame_meta
+                                        .insert(format!("frame_{}", prop_name), prop_value.clone());
                                 }
                             }
                         }
@@ -504,17 +512,20 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                                 let mut framing = HashMap::new();
                                 for (framing_key, framing_value) in attr_framing {
                                     if let ast::NestedValue::Object(framing_value) = framing_value {
-                                        if let Some(ast::NestedValue::Value(predicate_id)) = framing_value.get("predicate_id") {
-                                            if let Some(ast::NestedValue::Value(framing_justification)) = framing_value.get("framing_justification") {
+                                        if let Some(ast::NestedValue::Value(predicate_id)) =
+                                            framing_value.get("predicate_id")
+                                        {
+                                            if let Some(ast::NestedValue::Value(
+                                                framing_justification,
+                                            )) = framing_value.get("framing_justification")
+                                            {
                                                 let framing_scope = FramingScope {
                                                     predicate_id: predicate_id.to_string(),
-                                                    framing_justification: framing_justification.to_string(),
+                                                    framing_justification: framing_justification
+                                                        .to_string(),
                                                     frame_meta: frame_meta.clone(),
                                                 };
-                                                framing.insert(
-                                                    framing_key.clone(),
-                                                    framing_scope
-                                                );
+                                                framing.insert(framing_key.clone(), framing_scope);
                                             }
                                         }
                                     }
@@ -889,13 +900,21 @@ mod tests {
 
         let mut attributes = IndexMap::new();
         let mut grouped_elements = IndexMap::new();
-        grouped_elements.insert("g1".to_string(), ast::NestedValue::Array(
-            vec![ast::NestedValue::Value("el1".to_string())]
-        ));
-        grouped_elements.insert("g2".to_string(), ast::NestedValue::Array(
-            vec![ast::NestedValue::Value("el2".to_string()), ast::NestedValue::Value("el3".to_string())]
-        ));
-        attributes.insert("list".to_string(), oca_ast_semantics::ast::NestedValue::Object(grouped_elements));
+        grouped_elements.insert(
+            "g1".to_string(),
+            ast::NestedValue::Array(vec![ast::NestedValue::Value("el1".to_string())]),
+        );
+        grouped_elements.insert(
+            "g2".to_string(),
+            ast::NestedValue::Array(vec![
+                ast::NestedValue::Value("el2".to_string()),
+                ast::NestedValue::Value("el3".to_string()),
+            ]),
+        );
+        attributes.insert(
+            "list".to_string(),
+            oca_ast_semantics::ast::NestedValue::Object(grouped_elements),
+        );
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(

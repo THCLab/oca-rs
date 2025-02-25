@@ -5,7 +5,10 @@ use oca_ast_semantics::ast::NestedAttrType;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::state::{encoding::Encoding, entries::EntriesElement, entry_codes::EntryCodes, oca::overlay::attribute_framing::Framing};
+use crate::state::{
+    encoding::Encoding, entries::EntriesElement, entry_codes::EntryCodes,
+    oca::overlay::attribute_framing::Framing,
+};
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Attribute {
     pub name: String,
@@ -110,7 +113,8 @@ impl Attribute {
             self.merge_entries(other);
 
             if self.entry_codes_mapping.is_none() {
-                self.entry_codes_mapping.clone_from(&other.entry_codes_mapping);
+                self.entry_codes_mapping
+                    .clone_from(&other.entry_codes_mapping);
             }
 
             if other.condition.is_some() {

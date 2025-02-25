@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 use said::derivation::HashFunctionCode;
-use said::{sad::SerializationFormats, sad::SAD};
 use said::version::SerializationInfo;
+use said::{sad::SerializationFormats, sad::SAD};
 use serde::{Deserialize, Serialize};
 
 #[derive(SAD, Serialize, Debug, Deserialize, Clone)]

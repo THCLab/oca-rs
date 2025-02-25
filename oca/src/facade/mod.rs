@@ -6,9 +6,9 @@ use std::borrow::Borrow;
 use std::sync::{Arc, Mutex};
 
 pub mod build;
+pub mod bundle;
 mod explore;
 mod fetch;
-pub mod bundle;
 pub use said::{derivation::HashFunctionCode, sad::SerializationFormats, version::Encode};
 
 #[derive(Clone)]

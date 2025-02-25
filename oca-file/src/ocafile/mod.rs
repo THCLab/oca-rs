@@ -7,8 +7,7 @@ use oca_file_semantics::ocafile::{
     parse_from_string as semantics_parse_from_string, OCAAst as SemanticsAst,
 };
 use oca_file_transformation::ocafile::{
-    parse_from_string as transformation_parse_from_string,
-    TransformationAST,
+    parse_from_string as transformation_parse_from_string, TransformationAST,
 };
 use pest::Parser;
 
@@ -28,12 +27,8 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
     let file = OCAfileParser::parse(Rule::file, &unparsed_file)
         .map_err(|e| {
             let (line_number, column_number) = match e.line_col {
-                pest::error::LineColLocation::Pos((line, column)) => {
-                    (line, column)
-                }
-                pest::error::LineColLocation::Span((line, column), _) => {
-                    (line, column)
-                }
+                pest::error::LineColLocation::Pos((line, column)) => (line, column),
+                pest::error::LineColLocation::Span((line, column), _) => (line, column),
             };
             ParseError::GrammarError {
                 line_number,
@@ -66,9 +61,7 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
                         value = attr.as_str().to_string();
                     }
                     _ => {
-                        return Err(ParseError::MetaError(
-                            attr.as_str().to_string(),
-                        ));
+                        return Err(ParseError::MetaError(attr.as_str().to_string()));
                     }
                 }
             }
@@ -76,9 +69,7 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
                 return Err(ParseError::MetaError("key is empty".to_string()));
             }
             if value.is_empty() {
-                return Err(ParseError::MetaError(
-                    "value is empty".to_string(),
-                ));
+                return Err(ParseError::MetaError("value is empty".to_string()));
             }
             meta.insert(key, value);
             continue;
@@ -94,15 +85,12 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
     if let Some(value) = meta.get("precompiler") {
         if value == "transformation" {
             return Ok(OCAAst::TransformationAst(
-                transformation_parse_from_string(unparsed_file).map_err(
-                    ParseError::TransformationError,
-                )?
+                transformation_parse_from_string(unparsed_file)
+                    .map_err(ParseError::TransformationError)?,
             ));
         } else if value == "semantics" {
             return Ok(OCAAst::SemanticsAst(
-                semantics_parse_from_string(unparsed_file).map_err(
-                    ParseError::SemanticsError,
-                )?
+                semantics_parse_from_string(unparsed_file).map_err(ParseError::SemanticsError)?,
             ));
         } else {
             return Err(ParseError::MetaError("unknown precompiler".to_string()));
@@ -110,9 +98,7 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
     }
 
     Ok(OCAAst::SemanticsAst(
-        semantics_parse_from_string(unparsed_file).map_err(
-            ParseError::SemanticsError,
-        )?
+        semantics_parse_from_string(unparsed_file).map_err(ParseError::SemanticsError)?,
     ))
 }
 

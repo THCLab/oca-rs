@@ -2,8 +2,8 @@ use std::io::Read;
 
 use oca_bundle_semantics::state::oca::OCABundle as StructuralBundle;
 use said::derivation::HashFunctionCode;
-use said::{sad::SerializationFormats, sad::SAD};
 use said::version::SerializationInfo;
+use said::{sad::SerializationFormats, sad::SAD};
 use serde::{Deserialize, Serialize};
 
 pub type GenericError = Box<dyn std::error::Error + Sync + Send>;
@@ -43,7 +43,9 @@ impl Bundle {
     pub fn add(&mut self, element: BundleElement) {
         match element {
             BundleElement::Structural(structural) => self.add_structural(structural),
-            BundleElement::Transformation(transformation) => self.add_transformation(transformation),
+            BundleElement::Transformation(transformation) => {
+                self.add_transformation(transformation)
+            }
         }
     }
 
@@ -77,12 +79,11 @@ impl Bundle {
                 None => s,
             };
             transformations_str.push_str(&transformation_str);
-        };
+        }
 
         let result = format!(
             r#"{{"d":"","m":{},"t":[{}]}}"#,
-            structural_str,
-            transformations_str
+            structural_str, transformations_str
         );
 
         let protocol_version = said::ProtocolVersion::new("OCAB", 0, 0).unwrap();

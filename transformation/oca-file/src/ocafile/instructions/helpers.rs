@@ -7,7 +7,10 @@ pub fn extract_rename_attribute(
     let mut attr_name_opt = None;
     let mut attr_new_name_opt = None;
 
-    debug!("Extracting the attribute rename values from: {:?}", attr_pair);
+    debug!(
+        "Extracting the attribute rename values from: {:?}",
+        attr_pair
+    );
     for item in attr_pair.into_inner() {
         match item.as_rule() {
             Rule::attr_key => {

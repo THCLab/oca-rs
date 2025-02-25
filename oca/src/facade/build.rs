@@ -66,22 +66,18 @@ impl References for Box<dyn DataStorage> {
 }
 
 pub fn build_from_ocafile(ocafile: String) -> Result<OCABundle, Error> {
-    let ast = oca_file::ocafile::parse_from_string(ocafile.clone()).map_err(|e| {
-        Error::ValidationError(vec![ValidationError::OCAFileParse(
-            e,
-        )])
-    })?;
+    let ast = oca_file::ocafile::parse_from_string(ocafile.clone())
+        .map_err(|e| Error::ValidationError(vec![ValidationError::OCAFileParse(e)]))?;
     match ast {
-        oca_file::ocafile::OCAAst::TransformationAst(_) => {
-            Err(Error::Deprecated)
-        },
+        oca_file::ocafile::OCAAst::TransformationAst(_) => Err(Error::Deprecated),
         oca_file::ocafile::OCAAst::SemanticsAst(ast) => {
-            let oca_build = oca_bundle_semantics::build::from_ast(None, &ast).map_err(|e| {
-                e.iter()
-                    .map(|e| ValidationError::OCABundleBuild(e.clone()))
-                    .collect::<Vec<_>>()
-            })
-            .map_err(Error::ValidationError)?;
+            let oca_build = oca_bundle_semantics::build::from_ast(None, &ast)
+                .map_err(|e| {
+                    e.iter()
+                        .map(|e| ValidationError::OCABundleBuild(e.clone()))
+                        .collect::<Vec<_>>()
+                })
+                .map_err(Error::ValidationError)?;
 
             Ok(oca_build.oca_bundle)
         }
@@ -143,15 +139,10 @@ impl Facade {
     }
 
     pub fn build_from_ocafile(&mut self, ocafile: String) -> Result<OCABundle, Error> {
-        let ast = oca_file::ocafile::parse_from_string(ocafile.clone()).map_err(|e| {
-            Error::ValidationError(vec![ValidationError::OCAFileParse(
-                e,
-            )])
-        })?;
+        let ast = oca_file::ocafile::parse_from_string(ocafile.clone())
+            .map_err(|e| Error::ValidationError(vec![ValidationError::OCAFileParse(e)]))?;
         match ast {
-            oca_file::ocafile::OCAAst::TransformationAst(_) => {
-                Err(Error::Deprecated)
-            },
+            oca_file::ocafile::OCAAst::TransformationAst(_) => Err(Error::Deprecated),
             oca_file::ocafile::OCAAst::SemanticsAst(_ast) => {
                 let oca_build = self
                     .validate_ocafile(ocafile)
@@ -167,8 +158,11 @@ impl Facade {
         ocafile: String,
     ) -> Result<(Option<OCABundle>, OCAAst), Vec<ValidationError>> {
         let mut errors: Vec<ValidationError> = vec![];
-        let mut oca_ast = oca_file_semantics::ocafile::parse_from_string(ocafile)
-            .map_err(|e| vec![ValidationError::OCAFileParse(oca_file::ocafile::error::ParseError::SemanticsError(e))])?;
+        let mut oca_ast = oca_file_semantics::ocafile::parse_from_string(ocafile).map_err(|e| {
+            vec![ValidationError::OCAFileParse(
+                oca_file::ocafile::error::ParseError::SemanticsError(e),
+            )]
+        })?;
 
         if !errors.is_empty() {
             return Err(errors);
@@ -192,10 +186,11 @@ impl Facade {
                                         base = Some(oca_bundle.bundle.clone());
                                     }
                                     Err(e) => {
-                                        let default_command_meta = oca_ast_semantics::ast::CommandMeta {
-                                            line_number: 0,
-                                            raw_line: "unknown".to_string(),
-                                        };
+                                        let default_command_meta =
+                                            oca_ast_semantics::ast::CommandMeta {
+                                                line_number: 0,
+                                                raw_line: "unknown".to_string(),
+                                            };
                                         let command_meta = oca_ast
                                             .commands_meta
                                             .get(&0)
@@ -369,7 +364,8 @@ impl Facade {
                 input.push(
                     capture_base_model
                         .command_digest
-                        .to_string().len()
+                        .to_string()
+                        .len()
                         .try_into()
                         .unwrap(),
                 );
@@ -399,7 +395,8 @@ impl Facade {
                 input.push(
                     overlay_model
                         .command_digest
-                        .to_string().len()
+                        .to_string()
+                        .len()
                         .try_into()
                         .unwrap(),
                 );
@@ -429,7 +426,8 @@ impl Facade {
                 input.push(
                     oca_bundle_model
                         .capture_base_said
-                        .to_string().len()
+                        .to_string()
+                        .len()
                         .try_into()
                         .unwrap(),
                 );

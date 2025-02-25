@@ -3,20 +3,18 @@ mod instructions;
 
 use self::{
     error::ParseError,
-    instructions::{
-        add::AddInstruction, from::FromInstruction, remove::RemoveInstruction,
-    },
+    instructions::{add::AddInstruction, from::FromInstruction, remove::RemoveInstruction},
 };
 use crate::ocafile::error::InstructionError;
 use convert_case::{Case, Casing};
+pub use oca_ast_semantics::ast::OCAAst;
 use oca_ast_semantics::{
     ast::{
-        self, recursive_attributes::NestedAttrTypeFrame, Command, CommandMeta,
-        NestedAttrType, RefValue,
+        self, recursive_attributes::NestedAttrTypeFrame, Command, CommandMeta, NestedAttrType,
+        RefValue,
     },
     validator::{OCAValidator, Validator},
 };
-pub use oca_ast_semantics::ast::OCAAst;
 use pest::Parser;
 use recursion::CollapsibleExt;
 
@@ -38,11 +36,7 @@ impl TryFromPair for Command {
             Rule::from => FromInstruction::from_record(record, 0)?,
             Rule::add => AddInstruction::from_record(record, 0)?,
             Rule::remove => RemoveInstruction::from_record(record, 0)?,
-            _ => {
-                return Err(InstructionError::UnexpectedToken(
-                    record.to_string(),
-                ))
-            }
+            _ => return Err(InstructionError::UnexpectedToken(record.to_string())),
         };
         Ok(instruction)
     }
@@ -52,12 +46,8 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
     let file = OCAfileParser::parse(Rule::file, &unparsed_file)
         .map_err(|e| {
             let (line_number, column_number) = match e.line_col {
-                pest::error::LineColLocation::Pos((line, column)) => {
-                    (line, column)
-                }
-                pest::error::LineColLocation::Span((line, column), _) => {
-                    (line, column)
-                }
+                pest::error::LineColLocation::Pos((line, column)) => (line, column),
+                pest::error::LineColLocation::Span((line, column), _) => (line, column),
             };
             ParseError::GrammarError {
                 line_number,
@@ -92,9 +82,7 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
                         value = attr.as_str().to_string();
                     }
                     _ => {
-                        return Err(ParseError::MetaError(
-                            attr.as_str().to_string(),
-                        ));
+                        return Err(ParseError::MetaError(attr.as_str().to_string()));
                     }
                 }
             }
@@ -102,9 +90,7 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
                 return Err(ParseError::MetaError("key is empty".to_string()));
             }
             if value.is_empty() {
-                return Err(ParseError::MetaError(
-                    "value is empty".to_string(),
-                ));
+                return Err(ParseError::MetaError("value is empty".to_string()));
             }
             oca_ast.meta.insert(key, value);
             continue;
@@ -114,26 +100,24 @@ pub fn parse_from_string(unparsed_file: String) -> Result<OCAAst, ParseError> {
         }
 
         match Command::try_from_pair(line.clone()) {
-            Ok(command) => {
-                match validator.validate(&oca_ast, command.clone()) {
-                    Ok(_) => {
-                        oca_ast.commands.push(command);
-                        oca_ast.commands_meta.insert(
-                            oca_ast.commands.len() - 1,
-                            CommandMeta {
-                                line_number: n + 1,
-                                raw_line: line.as_str().to_string(),
-                            },
-                        );
-                    }
-                    Err(e) => {
-                        return Err(ParseError::Custom(format!(
-                            "Error validating instruction: {}",
-                            e
-                        )));
-                    }
+            Ok(command) => match validator.validate(&oca_ast, command.clone()) {
+                Ok(_) => {
+                    oca_ast.commands.push(command);
+                    oca_ast.commands_meta.insert(
+                        oca_ast.commands.len() - 1,
+                        CommandMeta {
+                            line_number: n + 1,
+                            raw_line: line.as_str().to_string(),
+                        },
+                    );
                 }
-            }
+                Err(e) => {
+                    return Err(ParseError::Custom(format!(
+                        "Error validating instruction: {}",
+                        e
+                    )));
+                }
+            },
             Err(e) => {
                 return Err(ParseError::InstructionError(e));
             }
@@ -153,9 +137,7 @@ fn format_reference(ref_value: RefValue) -> String {
 // Convert NestedAttrType to oca file syntax
 fn oca_file_format(nested: NestedAttrType) -> String {
     nested.collapse_frames(|frame| match frame {
-        NestedAttrTypeFrame::Reference(ref_value) => {
-            format_reference(ref_value)
-        }
+        NestedAttrTypeFrame::Reference(ref_value) => format_reference(ref_value),
         NestedAttrTypeFrame::Value(value) => {
             format!("{}", value)
         }
@@ -721,13 +703,10 @@ ADD ATTRIBUTE incidentals_spare_parts=Array[refs:EJVVlVSZJqVNnuAMLHLkeSQgwfxYLWT
         assert_eq!(oca_file_format(numeric_type), "Numeric");
 
         let ref_type = NestedAttrType::Reference(RefValue::Said(
-            HashFunction::from(HashFunctionCode::Blake3_256)
-                .derive("example".as_bytes()),
+            HashFunction::from(HashFunctionCode::Blake3_256).derive("example".as_bytes()),
         ));
 
-        let attr = NestedAttrType::Array(Box::new(NestedAttrType::Array(
-            Box::new(ref_type),
-        )));
+        let attr = NestedAttrType::Array(Box::new(NestedAttrType::Array(Box::new(ref_type))));
 
         let out = oca_file_format(attr);
         assert_eq!(

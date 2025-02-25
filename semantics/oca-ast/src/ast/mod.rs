@@ -156,7 +156,7 @@ pub enum OverlayType {
     Layout,
     Sensitivity,
     Link,
-    AttributeFraming
+    AttributeFraming,
 }
 
 impl Serialize for OverlayType {
@@ -189,7 +189,9 @@ impl Serialize for OverlayType {
             OverlayType::Layout => serializer.serialize_str("spec/overlays/layout/1.0"),
             OverlayType::Sensitivity => serializer.serialize_str("spec/overlays/sensitivity/1.0"),
             OverlayType::Link => serializer.serialize_str("spec/overlays/link/1.0"),
-            OverlayType::AttributeFraming => serializer.serialize_str("spec/overlays/attribute_framing/1.0"),
+            OverlayType::AttributeFraming => {
+                serializer.serialize_str("spec/overlays/attribute_framing/1.0")
+            }
         }
     }
 }

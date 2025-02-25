@@ -1,15 +1,16 @@
 pub mod error;
 mod instructions;
 
-use self::{error::ParseError, instructions::{rename::RenameInstruction, link::LinkInstruction}};
+use self::{
+    error::ParseError,
+    instructions::{link::LinkInstruction, rename::RenameInstruction},
+};
 use crate::ocafile::error::InstructionError;
+pub use oca_ast_transformation::ast::TransformationAST;
 use oca_ast_transformation::{
-    ast::{
-        self, Command, CommandMeta
-    },
+    ast::{self, Command, CommandMeta},
     validator::{OCAValidator, Validator},
 };
-pub use oca_ast_transformation::ast::TransformationAST;
 use pest::Parser;
 
 #[derive(pest_derive::Parser)]
@@ -29,11 +30,7 @@ impl TryFromPair for Command {
         let instruction: Command = match record.as_rule() {
             Rule::rename => RenameInstruction::from_record(record, 0)?,
             Rule::link => LinkInstruction::from_record(record, 0)?,
-            _ => {
-                return Err(InstructionError::UnexpectedToken(
-                    record.to_string(),
-                ))
-            }
+            _ => return Err(InstructionError::UnexpectedToken(record.to_string())),
         };
         Ok(instruction)
     }
@@ -43,12 +40,8 @@ pub fn parse_from_string(unparsed_file: String) -> Result<TransformationAST, Par
     let file = OCAfileParser::parse(Rule::file, &unparsed_file)
         .map_err(|e| {
             let (line_number, column_number) = match e.line_col {
-                pest::error::LineColLocation::Pos((line, column)) => {
-                    (line, column)
-                }
-                pest::error::LineColLocation::Span((line, column), _) => {
-                    (line, column)
-                }
+                pest::error::LineColLocation::Pos((line, column)) => (line, column),
+                pest::error::LineColLocation::Span((line, column), _) => (line, column),
             };
             ParseError::GrammarError {
                 line_number,
@@ -83,9 +76,7 @@ pub fn parse_from_string(unparsed_file: String) -> Result<TransformationAST, Par
                         value = attr.as_str().to_string();
                     }
                     _ => {
-                        return Err(ParseError::MetaError(
-                            attr.as_str().to_string(),
-                        ));
+                        return Err(ParseError::MetaError(attr.as_str().to_string()));
                     }
                 }
             }
@@ -93,9 +84,7 @@ pub fn parse_from_string(unparsed_file: String) -> Result<TransformationAST, Par
                 return Err(ParseError::MetaError("key is empty".to_string()));
             }
             if value.is_empty() {
-                return Err(ParseError::MetaError(
-                    "value is empty".to_string(),
-                ));
+                return Err(ParseError::MetaError("value is empty".to_string()));
             }
             oca_ast.meta.insert(key, value);
             continue;
@@ -105,26 +94,24 @@ pub fn parse_from_string(unparsed_file: String) -> Result<TransformationAST, Par
         }
 
         match Command::try_from_pair(line.clone()) {
-            Ok(command) => {
-                match validator.validate(&oca_ast, command.clone()) {
-                    Ok(_) => {
-                        oca_ast.commands.push(command);
-                        oca_ast.commands_meta.insert(
-                            oca_ast.commands.len() - 1,
-                            CommandMeta {
-                                line_number: n + 1,
-                                raw_line: line.as_str().to_string(),
-                            },
-                        );
-                    }
-                    Err(e) => {
-                        return Err(ParseError::Custom(format!(
-                            "Error validating instruction: {}",
-                            e
-                        )));
-                    }
+            Ok(command) => match validator.validate(&oca_ast, command.clone()) {
+                Ok(_) => {
+                    oca_ast.commands.push(command);
+                    oca_ast.commands_meta.insert(
+                        oca_ast.commands.len() - 1,
+                        CommandMeta {
+                            line_number: n + 1,
+                            raw_line: line.as_str().to_string(),
+                        },
+                    );
                 }
-            }
+                Err(e) => {
+                    return Err(ParseError::Custom(format!(
+                        "Error validating instruction: {}",
+                        e
+                    )));
+                }
+            },
             Err(e) => {
                 return Err(ParseError::InstructionError(e));
             }

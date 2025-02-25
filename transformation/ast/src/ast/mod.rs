@@ -7,7 +7,6 @@ use serde::{
 use std::hash::Hash;
 use std::{collections::HashMap, fmt};
 
-
 pub mod error;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -68,7 +67,7 @@ impl Hash for ObjectKind {
         match self {
             ObjectKind::Rename(content) => {
                 content.hash(state);
-            },
+            }
             ObjectKind::Link(content) => {
                 content.hash(state);
             }
@@ -130,7 +129,7 @@ impl Serialize for ObjectKind {
             ObjectKind::Rename(content) => {
                 state.serialize_field("object_kind", "Rename")?;
                 state.serialize_field("content", content)?;
-            },
+            }
             ObjectKind::Link(content) => {
                 state.serialize_field("object_kind", "Link")?;
                 state.serialize_field("content", content)?;
@@ -188,10 +187,7 @@ impl<'de> Deserialize<'de> for Command {
                 impl Visitor<'_> for FieldVisitor {
                     type Value = Field;
 
-                    fn expecting(
-                        &self,
-                        formatter: &mut fmt::Formatter,
-                    ) -> fmt::Result {
+                    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                         formatter.write_str("`type` or `object_kind`")
                     }
 
@@ -237,42 +233,33 @@ impl<'de> Deserialize<'de> for Command {
                         }
                         Field::ObjectKind => {
                             if object_kind.is_some() {
-                                return Err(de::Error::duplicate_field(
-                                    "object_kind",
-                                ));
+                                return Err(de::Error::duplicate_field("object_kind"));
                             }
                             let object_kind_str: String = map.next_value()?;
                             match object_kind_str.as_str() {
                                 "Rename" => {
                                     // take the key frist otherwise next value would not work
                                     // properly
-                                    let _content_key: Option<String> =
-                                        map.next_key()?;
-                                    let content: RenameContent =
-                                        map.next_value()?;
-                                    object_kind =
-                                        Some(ObjectKind::Rename(content));
-                                },
+                                    let _content_key: Option<String> = map.next_key()?;
+                                    let content: RenameContent = map.next_value()?;
+                                    object_kind = Some(ObjectKind::Rename(content));
+                                }
                                 "Link" => {
                                     // take the key frist otherwise next value would not work
                                     // properly
-                                    let _content_key: Option<String> =
-                                        map.next_key()?;
-                                    let content: LinkContent =
-                                        map.next_value()?;
-                                    object_kind =
-                                        Some(ObjectKind::Link(content));
-                                },
+                                    let _content_key: Option<String> = map.next_key()?;
+                                    let content: LinkContent = map.next_value()?;
+                                    object_kind = Some(ObjectKind::Link(content));
+                                }
                                 _ => {}
                             }
                         }
                     }
                 }
 
-                let kind =
-                    kind.ok_or_else(|| de::Error::missing_field("type"))?;
-                let object_kind = object_kind
-                    .ok_or_else(|| de::Error::missing_field("object_kind"))?;
+                let kind = kind.ok_or_else(|| de::Error::missing_field("type"))?;
+                let object_kind =
+                    object_kind.ok_or_else(|| de::Error::missing_field("object_kind"))?;
 
                 Ok(Command { kind, object_kind })
             }
@@ -321,12 +308,8 @@ impl Serialize for ObjectKind {
 impl From<u8> for ObjectKind {
     fn from(val: u8) -> Self {
         match val {
-            0 => ObjectKind::Rename(
-                RenameContent { attributes: None },
-            ),
-            1 => ObjectKind::Link(
-                LinkContent { attributes: None },
-            ),
+            0 => ObjectKind::Rename(RenameContent { attributes: None }),
+            1 => ObjectKind::Link(LinkContent { attributes: None }),
             _ => panic!("Unknown object type"),
         }
     }
@@ -348,12 +331,8 @@ impl<'de> Deserialize<'de> for ObjectKind {
     {
         let s = String::deserialize(deserializer)?;
         match s.as_str() {
-            "Rename" => Ok(ObjectKind::Rename(
-                RenameContent { attributes: None }),
-            ),
-            "Link" => Ok(ObjectKind::Link(
-                LinkContent { attributes: None }),
-            ),
+            "Rename" => Ok(ObjectKind::Rename(RenameContent { attributes: None })),
+            "Link" => Ok(ObjectKind::Link(LinkContent { attributes: None })),
             _ => Err(serde::de::Error::custom(format!(
                 "unknown object kind: {}",
                 s
@@ -373,7 +352,9 @@ mod tests {
         attributes.insert("digest".to_string(), "d".to_string());
         let command = Command {
             kind: CommandType::Rename,
-            object_kind: ObjectKind::Rename(RenameContent { attributes: Some(attributes) })
+            object_kind: ObjectKind::Rename(RenameContent {
+                attributes: Some(attributes),
+            }),
         };
 
         let mut ast = TransformationAST::new();

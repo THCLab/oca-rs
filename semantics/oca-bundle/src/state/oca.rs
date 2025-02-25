@@ -287,8 +287,7 @@ impl OCABox {
                     });
 
                     if link_ov.is_none() {
-                        overlays
-                            .push(Box::new(overlay::Link::new(target_bundle.clone())));
+                        overlays.push(Box::new(overlay::Link::new(target_bundle.clone())));
                         link_ov = overlays.last_mut();
                     }
                     if let Some(ov) = link_ov {
@@ -307,8 +306,7 @@ impl OCABox {
                     });
 
                     if framing_ov.is_none() {
-                        overlays
-                            .push(Box::new(overlay::AttributeFraming::new(frame_id.clone())));
+                        overlays.push(Box::new(overlay::AttributeFraming::new(frame_id.clone())));
                         framing_ov = overlays.last_mut();
                     }
                     if let Some(ov) = framing_ov {
@@ -530,7 +528,9 @@ impl<'de> Deserialize<'de> for DynOverlay {
                             de_overlay
                                 .deserialize_into::<overlay::AttributeFraming>()
                                 .map_err(|e| {
-                                    serde::de::Error::custom(format!("AttributeFraming overlay: {e}"))
+                                    serde::de::Error::custom(format!(
+                                        "AttributeFraming overlay: {e}"
+                                    ))
                                 })?,
                         ));
                     }
@@ -893,10 +893,14 @@ impl From<OCABundle> for OCABox {
             frame_meta.remove("frame_id");
 
             for (attr_name, attr_framing) in overlay.attribute_framing.iter() {
-                let framing = attr_framing.clone().iter_mut().map(|(f, scope)| {
-                    scope.frame_meta = frame_meta.clone();
-                    (f.clone(), scope.clone())
-                }).collect::<HashMap<_, _>>();
+                let framing = attr_framing
+                    .clone()
+                    .iter_mut()
+                    .map(|(f, scope)| {
+                        scope.frame_meta = frame_meta.clone();
+                        (f.clone(), scope.clone())
+                    })
+                    .collect::<HashMap<_, _>>();
 
                 attributes
                     .get_mut(attr_name)
@@ -1319,7 +1323,10 @@ impl AttributeLayoutValues {
 mod tests {
     use maplit::hashmap;
     use oca_ast_semantics::ast::{NestedAttrType, RefValue};
-    use overlay::{attribute_framing::{FramingScope, Framings}, link::Links};
+    use overlay::{
+        attribute_framing::{FramingScope, Framings},
+        link::Links,
+    };
     use said::SelfAddressingIdentifier;
 
     use super::*;
@@ -1387,11 +1394,14 @@ mod tests {
         attr.set_attribute_type(NestedAttrType::Reference(RefValue::Said(said)));
         attr.set_link("target_bundle".to_string(), "linked_attr".to_string());
         let mut framing = HashMap::new();
-        framing.insert("url".to_string(), FramingScope {
-            predicate_id: "skos:exactMatch".to_string(),
-            framing_justification: "semapv:ManualMappingCuration".to_string(),
-            frame_meta: HashMap::new()
-        });
+        framing.insert(
+            "url".to_string(),
+            FramingScope {
+                predicate_id: "skos:exactMatch".to_string(),
+                framing_justification: "semapv:ManualMappingCuration".to_string(),
+                frame_meta: HashMap::new(),
+            },
+        );
         attr.set_framing("frame_id".to_string(), framing);
         oca.add_attribute(attr);
 

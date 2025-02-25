@@ -27,7 +27,9 @@ impl Facade {
             Namespace::OCARelations,
             &format!("{}.metadata", oca_bundle.said.clone().unwrap()),
             &[ObjectKind::OCABundle(BundleContent {
-                said: oca_ast_semantics::ast::ReferenceAttrType::Reference(RefValue::Name("".to_string())),
+                said: oca_ast_semantics::ast::ReferenceAttrType::Reference(RefValue::Name(
+                    "".to_string(),
+                )),
             })
             .into()],
         )?;
@@ -169,7 +171,9 @@ impl From<Vec<u8>> for Relationship {
         let mut result = Relationship::new(OCAObject {
             said: "".to_string(),
             object_type: ObjectKind::OCABundle(BundleContent {
-                said: oca_ast_semantics::ast::ReferenceAttrType::Reference(RefValue::Name("".to_string())),
+                said: oca_ast_semantics::ast::ReferenceAttrType::Reference(RefValue::Name(
+                    "".to_string(),
+                )),
             }),
         });
 

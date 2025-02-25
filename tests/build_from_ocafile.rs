@@ -4,8 +4,7 @@ mod test {
         data_storage::{DataStorage, InMemoryDataStorage},
         facade::{build::Error, build::ValidationError},
         repositories::SQLiteConfig,
-        Facade,
-        HashFunctionCode, SerializationFormats, EncodeBundle
+        EncodeBundle, Facade, HashFunctionCode, SerializationFormats,
     };
 
     #[test]
@@ -56,9 +55,7 @@ ADD ATTR_FRAMING \
         let code = HashFunctionCode::Blake3_256;
         let format = SerializationFormats::JSON;
         let oca_bundle_encoded = result.encode(&code, &format).unwrap();
-        let oca_bundle_version = String::from_utf8(
-            oca_bundle_encoded[6..23].to_vec()
-        ).unwrap();
+        let oca_bundle_version = String::from_utf8(oca_bundle_encoded[6..23].to_vec()).unwrap();
         assert_eq!(oca_bundle_version, "OCAS11JSON0009ac_");
 
         let search_result = facade.search_oca_bundle(None, "Ent".to_string(), 10, 1);
@@ -198,18 +195,10 @@ ADD ATTRIBUTE C=Array[refn:third]
         let result = facade.build_from_ocafile(ocafile);
         assert!(result.is_err());
         let error = result.unwrap_err();
-        assert!(matches!(
-            error,
-            Error::ValidationError(_)
-        ));
+        assert!(matches!(error, Error::ValidationError(_)));
         if let Error::ValidationError(validation_errors) = error {
             let validation_error = validation_errors.first().unwrap();
-            assert!(
-                matches!(
-                    validation_error,
-                    ValidationError::UnknownRefn(_)
-                )
-            );
+            assert!(matches!(validation_error, ValidationError::UnknownRefn(_)));
         }
     }
 }

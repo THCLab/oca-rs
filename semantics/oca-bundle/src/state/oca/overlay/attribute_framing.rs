@@ -40,10 +40,7 @@ impl Framings for Attribute {
     }
 }
 
-pub fn serialize_metadata<S>(
-    metadata: &HashMap<String, String>,
-    s: S,
-) -> Result<S::Ok, S::Error>
+pub fn serialize_metadata<S>(metadata: &HashMap<String, String>, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -57,10 +54,7 @@ where
     ser.end()
 }
 
-pub fn serialize_framing<S>(
-    attributes: &HashMap<String, Framing>,
-    s: S,
-) -> Result<S::Ok, S::Error>
+pub fn serialize_framing<S>(attributes: &HashMap<String, Framing>, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -157,8 +151,7 @@ mod tests {
             "http://loc.1".to_string(),
             FramingScope {
                 predicate_id: "skos:exactMatch".to_string(),
-                framing_justification: "semapv:ManualMappingCuration"
-                    .to_string(),
+                framing_justification: "semapv:ManualMappingCuration".to_string(),
                 frame_meta: HashMap::new(),
             },
         );
@@ -167,8 +160,7 @@ mod tests {
             "http://loc.2".to_string(),
             FramingScope {
                 predicate_id: "skos:exactMatch".to_string(),
-                framing_justification: "semapv:ManualMappingCuration"
-                    .to_string(),
+                framing_justification: "semapv:ManualMappingCuration".to_string(),
                 frame_meta: HashMap::new(),
             },
         );

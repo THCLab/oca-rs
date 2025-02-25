@@ -1,19 +1,12 @@
-use crate::ocafile::{
-    error::InstructionError, instructions::helpers, Pair, Rule,
-};
+use crate::ocafile::{error::InstructionError, instructions::helpers, Pair, Rule};
 use indexmap::IndexMap;
 use log::{debug, info};
-use oca_ast_transformation::ast::{
-    Command, CommandType, ObjectKind, RenameContent
-};
+use oca_ast_transformation::ast::{Command, CommandType, ObjectKind, RenameContent};
 
 pub struct RenameInstruction {}
 
 impl RenameInstruction {
-    pub(crate) fn from_record(
-        record: Pair,
-        _index: usize,
-    ) -> Result<Command, InstructionError> {
+    pub(crate) fn from_record(record: Pair, _index: usize) -> Result<Command, InstructionError> {
         let mut object_kind = None;
         let kind = CommandType::Rename;
 
@@ -21,8 +14,7 @@ impl RenameInstruction {
         for object in record.into_inner() {
             match object.as_rule() {
                 Rule::rename_attributes => {
-                    let mut rename_attributes: IndexMap<String, String> =
-                        IndexMap::new();
+                    let mut rename_attributes: IndexMap<String, String> = IndexMap::new();
                     for attr_pairs in object.into_inner() {
                         match attr_pairs.as_rule() {
                             Rule::rename_attr_pairs => {
@@ -89,8 +81,7 @@ mod tests {
         // loop over instructions to check if the are meeting the requirements
         for (instruction, is_valid) in instructions {
             debug!("Instruction: {:?}", instruction);
-            let parsed_instruction =
-                OCAfileParser::parse(Rule::rename, instruction);
+            let parsed_instruction = OCAfileParser::parse(Rule::rename, instruction);
             debug!("Parsed instruction: {:?}", parsed_instruction);
 
             match parsed_instruction {
@@ -100,26 +91,19 @@ mod tests {
                     match instruction {
                         Some(instruction) => {
                             let instruction =
-                                RenameInstruction::from_record(instruction, 0)
-                                    .unwrap();
+                                RenameInstruction::from_record(instruction, 0).unwrap();
 
                             assert_eq!(instruction.kind, CommandType::Rename);
                             println!("{:?}", instruction.object_kind);
                             match instruction.object_kind {
                                 ObjectKind::Rename(rename_content) => {
                                     assert_eq!(
-                                        rename_content
-                                            .attributes
-                                            .unwrap()
-                                            .get("documentNumber"),
+                                        rename_content.attributes.unwrap().get("documentNumber"),
                                         Some(&"document_number".to_string())
                                     );
                                 }
                                 _ => {
-                                    assert!(
-                                        !is_valid,
-                                        "Instruction is not valid"
-                                    );
+                                    assert!(!is_valid, "Instruction is not valid");
                                 }
                             }
                         }

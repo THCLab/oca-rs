@@ -95,7 +95,10 @@ pub fn build_core_db_model(oca_build: &oca_bundle_semantics::build::OCABuild) ->
     result_models
 }
 
-fn apply_step(state: State, step: &oca_bundle_semantics::build::OCABuildStep) -> (State, ResultModel) {
+fn apply_step(
+    state: State,
+    step: &oca_bundle_semantics::build::OCABuildStep,
+) -> (State, ResultModel) {
     let mut current_state = state.clone();
     let mut result = ResultModel::new();
     let command_model = CommandModel::new(step.command.clone());

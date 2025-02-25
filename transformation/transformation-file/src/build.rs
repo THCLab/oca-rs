@@ -85,12 +85,12 @@ pub fn apply_command(
             if let Some(attributes) = content.attributes {
                 transformation.rename(attributes);
             }
-        },
+        }
         (ast::CommandType::Link, ast::ObjectKind::Link(content)) => {
             if let Some(attributes) = content.attributes {
                 transformation.link(attributes);
             }
-        },
+        }
         _ => {}
     }
 
@@ -136,8 +136,7 @@ mod tests {
                 let code = HashFunctionCode::Blake3_256;
                 let format = SerializationFormats::JSON;
                 let transformation_encoded = transformation.encode(&code, &format).unwrap();
-                let transformation_json =
-                    String::from_utf8(transformation_encoded).unwrap();
+                let transformation_json = String::from_utf8(transformation_encoded).unwrap();
                 println!("{}", transformation_json);
             }
             Err(e) => {

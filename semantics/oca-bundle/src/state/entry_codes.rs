@@ -1,5 +1,8 @@
 use indexmap::IndexMap;
-use serde::{ser::{SerializeSeq, SerializeMap}, Deserialize, Serialize};
+use serde::{
+    ser::{SerializeMap, SerializeSeq},
+    Deserialize, Serialize,
+};
 
 impl Serialize for EntryCodes {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

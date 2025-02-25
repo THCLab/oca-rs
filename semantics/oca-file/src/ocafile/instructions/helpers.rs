@@ -18,10 +18,10 @@ fn extract_attr_type(input: Pair) -> Result<NestedAttrType, ExtractingAttributeE
                 ExtractingAttributeError::Unexpected("Missing attribute type".to_string()).into()
             }
         },
-        Rule::alias => {
-            NestedAttrTypeFrame::Reference(oca_ast_semantics::ast::RefValue::Name(seed.as_str().to_string()))
-                .into()
-        }
+        Rule::alias => NestedAttrTypeFrame::Reference(oca_ast_semantics::ast::RefValue::Name(
+            seed.as_str().to_string(),
+        ))
+        .into(),
         Rule::said => match SelfAddressingIdentifier::from_str(seed.as_str()) {
             Ok(said) => NestedAttrTypeFrame::Reference(RefValue::Said(said)).into(),
             Err(e) => ExtractingAttributeError::SaidError(e).into(),
@@ -89,14 +89,11 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
     debug!("Extracting the attribute from: {:?}", attr_pair);
     for item in attr_pair.into_inner() {
         match item.as_rule() {
-            Rule::attr_key |
-            Rule::framing_metadata_key => {
+            Rule::attr_key | Rule::framing_metadata_key => {
                 key = item.as_str().to_string();
                 debug!("Extracting attribute key {:?}", key);
             }
-            Rule::key_value |
-            Rule::unit_value |
-            Rule::framing_metadata_value => {
+            Rule::key_value | Rule::unit_value | Rule::framing_metadata_value => {
                 if let Some(nested_item) = item.clone().into_inner().next() {
                     match nested_item.as_rule() {
                         Rule::string => {
@@ -104,7 +101,7 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
                                 nested_item
                                     .clone()
                                     .into_inner()
-                                    .last()
+                                    .next_back()
                                     .unwrap()
                                     .as_span()
                                     .as_str()
@@ -128,7 +125,7 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
                                             nested_item
                                                 .clone()
                                                 .into_inner()
-                                                .last()
+                                                .next_back()
                                                 .unwrap()
                                                 .as_span()
                                                 .as_str()
@@ -149,7 +146,7 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
                                         entry_codes.push(NestedValue::Value(
                                             el.clone()
                                                 .into_inner()
-                                                .last()
+                                                .next_back()
                                                 .unwrap()
                                                 .as_span()
                                                 .as_str()
@@ -187,7 +184,7 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
                         key = nested_item
                             .clone()
                             .into_inner()
-                            .last()
+                            .next_back()
                             .unwrap()
                             .as_span()
                             .as_str()
@@ -203,7 +200,7 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
                             entry_codes.push(NestedValue::Value(
                                 el.clone()
                                     .into_inner()
-                                    .last()
+                                    .next_back()
                                     .unwrap()
                                     .as_span()
                                     .as_str()
@@ -223,7 +220,7 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
                         key = nested_item
                             .clone()
                             .into_inner()
-                            .last()
+                            .next_back()
                             .unwrap()
                             .as_span()
                             .as_str()
@@ -238,7 +235,7 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
                             nested_item
                                 .clone()
                                 .into_inner()
-                                .last()
+                                .next_back()
                                 .unwrap()
                                 .as_span()
                                 .as_str()
@@ -258,7 +255,7 @@ pub fn extract_attribute_key_pairs(attr_pair: Pair) -> Option<(String, NestedVal
                                             nested_item
                                                 .clone()
                                                 .into_inner()
-                                                .last()
+                                                .next_back()
                                                 .unwrap()
                                                 .as_span()
                                                 .as_str()
@@ -307,12 +304,13 @@ pub fn extract_json_object(object: Pair) -> NestedValue {
                 for el in item.clone().into_inner() {
                     match el.as_rule() {
                         Rule::json_key => {
-                            key = el.clone()
+                            key = el
+                                .clone()
                                 .into_inner()
-                                .last()
+                                .next_back()
                                 .unwrap()
                                 .into_inner()
-                                .last()
+                                .next_back()
                                 .unwrap()
                                 .as_span()
                                 .as_str()
@@ -326,7 +324,7 @@ pub fn extract_json_object(object: Pair) -> NestedValue {
                                             nested_item
                                                 .clone()
                                                 .into_inner()
-                                                .last()
+                                                .next_back()
                                                 .unwrap()
                                                 .as_span()
                                                 .as_str()
@@ -364,11 +362,11 @@ pub fn extract_attributes_key_paris(object: Pair) -> Option<IndexMap<String, Nes
     for attr in object.into_inner() {
         debug!("Inside the object: {:?}", attr);
         match attr.as_rule() {
-            Rule::attr_key_pairs |
-            Rule::attr_entry_code_key_pairs |
-            Rule::attr_entry_key_pairs |
-            Rule::unit_attr_key_pairs |
-            Rule::attr_framing_key_pairs => {
+            Rule::attr_key_pairs
+            | Rule::attr_entry_code_key_pairs
+            | Rule::attr_entry_key_pairs
+            | Rule::unit_attr_key_pairs
+            | Rule::attr_framing_key_pairs => {
                 for attr in attr.into_inner() {
                     debug!("Parsing attribute {:?}", attr);
                     if let Some((key, value)) = extract_attribute_key_pairs(attr) {
@@ -422,7 +420,7 @@ pub fn extract_properites_key_pairs(object: Pair) -> Option<IndexMap<String, Nes
                 debug!("Parsing target alias: {:?}", attr.as_str());
                 properties.insert(
                     "target".to_string(),
-                    NestedValue::Reference(RefValue::Name(attr.as_str().to_string()))
+                    NestedValue::Reference(RefValue::Name(attr.as_str().to_string())),
                 );
             }
             Rule::said => {
@@ -433,7 +431,7 @@ pub fn extract_properites_key_pairs(object: Pair) -> Option<IndexMap<String, Nes
                         NestedValue::Reference(RefValue::Said(said)),
                     );
                 }
-            },
+            }
             Rule::unit_system => {
                 debug!("Parsing unit system: {:?}", attr.as_str());
                 properties.insert(
