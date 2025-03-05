@@ -49,7 +49,7 @@ ADD ATTR_FRAMING \
 
         assert_eq!(
             result.said.clone().unwrap().to_string(),
-            "EHP1RKZeYhIO7zTb9JJDfsNeTLaOp84GE9oDaEj9XlFk"
+            "ENrE_hCckfWbzflorW6rCZz9wAxcJKSQBMJEVJVAV6rV"
         );
 
         let code = HashFunctionCode::Blake3_256;
@@ -88,7 +88,7 @@ ADD ATTRIBUTE x=Text
 
         assert_eq!(
             result.said.unwrap().to_string(),
-            "EAMguWL--P5gad3xZoT2fd-qjoBDVkK82pb7KET1lrS1"
+            "EA4tLtFQd-xCvDBEEGuod6PkgjMdqORDQgbwdqhX1QLA"
         );
         Ok(())
     }
@@ -124,11 +124,11 @@ ADD ATTRIBUTE C=Array[refn:second]
 
         assert_eq!(
             result.said.unwrap().to_string(),
-            "EGv65yGtFZG5CSRaS4q46dC3UWsW3vycbMFOqPFPvhWi"
+            "EA6ptszucE7ehxcGJSDCHN3t-EG34CB1q_y0ZAckgJuD"
         );
 
         let from_ocafile = r#"
-FROM EE15xNvWNy89ZBFhMBukb2kovfO2Y73y1Si2oFFkWFpy
+FROM EKtnSYGee8OwkYKryA_ZEWaYPgJRdncBQrFxaqrFwK1y
 ADD ATTRIBUTE x=Text
 "#
         .to_string();
@@ -136,14 +136,14 @@ ADD ATTRIBUTE x=Text
         let result = facade.build_from_ocafile(from_ocafile)?;
         assert_eq!(
             result.said.unwrap().to_string(),
-            "EE-Ru8mxNWhql7Q2ibY2-uuK9cIKxR2S9rc-eRkEeBwO"
+            "EOtPb2eo7mPN2AgQin3jgXSWGzz00CV1TNvD9yN79rjq"
         );
         let refs = facade.fetch_all_refs().unwrap();
 
         assert_eq!(refs.len(), 2);
         assert_eq!(
             refs.get("second").unwrap(),
-            "EE15xNvWNy89ZBFhMBukb2kovfO2Y73y1Si2oFFkWFpy"
+            "EKtnSYGee8OwkYKryA_ZEWaYPgJRdncBQrFxaqrFwK1y"
         );
 
         Ok(())
@@ -173,7 +173,7 @@ ADD LINK refn:first ATTRS b=a
 
         assert_eq!(
             result.said.unwrap().to_string(),
-            "EPRLZDmCOMfUw4KE-BnRctyLmFhYrpSL0BlONgoKhgcR"
+            "ENFbq-Nzx23AuPvCRlGT-gMAnMqNnpsGdzfO4oQMhCNn"
         );
 
         Ok(())

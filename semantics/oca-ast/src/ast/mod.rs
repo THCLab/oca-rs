@@ -5,7 +5,7 @@ use serde::{
     ser::SerializeStruct,
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use std::hash::Hash;
+use std::{hash::Hash, sync::OnceLock};
 use std::{collections::HashMap, fmt, str::FromStr};
 use strum_macros::Display;
 use thiserror::Error;
@@ -165,33 +165,33 @@ impl Serialize for OverlayType {
         S: Serializer,
     {
         match self {
-            OverlayType::Label => serializer.serialize_str("spec/overlays/label/1.0"),
-            OverlayType::Information => serializer.serialize_str("spec/overlays/information/1.0"),
-            OverlayType::Encoding => serializer.serialize_str("spec/overlays/encoding/1.0"),
+            OverlayType::Label => serializer.serialize_str("spec/overlays/label/1.1"),
+            OverlayType::Information => serializer.serialize_str("spec/overlays/information/1.1"),
+            OverlayType::Encoding => serializer.serialize_str("spec/overlays/encoding/1.1"),
             OverlayType::CharacterEncoding => {
-                serializer.serialize_str("spec/overlays/character_encoding/1.0")
+                serializer.serialize_str("spec/overlays/character_encoding/1.1")
             }
-            OverlayType::Format => serializer.serialize_str("spec/overlays/format/1.0"),
-            OverlayType::Meta => serializer.serialize_str("spec/overlays/meta/1.0"),
-            OverlayType::Standard => serializer.serialize_str("spec/overlays/standard/1.0"),
-            OverlayType::Cardinality => serializer.serialize_str("spec/overlays/cardinality/1.0"),
-            OverlayType::Conditional => serializer.serialize_str("spec/overlays/conditional/1.0"),
-            OverlayType::Conformance => serializer.serialize_str("spec/overlays/conformance/1.0"),
-            OverlayType::EntryCode => serializer.serialize_str("spec/overlays/entry_code/1.0"),
-            OverlayType::Entry => serializer.serialize_str("spec/overlays/entry/1.0"),
-            OverlayType::Unit => serializer.serialize_str("spec/overlays/unit/1.0"),
-            OverlayType::AttributeMapping => serializer.serialize_str("spec/overlays/mapping/1.0"),
+            OverlayType::Format => serializer.serialize_str("spec/overlays/format/1.1"),
+            OverlayType::Meta => serializer.serialize_str("spec/overlays/meta/1.1"),
+            OverlayType::Standard => serializer.serialize_str("spec/overlays/standard/1.1"),
+            OverlayType::Cardinality => serializer.serialize_str("spec/overlays/cardinality/1.1"),
+            OverlayType::Conditional => serializer.serialize_str("spec/overlays/conditional/1.1"),
+            OverlayType::Conformance => serializer.serialize_str("spec/overlays/conformance/1.1"),
+            OverlayType::EntryCode => serializer.serialize_str("spec/overlays/entry_code/1.1"),
+            OverlayType::Entry => serializer.serialize_str("spec/overlays/entry/1.1"),
+            OverlayType::Unit => serializer.serialize_str("spec/overlays/unit/1.1"),
+            OverlayType::AttributeMapping => serializer.serialize_str("spec/overlays/mapping/1.1"),
             OverlayType::EntryCodeMapping => {
-                serializer.serialize_str("spec/overlays/entry_code_mapping/1.0")
+                serializer.serialize_str("spec/overlays/entry_code_mapping/1.1")
             }
-            OverlayType::Subset => serializer.serialize_str("spec/overlays/subset/1.0"),
-            OverlayType::UnitMapping => serializer.serialize_str("spec/overlays/unit_mapping/1.0"),
-            OverlayType::Layout => serializer.serialize_str("spec/overlays/layout/1.0"),
-            OverlayType::Sensitivity => serializer.serialize_str("spec/overlays/sensitivity/1.0"),
-            OverlayType::Link => serializer.serialize_str("spec/overlays/link/1.0"),
-            OverlayType::AttributeFraming => {
-                serializer.serialize_str("spec/overlays/attribute_framing/1.0")
-            }
+            OverlayType::Subset => serializer.serialize_str("spec/overlays/subset/1.1"),
+            OverlayType::UnitMapping => serializer.serialize_str("spec/overlays/unit_mapping/1.1"),
+            OverlayType::Layout => serializer.serialize_str("spec/overlays/layout/1.1"),
+            OverlayType::Sensitivity => serializer.serialize_str("spec/overlays/sensitivity/1.1"),
+            OverlayType::Link => serializer.serialize_str("spec/overlays/link/1.1"),
+            OverlayType::AttributeFraming => { 
+                serializer.serialize_str("spec/overlays/attribute_framing/1.1")
+            },
         }
     }
 }
@@ -281,38 +281,45 @@ impl fmt::Display for OverlayType {
     }
 }
 
+static OVERLAY_PATTERN: OnceLock<regex::Regex> = OnceLock::new();
+
 impl<'de> Deserialize<'de> for OverlayType {
     fn deserialize<D>(deserializer: D) -> Result<OverlayType, D::Error>
     where
         D: Deserializer<'de>,
     {
-        let s = String::deserialize(deserializer)?;
-        match s.as_str() {
-            "spec/overlays/label/1.0" => Ok(OverlayType::Label),
-            "spec/overlays/information/1.0" => Ok(OverlayType::Information),
-            "spec/overlays/encoding/1.0" => Ok(OverlayType::Encoding),
-            "spec/overlays/character_encoding/1.0" => Ok(OverlayType::CharacterEncoding),
-            "spec/overlays/format/1.0" => Ok(OverlayType::Format),
-            "spec/overlays/meta/1.0" => Ok(OverlayType::Meta),
-            "spec/overlays/standard/1.0" => Ok(OverlayType::Standard),
-            "spec/overlays/cardinality/1.0" => Ok(OverlayType::Cardinality),
-            "spec/overlays/conditional/1.0" => Ok(OverlayType::Conditional),
-            "spec/overlays/conformance/1.0" => Ok(OverlayType::Conformance),
-            "spec/overlays/entry_code/1.0" => Ok(OverlayType::EntryCode),
-            "spec/overlays/entry/1.0" => Ok(OverlayType::Entry),
-            "spec/overlays/unit/1.0" => Ok(OverlayType::Unit),
-            "spec/overlays/mapping/1.0" => Ok(OverlayType::AttributeMapping),
-            "spec/overlays/entry_code_mapping/1.0" => Ok(OverlayType::EntryCodeMapping),
-            "spec/overlays/subset/1.0" => Ok(OverlayType::Subset),
-            "spec/overlays/unit_mapping/1.0" => Ok(OverlayType::UnitMapping),
-            "spec/overlays/layout/1.0" => Ok(OverlayType::Layout),
-            "spec/overlays/sensitivity/1.0" => Ok(OverlayType::Sensitivity),
-            "spec/overlays/link/1.0" => Ok(OverlayType::Link),
-            "spec/overlays/attribute_framing/1.0" => Ok(OverlayType::AttributeFraming),
-            _ => Err(serde::de::Error::custom(format!(
-                "unknown overlay type: {}",
-                s
-            ))),
+        let overlay_type = String::deserialize(deserializer)?;
+        let pattern = OVERLAY_PATTERN.get_or_init(|| {
+            regex::Regex::new(r"^spec/overlays/(\w+)/(\d+\.\d+)$").unwrap()
+        });
+
+        if let Some(captures) = pattern.captures(&overlay_type) {
+            match captures.get(1).unwrap().as_str() {
+                "label" => Ok(OverlayType::Label),
+                "format" => Ok(OverlayType::Format),
+                "information" => Ok(OverlayType::Information),
+                "encoding" => Ok(OverlayType::Encoding),
+                "character_encoding" => Ok(OverlayType::CharacterEncoding),
+                "meta" => Ok(OverlayType::Meta),
+                "standard" => Ok(OverlayType::Standard),
+                "cardinality" => Ok(OverlayType::Cardinality),
+                "conditional" => Ok(OverlayType::Conditional),
+                "conformance" => Ok(OverlayType::Conformance),
+                "entry_code" => Ok(OverlayType::EntryCode),
+                "entry" => Ok(OverlayType::Entry),
+                "unit" => Ok(OverlayType::Unit),
+                "mapping" => Ok(OverlayType::AttributeMapping),
+                "entry_code_mapping" => Ok(OverlayType::EntryCodeMapping),
+                "subset" => Ok(OverlayType::Subset),
+                "unit_mapping" => Ok(OverlayType::UnitMapping),
+                "layout" => Ok(OverlayType::Layout),
+                "sensitivity" => Ok(OverlayType::Sensitivity),
+                "link" => Ok(OverlayType::Link),
+                "attribute_framing" => Ok(OverlayType::AttributeFraming),
+                _ => Err(serde::de::Error::custom("Unknown overlay type"))
+            }
+        } else {
+            Err(serde::de::Error::custom("Invalid overlay type format"))
         }
     }
 }
