@@ -1,6 +1,6 @@
 [package]
 name = "oca-file-semantics"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 authors = ["Marcin Olichwiruk <marcin.olichwiruk@opensoftware.pl>", "Robert Mitwicki <robert.mitwicki@opensoftware.pl>", "Michał Pietrus <michal.pietrus@opensoftware.pl>"]
 license = "EUPL-1.2"
@@ -18,7 +18,7 @@ pest = "2.5.1"
 pest_derive = "2.5.1"
 pretty_assertions = "1.3.0"
 thiserror = "1.0.38"
-oca-ast-semantics = { version = "0.7.0", path = "../oca-ast" }
+oca-ast-semantics = { version = "0.7.1", path = "../oca-ast" }
 said = { version = "0.4.1", features = ["macros"] }
 log = "0.4.20"
 env_logger = "0.10.0"
