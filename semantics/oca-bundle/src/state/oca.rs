@@ -140,10 +140,11 @@ impl OCABox {
         }
 
         for attribute in self.attributes.values() {
+            let overlay_version = "1.1".to_string();
             if attribute.encoding.is_some() {
                 let mut encoding_ov = overlays
                     .iter_mut()
-                    .find(|x| x.overlay_type().eq(&OverlayType::CharacterEncoding));
+                    .find(|x| x.overlay_type().eq(&OverlayType::CharacterEncoding(overlay_version.clone())));
                 if encoding_ov.is_none() {
                     overlays.push(Box::new(overlay::CharacterEncoding::new()));
                     encoding_ov = overlays.last_mut();
@@ -157,7 +158,7 @@ impl OCABox {
             if attribute.format.is_some() {
                 let mut format_ov = overlays
                     .iter_mut()
-                    .find(|x| x.overlay_type().eq(&OverlayType::Format));
+                    .find(|x| x.overlay_type().eq(&OverlayType::Format(overlay_version.clone())));
                 if format_ov.is_none() {
                     overlays.push(Box::new(overlay::Format::new()));
                     format_ov = overlays.last_mut();
@@ -170,7 +171,7 @@ impl OCABox {
             if attribute.conformance.is_some() {
                 let mut conformance_ov = overlays
                     .iter_mut()
-                    .find(|x| x.overlay_type().eq(&OverlayType::Conformance));
+                    .find(|x| x.overlay_type().eq(&OverlayType::Conformance(overlay_version.clone())));
                 if conformance_ov.is_none() {
                     overlays.push(Box::new(overlay::Conformance::new()));
                     conformance_ov = overlays.last_mut();
@@ -183,7 +184,7 @@ impl OCABox {
             if attribute.cardinality.is_some() {
                 let mut cardinality_ov = overlays
                     .iter_mut()
-                    .find(|x| x.overlay_type().eq(&OverlayType::Cardinality));
+                    .find(|x| x.overlay_type().eq(&OverlayType::Cardinality(overlay_version.clone())));
                 if cardinality_ov.is_none() {
                     overlays.push(Box::new(overlay::Cardinality::new()));
                     cardinality_ov = overlays.last_mut();
@@ -196,7 +197,7 @@ impl OCABox {
             if attribute.condition.is_some() {
                 let mut conditional_ov = overlays
                     .iter_mut()
-                    .find(|x| x.overlay_type().eq(&OverlayType::Conditional));
+                    .find(|x| x.overlay_type().eq(&OverlayType::Conditional(overlay_version.clone())));
                 if conditional_ov.is_none() {
                     overlays.push(Box::new(overlay::Conditional::new()));
                     conditional_ov = overlays.last_mut();
@@ -209,7 +210,7 @@ impl OCABox {
             if attribute.unit.is_some() {
                 let mut unit_ov = overlays
                     .iter_mut()
-                    .find(|x| x.overlay_type().eq(&OverlayType::Unit));
+                    .find(|x| x.overlay_type().eq(&OverlayType::Unit(overlay_version.clone())));
                 if unit_ov.is_none() {
                     overlays.push(Box::new(overlay::Unit::new()));
                     unit_ov = overlays.last_mut();
@@ -222,7 +223,7 @@ impl OCABox {
             if attribute.entry_codes.is_some() {
                 let mut entry_code_ov = overlays
                     .iter_mut()
-                    .find(|x| x.overlay_type().eq(&OverlayType::EntryCode));
+                    .find(|x| x.overlay_type().eq(&OverlayType::EntryCode(overlay_version.clone())));
                 if entry_code_ov.is_none() {
                     overlays.push(Box::new(overlay::EntryCode::new()));
                     entry_code_ov = overlays.last_mut();
@@ -235,7 +236,7 @@ impl OCABox {
             if let Some(entries) = &attribute.entries {
                 for lang in entries.keys() {
                     let mut entry_ov = overlays.iter_mut().find(|x| {
-                        x.overlay_type().eq(&OverlayType::Entry) && x.language() == Some(lang)
+                        x.overlay_type().eq(&OverlayType::Entry(overlay_version.clone())) && x.language() == Some(lang)
                     });
                     if entry_ov.is_none() {
                         overlays.push(Box::new(overlay::Entry::new(*lang)));
@@ -250,7 +251,7 @@ impl OCABox {
             if let Some(labels) = &attribute.labels {
                 for lang in labels.keys() {
                     let mut label_ov = overlays.iter_mut().find(|x| {
-                        x.overlay_type().eq(&OverlayType::Label) && x.language() == Some(lang)
+                        x.overlay_type().eq(&OverlayType::Label(overlay_version.clone())) && x.language() == Some(lang)
                     });
                     if label_ov.is_none() {
                         overlays.push(Box::new(overlay::Label::new(*lang)));
@@ -265,7 +266,7 @@ impl OCABox {
             if let Some(information) = &attribute.informations {
                 for lang in information.keys() {
                     let mut info_ov = overlays.iter_mut().find(|x| {
-                        x.overlay_type().eq(&OverlayType::Information) && x.language() == Some(lang)
+                        x.overlay_type().eq(&OverlayType::Information(overlay_version.clone())) && x.language() == Some(lang)
                     });
                     if info_ov.is_none() {
                         overlays.push(Box::new(overlay::Information::new(*lang)));
@@ -351,7 +352,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                     .map_err(|e| serde::de::Error::custom(format!("Overlay type: {e}")))?;
 
                 match overlay_type {
-                    OverlayType::AttributeMapping => {
+                    OverlayType::AttributeMapping(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::AttributeMapping>()
@@ -362,7 +363,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::CharacterEncoding => {
+                    OverlayType::CharacterEncoding(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::CharacterEncoding>()
@@ -373,7 +374,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::Cardinality => {
+                    OverlayType::Cardinality(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::Cardinality>()
@@ -382,7 +383,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::Conformance => {
+                    OverlayType::Conformance(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::Conformance>()
@@ -391,7 +392,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::Conditional => {
+                    OverlayType::Conditional(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::Conditional>()
@@ -400,7 +401,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::Entry => {
+                    OverlayType::Entry(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::Entry>()
@@ -409,7 +410,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::EntryCode => {
+                    OverlayType::EntryCode(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::EntryCode>()
@@ -418,7 +419,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::EntryCodeMapping => {
+                    OverlayType::EntryCodeMapping(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::EntryCodeMapping>()
@@ -429,7 +430,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::Unit => {
+                    OverlayType::Unit(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::Unit>()
@@ -440,7 +441,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                     }
 
                     #[cfg(feature = "format_overlay")]
-                    OverlayType::Format => {
+                    OverlayType::Format(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::Format>()
@@ -450,7 +451,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                         ));
                     }
 
-                    OverlayType::Information => {
+                    OverlayType::Information(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::Information>()
@@ -459,7 +460,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::Label => {
+                    OverlayType::Label(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::Label>()
@@ -468,7 +469,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::Meta => {
+                    OverlayType::Meta(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::Meta>()
@@ -496,7 +497,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     } */
-                    OverlayType::Subset => {
+                    OverlayType::Subset(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::Subset>()
@@ -505,7 +506,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::Standard => {
+                    OverlayType::Standard(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::Standard>()
@@ -514,7 +515,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::Link => {
+                    OverlayType::Link(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::Link>()
@@ -523,7 +524,7 @@ impl<'de> Deserialize<'de> for DynOverlay {
                                 })?,
                         ));
                     }
-                    OverlayType::AttributeFraming => {
+                    OverlayType::AttributeFraming(_) => {
                         return Ok(Box::new(
                             de_overlay
                                 .deserialize_into::<overlay::AttributeFraming>()
@@ -567,19 +568,19 @@ where
     }
 
     let overlays_many = [
-        OverlayType::Meta,
-        OverlayType::Entry,
-        OverlayType::Label,
-        OverlayType::Information,
-        OverlayType::Link,
-        OverlayType::AttributeFraming,
+        "meta",
+        "entry",
+        "label",
+        "information",
+        "link",
+        "attribute_framing",
     ];
 
     let mut overlays_map: BTreeMap<Value, OverlayValue> = BTreeMap::new();
     for overlay in overlays {
         let o_type_str = overlay.overlay_type().to_string().to_case(Case::Snake);
 
-        if overlays_many.contains(overlay.overlay_type()) {
+        if overlays_many.contains(&o_type_str.as_str()) {
             if let Some(OverlayValue::Array(ov)) =
                 overlays_map.get_mut(&Value::String(o_type_str.clone()))
             {
@@ -957,7 +958,7 @@ impl OCABundle {
 
         self.overlays.iter().for_each(|overlay| {
             match overlay.overlay_type() {
-                OverlayType::CharacterEncoding => {
+                OverlayType::CharacterEncoding(_) => {
                     let character_encoding = overlay
                         .as_any()
                         .downcast_ref::<overlay::CharacterEncoding>()
@@ -975,7 +976,7 @@ impl OCABundle {
                     let command = Command {
                         kind: CommandType::Add,
                         object_kind: ObjectKind::Overlay(
-                            OverlayType::CharacterEncoding,
+                            overlay.overlay_type().clone(),
                             Content {
                                 attributes: Some(attributes),
                                 properties: None,
@@ -985,7 +986,7 @@ impl OCABundle {
                     ast.commands.push(command);
                 }
                 #[cfg(feature = "format_overlay")]
-                OverlayType::Format => {
+                OverlayType::Format(_) => {
                     let format = overlay.as_any().downcast_ref::<overlay::Format>().unwrap();
                     let mut attributes = IndexMap::new();
                     for (attr_name, format) in format.attribute_formats.iter() {
@@ -994,7 +995,7 @@ impl OCABundle {
                     let command = Command {
                         kind: CommandType::Add,
                         object_kind: ObjectKind::Overlay(
-                            OverlayType::Format,
+                            overlay.overlay_type().clone(),
                             Content {
                                 attributes: Some(attributes),
                                 properties: None,
@@ -1003,7 +1004,7 @@ impl OCABundle {
                     };
                     ast.commands.push(command);
                 }
-                OverlayType::Meta => {
+                OverlayType::Meta(_) => {
                     let meta = overlay.as_any().downcast_ref::<overlay::Meta>().unwrap();
                     let mut properties = IndexMap::new();
                     properties.insert(
@@ -1019,7 +1020,7 @@ impl OCABundle {
                     let command = Command {
                         kind: CommandType::Add,
                         object_kind: ObjectKind::Overlay(
-                            OverlayType::Meta,
+                            overlay.overlay_type().clone(),
                             Content {
                                 attributes: None,
                                 properties: Some(properties),
@@ -1028,7 +1029,7 @@ impl OCABundle {
                     };
                     ast.commands.push(command);
                 }
-                OverlayType::Label => {
+                OverlayType::Label(_) => {
                     let label = overlay.as_any().downcast_ref::<overlay::Label>().unwrap();
                     let mut properties = IndexMap::new();
                     properties.insert(
@@ -1044,7 +1045,7 @@ impl OCABundle {
                     let command = Command {
                         kind: CommandType::Add,
                         object_kind: ObjectKind::Overlay(
-                            OverlayType::Label,
+                            overlay.overlay_type().clone(),
                             Content {
                                 attributes: Some(attributes),
                                 properties: Some(properties),
@@ -1053,7 +1054,7 @@ impl OCABundle {
                     };
                     ast.commands.push(command);
                 }
-                OverlayType::Information => {
+                OverlayType::Information(_) => {
                     let information = overlay
                         .as_any()
                         .downcast_ref::<overlay::Information>()
@@ -1078,7 +1079,7 @@ impl OCABundle {
                     let command = Command {
                         kind: CommandType::Add,
                         object_kind: ObjectKind::Overlay(
-                            OverlayType::Information,
+                            overlay.overlay_type().clone(),
                             Content {
                                 attributes: Some(attributes),
                                 properties: Some(properties),
@@ -1087,7 +1088,7 @@ impl OCABundle {
                     };
                     ast.commands.push(command);
                 }
-                OverlayType::Conditional => {
+                OverlayType::Conditional(_) => {
                     let conditional = overlay
                         .as_any()
                         .downcast_ref::<overlay::Conditional>()
@@ -1110,7 +1111,7 @@ impl OCABundle {
                     let command = Command {
                         kind: CommandType::Add,
                         object_kind: ObjectKind::Overlay(
-                            OverlayType::Conditional,
+                            overlay.overlay_type().clone(),
                             Content {
                                 attributes: Some(attributes),
                                 properties: None,
@@ -1119,7 +1120,7 @@ impl OCABundle {
                     };
                     ast.commands.push(command);
                 }
-                OverlayType::Conformance => {
+                OverlayType::Conformance(_) => {
                     let conformance = overlay
                         .as_any()
                         .downcast_ref::<overlay::Conformance>()
@@ -1132,7 +1133,7 @@ impl OCABundle {
                     let command = Command {
                         kind: CommandType::Add,
                         object_kind: ObjectKind::Overlay(
-                            OverlayType::Conformance,
+                            overlay.overlay_type().clone(),
                             Content {
                                 attributes: Some(attributes),
                                 properties: None,
@@ -1141,7 +1142,7 @@ impl OCABundle {
                     };
                     ast.commands.push(command);
                 }
-                OverlayType::EntryCode => {
+                OverlayType::EntryCode(_) => {
                     let entry_code = overlay
                         .as_any()
                         .downcast_ref::<overlay::EntryCode>()
@@ -1188,7 +1189,7 @@ impl OCABundle {
                     let command = Command {
                         kind: CommandType::Add,
                         object_kind: ObjectKind::Overlay(
-                            OverlayType::EntryCode,
+                            overlay.overlay_type().clone(),
                             Content {
                                 attributes: Some(attributes),
                                 properties: None,
@@ -1197,7 +1198,7 @@ impl OCABundle {
                     };
                     ast.commands.push(command);
                 }
-                OverlayType::Entry => {
+                OverlayType::Entry(_) => {
                     let entry = overlay.as_any().downcast_ref::<overlay::Entry>().unwrap();
                     let mut properties = IndexMap::new();
                     properties.insert(
@@ -1233,7 +1234,7 @@ impl OCABundle {
                     let command = Command {
                         kind: CommandType::Add,
                         object_kind: ObjectKind::Overlay(
-                            OverlayType::Entry,
+                            overlay.overlay_type().clone(),
                             Content {
                                 attributes: Some(attributes),
                                 properties: Some(properties),
@@ -1242,7 +1243,7 @@ impl OCABundle {
                     };
                     ast.commands.push(command);
                 }
-                OverlayType::Cardinality => {
+                OverlayType::Cardinality(_) => {
                     let cardinality = overlay
                         .as_any()
                         .downcast_ref::<overlay::Cardinality>()
@@ -1255,7 +1256,7 @@ impl OCABundle {
                     let command = Command {
                         kind: CommandType::Add,
                         object_kind: ObjectKind::Overlay(
-                            OverlayType::Cardinality,
+                            overlay.overlay_type().clone(),
                             Content {
                                 attributes: Some(attributes),
                                 properties: None,
@@ -1264,7 +1265,7 @@ impl OCABundle {
                     };
                     ast.commands.push(command);
                 }
-                OverlayType::Unit => {
+                OverlayType::Unit(_) => {
                     let unit_ov = overlay.as_any().downcast_ref::<overlay::Unit>().unwrap();
                     let mut attributes = IndexMap::new();
                     for (attr_name, unit) in unit_ov.attribute_unit.iter() {
@@ -1277,7 +1278,7 @@ impl OCABundle {
                     let command = Command {
                         kind: CommandType::Add,
                         object_kind: ObjectKind::Overlay(
-                            OverlayType::Unit,
+                            overlay.overlay_type().clone(),
                             Content {
                                 attributes: Some(attributes),
                                 properties: None,

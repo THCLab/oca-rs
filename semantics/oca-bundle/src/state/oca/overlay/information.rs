@@ -86,11 +86,12 @@ impl Overlay for InformationOverlay {
     }
 }
 impl InformationOverlay {
-    pub fn new(lang: Language) -> InformationOverlay {
-        InformationOverlay {
+    pub fn new(lang: Language) -> Self {
+        let overlay_version = "1.1".to_string();
+        Self {
             capture_base: None,
             said: None,
-            overlay_type: OverlayType::Information,
+            overlay_type: OverlayType::Information(overlay_version),
             language: lang,
             attribute_information: HashMap::new(),
         }

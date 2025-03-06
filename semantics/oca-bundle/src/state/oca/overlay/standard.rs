@@ -66,10 +66,11 @@ impl Overlay for StandardOverlay {
 }
 impl StandardOverlay {
     pub fn new() -> Box<StandardOverlay> {
+        let overlay_version = "1.1".to_string();
         Box::new(StandardOverlay {
             capture_base: None,
             said: None,
-            overlay_type: OverlayType::Standard,
+            overlay_type: OverlayType::Standard(overlay_version),
             attribute_standards: HashMap::new(),
         })
     }

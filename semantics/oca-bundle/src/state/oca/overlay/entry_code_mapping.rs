@@ -49,11 +49,12 @@ impl Overlay for EntryCodeMappingOverlay {
     }
 }
 impl EntryCodeMappingOverlay {
-    pub fn new() -> Box<EntryCodeMappingOverlay> {
-        Box::new(EntryCodeMappingOverlay {
+    pub fn new() -> Box<Self> {
+        let overlay_version = "1.1".to_string();
+        Box::new(Self {
             capture_base: None,
             said: None,
-            overlay_type: OverlayType::EntryCodeMapping,
+            overlay_type: OverlayType::EntryCodeMapping(overlay_version),
             attribute_entry_codes_mapping: BTreeMap::new(),
         })
     }

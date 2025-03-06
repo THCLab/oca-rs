@@ -48,11 +48,12 @@ impl Overlay for AttributeMappingOverlay {
     }
 }
 impl AttributeMappingOverlay {
-    pub fn new() -> Box<AttributeMappingOverlay> {
-        Box::new(AttributeMappingOverlay {
+    pub fn new() -> Box<Self> {
+        let overlay_version = "1.1".to_string();
+        Box::new(Self {
             capture_base: None,
             said: None,
-            overlay_type: OverlayType::AttributeMapping,
+            overlay_type: OverlayType::AttributeMapping(overlay_version),
             attribute_mapping: BTreeMap::new(),
         })
     }

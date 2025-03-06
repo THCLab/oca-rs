@@ -171,15 +171,16 @@ impl Validator {
                 }
             }
 
+            let overlay_version = "1.1".to_string();
             for overlay_type in &[
-                OverlayType::Entry,
-                OverlayType::Information,
-                OverlayType::Label,
+                OverlayType::Entry(overlay_version.clone()),
+                OverlayType::Information(overlay_version.clone()),
+                OverlayType::Label(overlay_version.clone()),
             ] {
                 let typed_overlays: Vec<_> = oca_bundle
                     .overlays
                     .iter()
-                    .filter(|x| x.overlay_type().eq(overlay_type))
+                    .filter(|x| x.overlay_type().to_string().eq(&overlay_type.to_string()))
                     .collect();
                 if typed_overlays.is_empty() {
                     continue;

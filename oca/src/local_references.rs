@@ -51,7 +51,7 @@ pub fn replace_refn_with_refs<R: References>(
             }
         }
 
-        if let (CommandType::Add, ObjectKind::Overlay(OverlayType::Link, content)) =
+        if let (CommandType::Add, ObjectKind::Overlay(OverlayType::Link(_), content)) =
             (&command.kind, &mut command.object_kind)
         {
             if let Some(properties) = &mut content.properties {

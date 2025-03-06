@@ -147,10 +147,11 @@ macro_rules! overlay {
 
             impl [<$name Overlay>] {
                 pub fn new() -> Self {
+                    let overlay_version = "1.1".to_string();
                     Self {
                         capture_base: None,
                         said: None,
-                        overlay_type: oca_ast_semantics::ast::OverlayType::$name,
+                        overlay_type: oca_ast_semantics::ast::OverlayType::$name(overlay_version),
                         $field1: std::collections::HashMap::new(),
 
                     }

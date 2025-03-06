@@ -129,10 +129,11 @@ impl AttributeFramingOverlay {
     pub fn new(id: String) -> Self {
         let mut metadata = HashMap::new();
         metadata.insert("frame_id".to_string(), id);
+        let overlay_version = "1.1".to_string();
         Self {
             capture_base: None,
             said: None,
-            overlay_type: OverlayType::AttributeFraming,
+            overlay_type: OverlayType::AttributeFraming(overlay_version),
             metadata,
             attribute_framing: HashMap::new(),
         }
@@ -172,7 +173,8 @@ mod tests {
         // even that attribute has 2 lagnuage only one attribute should be added to the overlay according to it's language
         overlay.add(&attr);
 
-        assert_eq!(overlay.overlay_type, OverlayType::AttributeFraming);
+        let overlay_version = "1.1".to_string();
+        assert_eq!(overlay.overlay_type, OverlayType::AttributeFraming(overlay_version));
         assert_eq!(overlay.attribute_framing.len(), 1);
     }
 }

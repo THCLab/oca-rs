@@ -15,10 +15,11 @@ impl RemoveInstruction {
 
         debug!("Parsing remove instruction: {:?}", record);
         for object in record.into_inner() {
+            let overlay_version = "1.1".to_string();
             match object.as_rule() {
                 Rule::remove_meta => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::Meta,
+                        OverlayType::Meta(overlay_version),
                         Content {
                             properties: Some(extract_properties_pairs(object)),
                             attributes: None,
@@ -39,7 +40,7 @@ impl RemoveInstruction {
                 }
                 Rule::remove_label => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::Label,
+                        OverlayType::Label(overlay_version),
                         Content {
                             properties: Some(extract_properties_pairs(object.clone())),
                             attributes: Some(extract_attribute_pairs(object)),

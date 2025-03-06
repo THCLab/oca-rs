@@ -14,10 +14,11 @@ impl AddInstruction {
 
         debug!("Parsing add instruction from the record: {:?}", record);
         for object in record.into_inner() {
+            let overlay_version = "1.1".to_string();
             match object.as_rule() {
                 Rule::meta => {
                     object_kind = Some(ObjectKind::Overlay(
-                        oca_ast_semantics::ast::OverlayType::Meta,
+                        oca_ast_semantics::ast::OverlayType::Meta(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
@@ -67,79 +68,79 @@ impl AddInstruction {
                 }
                 Rule::information => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::Information,
+                        OverlayType::Information(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
                 Rule::character_encoding => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::CharacterEncoding,
+                        OverlayType::CharacterEncoding(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
                 Rule::character_encoding_props => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::CharacterEncoding,
+                        OverlayType::CharacterEncoding(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
                 Rule::label => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::Label,
+                        OverlayType::Label(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
                 Rule::unit => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::Unit,
+                        OverlayType::Unit(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
                 Rule::format => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::Format,
+                        OverlayType::Format(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
                 Rule::conformance => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::Conformance,
+                        OverlayType::Conformance(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
                 Rule::conditional => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::Conditional,
+                        OverlayType::Conditional(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
                 Rule::cardinality => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::Cardinality,
+                        OverlayType::Cardinality(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
                 Rule::entry_code => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::EntryCode,
+                        OverlayType::EntryCode(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
                 Rule::entry => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::Entry,
+                        OverlayType::Entry(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
                 Rule::link => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::Link,
+                        OverlayType::Link(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
                 Rule::attribute_framing => {
                     object_kind = Some(ObjectKind::Overlay(
-                        OverlayType::AttributeFraming,
+                        OverlayType::AttributeFraming(overlay_version),
                         helpers::extract_content(object),
                     ));
                 }
@@ -266,8 +267,7 @@ mod tests {
                             assert_eq!(instruction.kind, CommandType::Add);
                             match instruction.object_kind {
                                 ObjectKind::Overlay(overlay_type, content) => match overlay_type {
-                                    OverlayType::EntryCode => {
-                                        assert_eq!(overlay_type, OverlayType::EntryCode);
+                                    OverlayType::EntryCode(_) => {
                                         let attr_array = NestedValue::Array(vec![
                                             NestedValue::Value("o1".to_string()),
                                             NestedValue::Value("o2".to_string()),
@@ -279,8 +279,7 @@ mod tests {
                                             &attr_array
                                         );
                                     }
-                                    OverlayType::Format => {
-                                        assert_eq!(overlay_type, OverlayType::Format);
+                                    OverlayType::Format(_) => {
                                         let attr_array = NestedValue::Value("^\\d+$".to_string());
 
                                         assert_eq!(
@@ -288,8 +287,7 @@ mod tests {
                                             &attr_array
                                         );
                                     }
-                                    OverlayType::CharacterEncoding => {
-                                        assert_eq!(overlay_type, OverlayType::CharacterEncoding);
+                                    OverlayType::CharacterEncoding(_) => {
                                         let attr_array = NestedValue::Value("utf-16le".to_string());
 
                                         assert_eq!(

@@ -92,10 +92,11 @@ impl Overlay for MetaOverlay {
 
 impl MetaOverlay {
     pub fn new(lang: Language, attr_pairs: HashMap<String, String>) -> Self {
+        let overlay_version = "1.1".to_string();
         Self {
             capture_base: None,
             said: None,
-            overlay_type: OverlayType::Meta,
+            overlay_type: OverlayType::Meta(overlay_version),
             language: lang,
             attr_pairs,
         }

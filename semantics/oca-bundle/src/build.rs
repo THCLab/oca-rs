@@ -155,7 +155,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
         }
         (ast::CommandType::Add, ast::ObjectKind::Overlay(overlay_type, content)) => {
             match overlay_type {
-                ast::OverlayType::Meta => {
+                ast::OverlayType::Meta(_) => {
                     if let Some(ref properties) = content.properties {
                         let mut mut_properties = properties.clone();
                         let lang = mut_properties.remove("lang");
@@ -171,7 +171,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                         }
                     }
                 }
-                ast::OverlayType::Label => {
+                ast::OverlayType::Label(_) => {
                     let mut lang_iso = None;
                     if let Some(ref properties) = content.properties {
                         let mut mut_properties = properties.clone();
@@ -197,7 +197,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                         }
                     }
                 }
-                ast::OverlayType::Information => {
+                ast::OverlayType::Information(_) => {
                     let mut lang_iso = None;
                     if let Some(ref properties) = content.properties {
                         let mut mut_properties = properties.clone();
@@ -223,7 +223,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                         }
                     }
                 }
-                ast::OverlayType::CharacterEncoding => {
+                ast::OverlayType::CharacterEncoding(_) => {
                     if let Some(ref attributes) = content.attributes {
                         for (attr_name, attr_type_value) in attributes {
                             let mut attribute = oca
@@ -246,7 +246,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                         }
                     }
                 }
-                ast::OverlayType::Conformance => {
+                ast::OverlayType::Conformance(_) => {
                     if let Some(ref attributes) = content.attributes {
                         for (attr_name, attr_type_value) in attributes {
                             let mut attribute = oca
@@ -265,7 +265,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                         }
                     }
                 }
-                ast::OverlayType::Format => {
+                ast::OverlayType::Format(_) => {
                     #[cfg(feature = "format_overlay")]
                     {
                         if let Some(ref attributes) = content.attributes {
@@ -286,7 +286,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                         }
                     }
                 }
-                ast::OverlayType::Unit => {
+                ast::OverlayType::Unit(_) => {
                     if let Some(ref attributes) = content.attributes {
                         for (attr_name, attr_type_value) in attributes {
                             let mut attribute = oca
@@ -304,7 +304,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                         }
                     }
                 }
-                ast::OverlayType::Cardinality => {
+                ast::OverlayType::Cardinality(_) => {
                     if let Some(ref attributes) = content.attributes {
                         for (attr_name, attr_type_value) in attributes {
                             let mut attribute = oca
@@ -322,7 +322,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                         }
                     }
                 }
-                ast::OverlayType::Conditional => {
+                ast::OverlayType::Conditional(_) => {
                     if let Some(ref attributes) = content.attributes {
                         for (attr_name, attr_type_value) in attributes {
                             let mut attribute = oca
@@ -340,7 +340,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                         }
                     }
                 }
-                ast::OverlayType::EntryCode => {
+                ast::OverlayType::EntryCode(_) => {
                     if let Some(ref attributes) = content.attributes {
                         for (attr_name, attr_type_value) in attributes {
                             let mut attribute = oca
@@ -399,7 +399,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                         }
                     }
                 }
-                ast::OverlayType::Entry => {
+                ast::OverlayType::Entry(_) => {
                     let mut lang_iso = None;
                     if let Some(ref properties) = content.properties {
                         let mut mut_properties = properties.clone();
@@ -448,7 +448,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                         }
                     }
                 }
-                ast::OverlayType::Link => {
+                ast::OverlayType::Link(_) => {
                     let mut target_bundle = None;
                     if let Some(ref properties) = content.properties {
                         if let Some(ast::NestedValue::Reference(ast::RefValue::Said(target_said))) =
@@ -479,7 +479,7 @@ pub fn apply_command(base: Option<OCABox>, op: ast::Command) -> Result<OCABox, V
                         }
                     }
                 }
-                ast::OverlayType::AttributeFraming => {
+                ast::OverlayType::AttributeFraming(_) => {
                     let mut frame_id = None;
                     let mut frame_meta = HashMap::new();
                     if let Some(ref properties) = content.properties {
@@ -614,10 +614,11 @@ mod tests {
             "description".to_string(),
             ast::NestedValue::Value("Entrance credential".to_string()),
         );
+        let overlay_version = "1.1".to_string();
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::Meta,
+                ast::OverlayType::Meta(overlay_version.clone()),
                 ast::Content {
                     attributes: None,
                     properties: Some(properties),
@@ -646,7 +647,7 @@ mod tests {
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::Label,
+                ast::OverlayType::Label(overlay_version.clone()),
                 ast::Content {
                     attributes: Some(attributes),
                     properties: Some(properties),
@@ -675,7 +676,7 @@ mod tests {
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::Information,
+                ast::OverlayType::Information(overlay_version.clone()),
                 ast::Content {
                     attributes: Some(attributes),
                     properties: Some(properties),
@@ -699,7 +700,7 @@ mod tests {
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::CharacterEncoding,
+                ast::OverlayType::CharacterEncoding(overlay_version.clone()),
                 ast::Content {
                     attributes: Some(attributes),
                     properties: None,
@@ -717,7 +718,7 @@ mod tests {
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::Conformance,
+                ast::OverlayType::Conformance(overlay_version.clone()),
                 ast::Content {
                     attributes: Some(attributes),
                     properties: None,
@@ -787,10 +788,11 @@ mod tests {
             "description".to_string(),
             ast::NestedValue::Value("Entrance credential".to_string()),
         );
+        let overlay_version = "1.1".to_string();
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::Meta,
+                ast::OverlayType::Meta(overlay_version.clone()),
                 ast::Content {
                     attributes: None,
                     properties: Some(properties),
@@ -819,7 +821,7 @@ mod tests {
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::Label,
+                ast::OverlayType::Label(overlay_version.clone()),
                 ast::Content {
                     attributes: Some(attributes),
                     properties: Some(properties),
@@ -848,7 +850,7 @@ mod tests {
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::Information,
+                ast::OverlayType::Information(overlay_version.clone()),
                 ast::Content {
                     attributes: Some(attributes),
                     properties: Some(properties),
@@ -872,7 +874,7 @@ mod tests {
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::CharacterEncoding,
+                ast::OverlayType::CharacterEncoding(overlay_version.clone()),
                 ast::Content {
                     attributes: Some(attributes),
                     properties: None,
@@ -890,7 +892,7 @@ mod tests {
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::Conformance,
+                ast::OverlayType::Conformance(overlay_version.clone()),
                 ast::Content {
                     attributes: Some(attributes),
                     properties: None,
@@ -918,7 +920,7 @@ mod tests {
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::EntryCode,
+                ast::OverlayType::EntryCode(overlay_version.clone()),
                 ast::Content {
                     attributes: Some(attributes),
                     properties: None,

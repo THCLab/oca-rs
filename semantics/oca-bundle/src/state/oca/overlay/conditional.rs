@@ -166,10 +166,11 @@ impl Overlay for ConditionalOverlay {
 }
 impl ConditionalOverlay {
     pub fn new() -> Self {
+        let overlay_version = "1.1".to_string();
         Self {
             capture_base: None,
             said: None,
-            overlay_type: OverlayType::Conditional,
+            overlay_type: OverlayType::Conditional(overlay_version),
             attribute_conditions: BTreeMap::new(),
             attribute_dependencies: BTreeMap::new(),
         }

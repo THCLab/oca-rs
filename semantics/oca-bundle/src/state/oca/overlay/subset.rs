@@ -42,10 +42,11 @@ impl Overlay for SubsetOverlay {
 }
 impl SubsetOverlay {
     pub fn new() -> Box<SubsetOverlay> {
+        let overlay_version = "1.1".to_string();
         Box::new(SubsetOverlay {
             capture_base: None,
             said: None,
-            overlay_type: OverlayType::Subset,
+            overlay_type: OverlayType::Subset(overlay_version),
             attributes: vec![],
         })
     }

@@ -177,6 +177,7 @@ mod tests {
     #[test]
     fn test_build_core_db_model() -> Result<(), Vec<String>> {
         let mut commands = vec![];
+        let overlay_version = "1.1".to_string();
 
         // 1. ADD ATTR abc
         commands.push(ast::Command {
@@ -194,7 +195,7 @@ mod tests {
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::Label,
+                ast::OverlayType::Label(overlay_version.clone()),
                 Content {
                     attributes: Some(indexmap! {
                         "abc".to_string() => ast::NestedValue::Value("ble".to_string())
@@ -222,7 +223,7 @@ mod tests {
         commands.push(ast::Command {
             kind: ast::CommandType::Add,
             object_kind: ast::ObjectKind::Overlay(
-                ast::OverlayType::Label,
+                ast::OverlayType::Label(overlay_version.clone()),
                 Content {
                     attributes: Some(indexmap! {
                         "abc".to_string() => ast::NestedValue::Value("ble".to_string())
