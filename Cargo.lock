@@ -775,7 +775,7 @@ dependencies = [
 
 [[package]]
 name = "oca-file"
-version = "2.0.0-rc.6"
+version = "2.0.0"
 dependencies = [
  "clap",
  "convert_case",
