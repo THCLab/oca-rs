@@ -309,10 +309,7 @@ ADD Overlay CHARACTER_ENCODING
     i="utf-8"
     passed="utf-8"
 ADD Overlay CONFORMANCE
-  attribute_conformances
-    d="M"
-    i="M"
-    passed="M"
+  attribute_conformances=["d", "i", "passed"]
 ADD Overlay LABEL
   language="en"
   attribute_labels
