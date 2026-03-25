@@ -721,7 +721,7 @@ dependencies = [
 
 [[package]]
 name = "oca-ast"
-version = "2.0.0-rc.5"
+version = "2.0.0"
 dependencies = [
  "env_logger",
  "indexmap",
