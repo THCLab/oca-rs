@@ -25,7 +25,7 @@ isolang = { version = "2.3.0", features = ["serde"] }
 lazy_static = "1.4.0"
 linked-hash-map = { version = "0.5.6", features = ["serde_impl"] }
 oca-ast = { path = "../oca-ast/", version = "2.0.0-rc.5" }
-overlay-file = { path = "../overlay-file/", version = "1.0.0-rc.8" }
+overlay-file = { path = "../overlay-file/", version = "1.0.0" }
 oca-file = { path = "../oca-file/", version = "2.0.0-rc.6" }
 paste = "1.0.11"
 piccolo = "0.3.3"

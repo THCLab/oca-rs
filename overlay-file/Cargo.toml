@@ -1,6 +1,6 @@
 [package]
 name = "overlay-file"
-version = "1.0.0-rc.8"
+version = "1.0.0"
 edition = "2024"
 authors = ["Human Colossus <contact@humancolossus.org>"]
 license = "EUPL-1.2"
