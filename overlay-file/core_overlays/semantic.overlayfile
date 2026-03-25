@@ -23,9 +23,8 @@ ADD OVERLAY character_encoding
 
 ADD OVERLAY conformance
   VERSION 2.0.0
-  ADD OBJECT attribute_conformances
-    WITH KEYS attr-names
-    WITH VALUES text
+  ADD ARRAY attribute_conformances
+    WITH VALUES attr-names
 
 ADD OVERLAY format
   VERSION 2.0.0
